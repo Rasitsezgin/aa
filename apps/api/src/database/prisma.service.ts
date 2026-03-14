@@ -22,8 +22,8 @@ export class PrismaService
       try {
         pool = new Pool({ connectionString });
         adapter = new PrismaPg(pool as any);
-      } catch (error) {
-        this.logger.warn(`Failed to create database pool: ${error.message}`);
+      } catch (error: any) {
+        // Log after super() is called
         pool = null;
       }
     }
