@@ -1,7 +1,15 @@
 import { PrismaClient, Plan, UserType, Platform, OrderStatus, PaymentStatus } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
-const prisma = new PrismaClient();
+const pool = process.env.DATABASE_URL
+  ? new Pool({ connectionString: process.env.DATABASE_URL })
+  : null;
+
+const prisma = new PrismaClient({
+  ...(pool ? { adapter: new PrismaPg(pool as any) } : {}),
+});
 
 // ============================================================================
 // GERÇEK TÜRK E-TİCARET SEED DATA
@@ -641,10 +649,10 @@ async function main() {
   const existingStores = await prisma.store.count({ where: { tenantId: tenant.id } });
   if (existingStores === 0) {
     const storeData = [
-      { name: 'TechStore Trendyol', platform: 'TRENDYOL' as Platform, storeUrl: 'https://www.trendyol.com/magaza/techstore', isActive: true, totalProducts: 25, totalOrders: 1250 },
-      { name: 'TechStore Hepsiburada', platform: 'HEPSIBURADA' as Platform, storeUrl: 'https://www.hepsiburada.com/magaza/techstore', isActive: true, totalProducts: 22, totalOrders: 890 },
-      { name: 'TechStore Amazon', platform: 'AMAZON' as Platform, storeUrl: 'https://www.amazon.com.tr/shops/techstore', isActive: true, totalProducts: 20, totalOrders: 650 },
-      { name: 'TechStore N11', platform: 'N11' as Platform, storeUrl: 'https://www.n11.com/magaza/techstore', isActive: false, totalProducts: 15, totalOrders: 320 },
+      { name: 'TechStore Trendyol', platform: 'TRENDYOL' as Platform, shopUrl: 'https://www.trendyol.com/magaza/techstore', status: 'active', productCount: 25, orderCount: 1250 },
+      { name: 'TechStore Hepsiburada', platform: 'HEPSIBURADA' as Platform, shopUrl: 'https://www.hepsiburada.com/magaza/techstore', status: 'active', productCount: 22, orderCount: 890 },
+      { name: 'TechStore Amazon', platform: 'AMAZON' as Platform, shopUrl: 'https://www.amazon.com.tr/shops/techstore', status: 'active', productCount: 20, orderCount: 650 },
+      { name: 'TechStore N11', platform: 'N11' as Platform, shopUrl: 'https://www.n11.com/magaza/techstore', status: 'inactive', productCount: 15, orderCount: 320 },
     ];
     for (const store of storeData) {
       await prisma.store.create({ data: { tenantId: tenant.id, ...store } });
@@ -777,4 +785,7 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    if (pool) {
+      await pool.end();
+    }
   });

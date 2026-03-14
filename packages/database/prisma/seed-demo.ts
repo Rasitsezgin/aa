@@ -1,7 +1,15 @@
 import { PrismaClient, UserType } from '@pazaryonetimi/database';
 import bcrypt from 'bcryptjs';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
-const prisma = new PrismaClient();
+const pool = process.env.DATABASE_URL
+  ? new Pool({ connectionString: process.env.DATABASE_URL })
+  : null;
+
+const prisma = new PrismaClient({
+  ...(pool ? { adapter: new PrismaPg(pool as any) } : {}),
+});
 
 async function main() {
   console.log('Seeding initial users...');
@@ -84,4 +92,7 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    if (pool) {
+      await pool.end();
+    }
   });

@@ -1,4 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
+const { PrismaPg } = require('@prisma/adapter-pg');
+const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
@@ -40,7 +42,13 @@ if (!ADMIN_PASSWORD) {
     process.exit(1);
 }
 
-const prisma = new PrismaClient();
+const pool = process.env.DATABASE_URL
+    ? new Pool({ connectionString: process.env.DATABASE_URL })
+    : null;
+
+const prisma = new PrismaClient({
+    ...(pool ? { adapter: new PrismaPg(pool) } : {}),
+});
 
 async function main() {
     console.log('Seeding initial users (JS version) with dynamic DB URL...');
@@ -113,4 +121,7 @@ main()
     })
     .finally(async () => {
         await prisma.$disconnect();
+        if (pool) {
+            await pool.end();
+        }
     });

@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -12,7 +14,19 @@ const createPrismaClient = (): PrismaClient => {
     process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/postgres'
   }
 
+  let adapter
+  try {
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+    adapter = new PrismaPg(pool as any)
+  } catch (error: any) {
+    if (process.env.NODE_ENV === 'production') {
+      throw error
+    }
+    console.error('Failed to create database adapter:', error.message)
+  }
+
   return new PrismaClient({
+    ...(adapter ? { adapter } : {}),
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   })
 }
