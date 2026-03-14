@@ -1,0 +1,76 @@
+{
+    "features": {
+        "hero": {
+            "title": "Tek Platform. Sonsuz Yetenek.",
+            "description": "Stok takibinden e-faturaya, yapay zeka SEO'dan kargo entegrasyonuna kadar ihtiyacınız olan her şey tek bir noktada."
+        },
+        "items": [
+            {
+                "title": "Akıllı Stok Yönetimi",
+                "description": "Trendyol'da ürün satılınca Amazon stoğunuz otomatik düşer. Kritik stok uyarıları ile yok satmayı engelleyin.",
+                "icon": "Box"
+            },
+            {
+                "title": "AI SEO Motoru",
+                "description": "Google Gemini 1.5 teknolojisi ile ürün açıklamalarınızı ve başlıklarınızı saniyeler içinde mükemmelleştirin.",
+                "icon": "Wand2"
+            },
+            {
+                "title": "Otomatik E-Fatura",
+                "description": "Satış gerçekleştiği an faturanız oluşturulur ve müşteriye e-posta ile gönderilir. Muhasebe hiç bu kadar kolay olmamıştı.",
+                "icon": "FileText"
+            },
+            {
+                "title": "Kargo Entegrasyonu",
+                "description": "Yurt içi ve MNG Kargo ile tek tıkla barkod basın. Kargo durumunu müşterinize SMS ile bildirin.",
+                "icon": "Truck"
+            }
+        ]
+    },
+    "solutions": {
+        "hero": {
+            "title": "Her İş Modeli İçin Özel Çözüm.",
+            "description": "İster yeni başlayan bir girişimci olun, ister dev bir operasyon yönetin. Pazaryonetimi size uyum sağlar."
+        },
+        "segments": [
+            {
+                "title": "Yeni Girişimciler",
+                "description": "E-ticarete hızlı bir başlangıç yapın. Karmaşık Excel tabloları yerine profesyonel bir panel ile işinize odaklanın.",
+                "features": [
+                    "Kolay Kurulum",
+                    "Temel Raporlar",
+                    "Uygun Fiyat"
+                ]
+            },
+            {
+                "title": "KOBİ'ler",
+                "description": "Büyüyen iş hacminizi kontrol altına alın. Personel yetkilendirmesi ve toplu işlemler ile zaman kazanın.",
+                "features": [
+                    "Çoklu Kullanıcı",
+                    "Toplu Ürün Düzenleme",
+                    "Rakip Analizi"
+                ]
+            },
+            {
+                "title": "Kurumsal Markalar",
+                "description": "Global pazarlara açılın. Amazon Europe, Etsy ve özel API entegrasyonları ile sınırları kaldırın.",
+                "features": [
+                    "Özel API Desteği",
+                    "7/24 VIP Destek",
+                    "Sınırsız Pazaryeri"
+                ]
+            }
+        ]
+    },
+    "contact": {
+        "hero": {
+            "title": "Bize Ulaşın",
+            "description": "Sorularınız mı var? Ekibimiz size yardımcı olmaktan mutluluk duyar."
+        },
+        "info": {
+            "email": "destek@pazaryonetimi.com",
+            "phone": "+90 850 123 45 67",
+            "address": "Teknopark İstanbul, Sanayi Mah. Teknoloji Bulvarı, İstanbul"
+        }
+    }
+}

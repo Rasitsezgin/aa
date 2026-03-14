@@ -1,0 +1,40 @@
+{
+    "manifest_version": 3,
+    "name": "Pazaryönetimi.com AI Assistant",
+    "version": "1.0.0",
+    "description": "Pazaryeri rakip analizi ve içerik otomasyon asistanı",
+    "action": {
+        "default_popup": "index.html"
+    },
+    "permissions": [
+        "activeTab",
+        "storage",
+        "scripting",
+        "alarms"
+    ],
+    "host_permissions": [
+        "https://*.trendyol.com/*",
+        "https://*.amazon.com.tr/*",
+        "https://*.hepsiburada.com/*",
+        "https://*.n11.com/*",
+        "https://*.ciceksepeti.com/*",
+        "http://localhost:3001/*",
+        "https://api.pazaryonetimi.com/*"
+    ],
+    "background": {
+        "service_worker": "src/background/index.ts",
+        "type": "module"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://*.trendyol.com/*",
+                "https://*.amazon.com.tr/*",
+                "https://*.hepsiburada.com/*"
+            ],
+            "js": [
+                "src/content/index.tsx"
+            ]
+        }
+    ]
+}

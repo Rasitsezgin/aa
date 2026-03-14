@@ -1,0 +1,2043 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum UserType {
+  SUPERADMIN
+  ADMIN
+  USER
+}
+
+enum Platform {
+  // Türkiye Pazaryerleri
+  TRENDYOL
+  AMAZON
+  HEPSIBURADA
+  N11
+  CICEKSEPETI
+  GITTIGIDIYOR
+  PTTAVM
+  MORHIPO
+  // Global Pazaryerleri
+  AMAZON_US
+  AMAZON_UK
+  AMAZON_DE
+  AMAZON_FR
+  EBAY
+  ETSY
+  ALIEXPRESS
+  SHOPEE
+  LAZADA
+  WALMART
+  SHOPIFY
+  WOOCOMMERCE
+  // Özel
+  WEBSITE
+  OTHER
+}
+
+enum ServiceType {
+  // Kargo
+  SHIPPING_ARAS
+  SHIPPING_YURTICI
+  SHIPPING_MNG
+  SHIPPING_PTT
+  SHIPPING_UPS
+  SHIPPING_DHL
+  SHIPPING_FEDEX
+  SHIPPING_OTHER
+  // Ödeme
+  PAYMENT_IYZICO
+  PAYMENT_PAYTR
+  PAYMENT_PARAM
+  PAYMENT_STRIPE
+  PAYMENT_OTHER
+  // E-Fatura
+  EINVOICE_FORIBA
+  EINVOICE_LOGO
+  EINVOICE_PARASUT
+  EINVOICE_EFINANS
+  EINVOICE_OTHER
+  // SMS
+  SMS_NETGSM
+  SMS_ILETIMERKEZI
+  SMS_OTHER
+  // E-posta
+  EMAIL_SMTP
+  EMAIL_SENDGRID
+  EMAIL_OTHER
+}
+
+model Tenant {
+  id          String   @id @default(uuid())
+  name        String
+  domain      String?  @unique
+  slug        String?  @unique
+  plan        Plan     @default(FREE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Corporate & Billing Info
+  taxOffice      String?
+  taxNumber      String?
+  companyType    String?   // e.g., "Limited", "Anonim"
+  address        String?
+  city           String?
+  district       String?
+  postcode       String?
+  phone          String?
+  isOnboarded    Boolean   @default(false)
+  status         String    @default("active") // "active", "trial", "suspended", "cancelled"
+  lastActiveAt   DateTime  @default(now())
+  logo           String?
+
+  // SEO & Verification
+  googleVerificationCode String?
+  bingVerificationCode   String?
+  yandexVerificationCode String?
+  metaExtra              Json?     // Custom meta tags
+
+  users           User[]
+  roles           Role[]
+  products        Product[]
+  integrations    Integration[]
+  modules         PurchasedModule[]
+  tenantModules   TenantModule[]
+  settings        TenantSettings?
+  serviceCredentials ServiceCredential[]
+  
+  competitors     Competitor[]
+  priceHistories  PriceHistory[]
+  salesForecasts  SalesForecast[]
+  orders          Order[]
+  supportTickets  SupportTicket[]
+  adminTasks      AdminTask[]
+  messages        OmnichannelMessage[]
+  
+  // 2FA & Security
+  // (None currently relating to Tenant directly, mostly User)
+
+  // Backup & DR
+  backupSchedules BackupSchedule[]
+  backupJobs      BackupJob[]
+  restoreJobs     RestoreJob[]
+  drSettings      DrSettings?
+
+  // Search
+  searchHistory   SearchHistory[]
+  savedSearches   SavedSearch[]
+
+  // New models
+  webhooks        Webhook[]
+  automations     Automation[]
+  campaigns       Campaign[]
+  reviews         Review[]
+  stores          Store[]
+  payments        Payment[]
+  shipments       Shipment[]
+  reports         Report[]
+  scheduledReports ScheduledReport[]
+  apiKeys         ApiKey[]
+  bulkActions     BulkAction[]
+  seoAnalyses     SeoAnalysis[]
+  pricingRules    PricingRule[]
+  dashboardLayouts DashboardLayout[]
+  returns         Return[]
+  priceExperiments PriceExperiment[]
+  webhookSecret    String?  // Şifreli, per-tenant webhook imzalama
+  
+  // AI İçerik Optimizasyonu
+  contentAnalyses      ContentAnalysis[]
+  contentOptimizations ContentOptimization[]
+  contentBatchJobs     ContentBatchJob[]
+  contentTemplates     ContentTemplate[]
+  contentRules         ContentRule[]
+
+  // Depo Yönetimi
+  warehouses           Warehouse[]
+  warehouseTransfers   WarehouseTransfer[]
+
+  featureRequests      FeatureRequest[]
+}
+
+model TenantSettings {
+  id        String @id @default(uuid())
+  tenantId  String @unique
+  tenant    Tenant @relation(fields: [tenantId], references: [id])
+  theme     Json?
+  config    Json?
+}
+
+model ServiceCredential {
+  id           String      @id @default(uuid())
+  tenantId     String
+  tenant       Tenant      @relation(fields: [tenantId], references: [id])
+  serviceType  ServiceType
+  label        String?     // Kullanıcının verdiği ad ("Ana iyzico hesabım", "Aras Kurumsal")
+  apiUrl       String?     // Şifreli
+  apiKey       String?     // Şifreli
+  apiSecret    String?     // Şifreli
+  apiExtra     Json?       // Ek bilgiler (merchantId, taxNumber vb.)
+  isActive     Boolean     @default(true)
+  isDefault    Boolean     @default(false) // Bu servis tipi için varsayılan mı?
+  lastTestedAt DateTime?
+  lastTestOk   Boolean?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([tenantId, serviceType])
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  firstName     String?
+  lastName      String?
+  phone         String?
+  type          UserType @default(USER)
+  roleId        String?
+  role          Role?    @relation(fields: [roleId], references: [id])
+  tenantId      String?
+  tenant        Tenant?  @relation(fields: [tenantId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret String?
+  dashboardConfig Json?
+  permissions   Permission[]
+  accounts      Account[]
+  sessions      Session[]
+  
+  assignedTasks AdminTask[] @relation("TaskAssignee")
+  createdTasks  AdminTask[] @relation("TaskCreator")
+
+  // 2FA & Security
+  twoFactorDevices TwoFactorDevice[]
+  backupCodes      BackupCode[]
+  temporaryCodes   TemporaryCode[]
+  trustedDevices   TrustedDevice[]
+  
+  // Search
+  searchHistory    SearchHistory[]
+  savedSearches    SavedSearch[]
+
+  // New relations
+  apiKeys          ApiKey[]
+  dashboardLayouts DashboardLayout[]
+  bulkActions      BulkAction[]
+  status           String  @default("active")
+  
+  featureRequests  FeatureRequest[]
+}
+
+model SystemConfig {
+  id        String   @id @default("default")
+  maintenanceMode Boolean @default(false)
+  maintenanceMessage String?
+  maintenanceEnd DateTime?
+  updatedAt DateTime @updatedAt
+}
+
+model Role {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  tenantId    String?
+  tenant      Tenant?      @relation(fields: [tenantId], references: [id])
+  users       User[]
+  permissions Permission[]
+  isSystem    Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Permission {
+  id        String   @id @default(uuid())
+  action    String   // e.g., "product:create"
+  resource  String   // e.g., "product"
+  roles     Role[]
+  // Optional: direct assignment to user override
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+  title         String
+  description   String?
+  sku           String
+  barcode       String?
+  price         Decimal  
+  costPrice     Decimal? 
+  stock         Int      @default(0)
+  category      String?
+  brand         String?
+  status        String   @default("active") // active, paused, draft
+  tags          Json?
+  weight        Decimal? 
+  
+  variants      ProductVariant[]
+  images        Image[]
+  aiMetadata    Json?    // AI optimized content, SEO keywords, suggestions
+  
+  marketplaceLinks MarketplaceProduct[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  competitorProducts CompetitorProduct[]
+  salesForecasts     SalesForecast[]
+  orderItems         OrderItem[]
+  inventoryLogs      InventoryLog[]
+
+  // AI İçerik Optimizasyonu
+  contentAnalyses      ContentAnalysis[]
+  contentOptimizations ContentOptimization[]
+  contentBatchItems    ContentBatchItem[]
+
+  @@index([tenantId])
+}
+
+model ProductVariant {
+  id          String   @id @default(uuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  sku         String   @unique
+  barcode     String?
+  price       Decimal  
+  costPrice   Decimal?
+  stock       Int      @default(0)
+  
+  // Options (e.g., {"Renk": "Kırmızı", "Beden": "XL"})
+  options     Json?
+  
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([productId])
+  @@index([sku])
+}
+
+model Image {
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  url       String
+  isMain    Boolean @default(false)
+  altText   String?
+  processed Boolean @default(false) // If AI processed (background removal etc)
+}
+
+model Integration {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  platform    Platform
+  apiKey      String
+  apiSecret   String
+  apiExtra    Json?    // For other keys like merchantId
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MarketplaceProduct {
+  id                String   @id @default(uuid())
+  productId         String
+  product           Product  @relation(fields: [productId], references: [id])
+  marketplaceListingId String  // ID in the marketplace (e.g., Trendyol product ID)
+  platform          Platform
+  status            String   // ACTIVE, BLOCKED, etc.
+  stock             Int
+  price             Decimal  
+  lastSyncAt        DateTime @default(now())
+}
+
+model PurchasedModule {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  moduleKey String   // e.g., "AI_SEO", "COMPETITOR_ANALYSIS"
+  expiresAt DateTime?
+  isActive  Boolean  @default(true)
+}
+
+model AiJob {
+  id          String   @id @default(uuid())
+  tenantId    String
+  type        String   // SEO_OPTIMIZATION, IMAGE_PROCESSING, etc.
+  status      String   // PENDING, PROCESSING, COMPLETED, FAILED
+  inputData   Json?
+  outputData  Json?
+  error       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+model AiModel {
+  id          String   @id @default(uuid())
+  name        String   // "GPT-4", "Claude 3", "Gemini Pro" vs
+  slug        String   @unique // "gpt-4", "claude-3", etc.
+  provider    String   // "openai", "anthropic", "google", "local"
+  apiKey      String?  // API anahtarı (şifreli olmalı)
+  baseUrl     String?  // Custom endpoint için
+  modelId     String   // Provider'ın model ID'si
+  description String?
+  isActive    Boolean  @default(true)
+  order       Int      @default(0) // Gösterim sırası
+  
+  // Yetenekler ve özellikler
+  capabilities Json?   // { "seo": true, "analysis": true, "image": false }
+  config       Json?   // Provider-specific config
+  
+  // İstatistikler
+  tokensUsed   Int     @default(0)
+  callsCount   Int     @default(0)
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  advisorMessages AdvisorMessage[]
+  
+  @@index([isActive])
+}
+
+model AdvisorMessage {
+  id          String   @id @default(uuid())
+  aiModelId   String
+  aiModel     AiModel  @relation(fields: [aiModelId], references: [id], onDelete: Cascade)
+  
+  domain      String   // Analiz edilen site
+  score       Int      // SEO skoru
+  message     String   // AI'nın mesajı
+  suggestions Json?    // Yapılandırılmış öneriler
+  
+  createdAt   DateTime @default(now())
+}
+
+// ==================== MARKET INTELLIGENCE (Faz 1) ====================
+
+model Competitor {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  name        String
+  platform    Platform
+  storeUrl    String?
+  logoUrl     String?
+  rating      Decimal? 
+  reviewCount Int      @default(0)
+  isActive    Boolean  @default(true)
+  
+  products    CompetitorProduct[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([platform])
+}
+
+model CompetitorProduct {
+  id              String   @id @default(uuid())
+  competitorId    String
+  competitor      Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  productId       String?  // Our related product (if mapped)
+  product         Product? @relation(fields: [productId], references: [id])
+  
+  marketplaceId   String   // ID in the marketplace
+  url             String?
+  title           String
+  price           Decimal  
+  stock           Int?
+  rating          Decimal? 
+  reviewCount     Int      @default(0)
+  
+  priceHistory    PriceHistory[]
+  
+  lastCheckedAt   DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([competitorId])
+  @@index([productId])
+  @@index([marketplaceId])
+}
+
+model PriceHistory {
+  id                  String   @id @default(uuid())
+  tenantId            String
+  tenant              Tenant   @relation(fields: [tenantId], references: [id])
+  productId           String?  // Our product
+  competitorProductId String?  // Or competitor's product
+  
+  price               Decimal  
+  platform            Platform
+  
+  competitorProduct   CompetitorProduct? @relation(fields: [competitorProductId], references: [id])
+  
+  createdAt           DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([productId])
+  @@index([competitorProductId])
+  @@index([createdAt])
+}
+
+model SalesForecast {
+  id              String   @id @default(uuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  forecastDate    DateTime
+  predictedSales  Int
+  confidenceScore Decimal   // 0.00 to 1.00
+  
+  metadata        Json?    // Factors considered (seasonal, trend, etc.)
+  
+  createdAt       DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([productId])
+  @@index([forecastDate])
+}
+
+model CmsPage {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  title     String
+  content   String  
+  category  String   // e.g., "urun", "sirket", "kaynaklar", "yasal"
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([slug])
+  @@index([category])
+}
+
+// ==================== FINANCE & OMNICHANNEL (Faz 3) ====================
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+model Order {
+  id              String   @id @default(uuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  
+  platform        Platform
+  marketplaceOrderId String   // ID in the marketplace
+  
+  status          OrderStatus @default(PENDING)
+  paymentStatus   PaymentStatus @default(UNPAID)
+  
+  customerName    String?
+  customerEmail   String?
+  customerPhone   String?
+  shippingAddress String?
+  billingAddress  String?
+  
+  totalAmount     Decimal  
+  taxAmount       Decimal  
+  shippingCost    Decimal   @default(0)
+  commissionAmount Decimal  @default(0)
+  netProfit       Decimal   @default(0)
+  currency        String   @default("TRY")
+  
+  trackingNumber  String?
+  shippingProvider String?
+  notes           String? 
+  
+  items           OrderItem[]
+  invoice         Invoice?
+  supportTickets  SupportTicket[]
+  
+  orderDate       DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([platform])
+  @@index([status])
+}
+
+model OrderItem {
+  id              String   @id @default(uuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId       String?
+  product         Product? @relation(fields: [productId], references: [id])
+  
+  sku             String
+  title           String
+  quantity        Int
+  unitPrice       Decimal  
+  taxRate         Decimal   // e.g., 20.00
+  discountAmount  Decimal   @default(0)
+  
+  createdAt       DateTime @default(now())
+}
+
+// ─── İade Yönetimi (RMA) ────────────────────────────────
+model Return {
+  id              String       @id @default(uuid())
+  tenantId        String
+  tenant          Tenant       @relation(fields: [tenantId], references: [id])
+  
+  orderId         String
+  platform        Platform
+  
+  customerName    String
+  customerEmail   String?
+  customerPhone   String?
+  
+  status          ReturnStatus @default(PENDING)
+  reason          ReturnReason
+  reasonDetail    String?     
+  
+  items           ReturnItem[]
+  
+  refundAmount    Decimal       @default(0)
+  shippingCost    Decimal       @default(0)
+  restockFee      Decimal       @default(0)
+  refundMethod    String?      // original_payment, store_credit, bank_transfer
+  
+  trackingNumber  String?
+  notes           String?     
+  resolution      String?      // refund, replacement, repair, rejected
+  
+  requestDate     DateTime     @default(now())
+  resolvedDate    DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([orderId])
+}
+
+model ReturnItem {
+  id          String  @id @default(uuid())
+  returnId    String
+  returnReq   Return  @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  
+  sku         String
+  title       String
+  quantity    Int
+  unitPrice   Decimal 
+  condition   String? // unopened, opened, damaged, defective
+}
+
+enum ReturnStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SHIPPED
+  RECEIVED
+  INSPECTING
+  REFUNDED
+  COMPLETED
+  CANCELLED
+}
+
+enum ReturnReason {
+  DEFECTIVE
+  WRONG_ITEM
+  NOT_AS_DESCRIBED
+  CHANGED_MIND
+  DAMAGED_IN_SHIPPING
+  LATE_DELIVERY
+  DUPLICATE_ORDER
+  OTHER
+}
+
+model MarketplaceCommission {
+  id              String   @id @default(uuid())
+  platform        Platform
+  category        String?
+  commissionRate  Decimal   // e.g., 15.50 for 15.5%
+  fixedFee        Decimal   @default(0)
+  lastUpdated     DateTime @default(now())
+  
+  @@unique([platform, category])
+}
+
+model Invoice {
+  id              String   @id @default(uuid())
+  tenantId        String?
+  orderId         String   @unique
+  order           Order    @relation(fields: [orderId], references: [id])
+  
+  invoiceNumber   String   @unique
+  invoiceDate     DateTime @default(now())
+  
+  // E-Fatura alanları
+  type            String   @default("SATIS") // SATIS, IADE, ISTISNA, OZELMATRAH, IHRACKAYITLI, TEVKIFAT
+  scenario        String   @default("TEMEL")  // TEMEL, TICARI, IHRACAT, YOLCU_BERABER 
+  
+  // Alıcı bilgileri
+  buyerTitle      String?
+  buyerTaxNumber  String?
+  buyerTaxOffice  String?
+  buyerAddress    String?
+  buyerCity       String?
+  buyerDistrict   String?
+  buyerEmail      String?
+  
+  // Satıcı bilgileri (tenant'dan çekilir ama burada da saklanır)
+  sellerTitle     String?
+  sellerTaxNumber String?
+  sellerTaxOffice String?
+  
+  // Tutar bilgileri
+  subtotal        Decimal?
+  taxAmount       Decimal?
+  totalAmount     Decimal?
+  currency        String   @default("TRY")
+  
+  // Kalem detayları
+  items           Json?    // E-fatura kalemleri
+  
+  // E-fatura durumu
+  status          String   @default("DRAFT") // DRAFT, PENDING, SENT, ACCEPTED, REJECTED, CANCELLED
+  
+  // GIB bilgileri
+  gibInvoiceId    String?  // GIB UUID
+  gibEnvelopeId   String?  // GIB zarf ID
+  gibStatusCode   String?
+  gibStatusDesc   String?
+  
+  url             String?  // PDF link
+  xmlUrl          String?  // UBL-TR XML link
+  
+  sentAt          DateTime?
+  acceptedAt      DateTime?
+  
+  notes           String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([status])
+  @@index([gibInvoiceId])
+}
+
+model InventoryLog {
+  id              String   @id @default(uuid())
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id])
+  
+  change          Int      // e.g., -1 for sale, +10 for restock
+  type            String   // SALE, RESTOCK, RETURN, ADJUSTMENT
+  description     String?
+  previousStock   Int      @default(0)
+  newStock        Int      @default(0)
+  note            String?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([productId])
+}
+
+// ==================== CUSTOMER SUPPORT & AI CRM (Faz 5) ====================
+
+model SupportTicket {
+  id            String   @id @default(uuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+  marketplaceId String?  // ID in the marketplace if applicable
+  platform      Platform
+  subject       String
+  status        String   @default("OPEN") // OPEN, PENDING, RESOLVED, CLOSED
+  priority      String   @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  
+  orderId       String?
+  order         Order?   @relation(fields: [orderId], references: [id])
+  
+  customerName  String?
+  customerEmail String?
+  
+  messages      OmnichannelMessage[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([platform])
+  @@index([status])
+}
+
+model OmnichannelMessage {
+  id              String   @id @default(uuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  ticketId        String
+  ticket          SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  content         String  
+  senderType      String   // CUSTOMER, SYSTEM, AGENT
+  platformMessageId String? // ID in the marketplace
+  isRead          Boolean  @default(false)
+  
+  aiSuggestion    String?  // AI generated response draft
+  
+  createdAt       DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([ticketId])
+}
+
+// ==================== MODÜLER SİSTEM ====================
+
+enum ModuleCategory {
+  AI_TOOLS
+  ANALYTICS
+  MARKETPLACE
+  FINANCE
+  MARKETING
+  LOGISTICS
+  AUTOMATION
+  REPORTS
+}
+
+enum AnnouncementType {
+  INFO
+  WARNING
+  SUCCESS
+  PROMOTION
+  MAINTENANCE
+  UPDATE
+}
+
+enum AnnouncementTarget {
+  ALL
+  FREE_USERS
+  PRO_USERS
+  ENTERPRISE_USERS
+  SPECIFIC_TENANTS
+}
+
+model SystemModule {
+  id            String         @id @default(uuid())
+  key           String         @unique // Örn: "AI_SEO", "COMPETITOR_ANALYSIS"
+  name          String         // Görünen isim
+  description   String?       
+  icon          String?        // Lucide icon ismi
+  category      ModuleCategory
+  
+  // Fiyatlandırma
+  basePrice     Decimal         @default(0)
+  monthlyPrice  Decimal         @default(0)
+  yearlyPrice   Decimal?       
+  
+  // Plan kısıtlamaları
+  requiredPlan  Plan           @default(FREE)
+  isCore        Boolean        @default(false) // Temel modül mü (kaldırılamaz)
+  isActive      Boolean        @default(true)
+  isBeta        Boolean        @default(false)
+  isNew         Boolean        @default(false)
+  
+  // Özellikler ve yapılandırma
+  features      Json?          // Modül özellikleri listesi
+  config        Json?          // Varsayılan yapılandırma
+  permissions   Json?          // Gerekli izinler
+  dependencies  Json?       // Bağımlı modül keyleri
+  
+  // İstatistikler
+  usageCount    Int            @default(0)
+  rating        Decimal?       
+  
+  // Sıralama ve görünüm
+  sortOrder     Int            @default(0)
+  showInMenu    Boolean        @default(true)
+  menuPath      String?        // "/dashboard/ai-tools" gibi
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  tenantModules TenantModule[]
+  
+  @@index([category])
+  @@index([isActive])
+  @@index([requiredPlan])
+}
+
+model TenantModule {
+  id            String       @id @default(uuid())
+  tenantId      String
+  tenant        Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  moduleId      String
+  module        SystemModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  
+  isEnabled     Boolean      @default(true)
+  customConfig  Json?        // Tenant'a özel yapılandırma
+  
+  // Abonelik bilgileri
+  startDate     DateTime     @default(now())
+  endDate       DateTime?
+  isTrial       Boolean      @default(false)
+  trialEndsAt   DateTime?
+  
+  // Kullanım istatistikleri
+  lastUsedAt    DateTime?
+  usageCount    Int          @default(0)
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  
+  @@unique([tenantId, moduleId])
+  @@index([tenantId])
+  @@index([moduleId])
+}
+
+// ==================== DUYURU SİSTEMİ ====================
+
+model Announcement {
+  id            String             @id @default(uuid())
+  title         String
+  content       String            
+  summary       String?            // Kısa özet
+  
+  type          AnnouncementType   @default(INFO)
+  target        AnnouncementTarget @default(ALL)
+  targetTenants Json?           // SPECIFIC_TENANTS için tenant ID'leri
+  
+  // Görünüm
+  icon          String?
+  color         String?            // Tailwind renk sınıfı
+  imageUrl      String?
+  actionUrl     String?            // CTA butonu için URL
+  actionText    String?            // CTA buton metni
+  
+  // Zamanlama
+  startsAt      DateTime           @default(now())
+  endsAt        DateTime?
+  
+  // Durum
+  isActive      Boolean            @default(true)
+  isPinned      Boolean            @default(false)
+  priority      Int                @default(0)
+  
+  // Meta
+  viewCount     Int                @default(0)
+  dismissCount  Int                @default(0)
+  
+  createdBy     String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  
+  reads         AnnouncementRead[]
+  
+  @@index([isActive, startsAt])
+  @@index([type])
+  @@index([target])
+}
+
+model AnnouncementRead {
+  id             String       @id @default(uuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  tenantId       String
+  userId         String?
+  
+  isRead         Boolean      @default(true)
+  isDismissed    Boolean      @default(false)
+  readAt         DateTime     @default(now())
+  
+  @@unique([announcementId, tenantId])
+  @@index([tenantId])
+}
+
+// ==================== SİSTEM AYARLARI ====================
+
+model SystemSettings {
+  id            String   @id @default(uuid())
+  key           String   @unique
+  value         Json
+  category      String   // "general", "email", "payment", "notification"
+  description   String?
+  isPublic      Boolean  @default(false) // Frontend'e gösterilsin mi
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([category])
+}
+
+// ==================== AKTİVİTE VE AUDIT LOG ====================
+
+model ActivityLog {
+  id          String   @id @default(uuid())
+  tenantId    String?
+  userId      String?
+  
+  action      String   // "module.enabled", "settings.updated", etc.
+  resource    String   // "module", "product", "order"
+  resourceId  String?
+  
+  details     Json?
+  ipAddress   String?
+  userAgent   String?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([tenantId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ==================== ÖNERİ SİSTEMİ ====================
+
+model FeatureRequest {
+  id          String   @id @default(uuid())
+  tenantId    String?
+  userId      String?
+  
+  title       String
+  description String  
+  category    String   // "feature", "improvement", "bug"
+  status      String   @default("pending") // "pending", "reviewing", "planned", "completed", "rejected"
+  
+  votes       Int      @default(0)
+  priority    Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
+  user        User?    @relation(fields: [userId], references: [id])
+
+  @@index([status])
+  @@index([category])
+}
+
+// ==================== KANBAN TASK MANAGER (Faz 3) ====================
+
+model AdminTask {
+  id          String   @id @default(uuid())
+  tenantId    String?
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
+  
+  title       String
+  description String?  
+  status      String   @default("TODO") // TODO, IN_PROGRESS, IN_REVIEW, DONE
+  priority    String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  
+  assigneeId  String?
+  assignee    User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  
+  creatorId   String?
+  creator     User?    @relation("TaskCreator", fields: [creatorId], references: [id])
+  
+  dueDate     DateTime?
+  tags        Json?    // ["frontend", "bug"]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([status])
+  @@index([assigneeId])
+}
+
+// ==================== NEXT AUTH ====================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  title     String?
+  content   String
+  rating    Int      @default(5)
+  avatarUrl String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("testimonials")
+}
+// ==================== 2FA & SECURITY ====================
+
+model TwoFactorDevice {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String?
+  secret    String?  // Made optional for SMS/Email
+  type      String   @default("TOTP") // TOTP, SMS, EMAIL
+  phoneNumber String?
+  isDefault Boolean  @default(false)
+  verified  Boolean  @default(false)
+  lastUsedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BackupCode {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String   // Hashed usually
+  used      Boolean  @default(false)
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TemporaryCode {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String
+  type      String   // LOGIN, PASSWORD_RESET
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model TrustedDevice {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String?
+  deviceHash String
+  userAgent String?
+  ipAddress String?
+  lastUsedAt DateTime?
+  createdAt DateTime @default(now())
+  expiresAt DateTime?
+}
+
+model LoginAttempt {
+  id        String   @id @default(uuid())
+  userId    String?
+  email     String
+  ipAddress String?
+  userAgent String?
+  isSuccess Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ==================== BACKUP & DISASTER RECOVERY ====================
+
+model BackupSchedule {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String?
+  type      String   @default("FULL")
+  frequency String   // hourly, daily, weekly
+  cronExpression String?
+  retentionDays Int      @default(7)
+  databases Json?
+  isActive  Boolean  @default(true)
+  nextRunAt DateTime?
+  failureCount Int     @default(0)
+  lastRunAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BackupJob {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String?
+  type      String
+  status    String   // PENDING, SUCCESS, FAILED
+  compressedSize Int?
+  uncompressedSize Int?
+  compressionRatio Decimal? 
+  location  String?
+  storageType String?
+  databases Json?
+  tables    Int?
+  rows      Int?
+  url       String?
+  error     String?
+  duration  Int?
+  verificationStatus String?
+  retentionDays Int?
+  expiresAt DateTime?
+  estimatedRestoreTimeMs Int?
+  startTime DateTime @default(now())
+  endTime   DateTime?
+  verifiedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RestoreJob {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  backupId  String
+  sourceDatabase String?
+  targetDatabase String?
+  status    String
+  error     String?
+  duration  Int?
+  dryRun    Boolean?
+  estimatedDurationMs Int?
+  startedAt DateTime @default(now())
+  endTime   DateTime?
+}
+
+model DrSettings {
+  id        String   @id @default(uuid())
+  tenantId  String   @unique
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  enabled   Boolean  @default(false)
+  rpoMinutes Int?
+  rtoMinutes Int?
+  replicationEnabled Boolean?
+  geoRedundancyEnabled Boolean?
+  updatedAt DateTime @updatedAt
+  testRestoreFrequencyDays Int?
+  backupEncryption Boolean?
+  encryptionAlgorithm String?
+  dataRetentionYears Int?
+  complianceLevel String?
+}
+
+// ==================== SEARCH ====================
+
+model SearchHistory {
+  id        String   @id @default(uuid())
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  query     String
+  filters   Json?
+  resultsCount Int?
+  timestamp DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+}
+
+model SavedSearch {
+  id        String   @id @default(uuid())
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  description String?
+  query     String
+  filters   Json?
+  isFavorite Boolean @default(false)
+  usageCount Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
+}
+
+// ==================== NOTIFICATIONS ====================
+
+model Notification {
+  id          String   @id @default(uuid())
+  tenantId    String
+  userId      String?
+  
+  type        String   // "order", "stock", "price", "review", "system", "integration", "campaign"
+  title       String
+  message     String  
+  severity    String   @default("info") // "info", "warning", "error", "success"
+  
+  isRead      Boolean  @default(false)
+  readAt      DateTime?
+  
+  actionUrl   String?  // Link to navigate when clicked
+  data        Json?    // Extra structured data
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([tenantId, isRead])
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ==================== FEATURE REQUEST VOTES ====================
+
+model FeatureRequestVote {
+  id               String   @id @default(uuid())
+  featureRequestId String
+  userId           String
+  tenantId         String?
+  createdAt        DateTime @default(now())
+  
+  @@unique([featureRequestId, userId])
+  @@index([featureRequestId])
+}
+
+// ==================== WEBHOOKS ====================
+
+model Webhook {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name        String
+  url         String
+  secret      String?
+  events      Json? // ["order.created", "stock.updated", ...]
+  headers     Json?    // Custom HTTP headers
+  
+  isActive    Boolean  @default(true)
+  
+  lastTriggered DateTime?
+  lastStatus    String?  // "success", "failed"
+  lastResponse  String?
+  failCount     Int     @default(0)
+  successCount  Int     @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([isActive])
+}
+
+// ==================== AUTOMATIONS ====================
+
+model Automation {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  type        String   // "price-adjust", "stock-alert", "order-process", "review-reply", "campaign-trigger", "report-schedule"
+  
+  trigger     String   // Trigger description
+  action      String   // Action description
+  conditions  Json?    // Array of {field, operator, value}
+  
+  isActive    Boolean  @default(true)
+  
+  lastRun     DateTime?
+  runCount    Int      @default(0)
+  successRate Float    @default(100)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([isActive])
+  @@index([type])
+}
+
+// ==================== CAMPAIGNS ====================
+
+model Campaign {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  type        String   // "discount", "flash-sale", "bundle", "loyalty", "seasonal", "coupon"
+  status      String   @default("draft") // "active", "paused", "scheduled", "completed", "draft"
+  
+  startDate   DateTime
+  endDate     DateTime
+  
+  platforms   Json?
+  products    Json? // Product IDs
+  
+  discount    Float?
+  budget      Float    @default(0)
+  spent       Float    @default(0)
+  
+  // Performance metrics
+  impressions  Int     @default(0)
+  clicks       Int     @default(0)
+  conversions  Int     @default(0)
+  revenue      Float   @default(0)
+  roas         Float   @default(0)
+  ctr          Float   @default(0)
+  conversionRate Float @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([status])
+  @@index([type])
+  @@index([startDate, endDate])
+}
+
+// ==================== REVIEWS ====================
+
+model Review {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  externalId  String?  // Pazaryerinden gelen orijinal yorum ID'si (duplicate önleme)
+
+  productId   String?
+  productName String
+
+  customerName   String
+  customerAvatar String?
+
+  platform    String   // "TRENDYOL", "HEPSIBURADA", "AMAZON", "N11", "CICEKSEPETI"
+  rating      Int      // 1-5
+  title       String?
+  comment     String
+
+  status      String   @default("pending") // "pending", "replied", "flagged", "hidden"
+  reply       String?
+  repliedAt   DateTime?
+
+  helpful     Int      @default(0)
+  verified    Boolean  @default(false)
+  sentiment   String?  // "positive", "negative", "neutral" — AI tarafından doldurulur
+
+  reviewDate  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, platform, externalId])
+  @@index([tenantId])
+  @@index([productId])
+  @@index([platform])
+  @@index([rating])
+  @@index([status])
+}
+
+// ==================== STORES ====================
+
+model Store {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name        String
+  platform    Platform
+  shopUrl     String?
+  
+  status      String   @default("disconnected") // "connected", "disconnected", "syncing", "error"
+  
+  apiKey      String?
+  apiSecret   String?
+  accessToken String?
+  
+  lastSync    DateTime?
+  syncFrequency Int?   // minutes
+  autoSync    Boolean  @default(false)
+  
+  productCount Int     @default(0)
+  orderCount   Int     @default(0)
+  
+  settings    Json?    // Platform-specific settings
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([platform])
+  @@index([status])
+}
+
+// ==================== PAYMENTS ====================
+
+model Payment {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  orderId     String?
+  platform    String
+  
+  amount      Decimal  
+  commission  Decimal? 
+  netAmount   Decimal? 
+  currency    String   @default("TRY")
+  
+  status      String   @default("pending") // "pending", "completed", "failed", "refunded"
+  type        String   @default("sale")    // "sale", "refund", "commission", "payout"
+  
+  paymentMethod String?  // "credit-card", "bank-transfer", "wallet"
+  transactionId String?
+  
+  paidAt      DateTime?
+  dueDate     DateTime?
+  
+  metadata    Json?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([orderId])
+  @@index([status])
+  @@index([platform])
+  @@index([paidAt])
+}
+
+// ==================== SHIPMENTS ====================
+
+model Shipment {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  orderId     String
+  
+  carrier     String   // "Aras", "Yurtiçi", "MNG", "PTT", "UPS", "DHL"
+  trackingNumber String?
+  
+  status      String   @default("preparing") // "preparing", "shipped", "in-transit", "delivered", "returned"
+  
+  senderAddress   Json?
+  receiverAddress Json?
+  
+  weight      Float?   // kg
+  dimensions  Json?    // {length, width, height}
+  
+  cost        Decimal? 
+  currency    String   @default("TRY")
+  
+  estimatedDelivery DateTime?
+  shippedAt   DateTime?
+  deliveredAt DateTime?
+  
+  events      Json?    // Array of tracking events
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([orderId])
+  @@index([trackingNumber])
+  @@index([status])
+}
+
+// ==================== EXCHANGE RATES ====================
+
+model ExchangeRate {
+  id           String   @id @default(uuid())
+  baseCurrency String   // "USD", "EUR", "GBP"
+  targetCurrency String // "TRY"
+  rate         Decimal  // 1 baseCurrency = rate targetCurrency
+  source       String   @default("TCMB") // "TCMB", "ECB", "manual"
+  date         DateTime // Kur tarihi
+  
+  createdAt    DateTime @default(now())
+  
+  @@unique([baseCurrency, targetCurrency, date])
+  @@index([baseCurrency, targetCurrency])
+  @@index([date])
+}
+
+// ==================== REPORTS ====================
+
+model Report {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name        String
+  type        String   // "sales", "inventory", "financial", "performance", "custom"
+  description String?
+  
+  parameters  Json?    // Date range, filters, etc.
+  data        Json?    // Generated report data
+  
+  format      String   @default("json") // "json", "csv", "pdf", "excel"
+  fileUrl     String?  // Generated file URL
+  fileSize    Int?     // bytes
+  
+  status      String   @default("pending") // "pending", "generating", "completed", "failed"
+  
+  generatedAt DateTime?
+  expiresAt   DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([type])
+  @@index([status])
+}
+
+model ScheduledReport {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name        String
+  type        String   // Same as Report.type
+  
+  schedule    String   // Cron expression or "daily", "weekly", "monthly"
+  recipients  Json? // Email addresses
+  format      String   @default("pdf")
+  
+  parameters  Json?    // Report parameters
+  
+  isActive    Boolean  @default(true)
+  lastRun     DateTime?
+  nextRun     DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([isActive])
+}
+
+// ==================== API KEYS ====================
+
+model ApiKey {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  name        String
+  key         String   @unique
+  prefix      String?  // First 8 chars for display
+  
+  permissions Json? // ["read", "write", "delete"]
+  
+  isActive    Boolean  @default(true)
+  
+  lastUsed    DateTime?
+  expiresAt   DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([key])
+  @@index([userId])
+}
+
+// ==================== BULK ACTIONS ====================
+
+model BulkAction {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  action      String   // "price-update", "stock-update", "status-change", "delete", "export"
+  
+  totalItems  Int      @default(0)
+  processed   Int      @default(0)
+  succeeded   Int      @default(0)
+  failed      Int      @default(0)
+  
+  status      String   @default("pending") // "pending", "processing", "completed", "failed"
+  
+  data        Json?    // Action parameters
+  results     Json?    // Per-item results
+  
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  
+  @@index([tenantId])
+  @@index([userId])
+  @@index([status])
+}
+
+// ==================== SEO ANALYSIS ====================
+
+model SeoAnalysis {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  productId   String?
+  url         String?
+  
+  score       Int      @default(0) // 0-100
+  
+  titleScore  Int?
+  descriptionScore Int?
+  keywordScore Int?
+  imageScore  Int?
+  
+  issues      Json?    // Array of {type, severity, message, suggestion}
+  keywords    Json?
+  
+  recommendations Json? // Array of suggestions
+  
+  analyzedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  
+  @@index([tenantId])
+  @@index([productId])
+}
+
+// ==================== PRICING RULES ====================
+
+model PricingRule {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  type        String   // "margin", "competitor", "dynamic", "bulk", "time-based"
+  
+  conditions  Json?    // When to apply
+  action      Json?    // What to do (e.g., {type: "percentage", value: -5})
+  
+  platforms   Json? // Apply to which platforms
+  categories  Json? // Apply to which categories
+  
+  isActive    Boolean  @default(true)
+  priority    Int      @default(0)
+  
+  appliedCount Int     @default(0)
+  lastApplied  DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([isActive])
+  @@index([type])
+}
+
+// ==================== PRICE EXPERIMENTS (A/B) ====================
+
+model PriceExperiment {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  productId   String
+  
+  name        String
+  status      String   @default("active") // "active", "stopped", "completed"
+  
+  controlPrice  Decimal
+  testPrice     Decimal
+  
+  controlSales  Int     @default(0)
+  testSales     Int     @default(0)
+  controlRevenue Decimal @default(0)
+  testRevenue    Decimal @default(0)
+  controlViews   Int    @default(0)
+  testViews      Int    @default(0)
+  
+  startDate   DateTime @default(now())
+  endDate     DateTime?
+  durationDays Int     @default(7)
+  
+  result      Json?   // {winner, liftPercent, significance}
+  metadata    Json?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([productId])
+  @@index([status])
+}
+
+// ==================== DASHBOARD LAYOUT ====================
+
+model DashboardLayout {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  name        String   @default("default")
+  layout      Json     // Widget positions and sizes
+  widgets     Json?    // Widget configurations
+  
+  isDefault   Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([tenantId, userId, name])
+  @@index([tenantId])
+  @@index([userId])
+}
+
+// ==================== AI İÇERİK OPTİMİZASYONU ====================
+
+model ContentAnalysis {
+  id                    String   @id @default(uuid())
+  tenantId              String
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  productId             String?
+  product               Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  originalTitle         String
+  originalDescription   String?
+  platform              String   @default("TRENDYOL")
+  seoScore              Int      @default(0)
+  readabilityScore      Int      @default(0)
+  keywordScore          Int      @default(0)
+  competitivenessScore  Int      @default(0)
+  overallScore          Int      @default(0)
+  analysisResult        Json?
+  suggestions           Json?
+  detectedKeywords      Json?
+  detectedIssues        Json?
+  createdAt             DateTime @default(now())
+
+  optimizations         ContentOptimization[]
+
+  @@index([tenantId])
+  @@index([productId])
+  @@index([platform])
+}
+
+model ContentOptimization {
+  id                    String   @id @default(uuid())
+  tenantId              String
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  productId             String?
+  product               Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  analysisId            String?
+  analysis              ContentAnalysis? @relation(fields: [analysisId], references: [id], onDelete: SetNull)
+  platform              String   @default("TRENDYOL")
+  version               Int      @default(1)
+  originalTitle         String
+  originalDescription   String?
+  optimizedTitle        String
+  optimizedDescription  String?
+  keywords              Json?
+  seoScoreBefore        Int      @default(0)
+  seoScoreAfter         Int      @default(0)
+  improvements          Json?
+  tone                  String   @default("professional")
+  status                String   @default("draft") // draft, approved, applied, rejected
+  aiModelUsed           String?  @default("gemini-1.5-flash")
+  tokenUsage            Int?     @default(0)
+  appliedAt             DateTime?
+  syncedToPlatform      Boolean  @default(false)
+  syncResult            Json?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  batchItem             ContentBatchItem?
+
+  @@index([tenantId])
+  @@index([productId])
+  @@index([status])
+  @@index([analysisId])
+}
+
+model ContentBatchJob {
+  id                String   @id @default(uuid())
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name              String
+  platform          String   @default("TRENDYOL")
+  tone              String   @default("professional")
+  status            String   @default("pending") // pending, processing, completed, failed
+  totalProducts     Int      @default(0)
+  processedProducts Int      @default(0)
+  successCount      Int      @default(0)
+  failCount         Int      @default(0)
+  avgScoreBefore    Int?     @default(0)
+  avgScoreAfter     Int?     @default(0)
+  config            Json?
+  startedAt         DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  items             ContentBatchItem[]
+
+  @@index([tenantId])
+  @@index([status])
+}
+
+model ContentBatchItem {
+  id              String   @id @default(uuid())
+  batchJobId      String
+  batchJob        ContentBatchJob @relation(fields: [batchJobId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  optimizationId  String?  @unique
+  optimization    ContentOptimization? @relation(fields: [optimizationId], references: [id], onDelete: SetNull)
+  status          String   @default("pending") // pending, processing, completed, failed
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+
+  @@index([batchJobId])
+  @@index([productId])
+}
+
+model ContentTemplate {
+  id                  String   @id @default(uuid())
+  tenantId            String
+  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name                String
+  description         String?
+  platform            String?
+  category            String?
+  tone                String   @default("professional")
+  titleTemplate       String?
+  descriptionTemplate String?
+  promptTemplate      String?
+  variables           Json?
+  isDefault           Boolean  @default(false)
+  usageCount          Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model ContentRule {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  platform    String
+  ruleType    String   // max_title_length, forbidden_words, required_keywords, description_format, etc.
+  ruleName    String
+  ruleValue   Json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId, platform])
+}
+
+// ==================== DEPO YÖNETİMİ ====================
+
+model Warehouse {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  code        String
+  type        String   @default("main") // main, secondary, dropship, fulfillment
+  address     String?
+  city        String?
+  district    String?
+  phone       String?
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  transfersFrom WarehouseTransfer[] @relation("TransferFrom")
+  transfersTo   WarehouseTransfer[] @relation("TransferTo")
+  stocks        WarehouseStock[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+}
+
+model WarehouseStock {
+  id           String    @id @default(uuid())
+  warehouseId  String
+  warehouse    Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  productId    String
+  quantity     Int       @default(0)
+  reserved     Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([warehouseId, productId])
+  @@index([warehouseId])
+  @@index([productId])
+}
+
+model WarehouseTransfer {
+  id              String    @id @default(uuid())
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  productId       String
+  quantity        Int
+  fromWarehouseId String
+  fromWarehouse   Warehouse @relation("TransferFrom", fields: [fromWarehouseId], references: [id])
+  toWarehouseId   String
+  toWarehouse     Warehouse @relation("TransferTo", fields: [toWarehouseId], references: [id])
+  reason          String?
+  status          String    @default("completed") // pending, in_transit, completed, cancelled
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+
+  @@index([tenantId])
+  @@index([fromWarehouseId])
+  @@index([toWarehouseId])
+}

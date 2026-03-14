@@ -1,0 +1,36 @@
+{
+    "name": "pazaryonetimi",
+    "private": true,
+    "packageManager": "npm@10.0.0",
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "scripts": {
+        "dev": "turbo run dev",
+        "build": "turbo run build",
+        "lint": "turbo run lint",
+        "generate": "npm run db:generate",
+        "db:generate": "npm run generate --workspace=@pazaryonetimi/database"
+    },
+    "devDependencies": {
+        "@prisma/config": "^7.4.2",
+        "turbo": "latest"
+    },
+    "overrides": {
+        "react": "19.2.4",
+        "react-dom": "19.2.4"
+    },
+    "optionalDependencies": {
+        "@next/swc-linux-arm64-gnu": "latest",
+        "@next/swc-linux-arm64-musl": "latest",
+        "@tailwindcss/oxide-linux-arm64-gnu": "latest",
+        "@tailwindcss/oxide-linux-arm64-musl": "latest",
+        "lightningcss-linux-arm64-gnu": "latest",
+        "lightningcss-linux-arm64-musl": "latest"
+    },
+    "dependencies": {
+        "@prisma/adapter-pg": "^7.5.0",
+        "pg": "^8.20.0"
+    }
+}

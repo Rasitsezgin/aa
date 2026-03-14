@@ -1,0 +1,141 @@
+// Pazaryeri Entegrasyon Şeması - Mevcut schema.prisma'ya eklenecek
+
+// ===========================================
+// MARKETPLACE PLATFORMS (Dünya ve Türkiye)
+// ===========================================
+
+// Platform Enum - Tüm desteklenen pazaryerleri
+enum MarketplacePlatform {
+  // Türkiye Pazaryerleri
+  TRENDYOL
+  HEPSIBURADA
+  N11
+  GITTIGIDIYOR
+  AMAZON_TR
+  CICEKSEPETI
+  MORHIPO
+  BOYNER
+  LCWAIKIKI
+  PTTAVM
+  DEFACTO
+  KOTON
+  
+  // Global Pazaryerleri
+  AMAZON_US
+  AMAZON_UK
+  AMAZON_DE
+  AMAZON_FR
+  AMAZON_IT
+  AMAZON_ES
+  AMAZON_NL
+  AMAZON_PL
+  AMAZON_SE
+  AMAZON_JP
+  AMAZON_AU
+  AMAZON_CA
+  AMAZON_MX
+  AMAZON_BR
+  AMAZON_AE
+  AMAZON_SA
+  AMAZON_IN
+  AMAZON_SG
+  
+  EBAY_US
+  EBAY_UK
+  EBAY_DE
+  EBAY_AU
+  EBAY_FR
+  EBAY_IT
+  EBAY_ES
+  
+  ETSY
+  ALIEXPRESS
+  ALIBABA
+  SHOPEE_SG
+  SHOPEE_MY
+  SHOPEE_TH
+  SHOPEE_VN
+  SHOPEE_PH
+  SHOPEE_ID
+  SHOPEE_BR
+  LAZADA_SG
+  LAZADA_MY
+  LAZADA_TH
+  LAZADA_VN
+  LAZADA_PH
+  LAZADA_ID
+  
+  MERCADOLIBRE_MX
+  MERCADOLIBRE_BR
+  MERCADOLIBRE_AR
+  MERCADOLIBRE_CO
+  MERCADOLIBRE_CL
+  
+  WALMART_US
+  WALMART_CA
+  WALMART_MX
+  
+  WISH
+  RAKUTEN_JP
+  RAKUTEN_FR
+  RAKUTEN_DE
+  
+  JD_COM
+  PINDUODUO
+  TAOBAO
+  TMALL
+  
+  ZALANDO_DE
+  ZALANDO_FR
+  ZALANDO_IT
+  ZALANDO_NL
+  ZALANDO_PL
+  ZALANDO_SE
+  
+  ASOS_UK
+  CDISCOUNT
+  BOL_COM
+  ALLEGRO
+  OTTO
+  WAYFAIR
+  OVERSTOCK
+  NEWEGG
+  
+  SHOPIFY
+  WOOCOMMERCE
+  MAGENTO
+  BIGCOMMERCE
+  PRESTASHOP
+}
+
+// Platform Bölge Kategorisi
+enum PlatformRegion {
+  TURKEY
+  NORTH_AMERICA
+  EUROPE
+  ASIA_PACIFIC
+  LATIN_AMERICA
+  MIDDLE_EAST
+  GLOBAL
+}
+
+// Platform Kategori Türü
+enum PlatformCategory {
+  GENERAL        // Genel pazaryeri
+  FASHION        // Moda/Giyim
+  ELECTRONICS    // Elektronik
+  HOME_GARDEN    // Ev & Bahçe
+  HANDMADE       // El yapımı
+  B2B            // İşletmeden işletmeye
+  WHOLESALE      // Toptan
+  ECOMMERCE      // E-ticaret platformu
+}
+
+// Paket Türleri
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+  CUSTOM
+}

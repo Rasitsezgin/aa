@@ -1,0 +1,19 @@
+{
+  "$schema": "https://turbo.build/json-schema.json",
+  "globalDependencies": ["**/.env.local", "**/.env"],
+  "globalEnv": ["NODE_ENV", "DATABASE_URL"],
+  "ui": "tui",
+  "tasks": {
+    "dev": {
+      "cache": false,
+      "interactive": true
+    },
+    "build": {
+      "outputs": [".next/**", "dist/**"],
+      "cache": true
+    },
+    "lint": {
+      "outputs": []
+    }
+  }
+}

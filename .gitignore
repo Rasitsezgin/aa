@@ -1,0 +1,86 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js build output
+.next/
+out/
+
+# NestJS build output
+dist/
+
+# Turbo cache
+.turbo/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Build artifacts
+tsconfig.tsbuildinfo
+
+# SSH Keys (security)
+coolify_temp_key
+coolify_temp_key.pub
+*.pem
+id_rsa
+id_ed25519
+
+# Prisma
+packages/database/prisma/*.db
+packages/database/prisma/*.db-journal
+
+# Temp files
+temp_*
+tmp_*
+
+# Debug / build logs
+*.log
+build_log*.txt
+build_error*.log
+build_output*.log
+compile_errors*.txt
+errors*.log
+filtered_errors*.txt
+raw_errors*.txt
+react_errors*.txt
+tsc.log
+eslint_output*.json
+eslint_report*.json
+eslint_hooks*.txt
+lint-output*.txt
+lint_output*.txt
+lint-final*.txt
+
+# Scraping / data dumps
+chunk_*.txt
+frag*.html
+*_dump.html
+merchant*.json
+
+# One-off scripts
+extract_*.js
+verify_*.js
+mock-api*.js
+mock-api*.ts
+api-server.js
+server_info.md
+
+# Agent cache
+.agent/

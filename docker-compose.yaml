@@ -1,0 +1,86 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pazaryonetimi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pazaryonetimi_secret}
+      POSTGRES_DB: pazaryonetimi
+    ports:
+      - "5432:5432"
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pazaryonetimi"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      args:
+        - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://api:3001}
+        - NEXTAUTH_URL=${NEXTAUTH_URL:-https://pazaryonetimi.com}
+        - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://api:3001}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://pazaryonetimi.com}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - AUTH_URL=${NEXTAUTH_URL:-https://pazaryonetimi.com}
+      - AUTH_SECRET=${NEXTAUTH_SECRET}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+      - redis
+    restart: always
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    restart: always
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: ["node", "dist/worker"]
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - ENABLE_SCHEDULER=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: always
+
+volumes:
+  postgres_data:
