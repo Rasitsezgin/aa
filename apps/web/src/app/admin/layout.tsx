@@ -210,8 +210,11 @@ export default function AdminLayout({
                 ${isSidebarOpen ? 'lg:pl-64' : 'lg:pl-20'}`}
             >
                 {/* Header Overlay */}
-                <header className="fixed top-0 right-0 left-0 lg:left-auto lg:right-0 bg-white/80 dark:bg-[#050505]/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 z-30 transition-all duration-300"
-                    style={{ left: isSidebarOpen && window.innerWidth >= 1024 ? '16rem' : window.innerWidth >= 1024 ? '5rem' : '0' }}>
+                <header
+                    className={`fixed top-0 right-0 left-0 bg-white/80 dark:bg-[#050505]/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 z-30 transition-all duration-300 ${
+                        isSidebarOpen ? 'lg:left-64' : 'lg:left-20'
+                    }`}
+                >
                     <div className="h-16 px-8 flex items-center justify-between">
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

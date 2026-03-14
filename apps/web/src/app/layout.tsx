@@ -137,6 +137,7 @@ export const metadata: Metadata = {
 };
 
 import { ThemeProvider } from "@/providers/theme-provider";
+import QueryProvider from "@/providers/query-provider";
 import { I18nProvider } from "@/lib/i18n/index";
 import { ConsoleSuppressor } from "@/providers/console-suppressor";
 import { OfflineBanner, InstallPrompt } from "@/hooks/usePWA";
@@ -191,18 +192,20 @@ export default function RootLayout({
           Ana içeriğe geç
         </a>
         <ThemeProvider>
-          <SessionProvider>
-            <I18nProvider>
-              <ConsoleSuppressor />
-              {children}
-              <CommandCenter />
-              <CookieBanner />
-              <NextDevIndicatorKiller />
-              <StructuredData />
-              <OfflineBanner />
-              <InstallPrompt />
-            </I18nProvider>
-          </SessionProvider>
+          <QueryProvider>
+            <SessionProvider>
+              <I18nProvider>
+                <ConsoleSuppressor />
+                {children}
+                <CommandCenter />
+                <CookieBanner />
+                <NextDevIndicatorKiller />
+                <StructuredData />
+                <OfflineBanner />
+                <InstallPrompt />
+              </I18nProvider>
+            </SessionProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>
