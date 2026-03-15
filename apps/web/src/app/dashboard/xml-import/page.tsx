@@ -280,7 +280,7 @@ export default function XmlImportPage() {
                                         <p className="font-bold text-foreground text-sm">Henüz ürün yok</p>
                                     </div>
                                 )}
-                                {products.map((product, idx) => (
+                                {products.map((product: any, idx: number) => (
                                     <motion.div key={product.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.04 }}
                                         className={`grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-4 items-center px-5 py-4 border-b border-border last:border-0 hover:bg-white/2 transition-colors ${selectedProducts.includes(product.id) ? 'bg-indigo-500/5' : ''}`}>
                                         <div className="lg:col-span-1">
