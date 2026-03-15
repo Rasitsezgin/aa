@@ -140,7 +140,7 @@ export default function QuickSaleModal({ isOpen, onClose }: QuickSaleModalProps)
                                                         className="absolute top-full left-0 right-0 mt-2 bg-surface border border-border rounded-xl shadow-2xl overflow-hidden"
                                                     >
                                                         {filteredProducts.length > 0 ? (
-                                                            filteredProducts.map((p, index) => (
+                                                            filteredProducts.map((p: import("@/lib/hooks").Product, index: number) => (
                                                                 <button
                                                                     key={p.id}
                                                                     onClick={() => addItem(p)}
