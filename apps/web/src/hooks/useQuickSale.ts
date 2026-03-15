@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useOrders, useProducts } from '@/lib/hooks';
+import { useOrders, useProducts, Product } from '@/lib/hooks';
 
 export interface SelectedItem {
     productId: string;
@@ -18,7 +18,7 @@ export interface CustomerData {
 
 export const useQuickSale = (onClose: () => void) => {
     const { createOrder, loading: orderLoading } = useOrders();
-    const { products, loading: productsLoading } = useProducts();
+    const { data: products, loading: productsLoading } = useProducts();
 
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState('');
@@ -124,7 +124,7 @@ export const useQuickSale = (onClose: () => void) => {
         }
     };
 
-    const filteredProducts = products.filter(p =>
+    const filteredProducts = (products || []).filter((p: Product) =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()))
     ).slice(0, 5);
