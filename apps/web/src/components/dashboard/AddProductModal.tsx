@@ -51,12 +51,12 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
         try {
             await apiClient.request('/products', {
                 method: 'POST',
-                body: {
+                body: JSON.stringify({
                     ...formData,
                     price: parseFloat(formData.price),
                     stock: parseInt(formData.stock, 10),
                     status: 'active'
-                }
+                })
             });
             setStatus('success');
             setTimeout(() => {
