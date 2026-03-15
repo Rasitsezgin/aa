@@ -28,29 +28,7 @@ nextjs-portal,
 }
 
 :root {
-  /* Default Dark (Obsidian) */
-  --background: #020204;
-  --foreground: #ffffff;
-  --border-color: rgba(255, 255, 255, 0.08);
-  --surface-color: rgba(10, 10, 15, 0.6);
-  --spotlight-opacity: 0.15;
-  --nav-bg: rgba(2, 2, 4, 0.8);
-  --bento-bg-1: rgba(255, 255, 255, 0.03);
-  --bento-bg-2: rgba(255, 255, 255, 0.01);
-  --bento-border-hover: rgba(255, 255, 255, 0.15);
-  --text-primary: #ffffff;
-  --text-secondary: #94a3b8;
-
-  /* Theme defaults */
-  --theme-primary: #3b82f6;
-  --theme-primary-rgb: 59,130,246;
-  --theme-primary-hover: #2563eb;
-  --theme-radius: 12px;
-  --theme-font: 'Inter', system-ui, sans-serif;
-}
-
-[data-theme="light"] {
-  /* Premium Light (Ceramic) */
+  /* Default Light (Ceramic) - Prevents flash of dark theme on hydration */
   --background: #ffffff;
   --foreground: #0f172a;
   --border-color: rgba(0, 0, 0, 0.08);
@@ -62,6 +40,28 @@ nextjs-portal,
   --bento-border-hover: rgba(0, 0, 0, 0.15);
   --text-primary: #0f172a;
   --text-secondary: #475569;
+
+  /* Theme defaults */
+  --theme-primary: #3b82f6;
+  --theme-primary-rgb: 59,130,246;
+  --theme-primary-hover: #2563eb;
+  --theme-radius: 12px;
+  --theme-font: 'Inter', system-ui, sans-serif;
+}
+
+[data-theme="dark"] {
+  /* Obsidian Dark */
+  --background: #020204;
+  --foreground: #ffffff;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --surface-color: rgba(10, 10, 15, 0.6);
+  --spotlight-opacity: 0.15;
+  --nav-bg: rgba(2, 2, 4, 0.8);
+  --bento-bg-1: rgba(255, 255, 255, 0.03);
+  --bento-bg-2: rgba(255, 255, 255, 0.01);
+  --bento-border-hover: rgba(255, 255, 255, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
 }
 
 [data-theme="oled"] {
