@@ -78,7 +78,8 @@ export class MarketplaceService {
                     apiKey,
                     apiSecret,
                     extra?.supplierId || '',
-                    this.scrapingService
+                    this.scrapingService,
+                    !!extra?.isTestMode
                 );
             case Platform.AMAZON:
                 return new AmazonBridge(

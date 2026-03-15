@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { ExportButton } from '@/lib/export-utils';
 import { apiClient } from '@/lib/api-client';
+import { useReturns, useReturnStats } from '@/lib/hooks';
 
 const RETURN_REASONS: Record<string, string> = {
     DEFECTIVE: 'Arızalı / Kusurlu',
@@ -44,26 +45,15 @@ interface ReturnRecord {
 }
 
 export default function ReturnsPage() {
-    const [returns, setReturns] = useState<ReturnRecord[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { data: statsData, loading: statsLoading } = useReturnStats();
+    const { data: returnsData, loading: returnsLoading, error, refetch: loadReturns } = useReturns();
     const [statusFilter, setStatusFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedReturn, setSelectedReturn] = useState<ReturnRecord | null>(null);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-    useEffect(() => { loadReturns(); }, []);
-
-    const loadReturns = async () => {
-        setLoading(true); setError(null);
-        try {
-            const data = await apiClient.request<ReturnRecord[]>('/returns');
-            setReturns(data || []);
-        } catch {
-            setError('İade verileri yüklenemedi.');
-            setReturns([]);
-        } finally { setLoading(false); }
-    };
+    const returns = useMemo(() => (returnsData as any)?.data || [], [returnsData]);
+    const loading = statsLoading || returnsLoading;
 
     const handleAction = async (id: string, action: 'approve' | 'reject' | 'refund') => {
         setActionLoading(action);
@@ -76,7 +66,7 @@ export default function ReturnsPage() {
     };
 
     const filtered = useMemo(() => {
-        let data = returns;
+        let data = returns as ReturnRecord[];
         if (statusFilter !== 'all') data = data.filter(r => r.status === statusFilter);
         if (searchQuery) {
             const q = searchQuery.toLowerCase();
@@ -84,25 +74,28 @@ export default function ReturnsPage() {
                 r.id.toLowerCase().includes(q) ||
                 r.orderId.toLowerCase().includes(q) ||
                 r.customerName.toLowerCase().includes(q) ||
-                r.items.some(i => i.title.toLowerCase().includes(q))
+                r.items.some((i: any) => i.title.toLowerCase().includes(q))
             );
         }
         return data;
     }, [returns, statusFilter, searchQuery]);
 
-    const stats = useMemo(() => ({
-        total: returns.length,
-        pending: returns.filter(r => r.status === 'PENDING').length,
-        inProcess: returns.filter(r => ['APPROVED', 'SHIPPED', 'RECEIVED', 'INSPECTING'].includes(r.status)).length,
-        resolved: returns.filter(r => ['REFUNDED', 'COMPLETED', 'REJECTED'].includes(r.status)).length,
-        totalRefund: returns.filter(r => ['REFUNDED', 'COMPLETED'].includes(r.status)).reduce((s, r) => s + r.refundAmount, 0),
-    }), [returns]);
+    const stats = useMemo(() => {
+        const s = statsData as any;
+        return {
+            total: s?.total || 0,
+            pending: s?.pending || 0,
+            inProcess: s?.approved || 0, // Backend returns 'approved' for inProcess counts
+            resolved: s?.refunded || 0,
+            totalRefund: s?.totalRefundAmount || 0,
+        };
+    }, [statsData]);
 
     const reasonStats = useMemo(() => {
         const counts: Record<string, number> = {};
-        returns.forEach(r => { counts[r.reason] = (counts[r.reason] || 0) + 1; });
+        (returns as ReturnRecord[]).forEach(r => { counts[r.reason] = (counts[r.reason] || 0) + 1; });
         return Object.entries(counts)
-            .map(([reason, count]) => ({ reason, label: RETURN_REASONS[reason] || reason, count, pct: returns.length > 0 ? count / returns.length * 100 : 0 }))
+            .map(([reason, count]) => ({ reason, label: RETURN_REASONS[reason] || reason, count, pct: (returns as ReturnRecord[]).length > 0 ? count / (returns as ReturnRecord[]).length * 100 : 0 }))
             .sort((a, b) => b.count - a.count);
     }, [returns]);
 
@@ -167,8 +160,8 @@ export default function ReturnsPage() {
             )}
             {!loading && error && (
                 <div className="bg-red-500/10 border border-red-500/20 rounded-2xl px-5 py-4 flex items-center justify-between">
-                    <span className="text-sm text-red-400">{error}</span>
-                    <button onClick={loadReturns} className="text-xs font-bold text-red-400 hover:text-red-300">Tekrar Dene</button>
+                    <span className="text-sm text-red-400">{error.message || 'İade verileri yüklenemedi.'}</span>
+                    <button onClick={() => loadReturns()} className="text-xs font-bold text-red-400 hover:text-red-300">Tekrar Dene</button>
                 </div>
             )}
 
@@ -209,7 +202,7 @@ export default function ReturnsPage() {
                                     Tümü ({returns.length})
                                 </button>
                                 {Object.entries(STATUS_CONFIG).map(([key, cfg]) => {
-                                    const count = returns.filter(r => r.status === key).length;
+                                    const count = (returns as ReturnRecord[]).filter(r => r.status === key).length;
                                     if (count === 0) return null;
                                     return (
                                         <button key={key} onClick={() => setStatusFilter(key)}
@@ -233,7 +226,7 @@ export default function ReturnsPage() {
                         </div>
 
                         <div className="space-y-3">
-                            {filtered.map((ret, i) => {
+                            {(filtered as ReturnRecord[]).map((ret: ReturnRecord, i: number) => {
                                 const cfg = STATUS_CONFIG[ret.status] || STATUS_CONFIG['PENDING'];
                                 return (
                                     <motion.div key={ret.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
@@ -254,7 +247,7 @@ export default function ReturnsPage() {
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-3 text-sm mb-3">
-                                            {ret.items.slice(0, 2).map(item => (
+                                            {ret.items.slice(0, 2).map((item: ReturnItem) => (
                                                 <div key={item.sku} className="flex items-center gap-1.5">
                                                     <Package className="w-3.5 h-3.5 text-slate-400" />
                                                     <span className="text-foreground text-sm truncate max-w-48">{item.title}</span>

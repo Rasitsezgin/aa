@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
     Users, Target, TrendingUp, DollarSign, ShoppingCart,
     Crown, Heart, Award, Star, Download, Mail, Loader2, RefreshCw, BarChart3
 } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { useRFMAnalysis } from '@/lib/hooks';
 
 interface Segment {
     id: string;
@@ -55,48 +55,41 @@ function getSegmentIcon(name: string) {
 }
 
 export default function CustomerSegmentationPage() {
+    const { data: rfmAnalysis, loading, error, refetch } = useRFMAnalysis();
     const [selectedSegment, setSelectedSegment] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'overview' | 'rfm' | 'actions'>('overview');
 
-    const [segments, setSegments] = useState<Segment[]>([]);
-    const [rfmData, setRfmData] = useState<RFMEntry[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [rfmLoading, setRfmLoading] = useState(false);
+    const segments = useMemo(() => {
+        if (!rfmAnalysis?.segments) return [];
+        return rfmAnalysis.segments.map((s: any, i: number) => ({
+            id: s.code,
+            name: s.name,
+            count: s.count,
+            revenue: `₺${s.avgMonetary.toLocaleString('tr-TR')}`,
+            avgOrder: `₺${s.avgMonetary.toLocaleString('tr-TR')}`,
+            frequency: `${s.avgFrequency}x`,
+            color: COLOR_PALETTE[i % COLOR_PALETTE.length],
+            description: s.description,
+            percentage: s.percentage
+        }));
+    }, [rfmAnalysis]);
 
-    const loadSegments = async () => {
-        setLoading(true);
-        try {
-            const data = await apiClient.request<Segment[]>('/customer-segments');
-            setSegments((data || []).map((s, i) => ({ ...s, color: s.color || COLOR_PALETTE[i % COLOR_PALETTE.length] })));
-        } catch { setSegments([]); }
-        setLoading(false);
-    };
+    const rfmData = useMemo(() => {
+        if (!rfmAnalysis?.customers) return [];
+        return rfmAnalysis.customers.map((c: any) => ({
+            customer: c.customerName,
+            recency: c.recency,
+            frequency: c.frequency,
+            monetary: c.monetary,
+            segment: c.segment,
+            score: parseInt(c.rfmScore) || 0
+        }));
+    }, [rfmAnalysis]);
 
-    const loadRfm = async () => {
-        setRfmLoading(true);
-        try {
-            const data = await apiClient.request<RFMEntry[]>('/customers/rfm');
-            setRfmData(data || []);
-        } catch { setRfmData([]); }
-        setRfmLoading(false);
-    };
-
-    useEffect(() => {
-        const timer = setTimeout(() => loadSegments(), 0);
-        return () => clearTimeout(timer);
-    }, []);
-
-    useEffect(() => {
-        if (activeTab === 'rfm') {
-            const timer = setTimeout(() => loadRfm(), 0);
-            return () => clearTimeout(timer);
-        }
-    }, [activeTab]);
-
-    const totalCustomers = segments.reduce((s, seg) => s + seg.count, 0);
+    const totalCustomers = rfmAnalysis?.summary?.totalCustomers || 0;
     const selected = selectedSegment ? segments.find(s => s.id === selectedSegment) : null;
     const filteredRfm = selectedSegment && selected
-        ? rfmData.filter(r => r.segment === selected.name)
+        ? rfmData.filter((r: any) => r.segment === selected.name)
         : rfmData;
 
     return (
@@ -110,7 +103,7 @@ export default function CustomerSegmentationPage() {
                     <p className="text-slate-500 mt-1 font-medium">RFM analizi ile müşteri segmentasyonu ve hedefleme</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button onClick={loadSegments} className="p-2 hover:bg-surface rounded-xl text-slate-400 hover:text-foreground transition-all">
+                    <button onClick={() => refetch()} className="p-2 hover:bg-surface rounded-xl text-slate-400 hover:text-foreground transition-all">
                         <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                     </button>
                     <button className="flex items-center gap-2 px-4 py-2.5 bg-violet-600 rounded-xl text-white text-sm font-bold hover:bg-violet-700 transition-all">
@@ -124,7 +117,7 @@ export default function CustomerSegmentationPage() {
                 {[
                     { label: 'Toplam Müşteri', value: loading ? '—' : totalCustomers.toLocaleString('tr-TR'), color: 'violet', icon: Users },
                     { label: 'Toplam Segment', value: loading ? '—' : String(segments.length), color: 'blue', icon: Target },
-                    { label: 'VIP Oranı', value: loading ? '—' : `%${segments.find(s => s.name.includes('VIP'))?.percentage ?? '—'}`, color: 'amber', icon: Crown },
+                    { label: 'VIP Oranı', value: loading ? '—' : `%${segments.find((s: any) => s.name.includes('VIP'))?.percentage ?? '—'}`, color: 'amber', icon: Crown },
                 ].map((s, i) => (
                     <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
                         className="bg-surface rounded-2xl border border-border p-5">
@@ -152,7 +145,7 @@ export default function CustomerSegmentationPage() {
             {/* OVERVIEW */}
             {activeTab === 'overview' && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {loading ? (
+                    {loading && segments.length === 0 ? (
                         <div className="col-span-2 py-16 flex items-center justify-center gap-3 text-slate-500 bg-surface rounded-2xl border border-border">
                             <Loader2 size={20} className="animate-spin" /><span className="text-sm">Segmentler yükleniyor...</span>
                         </div>
@@ -163,7 +156,7 @@ export default function CustomerSegmentationPage() {
                             <p className="text-sm text-slate-500 mt-1">Yeterli müşteri verisi birikmesi bekleniyor</p>
                         </div>
                     ) : (
-                        segments.map((segment, i) => {
+                        segments.map((segment: any, i: number) => {
                             const cls = COLOR_CLASSES[segment.color] || COLOR_CLASSES.slate;
                             const Icon = getSegmentIcon(segment.name);
                             const pct = segment.percentage ?? (totalCustomers > 0 ? Math.round(segment.count / totalCustomers * 100) : 0);
@@ -215,11 +208,11 @@ export default function CustomerSegmentationPage() {
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden">
                     <div className="p-4 border-b border-border flex items-center justify-between">
                         <h3 className="font-bold text-foreground flex items-center gap-2"><BarChart3 size={16} className="text-violet-400" /> RFM Skoru</h3>
-                        <button onClick={loadRfm} className="text-xs text-slate-400 hover:text-foreground flex items-center gap-1 transition-all">
-                            <RefreshCw size={12} className={rfmLoading ? 'animate-spin' : ''} /> Yenile
+                        <button onClick={() => refetch()} className="text-xs text-slate-400 hover:text-foreground flex items-center gap-1 transition-all">
+                            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} /> Yenile
                         </button>
                     </div>
-                    {rfmLoading ? (
+                    {loading && rfmData.length === 0 ? (
                         <div className="py-12 flex items-center justify-center gap-3 text-slate-500">
                             <Loader2 size={18} className="animate-spin" /><span className="text-sm">RFM analizi hesaplanıyor...</span>
                         </div>
@@ -238,7 +231,7 @@ export default function CustomerSegmentationPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredRfm.map((row, i) => {
+                                {filteredRfm.map((row: any, i: number) => {
                                     const scoreColor = row.score >= 90 ? 'text-amber-500' : row.score >= 70 ? 'text-blue-500' : row.score >= 50 ? 'text-green-500' : 'text-slate-500';
                                     return (
                                         <tr key={i} className="border-b border-border/50 hover:bg-background/50 transition-colors">
@@ -260,7 +253,7 @@ export default function CustomerSegmentationPage() {
             {/* ACTIONS */}
             {activeTab === 'actions' && (
                 <div className="space-y-4">
-                    {segments.map((segment, i) => {
+                    {segments.map((segment: any, i: number) => {
                         const cls = COLOR_CLASSES[segment.color] || COLOR_CLASSES.slate;
                         const Icon = getSegmentIcon(segment.name);
                         return (

@@ -22,14 +22,17 @@ export async function POST(req: NextRequest) {
             switch (platform.toLowerCase()) {
                 case 'trendyol':
                     // Trendyol API connection test
-                    const { supplierId, apiKey, apiSecret } = credentials;
+                    const { supplierId, apiKey, apiSecret, isTestMode } = credentials;
                     if (!supplierId || !apiKey || !apiSecret) {
                         return NextResponse.json({ error: "Eksik Trendyol bilgileri" }, { status: 400 });
                     }
 
                     const trendyolAuth = Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
+                    const baseUrl = isTestMode === 'true' || isTestMode === true
+                        ? "https://stageapi.trendyol.com/sapigw"
+                        : "https://api.trendyol.com/sapigw";
 
-                    const trendyolRes = await fetch(`https://api.trendyol.com/sapigw/suppliers/${supplierId}/v2/products?size=1`, {
+                    const trendyolRes = await fetch(`${baseUrl}/suppliers/${supplierId}/v2/products?size=1`, {
                         method: "GET",
                         headers: {
                             "Authorization": `Basic ${trendyolAuth}`,

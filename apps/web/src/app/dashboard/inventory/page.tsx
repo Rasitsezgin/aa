@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import {
@@ -26,7 +26,7 @@ import {
     Settings,
     Upload
 } from 'lucide-react';
-import { useInventory } from '@/lib/hooks';
+import { useInventory, useInventoryStats } from '@/lib/hooks';
 
 interface InventoryItem {
     id: string;
@@ -54,45 +54,37 @@ const categories = ["Tümü", "Aksesuar", "Kulaklık", "Laptop", "Tablet", "Akı
 const statusFilters = ["Tümü", "Kritik", "Düşük", "Normal"];
 
 export default function InventoryPage() {
-    const { getInventory, getStats: fetchStats, loading } = useInventory();
-    const [items, setItems] = useState<InventoryItem[]>([]);
-    const [stats, setStats] = useState<InventoryStats | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('Tümü');
     const [selectedStatus, setSelectedStatus] = useState('Tümü');
     const [sortBy, setSortBy] = useState<'stock' | 'name' | 'trend'>('stock');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
 
-    const loadData = async () => {
-        const filters: Record<string, unknown> = { page: 1, limit: 50 };
-        if (searchTerm) filters.search = searchTerm;
-        if (selectedCategory !== 'Tümü') filters.category = selectedCategory;
-        if (selectedStatus !== 'Tümü') filters.status = selectedStatus;
-        filters.sortBy = sortBy;
-        filters.sortOrder = sortOrder;
+    const filters = useMemo(() => ({
+        page: currentPage,
+        limit: 50,
+        search: searchTerm || undefined,
+        category: selectedCategory !== 'Tümü' ? selectedCategory : undefined,
+        status: selectedStatus !== 'Tümü' ? selectedStatus.toLowerCase() : undefined,
+        sortBy,
+        sortOrder,
+    }), [currentPage, searchTerm, selectedCategory, selectedStatus, sortBy, sortOrder]);
 
-        try {
-            const response = await getInventory(filters) as { items: InventoryItem[] } | null;
-            const statsResponse = await fetchStats() as InventoryStats | null;
+    const { data: inventoryData, loading: inventoryLoading, refetch: loadData } = useInventory(filters);
+    const { data: statsData, loading: statsLoading } = useInventoryStats();
 
-            if (response?.items) setItems(response.items);
-            if (statsResponse) setStats(statsResponse);
-        } catch (error) {
-            console.error("Failed to load inventory:", error);
-        }
-    };
-
-    useEffect(() => {
-        loadData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchTerm, selectedCategory, selectedStatus, sortBy, sortOrder]);
+    const items = useMemo(() => (inventoryData as any)?.items || [], [inventoryData]);
+    const stats = statsData as any;
+    const loading = inventoryLoading || statsLoading;
+    const pagination = (inventoryData as any)?.pagination || { total: 0, page: 1, limit: 50, totalPages: 1 };
 
     const toggleSelectAll = () => {
         if (selectedItems.length === items.length) {
             setSelectedItems([]);
         } else {
-            setSelectedItems(items.map(i => i.id));
+            setSelectedItems(items.map((i: InventoryItem) => i.id));
         }
     };
 
@@ -138,7 +130,7 @@ export default function InventoryPage() {
                     <button className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
                         <Plus size={16} /> Yeni Ürün
                     </button>
-                    <button onClick={loadData} className="p-2.5 bg-surface border border-border rounded-xl text-foreground hover:bg-surface/80">
+                    <button onClick={() => loadData()} className="p-2.5 bg-surface border border-border rounded-xl text-foreground hover:bg-surface/80">
                         <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
                     </button>
                 </div>
@@ -150,7 +142,7 @@ export default function InventoryPage() {
                     <div className="flex items-center justify-between mb-4">
                         <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500"><Box size={20} /></div>
                     </div>
-                    <div className="text-3xl font-black text-foreground tabular-nums">{stats?.totalProducts || items.length}</div>
+                    <div className="text-3xl font-black text-foreground tabular-nums">{stats?.totalProducts || 0}</div>
                     <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">Toplam SKU</div>
                 </motion.div>
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-surface p-6 rounded-2xl border border-border">
@@ -184,7 +176,7 @@ export default function InventoryPage() {
                         type="text"
                         placeholder="Ürün adı, SKU veya barkod ara..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                         className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary/50"
                     />
                 </div>
@@ -229,7 +221,7 @@ export default function InventoryPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
-                            {items.map((item) => (
+                            {items.map((item: InventoryItem) => (
                                 <tr key={item.id} className="hover:bg-background/50 transition-colors group">
                                     <td className="p-4">
                                         <input
@@ -279,7 +271,7 @@ export default function InventoryPage() {
                                     </td>
                                     <td className="p-4">
                                         <div className="flex items-center justify-center gap-1">
-                                            {item.marketplaceProducts?.map((mp) => (
+                                            {item.marketplaceProducts?.map((mp: any) => (
                                                 <div key={mp.id} className="w-6 h-6 rounded-lg bg-background border border-border flex items-center justify-center" title={mp.platform}>
                                                     <span className="text-[8px] font-black">{mp.platform[0]}</span>
                                                 </div>
@@ -300,14 +292,18 @@ export default function InventoryPage() {
                 </div>
 
                 {/* Pagination */}
-                <div className="p-4 border-t border-border flex items-center justify-between bg-background/30 text-xs font-bold text-slate-500">
-                    <div>Toplam {items.length} ürün gösteriliyor</div>
-                    <div className="flex items-center gap-2">
-                        <button className="px-4 py-2 border border-border rounded-xl hover:bg-background transition-all">Önceki</button>
-                        <button className="bg-primary text-white px-4 py-2 rounded-xl shadow-lg shadow-primary/20">1</button>
-                        <button className="px-4 py-2 border border-border rounded-xl hover:bg-background transition-all">Sonraki</button>
+                {pagination.totalPages > 1 && (
+                    <div className="p-4 border-t border-border flex items-center justify-between bg-background/30 text-xs font-bold text-slate-500">
+                        <div>Toplam {pagination.total} üründen {(pagination.page - 1) * pagination.limit + 1}-{Math.min(pagination.page * pagination.limit, pagination.total)} gösteriliyor</div>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-4 py-2 border border-border rounded-xl hover:bg-background transition-all disabled:opacity-30">Önceki</button>
+                            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p: number) => (
+                                <button key={p} onClick={() => setCurrentPage(p)} className={`w-10 h-10 rounded-xl transition-all ${p === currentPage ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-background text-slate-500 border border-border'}`}>{p}</button>
+                            ))}
+                            <button onClick={() => setCurrentPage(p => Math.min(pagination.totalPages, p + 1))} disabled={currentPage === pagination.totalPages} className="px-4 py-2 border border-border rounded-xl hover:bg-background transition-all disabled:opacity-30">Sonraki</button>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );

@@ -33,7 +33,7 @@ import {
     ArrowUp,
     ArrowDown
 } from 'lucide-react';
-import { useCustomers, type Customer, type CustomerStats } from '@/lib/hooks';
+import { useCustomers, useCustomerStats, type Customer, type CustomerStats } from '@/lib/hooks';
 
 // Segment filter options
 const segmentFilters = [
@@ -104,18 +104,40 @@ const SortIcon = ({ field, sortBy, sortDir }: { field: string; sortBy: string; s
 };
 
 export default function CustomersPage() {
-    const { customers: apiCustomers, stats: apiStats, loading, error, fetchCustomers, updateCustomer } = useCustomers();
-
-    // Use real API data only
-    const customers = apiCustomers;
-    const stats = apiStats;
-
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSegment, setSelectedSegment] = useState<string>('all');
     const [sortBy, setSortBy] = useState<string>('totalSpent');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
+    const filters = useMemo(() => ({
+        search: searchTerm,
+        status: selectedSegment === 'all' ? undefined : selectedSegment,
+        sortBy,
+        sortDir,
+        page: currentPage.toString(),
+        limit: ITEMS_PER_PAGE.toString()
+    }), [searchTerm, selectedSegment, sortBy, sortDir, currentPage]);
+
+    const { 
+        customers, 
+        pagination, 
+        loading: customersLoading, 
+        error: customersError, 
+        fetchCustomers, 
+        updateCustomer 
+    } = useCustomers(filters);
+    
+    const { 
+        data: stats, 
+        loading: statsLoading, 
+        error: statsError, 
+        refetch: refetchStats 
+    } = useCustomerStats();
+
+    const loading = customersLoading || statsLoading;
+    const error = customersError || statsError;
     const [actionMenuId, setActionMenuId] = useState<string | null>(null);
     const actionMenuRef = useRef<HTMLDivElement>(null);
 
@@ -130,8 +152,10 @@ export default function CustomersPage() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Simplified filtering: Reset page is now handled in onChange/handleSort
-    // useEffect(() => { setCurrentPage(1); }, [searchTerm, selectedSegment, sortBy, sortDir]);
+    // Reset page on filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, selectedSegment, sortBy, sortDir]);
 
     const getSegmentBadge = useCallback((segment: Customer['segment']) => {
         const configs: Record<string, { label: string; icon: React.ReactNode; classes: string }> = {
@@ -150,34 +174,9 @@ export default function CustomersPage() {
         );
     }, []);
 
-    const filteredCustomers = useMemo(() => {
-        const filtered = customers.filter(c => {
-            const matchesSearch = !searchTerm ||
-                c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                c.address?.city?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesSegment = selectedSegment === 'all' || c.segment === selectedSegment;
-            return matchesSearch && matchesSegment;
-        });
-
-        return [...filtered].sort((a, b) => {
-            let cmp = 0;
-            switch (sortBy) {
-                case 'name': cmp = a.name.localeCompare(b.name, 'tr'); break;
-                case 'totalSpent': cmp = a.totalSpent - b.totalSpent; break;
-                case 'totalOrders': cmp = a.totalOrders - b.totalOrders; break;
-                case 'avgOrderValue': cmp = a.avgOrderValue - b.avgOrderValue; break;
-                case 'lastOrderDate': cmp = new Date(a.lastOrderDate).getTime() - new Date(b.lastOrderDate).getTime(); break;
-                case 'loyaltyScore': cmp = a.loyaltyScore - b.loyaltyScore; break;
-                default: cmp = a.totalSpent - b.totalSpent;
-            }
-            return sortDir === 'desc' ? -cmp : cmp;
-        });
-    }, [customers, searchTerm, selectedSegment, sortBy, sortDir]);
-
-    // Pagination
-    const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE));
-    const paginatedCustomers = filteredCustomers.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+    // Pagination from API
+    const totalPages = pagination?.totalPages || 1;
+    const paginatedCustomers = customers;
 
     const handleSort = (field: string) => {
         if (sortBy === field) {
@@ -189,9 +188,9 @@ export default function CustomersPage() {
     };
 
     const handleExport = () => {
-        const headers = ['İsim', 'E-posta', 'Segment', 'Sipariş', 'Toplam Harcama', 'Ort. Sipariş', 'Son Sipariş', 'Sadakat Puanı', 'Platformlar'];
-        const rows = filteredCustomers.map(c => [
-            c.name, c.email, c.segment, c.totalOrders, c.totalSpent, c.avgOrderValue, c.lastOrderDate, c.loyaltyScore, c.platforms.join('; ')
+        const headers = ['İsim', 'E-posta', 'Segment', 'Sipariş', 'Toplam Harcama', 'Ort. Sipariş', 'Son Sipariş', 'Platformlar'];
+        const rows = customers.map(c => [
+            c.name, c.email, c.segment, c.totalOrders, c.totalSpent, c.avgOrderValue, c.lastOrderDate, c.platforms.join('; ')
         ]);
         const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
         const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -243,7 +242,7 @@ export default function CustomersPage() {
                         <Download size={16} /> Dışa Aktar
                     </button>
                     <button
-                        onClick={() => fetchCustomers()}
+                        onClick={() => { fetchCustomers(); refetchStats(); }}
                         disabled={loading}
                         className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-xl text-sm font-bold text-foreground hover:bg-surface/80 transition-all disabled:opacity-50"
                     >
@@ -253,7 +252,7 @@ export default function CustomersPage() {
             </div>
 
             {/* Stats */}
-            {loading && !apiStats ? (
+            {loading && !stats ? (
                 <StatsSkeleton />
             ) : stats ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
@@ -355,7 +354,7 @@ export default function CustomersPage() {
             )}
 
             {/* Customer List */}
-            {loading && apiCustomers.length === 0 ? (
+            {loading && customers.length === 0 ? (
                 <TableSkeleton />
             ) : (
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden">
@@ -514,7 +513,7 @@ export default function CustomersPage() {
                     {totalPages > 1 && (
                         <div className="flex items-center justify-between px-4 py-4 border-t border-border">
                             <div className="text-xs text-slate-500">
-                                {filteredCustomers.length} müşteriden {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredCustomers.length)} arası gösteriliyor
+                                {pagination?.total || 0} müşteriden {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, pagination?.total || 0)} arası gösteriliyor
                             </div>
                             <div className="flex items-center gap-1">
                                 <button

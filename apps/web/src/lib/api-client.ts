@@ -130,6 +130,7 @@ class ApiClient {
             signal: controller.signal,
             headers: {
               'Content-Type': 'application/json',
+              ...(this.tenantId ? { 'x-tenant-id': this.tenantId } : {}),
               ...options.headers,
             },
           });
@@ -326,14 +327,46 @@ class ApiClient {
     return this.request(`/ai-advisor/bulk-analyze?${params}`);
   }
 
+  async getOrderStats(tenantId?: string) {
+    if (tenantId) this.setTenantId(tenantId);
+    const params = this.addTenantParam();
+    return this.request(`/orders/stats?${params}`);
+  }
+
+  // Return Endpoints
+  async getReturns(params: Record<string, string> = {}) {
+    const query = this.addTenantParam(params);
+    return this.request(`/returns?${query}`);
+  }
+
+  async getReturnStats() {
+    const params = this.addTenantParam();
+    return this.request(`/returns/stats?${params}`);
+  }
+
   // Product Endpoints
   async getProducts(page: number = 1, limit: number = 20) {
     const params = this.addTenantParam({ page: page.toString(), limit: limit.toString() });
     return this.request(`/products?${params}`);
   }
 
+  async getProductStats() {
+    const params = this.addTenantParam();
+    return this.request(`/products/stats?${params}`);
+  }
+
   async getProduct(id: string) {
     return this.request(`/products/${id}`);
+  }
+
+  async getInventory(params: Record<string, any> = {}) {
+    const query = this.addTenantParam(params);
+    return this.request(`/inventory?${query}`);
+  }
+
+  async getInventoryStats() {
+    const params = this.addTenantParam();
+    return this.request(`/inventory/stats?${params}`);
   }
 
   async updateProduct(id: string, data: any) {
@@ -607,6 +640,11 @@ class ApiClient {
   async getCustomerSegments() {
     const params = this.addTenantParam();
     return this.request(`/customers/segments?${params}`);
+  }
+
+  async getRFMAnalysis() {
+    const params = this.addTenantParam();
+    return this.request(`/customers/segmentation/rfm?${params}`);
   }
 
   // Store/Integration Endpoints

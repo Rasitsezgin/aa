@@ -9,8 +9,10 @@ import {
     Star, Layers
 } from 'lucide-react';
 import Image from 'next/image';
-import { useProducts, Product } from '@/lib/hooks';
+import { useProducts, useProductStats, Product } from '@/lib/hooks';
 import { useQuickActions } from '@/providers/quick-actions-provider';
+import { apiClient } from '@/lib/api-client';
+
 
 
 
@@ -30,8 +32,11 @@ const PLATFORM_COLORS: Record<string, string> = {
 };
 
 export default function ProductList() {
-    const { products: apiProducts, loading, fetchProducts, optimizeProduct, bulkAnalyze, pagination } = useProducts();
+    const [currentPage, setCurrentPage] = useState(1);
+    const { data: statsData, loading: statsLoading } = useProductStats();
+    const { data: productsData, loading: productsLoading, refetch: fetchProducts } = useProducts(currentPage, 20);
     const { openAddProduct } = useQuickActions();
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [platformFilter, setPlatformFilter] = useState('all');
@@ -44,23 +49,51 @@ export default function ProductList() {
     const [actionMenu, setActionMenu] = useState<string | null>(null);
     const [optimizing, setOptimizing] = useState<string | null>(null);
     const [bulkOptimizing, setBulkOptimizing] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
 
-    const products = apiProducts;
-    const categories = useMemo(() => [...new Set(products.map(p => p.category))], [products]);
-    const platforms = useMemo(() => [...new Set(products.flatMap(p => p.platform))], [products]);
+    const products = useMemo(() => {
+        const rawItems = (productsData as any)?.data || [];
+        return rawItems.map((p: any): Product => ({
+            ...p,
+            name: p.title || p.name,
+            images: Array.isArray(p.images) && typeof p.images[0] === 'object' 
+                ? p.images.map((img: any) => img.url) 
+                : p.images || [],
+            platform: Array.isArray(p.marketplaceLinks) 
+                ? [...new Set(p.marketplaceLinks.map((l: any) => l.platform))] 
+                : p.platform || [],
+            sales: p.sales || 0,
+            revenue: Number(p.revenue || 0),
+            rating: p.rating || 0,
+            reviewCount: p.reviewCount || 0
+        }));
+    }, [productsData]);
+
+    const loading = statsLoading || productsLoading;
+    const pagination = (productsData as any) || { page: 1, limit: 20, total: 0, totalPages: 1 };
+    const categories = useMemo(() => Array.from(new Set(products.map((p: Product) => p.category))) as string[], [products]);
+    const platforms = useMemo(() => Array.from(new Set(products.flatMap((p: Product) => p.platform))) as string[], [products]);
 
     const filteredProducts = useMemo(() => {
-        let filtered = products.filter(p => {
-            const matchSearch = !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.sku.toLowerCase().includes(searchTerm.toLowerCase());
+        let filtered = products.filter((p: Product) => {
+            const nameMatch = !searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase());
+            const skuMatch = !searchTerm || p.sku.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchSearch = nameMatch || skuMatch;
             const matchStatus = statusFilter === 'all' || p.status === statusFilter;
             const matchPlatform = platformFilter === 'all' || p.platform.includes(platformFilter);
             const matchCategory = categoryFilter === 'all' || p.category === categoryFilter;
             return matchSearch && matchStatus && matchPlatform && matchCategory;
         });
-        filtered.sort((a, b) => {
+        filtered.sort((a: Product, b: Product) => {
             let cmp = 0;
-            switch (sortBy) { case 'name': cmp = a.name.localeCompare(b.name); break; case 'price': cmp = a.price - b.price; break; case 'stock': cmp = a.stock - b.stock; break; case 'sales': cmp = a.sales - b.sales; break; case 'revenue': cmp = a.revenue - b.revenue; break; case 'rating': cmp = a.rating - b.rating; break; case 'seoScore': cmp = (a.seoScore || 0) - (b.seoScore || 0); break; }
+            switch (sortBy) { 
+                case 'name': cmp = a.name.localeCompare(b.name); break; 
+                case 'price': cmp = a.price - b.price; break; 
+                case 'stock': cmp = a.stock - b.stock; break; 
+                case 'sales': cmp = a.sales - b.sales; break; 
+                case 'revenue': cmp = a.revenue - b.revenue; break; 
+                case 'rating': cmp = a.rating - b.rating; break; 
+                case 'seoScore': cmp = (a.seoScore || 0) - (b.seoScore || 0); break; 
+            }
             return sortDir === 'asc' ? cmp : -cmp;
         });
         return filtered;
@@ -70,18 +103,33 @@ export default function ProductList() {
     const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
     const paginatedProducts = filteredProducts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-    const stats = useMemo(() => ({
-        total: products.length, active: products.filter(p => p.status === 'active').length,
-        outOfStock: products.filter(p => p.status === 'out-of-stock' || p.stock === 0).length,
-        totalRevenue: products.reduce((s, p) => s + p.revenue, 0),
-        avgRating: products.length > 0 ? products.reduce((s, p) => s + p.rating, 0) / products.length : 0,
-        lowStock: products.filter(p => p.stock > 0 && p.stock < 20).length,
-    }), [products]);
+    const stats = useMemo(() => {
+        const s = statsData as any;
+        return {
+            total: s?.total || 0,
+            active: s?.active || 0,
+            outOfStock: s?.outOfStock || 0,
+            totalRevenue: s?.totalRevenue || 0,
+            avgRating: s?.avgRating || 0,
+            lowStock: s?.lowStock || 0,
+        };
+    }, [statsData]);
 
     const toggleSelect = (id: string) => setSelectedProducts(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-    const toggleSelectAll = () => setSelectedProducts(prev => prev.length === paginatedProducts.length ? [] : paginatedProducts.map(p => p.id));
-    const handleOptimize = async (productId: string) => { setOptimizing(productId); try { await optimizeProduct(productId); } catch { } finally { setOptimizing(null); } };
-    const handleBulkOptimize = async () => { setBulkOptimizing(true); try { await bulkAnalyze(); } catch { } finally { setBulkOptimizing(false); } };
+    const toggleSelectAll = () => setSelectedProducts(prev => prev.length === products.length ? [] : products.map(p => p.id));
+    const handleOptimize = async (productId: string) => { 
+        setOptimizing(productId); 
+        try { 
+            const tenantId = (productsData as any)?.tenantId || '';
+            await apiClient.optimizeProduct(tenantId, productId); 
+        } catch { } finally { setOptimizing(null); } 
+    };
+    const handleBulkOptimize = async () => { 
+        setBulkOptimizing(true); 
+        try { 
+            await apiClient.bulkAnalyze(); 
+        } catch { } finally { setBulkOptimizing(false); } 
+    };
     const handleSort = (field: string) => { if (sortBy === field) setSortDir(prev => prev === 'asc' ? 'desc' : 'asc'); else { setSortBy(field); setSortDir('asc'); } };
     const formatCurrency = (n: number) => new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(n);
 
@@ -136,8 +184,8 @@ export default function ProductList() {
                 {showFilters && (
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-3 border-t border-slate-200 dark:border-white/5">
                         <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setCurrentPage(1); }} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl py-2.5 px-4 text-sm text-foreground focus:outline-none focus:border-primary/50"><option value="all">Tüm Durumlar</option><option value="active">Aktif</option><option value="inactive">Pasif</option><option value="draft">Taslak</option><option value="out-of-stock">Stok Yok</option></select>
-                        <select value={platformFilter} onChange={e => { setPlatformFilter(e.target.value); setCurrentPage(1); }} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl py-2.5 px-4 text-sm text-foreground focus:outline-none focus:border-primary/50"><option value="all">Tüm Platformlar</option>{platforms.map(p => <option key={p} value={p}>{p}</option>)}</select>
-                        <select value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setCurrentPage(1); }} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl py-2.5 px-4 text-sm text-foreground focus:outline-none focus:border-primary/50"><option value="all">Tüm Kategoriler</option>{categories.map(c => <option key={c} value={c}>{c}</option>)}</select>
+                        <select value={platformFilter} onChange={e => { setPlatformFilter(e.target.value); setCurrentPage(1); }} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl py-2.5 px-4 text-sm text-foreground focus:outline-none focus:border-primary/50"><option value="all">Tüm Platformlar</option>{platforms.map((p: string) => <option key={p} value={p}>{p}</option>)}</select>
+                        <select value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setCurrentPage(1); }} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl py-2.5 px-4 text-sm text-foreground focus:outline-none focus:border-primary/50"><option value="all">Tüm Kategoriler</option>{categories.map((c: string) => <option key={c} value={c}>{c}</option>)}</select>
                         <select value={sortBy} onChange={e => handleSort(e.target.value)} className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl py-2.5 px-4 text-sm text-foreground focus:outline-none focus:border-primary/50"><option value="name">Ada Göre</option><option value="price">Fiyata Göre</option><option value="stock">Stoğa Göre</option><option value="sales">Satışa Göre</option><option value="revenue">Ciroya Göre</option><option value="rating">Puana Göre</option><option value="seoScore">SEO Skoruna Göre</option></select>
                     </div>
                 )}
@@ -178,7 +226,7 @@ export default function ProductList() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                                {paginatedProducts.map((product) => (
+                                {products.map((product: Product) => (
                                     <tr key={product.id} className="hover:bg-slate-50 dark:hover:bg-white/[0.01] transition-all group">
                                         <td className="px-6 py-5"><input type="checkbox" checked={selectedProducts.includes(product.id)} onChange={() => toggleSelect(product.id)} className="rounded border-slate-300" /></td>
                                         <td className="px-6 py-5">
@@ -196,7 +244,7 @@ export default function ProductList() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-5"><div className="flex flex-wrap gap-1">{product.platform.map(mp => <span key={mp} className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${PLATFORM_COLORS[mp] || 'bg-slate-100 text-slate-500'}`}>{mp}</span>)}</div></td>
+                                        <td className="px-6 py-5"><div className="flex flex-wrap gap-1">{product.platform.map((mp: string) => <span key={mp} className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${PLATFORM_COLORS[mp] || 'bg-slate-100 text-slate-500'}`}>{mp}</span>)}</div></td>
                                         <td className="px-6 py-5 text-center">
                                             <div className="flex flex-col items-center gap-1">
                                                 <span className={`text-sm font-black ${(product.seoScore || 0) > 85 ? 'text-green-500' : (product.seoScore || 0) > 65 ? 'text-primary' : 'text-orange-500'}`}>{product.seoScore || '-'}</span>
@@ -229,13 +277,13 @@ export default function ProductList() {
                             </tbody>
                         </table>
                     </div>
-                    {totalPages > 1 && (
+                    {pagination.totalPages > 1 && (
                         <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-white/5">
-                            <span className="text-sm text-slate-500">{filteredProducts.length} üründen {(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, filteredProducts.length)} gösteriliyor</span>
+                            <span className="text-sm text-slate-500">{pagination.total} üründen {(pagination.page - 1) * pagination.limit + 1}-{Math.min(pagination.page * pagination.limit, pagination.total)} gösteriliyor</span>
                             <div className="flex items-center gap-2">
                                 <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="p-2 rounded-lg hover:bg-slate-100 disabled:opacity-30"><ChevronLeft className="w-4 h-4" /></button>
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => <button key={p} onClick={() => setCurrentPage(p)} className={`w-8 h-8 rounded-lg text-sm font-bold ${p === currentPage ? 'bg-primary text-white' : 'hover:bg-slate-100 text-slate-500'}`}>{p}</button>)}
-                                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="p-2 rounded-lg hover:bg-slate-100 disabled:opacity-30"><ChevronRight className="w-4 h-4" /></button>
+                                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p: number) => <button key={p} onClick={() => setCurrentPage(p)} className={`w-8 h-8 rounded-lg text-sm font-bold ${p === currentPage ? 'bg-primary text-white' : 'hover:bg-slate-100 text-slate-500'}`}>{p}</button>)}
+                                <button onClick={() => setCurrentPage(p => Math.min(pagination.totalPages, p + 1))} disabled={currentPage === pagination.totalPages} className="p-2 rounded-lg hover:bg-slate-100 disabled:opacity-30"><ChevronRight className="w-4 h-4" /></button>
                             </div>
                         </div>
                     )}
@@ -245,7 +293,7 @@ export default function ProductList() {
             {/* Grid View */}
             {!loading && viewMode === 'grid' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {paginatedProducts.map(product => (
+                    {products.map((product: Product) => (
                         <div key={product.id} className="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-white/5 p-5 hover:border-primary/30 hover:shadow-lg transition-all group">
                             <div className="flex items-start justify-between mb-3">
                                 <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center relative overflow-hidden">
@@ -259,7 +307,7 @@ export default function ProductList() {
                             </div>
                             <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1 line-clamp-2">{product.name}</h3>
                             <p className="text-[10px] font-black text-slate-500 uppercase mb-3">{product.sku}</p>
-                            <div className="flex flex-wrap gap-1 mb-3">{product.platform.map(mp => <span key={mp} className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${PLATFORM_COLORS[mp] || 'bg-slate-100 text-slate-500'}`}>{mp}</span>)}</div>
+                            <div className="flex flex-wrap gap-1 mb-3">{product.platform.map((mp: string) => <span key={mp} className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${PLATFORM_COLORS[mp] || 'bg-slate-100 text-slate-500'}`}>{mp}</span>)}</div>
                             <div className="grid grid-cols-2 gap-2 mb-3">
                                 <div className="bg-slate-50 dark:bg-white/5 rounded-lg p-2"><div className="text-[10px] text-slate-500">Fiyat</div><div className="text-sm font-bold text-foreground">{formatCurrency(product.price)}</div></div>
                                 <div className="bg-slate-50 dark:bg-white/5 rounded-lg p-2"><div className="text-[10px] text-slate-500">Stok</div><div className={`text-sm font-bold ${product.stock === 0 ? 'text-red-500' : 'text-foreground'}`}>{product.stock}</div></div>

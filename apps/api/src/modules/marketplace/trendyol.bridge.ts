@@ -36,7 +36,9 @@ interface TrendyolProduct {
 @Injectable()
 export class TrendyolBridge implements MarketplaceBridge {
     private readonly logger = new Logger(TrendyolBridge.name);
-    private readonly baseUrl = 'https://api.trendyol.com/sapigw';
+    private readonly productionUrl = 'https://api.trendyol.com/sapigw';
+    private readonly stageUrl = 'https://stageapi.trendyol.com/sapigw';
+    private readonly baseUrl: string;
     private readonly requestDelayMs = 250;
     private readonly maxApiPages = 5;
 
@@ -45,7 +47,10 @@ export class TrendyolBridge implements MarketplaceBridge {
         private readonly apiSecret: string,
         private readonly supplierId: string,
         private readonly scrapingService: ScrapingService,
-    ) { }
+        private readonly isTestMode: boolean = false,
+    ) {
+        this.baseUrl = this.isTestMode ? this.stageUrl : this.productionUrl;
+    }
 
     /**
      * Mağaza bilgilerini Trendyol API'sinden çek

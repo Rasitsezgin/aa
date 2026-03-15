@@ -20,6 +20,11 @@ export class ProductController {
         return this.productService.getBulkActionHistory(tenantId);
     }
 
+    @Get('stats')
+    async getStats(@Headers('x-tenant-id') tenantId: string) {
+        return this.productService.getProductStats(tenantId);
+    }
+
     @Post('import')
     async importProducts(
         @Headers('x-tenant-id') tenantId: string,
@@ -84,8 +89,15 @@ export class ProductController {
     @Get()
     @UseInterceptors(CacheInterceptor)
     @CacheTTL(60000)
-    async findAll(@Headers('x-tenant-id') tenantId: string) {
-        return this.productService.findAll(tenantId);
+    async findAll(
+        @Headers('x-tenant-id') tenantId: string,
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+    ) {
+        return this.productService.findAll(tenantId, {
+            page: page ? Number(page) : 1,
+            limit: limit ? Number(limit) : 20,
+        });
     }
 
     @Get(':id')

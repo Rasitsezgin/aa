@@ -14,11 +14,86 @@ export class ProductService {
         });
     }
 
-    async findAll(tenantId: string) {
-        return this.prisma.product.findMany({
-            where: { tenantId },
-            include: { images: true, marketplaceLinks: true },
-        });
+    async findAll(tenantId: string, options: { page?: number; limit?: number } = {}) {
+        const { page = 1, limit = 20 } = options;
+        const skip = (page - 1) * limit;
+
+        const [products, total] = await Promise.all([
+            this.prisma.product.findMany({
+                where: { tenantId },
+                include: { images: true, marketplaceLinks: true },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.product.count({
+                where: { tenantId },
+            }),
+        ]);
+
+        return {
+            data: products,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
+    }
+
+    async getProductStats(tenantId: string) {
+        const [
+            totalInfo,
+            statusBreakdown,
+            lowStockCount,
+            revenueInfo,
+            averageRatingInfo
+        ] = await Promise.all([
+            // Total products
+            this.prisma.product.count({ where: { tenantId } }),
+            
+            // Status breakdown (active, paused, draft etc)
+            this.prisma.product.groupBy({
+                by: ['status'],
+                where: { tenantId },
+                _count: { status: true }
+            }),
+
+            // Low stock (less than 20)
+            this.prisma.product.count({
+                where: {
+                    tenantId,
+                    stock: { gt: 0, lt: 20 }
+                }
+            }),
+
+            // Total revenue from all order items for these products
+            this.prisma.orderItem.aggregate({
+                where: {
+                    product: { tenantId }
+                },
+                _sum: {
+                    quantity: true,
+                    unitPrice: true
+                }
+            }),
+
+            // Average rating from all reviews for these products
+            this.prisma.review.aggregate({
+                where: { tenantId },
+                _avg: { rating: true }
+            })
+        ]);
+
+        const stats = {
+            total: totalInfo,
+            active: statusBreakdown.find(s => s.status === 'active')?._count.status || 0,
+            outOfStock: statusBreakdown.find(s => s.status === 'out-of-stock' || s.status === 'paused')?._count.status || 0, // Using paused as proxy for now if needed
+            lowStock: lowStockCount,
+            totalRevenue: Number(revenueInfo._sum.unitPrice || 0), // Simplified revenue calc
+            avgRating: Number((averageRatingInfo._avg.rating || 0).toFixed(1))
+        };
+
+        return stats;
     }
 
     async findOne(tenantId: string, id: string) {

@@ -2,8 +2,13 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, ShoppingCart, AlertCircle, CheckCircle2, RefreshCcw, Truck, MessageSquare, Boxes, Zap, Loader2 } from 'lucide-react';
+import { Activity, ShoppingCart, AlertCircle, CheckCircle2, RefreshCcw, Truck, MessageSquare, Boxes, Zap, Loader2, X } from 'lucide-react';
 import { useActivityFeed, useAiSummary } from '@/lib/hooks';
+
+interface LiveFeedProps {
+    isOpen: boolean;
+    onToggle: () => void;
+}
 
 const TYPE_CONFIG: Record<string, { icon: any; color: string; bg: string }> = {
     order: { icon: ShoppingCart, color: 'text-blue-500', bg: 'bg-blue-500/10' },
@@ -15,7 +20,7 @@ const TYPE_CONFIG: Record<string, { icon: any; color: string; bg: string }> = {
     system: { icon: RefreshCcw, color: 'text-slate-500', bg: 'bg-slate-500/10' },
 };
 
-export default function LiveFeed() {
+export default function LiveFeed({ isOpen, onToggle }: LiveFeedProps) {
     const { data: activities, loading: feedLoading } = useActivityFeed(8);
     const { data: aiSummary, loading: summaryLoading } = useAiSummary();
 
@@ -31,14 +36,31 @@ export default function LiveFeed() {
     };
 
     return (
-        <div className="w-80 border-l border-border bg-surface/30 backdrop-blur-md sticky top-20 h-[calc(100vh-80px)] overflow-y-auto hidden xl:flex flex-col p-6 animate-in slide-in-from-right duration-500">
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-2">
-                    <Activity size={18} className="text-primary animate-pulse" />
-                    <h3 className="text-sm font-black uppercase tracking-widest text-foreground">Canlı Akış</h3>
-                </div>
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            </div>
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    initial={{ width: 0, opacity: 0, x: 20 }}
+                    animate={{ width: 320, opacity: 1, x: 0 }}
+                    exit={{ width: 0, opacity: 0, x: 20 }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                    className="border-l border-border bg-surface/30 backdrop-blur-md sticky top-20 h-[calc(100vh-80px)] overflow-y-auto hidden xl:flex flex-col p-6 z-30"
+                >
+                    <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center gap-2">
+                            <Activity size={18} className="text-primary animate-pulse" />
+                            <h3 className="text-sm font-black uppercase tracking-widest text-foreground">Canlı Akış</h3>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                            <button
+                                onClick={onToggle}
+                                className="p-1.5 hover:bg-white/5 rounded-lg text-slate-400 hover:text-foreground transition-all"
+                                title="Kapat"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                    </div>
 
             <div className="space-y-6 flex-1">
                 {feedLoading ? (
@@ -107,6 +129,8 @@ export default function LiveFeed() {
                     )}
                 </AnimatePresence>
             </div>
-        </div>
+        </motion.div>
+    )}
+</AnimatePresence>
     );
 }

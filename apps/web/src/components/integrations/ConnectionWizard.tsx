@@ -249,7 +249,7 @@ export const ConnectionWizard: React.FC<ConnectionWizardProps> = ({
     success: boolean;
     message: string;
   } | null>(null);
-  const [useSandbox, setUseSandbox] = useState(false);
+  const [isTestMode, setIsTestMode] = useState(false);
 
   // Reset state when marketplace changes
   useEffect(() => {
@@ -258,7 +258,7 @@ export const ConnectionWizard: React.FC<ConnectionWizardProps> = ({
       setCredentials({});
       setErrors({});
       setTestResult(null);
-      setUseSandbox(false);
+      setIsTestMode(false);
     }
   }, [isOpen, marketplace.id]);
 
@@ -286,7 +286,7 @@ export const ConnectionWizard: React.FC<ConnectionWizardProps> = ({
       setCurrentStep(2);
       setIsLoading(true);
       try {
-        const result = await onTest({ ...credentials, sandbox: useSandbox.toString() });
+        const result = await onTest({ ...credentials, isTestMode: isTestMode.toString() });
         setTestResult(result);
       } catch (_error) {
         setTestResult({
@@ -300,7 +300,7 @@ export const ConnectionWizard: React.FC<ConnectionWizardProps> = ({
       // Complete connection
       setIsLoading(true);
       try {
-        const success = await onConnect({ ...credentials, sandbox: useSandbox.toString() });
+        const success = await onConnect({ ...credentials, isTestMode: isTestMode.toString() });
         if (success) {
           setCurrentStep(3);
         } else {
@@ -331,7 +331,7 @@ export const ConnectionWizard: React.FC<ConnectionWizardProps> = ({
     setIsLoading(true);
     setTestResult(null);
     try {
-      const result = await onTest({ ...credentials, sandbox: useSandbox.toString() });
+      const result = await onTest({ ...credentials, isTestMode: isTestMode.toString() });
       setTestResult(result);
     } catch (_error) {
       setTestResult({
@@ -458,16 +458,16 @@ export const ConnectionWizard: React.FC<ConnectionWizardProps> = ({
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={useSandbox}
-                      onChange={(e) => setUseSandbox(e.target.checked)}
+                      checked={isTestMode}
+                      onChange={(e) => setIsTestMode(e.target.checked)}
                       className="w-5 h-5 rounded border-amber-400 text-amber-600 focus:ring-amber-500"
                     />
                     <div>
                       <p className="font-medium text-amber-800 dark:text-amber-200">
-                        Sandbox Modu
+                        Test Modu (Stage/Sandbox)
                       </p>
                       <p className="text-sm text-amber-700 dark:text-amber-300">
-                        Test ortamında çalıştır (gerçek işlem yapılmaz)
+                        Trendyol Stage ortamında çalıştır (gerçek işlem yapılmaz)
                       </p>
                     </div>
                   </label>

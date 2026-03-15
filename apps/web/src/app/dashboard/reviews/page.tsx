@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useReviews } from '@/lib/hooks';
+import { apiClient } from '@/lib/api-client';
+import { useReviews, useReviewStats } from '@/lib/hooks';
 import {
     MessageSquare, Star, ThumbsUp, Search,
     RefreshCw, Reply, Flag, CheckCircle2, Clock,
     AlertTriangle, TrendingUp, Eye, ExternalLink,
     Sparkles, Send, Loader2, BarChart3, X
 } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
 
 interface Review {
     id: string | number;
@@ -45,7 +45,8 @@ function StarRow({ rating }: { rating: number }) {
 }
 
 export default function ReviewsPage() {
-    const { reviews: apiReviews, loading: apiLoading, fetchReviews, replyToReview: hookReply } = useReviews();
+    const { data: statsData, loading: statsLoading } = useReviewStats();
+    const { data: reviewsData, loading: reviewsLoading, error, refetch: fetchReviews } = useReviews();
     const [searchQuery, setSearchQuery] = useState('');
     const [ratingFilter, setRatingFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -57,10 +58,13 @@ export default function ReviewsPage() {
     const [localReviews, setLocalReviews] = useState<Review[]>([]);
 
     useEffect(() => {
-        if (Array.isArray(apiReviews)) setLocalReviews(apiReviews as Review[]);
-    }, [apiReviews]);
+        if (reviewsData && (reviewsData as any).data) {
+            setLocalReviews((reviewsData as any).data);
+        }
+    }, [reviewsData]);
 
     const reviews = localReviews;
+    const apiLoading = statsLoading || reviewsLoading;
 
     const filteredReviews = reviews.filter(review => {
         const product = review.product || review.productName || '';
@@ -74,22 +78,23 @@ export default function ReviewsPage() {
         return true;
     });
 
-    const totalReviews = reviews.length;
-    const avgRating = totalReviews > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / totalReviews).toFixed(1) : '0.0';
-    const pendingCount = reviews.filter(r => r.status === 'pending').length;
-    const positivePercent = totalReviews > 0 ? Math.round(reviews.filter(r => r.rating >= 4).length / totalReviews * 100) : 0;
-
-    // Platform breakdown from real data
-    const platforms = [...new Set(reviews.map(r => r.platform))];
-    const platformBreakdown = platforms.map(p => {
-        const pReviews = reviews.filter(r => r.platform === p);
+    const stats = useMemo(() => {
+        const s = statsData as any;
         return {
-            platform: p,
-            avgRating: pReviews.length > 0 ? (pReviews.reduce((s, r) => s + r.rating, 0) / pReviews.length).toFixed(1) : '0.0',
-            totalReviews: pReviews.length,
-            positive: pReviews.length > 0 ? Math.round(pReviews.filter(r => r.rating >= 4).length / pReviews.length * 100) : 0,
+            total: s?.totalReviews || 0,
+            avgRating: s?.averageRating || '0.0',
+            pending: s?.pendingCount || 0,
+            positivePercent: s?.positivePercent || 0,
+            platformBreakdown: s?.platformBreakdown || []
         };
-    });
+    }, [statsData]);
+
+    const totalReviews = stats.total;
+    const avgRating = stats.avgRating;
+    const pendingCount = stats.pending;
+    const positivePercent = stats.positivePercent;
+    const platformBreakdown = stats.platformBreakdown;
+    const platforms = useMemo(() => platformBreakdown.map((p: any) => p.platform), [platformBreakdown]);
 
     const generateAiReply = async (review: Review) => {
         setAiLoading(true);
@@ -113,11 +118,12 @@ export default function ReviewsPage() {
         if (!replyText.trim()) return;
         setSendingId(reviewId);
         try {
-            await hookReply(String(reviewId), replyText);
+            await apiClient.replyToReview(String(reviewId), replyText);
             // Optimistic update
             setLocalReviews(prev => prev.map(r =>
                 r.id === reviewId ? { ...r, reply: replyText, status: 'replied' } : r
             ));
+            fetchReviews();
         } catch { /* ignore */ }
         setOpenReplyId(null);
         setReplyText('');
@@ -182,7 +188,7 @@ export default function ReviewsPage() {
                             <p className="text-xs text-slate-500">Henüz veri yok</p>
                         ) : (
                             <div className="space-y-3">
-                                {platformBreakdown.map(p => (
+                                {platformBreakdown.map((p: any) => (
                                     <div key={p.platform} className="p-3 bg-background rounded-xl border border-border">
                                         <div className="flex justify-between mb-1">
                                             <span className="text-sm font-bold text-foreground">{p.platform}</span>
@@ -207,7 +213,7 @@ export default function ReviewsPage() {
                         <select value={platformFilter} onChange={e => setPlatformFilter(e.target.value)}
                             className="w-full px-3 py-2 bg-background rounded-xl text-sm border border-border text-foreground focus:border-pink-500 focus:outline-none">
                             <option value="all">Tüm Platformlar</option>
-                            {platforms.map(p => <option key={p} value={p}>{p}</option>)}
+                            {platforms.map((p: string) => <option key={p} value={p}>{p}</option>)}
                         </select>
                         <select value={ratingFilter} onChange={e => setRatingFilter(e.target.value)}
                             className="w-full px-3 py-2 bg-background rounded-xl text-sm border border-border text-foreground focus:border-pink-500 focus:outline-none">

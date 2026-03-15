@@ -730,9 +730,12 @@ export function useContentRules() {
 }
 
 export function useOrders() {
+  const { data: session } = useSession();
+  const tenantId = (session?.user as any)?.tenantId as string | undefined;
   const [loading, setLoading] = useState(false);
 
   const getOrders = async (params: any) => {
+    if (tenantId) apiClient.setTenantId(tenantId);
     setLoading(true);
     try {
       const query = new URLSearchParams(params).toString();
@@ -743,6 +746,7 @@ export function useOrders() {
   };
 
   const updateStatus = async (id: string, status: string) => {
+    if (tenantId) apiClient.setTenantId(tenantId);
     setLoading(true);
     try {
       return await apiClient.request(`/orders/${id}/status`, {
@@ -755,6 +759,7 @@ export function useOrders() {
   };
 
   const createOrder = async (data: any) => {
+    if (tenantId) apiClient.setTenantId(tenantId);
     setLoading(true);
     try {
       return await apiClient.request('/orders', {
@@ -769,32 +774,56 @@ export function useOrders() {
   return { getOrders, updateStatus, createOrder, loading };
 }
 
-export function useInventory() {
-  const { data: session } = useSession();
-  const [loading, setLoading] = useState(false);
-  const tenantId = (session?.user as any)?.tenantId || '';
+export function useInventory(params: Record<string, any> = {}) {
+  const fetcher = useCallback(
+    (tenantId: string) => {
+      apiClient.setTenantId(tenantId);
+      return apiClient.getInventory(params) as Promise<any>;
+    },
+    [params]
+  );
+  return useApiData(fetcher);
+}
 
-  const getInventory = async (params: any) => {
-    setLoading(true);
-    try {
-      const query = new URLSearchParams({ ...params, tenantId }).toString();
-      return await apiClient.request(`/inventory?${query}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+export function useInventoryStats() {
+  const fetcher = useCallback(
+    (tenantId: string) => {
+      apiClient.setTenantId(tenantId);
+      return apiClient.getInventoryStats() as Promise<any>;
+    },
+    []
+  );
+  return useApiData(fetcher);
+}
 
-  const getStats = async () => {
-    if (!tenantId) return null;
-    setLoading(true);
-    try {
-      return await apiClient.request(`/inventory/stats?tenantId=${tenantId}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+export function useOrderStats() {
+  const fetcher = useCallback(
+    (tenantId: string) => apiClient.getOrderStats(tenantId) as Promise<any>,
+    []
+  );
+  return useApiData(fetcher);
+}
 
-  return { getInventory, getStats, loading };
+export function useReturns(params: Record<string, string> = {}) {
+  const fetcher = useCallback(
+    (tenantId: string) => {
+      apiClient.setTenantId(tenantId);
+      return apiClient.getReturns(params) as Promise<any>;
+    },
+    [params]
+  );
+  return useApiData(fetcher);
+}
+
+export function useReturnStats() {
+  const fetcher = useCallback(
+    (tenantId: string) => {
+      apiClient.setTenantId(tenantId);
+      return apiClient.getReturnStats() as Promise<any>;
+    },
+    []
+  );
+  return useApiData(fetcher);
 }
 
 export function useFinance() {
@@ -1050,54 +1079,60 @@ export function useSupport() {
 // ==========================================
 // CUSTOMER HOOKS
 // ==========================================
-export function useCustomers() {
-  const [loading, setLoading] = useState(false);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [stats, setStats] = useState<CustomerStats | null>(null);
-  const [error, setError] = useState<Error | null>(null);
+export function useCustomers(params: Record<string, any> = {}) {
+  const fetcher = useCallback(
+    (tenantId: string) => {
+      apiClient.setTenantId(tenantId);
+      return apiClient.getCustomers(params) as Promise<{
+        customers: Customer[];
+        pagination: { total: number; page: number; limit: number; totalPages: number };
+      }>;
+    },
+    [JSON.stringify(params)]
+  );
 
-  const fetchCustomers = async (params: Record<string, string> = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await apiClient.getCustomers(params) as Customer[];
-      setCustomers(result);
-      return result;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Müşteriler yüklenemedi'));
-      return [];
-    } finally {
-      setLoading(false);
-    }
+  const { data, loading, error, refetch } = useApiData<{
+    customers: Customer[];
+    pagination: { total: number; page: number; limit: number; totalPages: number };
+  }>(fetcher);
+
+  const updateCustomer = async (id: string, updateData: Partial<Customer>) => {
+    const result = await apiClient.updateCustomer(id, updateData);
+    await refetch();
+    return result;
   };
 
-  const fetchStats = async () => {
-    try {
-      const result = await apiClient.getCustomerStats() as CustomerStats;
-      setStats(result);
-      return result;
-    } catch {
-      return null;
-    }
+  return {
+    customers: data?.customers || [],
+    pagination: data?.pagination,
+    loading,
+    error,
+    fetchCustomers: refetch,
+    updateCustomer,
+    refetch,
   };
+}
 
-  const updateCustomer = async (id: string, data: Partial<Customer>) => {
-    setLoading(true);
-    try {
-      const result = await apiClient.updateCustomer(id, data);
-      await fetchCustomers();
-      return result;
-    } finally {
-      setLoading(false);
-    }
-  };
+export function useCustomerStats() {
+  const fetcher = useCallback(
+    (tenantId: string) => {
+      apiClient.setTenantId(tenantId);
+      return apiClient.getCustomerStats() as Promise<CustomerStats>;
+    },
+    []
+  );
+  return useApiData<CustomerStats>(fetcher);
+}
 
-  useEffect(() => {
-    fetchCustomers();
-    fetchStats();
-  }, []);
-
-  return { customers, stats, loading, error, fetchCustomers, fetchStats, updateCustomer, refetch: fetchCustomers };
+export function useRFMAnalysis() {
+  const fetcher = useCallback(
+    (tenantId: string) => {
+      apiClient.setTenantId(tenantId);
+      return apiClient.getRFMAnalysis() as Promise<RFMAnalysisData>;
+    },
+    []
+  );
+  return useApiData<RFMAnalysisData>(fetcher);
 }
 
 export interface Customer {
@@ -1127,6 +1162,47 @@ export interface CustomerStats {
   retentionRate: number;
   churnRate: number;
   customerGrowth: number;
+}
+
+export interface RFMScore {
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  recency: number;
+  frequency: number;
+  monetary: number;
+  recencyScore: number;
+  frequencyScore: number;
+  monetaryScore: number;
+  rfmScore: string;
+  segment: string;
+  segmentDescription: string;
+}
+
+export interface CustomerSegmentRFM {
+  name: string;
+  code: string;
+  description: string;
+  count: number;
+  percentage: number;
+  avgMonetary: number;
+  avgFrequency: number;
+  color: string;
+  action: string;
+}
+
+export interface RFMAnalysisData {
+  customers: RFMScore[];
+  segments: CustomerSegmentRFM[];
+  summary: {
+    totalCustomers: number;
+    avgRecency: number;
+    avgFrequency: number;
+    avgMonetary: number;
+    topSegment: string;
+    atRiskCount: number;
+    championsCount: number;
+  };
 }
 
 // ==========================================
@@ -1297,54 +1373,26 @@ export interface Campaign {
 // ==========================================
 // REVIEW HOOKS
 // ==========================================
-export function useReviews() {
-  const [loading, setLoading] = useState(false);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [stats, setStats] = useState<ReviewStats | null>(null);
-  const [error, setError] = useState<Error | null>(null);
+export function useReviews(params: Record<string, string> = {}) {
+  const fetcher = useCallback(
+    (tenantId: string) => {
+      apiClient.setTenantId(tenantId);
+      return apiClient.getReviews(params) as Promise<any>;
+    },
+    [params]
+  );
+  return useApiData(fetcher);
+}
 
-  const fetchReviews = async (params: Record<string, string> = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await apiClient.getReviews(params) as Review[];
-      setReviews(result);
-      return result;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Yorumlar yüklenemedi'));
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      const result = await apiClient.getReviewStats() as ReviewStats;
-      setStats(result);
-      return result;
-    } catch {
-      return null;
-    }
-  };
-
-  const replyToReview = async (reviewId: string, reply: string) => {
-    setLoading(true);
-    try {
-      const result = await apiClient.replyToReview(reviewId, reply);
-      await fetchReviews();
-      return result;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchReviews();
-    fetchStats();
-  }, []);
-
-  return { reviews, stats, loading, error, fetchReviews, fetchStats, replyToReview };
+export function useReviewStats() {
+  const fetcher = useCallback(
+    (tenantId: string) => {
+      apiClient.setTenantId(tenantId);
+      return apiClient.getReviewStats() as Promise<any>;
+    },
+    []
+  );
+  return useApiData(fetcher);
 }
 
 export interface Review {
@@ -2367,75 +2415,26 @@ export interface Prediction {
 // ==========================================
 // PRODUCTS HOOK (Enhanced)
 // ==========================================
-export function useProducts() {
-  const { data: session } = useSession();
-  const [loading, setLoading] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [error, setError] = useState<Error | null>(null);
-  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0 });
+export function useProducts(page: number = 1, limit: number = 20) {
+  const fetcher = useCallback(
+    (tenantId: string) => {
+      apiClient.setTenantId(tenantId);
+      return apiClient.getProducts(page, limit) as Promise<any>;
+    },
+    [page, limit]
+  );
+  return useApiData(fetcher);
+}
 
-  const fetchProducts = async (page: number = 1, limit: number = 20) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await apiClient.getProducts(page, limit) as any;
-      if (Array.isArray(result)) {
-        setProducts(result);
-        setPagination(prev => ({ ...prev, page, limit, total: result.length }));
-      } else if (result?.data) {
-        setProducts(result.data);
-        setPagination({ page, limit, total: result.total || result.data.length });
-      }
-      return result;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Ürünler yüklenemedi'));
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateProduct = async (id: string, data: any) => {
-    setLoading(true);
-    try {
-      const result = await apiClient.updateProduct(id, data);
-      await fetchProducts(pagination.page, pagination.limit);
-      return result;
-    } finally { setLoading(false); }
-  };
-
-  const createProduct = async (data: any) => {
-    setLoading(true);
-    try {
-      const result = await apiClient.request('/products', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
-      await fetchProducts(pagination.page, pagination.limit);
-      return result;
-    } finally { setLoading(false); }
-  };
-
-  const optimizeProduct = async (productId: string) => {
-    setLoading(true);
-    try {
-      const tenantId = (session?.user as any)?.tenantId || 'test-tenant-id';
-      return await apiClient.optimizeProduct(tenantId, productId);
-    } finally { setLoading(false); }
-  };
-
-  const bulkAnalyze = async () => {
-    setLoading(true);
-    try {
-      return await apiClient.bulkAnalyze();
-    } finally { setLoading(false); }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  return { products, pagination, loading, error, fetchProducts, updateProduct, createProduct, optimizeProduct, bulkAnalyze };
+export function useProductStats() {
+  const fetcher = useCallback(
+    (tenantId: string) => {
+      apiClient.setTenantId(tenantId);
+      return apiClient.getProductStats() as Promise<any>;
+    },
+    []
+  );
+  return useApiData(fetcher);
 }
 
 export interface Product {

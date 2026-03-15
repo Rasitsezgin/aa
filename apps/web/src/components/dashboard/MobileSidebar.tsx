@@ -47,6 +47,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { useModules } from '@/lib/modules';
+import { useOrderStats } from '@/lib/hooks';
 import { useQuickActions } from '@/providers/quick-actions-provider';
 
 interface MobileSidebarProps {
@@ -74,7 +75,7 @@ const sections: Section[] = [
         title: "Genel",
         items: [
             { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", moduleKey: "DASHBOARD" },
-            { icon: ShoppingCart, label: "Siparişler", href: "/dashboard/orders", badge: "12", moduleKey: "ORDERS" },
+            { icon: ShoppingCart, label: "Siparişler", href: "/dashboard/orders", moduleKey: "ORDERS" },
             { icon: Package, label: "Ürünler", href: "/dashboard/products", moduleKey: "PRODUCTS" },
             { icon: Warehouse, label: "Stok Yönetimi", href: "/dashboard/inventory", badge: "!", moduleKey: "INVENTORY" },
             { icon: Users, label: "Müşteriler", href: "/dashboard/customers", moduleKey: "CUSTOMERS" },
@@ -139,6 +140,7 @@ export default function MobileSidebar({ isOpen, onClose, onHaptic }: MobileSideb
     const pathname = usePathname();
     const { data: session } = useSession();
     const { hasModuleAccess, tenantPlan } = useModules();
+    const { data: orderStats } = useOrderStats();
     const { openQuickSale, openAddProduct } = useQuickActions();
     const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -264,7 +266,11 @@ export default function MobileSidebar({ isOpen, onClose, onHaptic }: MobileSideb
                                                 >
                                                     <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary' : ''}`} />
                                                     <span className="text-sm font-medium flex-1">{item.label}</span>
-                                                    {item.badge && (
+                                                    {item.label === 'Siparişler' ? (
+                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/20 text-primary">
+                                                            {orderStats?.today?.total || '0'}
+                                                        </span>
+                                                    ) : item.badge && (
                                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${item.badge === '!'
                                                             ? 'bg-orange-500/20 text-orange-400'
                                                             : 'bg-primary/20 text-primary'

@@ -21,6 +21,7 @@ import {
 import LiveFeed from '@/components/LiveFeed';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ModuleProvider, useModules, useAnnouncements } from '@/lib/modules';
+import { useOrderStats } from '@/lib/hooks';
 import { AnnouncementBanner, AnnouncementDropdown } from '@/components/announcements/AnnouncementComponents';
 import { CommandPalette } from '@/components/CommandPalette';
 import { useTheme } from '@/providers/theme-provider';
@@ -54,7 +55,7 @@ const sections: Section[] = [
         title: "Genel",
         items: [
             { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", moduleKey: "DASHBOARD" },
-            { icon: ShoppingCart, label: "Siparişler", href: "/dashboard/orders", badge: "12", moduleKey: "ORDERS" },
+            { icon: ShoppingCart, label: "Siparişler", href: "/dashboard/orders", moduleKey: "ORDERS" },
             { icon: RefreshCw, label: "İadeler", href: "/dashboard/returns", moduleKey: "ORDERS" },
             { icon: MessageSquare, label: "Değerlendirmeler", href: "/dashboard/reviews", moduleKey: "REVIEWS" },
             { icon: Package, label: "Ürünler", href: "/dashboard/products", moduleKey: "PRODUCTS" },
@@ -121,11 +122,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     const { data: session, status } = useSession();
     const [expandedSection, setExpandedSection] = useState<string | null>('Genel');
     const { hasModuleAccess, tenantPlan } = useModules();
+    const { data: orderStats } = useOrderStats();
     const { active: activeAnnouncements, unreadCount, markAsRead, dismiss } = useAnnouncements();
     const { theme, toggleTheme, resolvedMode } = useTheme();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const [isCompactHeader, setIsCompactHeader] = useState(false);
+    const [showLiveFeed, setShowLiveFeed] = useState(true);
     const [platformTransitionDuration, setPlatformTransitionDuration] = useState(0.24);
     const prefersReducedMotion = useReducedMotion();
     const shouldReduceMotion = prefersReducedMotion || !theme.animations;
@@ -164,6 +167,21 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             return () => clearTimeout(timer);
         }
     }, [pathname]);
+
+    // Persist LiveFeed preference
+    useEffect(() => {
+        const saved = localStorage.getItem('dashboard_show_live_feed');
+        if (saved !== null) {
+            setShowLiveFeed(saved === 'true');
+        }
+    }, []);
+
+    const toggleLiveFeed = () => {
+        const newVal = !showLiveFeed;
+        setShowLiveFeed(newVal);
+        localStorage.setItem('dashboard_show_live_feed', String(newVal));
+        triggerHaptic();
+    };
 
     useEffect(() => {
         const onScroll = () => {
@@ -290,10 +308,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                                                 >
                                                     <item.icon className={`w-4 h-4 ${isActive ? 'text-primary' : 'group-hover:text-primary transition-colors'}`} />
                                                     <span className="text-sm font-medium flex-1">{item.label}</span>
-                                                    <button className="p-2 hover:bg-background rounded-lg text-slate-400 hover:text-primary transition-all shadow-sm">
-                                                        <Edit2 size={14} />
-                                                    </button>
-                                                    {item.badge && (
+                                                    {item.label === 'Siparişler' ? (
+                                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/20 text-primary">
+                                                            {orderStats?.today?.total || '0'}
+                                                        </span>
+                                                    ) : item.badge && (
                                                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${item.badge === '!'
                                                             ? 'bg-orange-500/20 text-orange-400'
                                                             : 'bg-primary/20 text-primary'
@@ -397,6 +416,14 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                                         <Moon className="w-5 h-5 group-hover:-rotate-12 transition-transform" />
                                     }
                                 </button>
+                                <button
+                                    onClick={toggleLiveFeed}
+                                    aria-label="Canlı akışı göster/gizle"
+                                    className={`hidden xl:flex p-2.5 rounded-xl transition-all group haptic-tap ${showLiveFeed ? 'bg-primary/10 text-primary border border-primary/20' : 'hover:bg-surface text-slate-400 hover:text-foreground'}`}
+                                    title="Canlı Akış"
+                                >
+                                    <Activity className={`w-5 h-5 ${showLiveFeed ? 'animate-pulse' : 'group-hover:scale-110'}`} aria-hidden="true" />
+                                </button>
                             </div>
 
                             <div className="hidden lg:block h-8 w-px bg-border/60 mx-1" />
@@ -488,7 +515,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                             </motion.div>
                         </AnimatePresence>
                     </main>
-                    <LiveFeed />
+                    <LiveFeed isOpen={showLiveFeed} onToggle={toggleLiveFeed} />
                 </div>
             </div>
 

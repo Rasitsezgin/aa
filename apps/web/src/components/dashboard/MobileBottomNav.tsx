@@ -12,15 +12,23 @@ import {
 } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useTheme } from '@/providers/theme-provider';
+import { useOrderStats } from '@/lib/hooks';
 
 interface MobileBottomNavProps {
     onMenuOpen: () => void;
     onHaptic?: () => void;
 }
 
-const navItems = [
+interface NavItem {
+    icon: any;
+    label: string;
+    href: string;
+    badge?: string;
+}
+
+const navItems: NavItem[] = [
     { icon: LayoutDashboard, label: 'Ana Sayfa', href: '/dashboard' },
-    { icon: ShoppingCart, label: 'Siparişler', href: '/dashboard/orders', badge: '12' },
+    { icon: ShoppingCart, label: 'Siparişler', href: '/dashboard/orders' },
     { icon: Package, label: 'Ürünler', href: '/dashboard/products' },
     { icon: Bot, label: 'AI Danışman', href: '/dashboard/ai-advisor' },
 ];
@@ -28,6 +36,7 @@ const navItems = [
 export default function MobileBottomNav({ onMenuOpen, onHaptic }: MobileBottomNavProps) {
     const pathname = usePathname();
     const { theme } = useTheme();
+    const { data: orderStats } = useOrderStats();
     const prefersReducedMotion = useReducedMotion();
     const shouldReduceMotion = prefersReducedMotion || !theme.animations;
     const currentPath = pathname ?? '';
@@ -69,10 +78,13 @@ export default function MobileBottomNav({ onMenuOpen, onHaptic }: MobileBottomNa
                                     className={`transition-colors duration-200 ${active ? 'text-primary' : 'text-slate-400'
                                         }`}
                                 />
-                                {/* Badge */}
-                                {item.badge && (
+                                {item.label === 'Siparişler' ? (
                                     <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 flex items-center justify-center px-1 text-[9px] font-black text-white bg-red-500 rounded-full leading-none">
-                                        {item.badge}
+                                        {orderStats?.today?.total || '0'}
+                                    </span>
+                                ) : (item as any).badge && (
+                                    <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 flex items-center justify-center px-1 text-[9px] font-black text-white bg-red-500 rounded-full leading-none">
+                                        {(item as any).badge}
                                     </span>
                                 )}
                             </motion.div>

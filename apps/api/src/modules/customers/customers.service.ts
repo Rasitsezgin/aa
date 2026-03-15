@@ -17,123 +17,101 @@ export class CustomersService {
   async findAll(filters: CustomerFilters) {
     const { tenantId, status, search, sortBy = 'totalSpent', page = 1, limit = 20 } = filters;
 
-    // Demo müşteri verileri
-    const demoCustomers = [
-      {
-        id: 'cust-1',
-        name: 'Ahmet Yılmaz',
-        email: 'ahmet.y***@gmail.com',
-        phone: '+90 532 XXX XX XX',
-        city: 'İstanbul',
-        totalOrders: 15,
-        totalSpent: 24750,
-        averageOrder: 1650,
-        lastOrderDate: new Date('2024-01-15'),
-        status: 'vip',
-        rating: 5,
-        platforms: ['TRENDYOL', 'AMAZON'],
-        tags: ['Sadık Müşteri', 'Yüksek Değer'],
-        createdAt: new Date('2023-01-15'),
-        lifetimeValue: 45000
+    // Fetch orders to aggregate customer data
+    const orders = await this.prisma.order.findMany({
+      where: {
+        tenantId,
+        ...(search ? {
+          OR: [
+            { customerName: { contains: search, mode: 'insensitive' } },
+            { customerEmail: { contains: search, mode: 'insensitive' } },
+          ]
+        } : {})
       },
-      {
-        id: 'cust-2',
-        name: 'Elif Demir',
-        email: 'elif.d***@hotmail.com',
-        phone: '+90 535 XXX XX XX',
-        city: 'Ankara',
-        totalOrders: 8,
-        totalSpent: 12450,
-        averageOrder: 1556,
-        lastOrderDate: new Date('2024-01-14'),
-        status: 'regular',
-        rating: 4,
-        platforms: ['AMAZON', 'HEPSIBURADA'],
-        tags: ['Teknoloji Meraklısı'],
-        createdAt: new Date('2023-05-20'),
-        lifetimeValue: 18000
+      select: {
+        customerEmail: true,
+        customerName: true,
+        customerPhone: true,
+        totalAmount: true,
+        orderDate: true,
+        platform: true,
       },
-      {
-        id: 'cust-3',
-        name: 'Mehmet Kaya',
-        email: 'm.kaya***@outlook.com',
-        phone: '+90 542 XXX XX XX',
-        city: 'İzmir',
-        totalOrders: 3,
-        totalSpent: 5890,
-        averageOrder: 1963,
-        lastOrderDate: new Date('2024-01-10'),
-        status: 'new',
-        rating: 5,
-        platforms: ['TRENDYOL'],
-        tags: ['Yeni Müşteri'],
-        createdAt: new Date('2024-01-01'),
-        lifetimeValue: 8000
-      },
-      {
-        id: 'cust-4',
-        name: 'Zeynep Arslan',
-        email: 'zeynep***@gmail.com',
-        phone: '+90 533 XXX XX XX',
-        city: 'Bursa',
-        totalOrders: 22,
-        totalSpent: 35680,
-        averageOrder: 1622,
-        lastOrderDate: new Date('2024-01-13'),
-        status: 'vip',
-        rating: 5,
-        platforms: ['TRENDYOL', 'AMAZON', 'N11'],
-        tags: ['VIP', 'Sadık Müşteri', 'Hediye Alıcısı'],
-        createdAt: new Date('2022-08-10'),
-        lifetimeValue: 62000
-      },
-      {
-        id: 'cust-5',
-        name: 'Can Özkan',
-        email: 'can.o***@yahoo.com',
-        phone: '+90 544 XXX XX XX',
-        city: 'Antalya',
-        totalOrders: 5,
-        totalSpent: 8920,
-        averageOrder: 1784,
-        lastOrderDate: new Date('2024-01-08'),
-        status: 'at-risk',
-        rating: 3,
-        platforms: ['HEPSIBURADA'],
-        tags: ['Risk Altında'],
-        createdAt: new Date('2023-09-15'),
-        lifetimeValue: 12000
+      orderBy: { orderDate: 'desc' },
+    });
+
+    const customerMap = new Map<string, any>();
+
+    for (const order of orders) {
+      const email = order.customerEmail || 'unknown@customer.com';
+      if (!customerMap.has(email)) {
+        customerMap.set(email, {
+          id: email.replace(/[^a-zA-Z0-9]/g, ''),
+          name: order.customerName || 'Bilinmeyen Müşteri',
+          email,
+          phone: order.customerPhone || '',
+          totalOrders: 0,
+          totalSpent: 0,
+          lastOrderDate: order.orderDate,
+          platforms: new Set<string>(),
+          joinDate: order.orderDate,
+        });
       }
-    ];
+      
+      const c = customerMap.get(email);
+      c.totalOrders += 1;
+      c.totalSpent += Number(order.totalAmount);
+      c.platforms.add(order.platform);
+      
+      const orderDate = new Date(order.orderDate);
+      if (orderDate > new Date(c.lastOrderDate)) {
+        c.lastOrderDate = order.orderDate;
+      }
+      if (orderDate < new Date(c.joinDate)) {
+        c.joinDate = order.orderDate;
+      }
+    }
 
-    // Filtreleme
-    let filtered = demoCustomers;
+    const now = new Date();
+    let customersList = Array.from(customerMap.values()).map(c => {
+      const recency = Math.floor((now.getTime() - new Date(c.lastOrderDate).getTime()) / 86400000);
+      const avgOrderValue = c.totalSpent / c.totalOrders;
+      
+      // Basic RFM mapping for status
+      let segment: 'vip' | 'regular' | 'new' | 'at-risk' | 'inactive' = 'regular';
+      if (c.totalSpent > 10000 || c.totalOrders > 10) segment = 'vip';
+      else if (recency < 30 && c.totalOrders === 1) segment = 'new';
+      else if (recency > 90) segment = 'at-risk';
+      else if (recency > 180) segment = 'inactive';
+
+      return {
+        ...c,
+        avgOrderValue: Math.round(avgOrderValue * 100) / 100,
+        totalSpent: Math.round(c.totalSpent * 100) / 100,
+        status: segment,
+        platforms: Array.from(c.platforms),
+        loyaltyScore: Math.round(((this.calculateRecencyScore(recency) + this.calculateFrequencyScore(c.totalOrders) + this.calculateMonetaryScore(c.totalSpent)) / 15) * 100),
+      };
+    });
+
+    // Filter by status if requested
     if (status) {
-      filtered = filtered.filter(c => c.status === status);
-    }
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filtered = filtered.filter(c =>
-        c.name.toLowerCase().includes(searchLower) ||
-        c.email.toLowerCase().includes(searchLower) ||
-        c.city.toLowerCase().includes(searchLower)
-      );
+      customersList = customersList.filter(c => c.status === status);
     }
 
-    // Sıralama
-    filtered.sort((a, b) => {
+    // Sort
+    customersList.sort((a, b) => {
       if (sortBy === 'totalSpent') return b.totalSpent - a.totalSpent;
       if (sortBy === 'totalOrders') return b.totalOrders - a.totalOrders;
       if (sortBy === 'lastOrder') return new Date(b.lastOrderDate).getTime() - new Date(a.lastOrderDate).getTime();
       return 0;
     });
 
-    const total = filtered.length;
+    const total = customersList.length;
     const skip = (page - 1) * limit;
-    const customers = filtered.slice(skip, skip + limit);
+    const paginatedCustomers = customersList.slice(skip, skip + limit);
 
     return {
-      customers,
+      customers: paginatedCustomers,
       pagination: {
         total,
         page,
@@ -144,59 +122,140 @@ export class CustomersService {
   }
 
   async findOne(id: string, tenantId: string) {
+    // In a real app, 'id' would be unique. Here we use sanitized email.
+    // We'll search by orders that match a customer name/email that produces this ID.
+    const orders = await this.prisma.order.findMany({
+      where: { tenantId },
+      select: {
+        customerEmail: true,
+        customerName: true,
+        customerPhone: true,
+        shippingAddress: true,
+        billingAddress: true,
+        totalAmount: true,
+        orderDate: true,
+        platform: true,
+        id: true,
+        status: true
+      },
+      orderBy: { orderDate: 'desc' }
+    });
+
+    // Find the customer that matches the ID
+    const customerOrders = orders.filter(o => {
+      const email = o.customerEmail || 'unknown@customer.com';
+      return email.replace(/[^a-zA-Z0-9]/g, '') === id;
+    });
+
+    if (customerOrders.length === 0) return null;
+
+    const latestOrder = customerOrders[0];
+    const totalSpent = customerOrders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
+    const avgOrderValue = totalSpent / customerOrders.length;
+    const now = new Date();
+    const recency = Math.floor((now.getTime() - new Date(latestOrder.orderDate).getTime()) / 86400000);
+
     return {
       id,
-      name: 'Ahmet Yılmaz',
-      email: 'ahmet.yilmaz@gmail.com',
-      phone: '+90 532 123 45 67',
-      city: 'İstanbul',
-      district: 'Kadıköy',
-      address: 'Caferağa Mah. Moda Cad. No:123 D:4',
-      totalOrders: 15,
-      totalSpent: 24750,
-      averageOrder: 1650,
-      lastOrderDate: new Date('2024-01-15'),
-      status: 'vip',
-      rating: 5,
-      platforms: ['TRENDYOL', 'AMAZON'],
-      tags: ['Sadık Müşteri', 'Yüksek Değer'],
-      createdAt: new Date('2023-01-15'),
-      lifetimeValue: 45000,
-      recentOrders: [
-        { id: 'ORD-001', date: new Date('2024-01-15'), amount: 1397, status: 'DELIVERED' },
-        { id: 'ORD-002', date: new Date('2024-01-10'), amount: 2499, status: 'DELIVERED' },
-        { id: 'ORD-003', date: new Date('2024-01-05'), amount: 899, status: 'DELIVERED' }
-      ],
-      notes: [
-        { id: 1, text: 'VIP müşteri, özel ilgi göster', createdAt: new Date('2023-12-01') },
-        { id: 2, text: 'Hızlı kargo tercih ediyor', createdAt: new Date('2023-11-15') }
-      ]
+      name: latestOrder.customerName || 'Bilinmeyen Müşteri',
+      email: latestOrder.customerEmail,
+      phone: latestOrder.customerPhone,
+      address: latestOrder.shippingAddress,
+      totalOrders: customerOrders.length,
+      totalSpent: Math.round(totalSpent * 100) / 100,
+      averageOrder: Math.round(avgOrderValue * 100) / 100,
+      lastOrderDate: latestOrder.orderDate,
+      loyaltyScore: Math.round(((this.calculateRecencyScore(recency) + this.calculateFrequencyScore(customerOrders.length) + this.calculateMonetaryScore(totalSpent)) / 15) * 100),
+      platforms: Array.from(new Set(customerOrders.map(o => o.platform))),
+      recentOrders: customerOrders.slice(0, 5).map(o => ({
+        id: o.id,
+        date: o.orderDate,
+        amount: Number(o.totalAmount),
+        status: o.status
+      })),
+      notes: [] // These would need a separate model
     };
   }
 
   async getStats(tenantId: string) {
+    const orders = await this.prisma.order.findMany({
+      where: { tenantId },
+      select: {
+        customerEmail: true,
+        totalAmount: true,
+        orderDate: true
+      }
+    });
+
+    if (orders.length === 0) {
+      return {
+        total: 0,
+        vip: 0,
+        regular: 0,
+        new: 0,
+        atRisk: 0,
+        inactive: 0,
+        totalRevenue: 0,
+        averageLifetimeValue: 0,
+        averageOrderValue: 0,
+        retentionRate: 0,
+        growth: { thisMonth: 0, lastMonth: 0 },
+        topCities: []
+      };
+    }
+
+    const customerMap = new Map<string, any>();
+    let totalRevenue = 0;
+
+    for (const order of orders) {
+      const email = order.customerEmail || 'unknown';
+      totalRevenue += Number(order.totalAmount);
+      if (!customerMap.has(email)) {
+        customerMap.set(email, { orders: 0, spent: 0, firstDate: order.orderDate, lastDate: order.orderDate });
+      }
+      const c = customerMap.get(email);
+      c.orders += 1;
+      c.spent += Number(order.totalAmount);
+      
+      const orderDate = new Date(order.orderDate);
+      if (orderDate > new Date(c.lastDate)) c.lastDate = order.orderDate;
+      if (orderDate < new Date(c.firstDate)) c.firstDate = order.orderDate;
+    }
+
+    const total = customerMap.size;
+    let vip = 0, regular = 0, newCust = 0, atRisk = 0, inactive = 0;
+    const now = new Date();
+    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    for (const c of customerMap.values()) {
+      const recency = Math.floor((now.getTime() - new Date(c.lastDate).getTime()) / 86400000);
+      
+      if (new Date(c.firstDate) >= firstOfMonth) newCust++;
+
+      if (c.spent > 10000 || c.orders > 10) vip++;
+      else if (recency > 90) atRisk++;
+      else if (recency > 180) inactive++;
+      else regular++;
+    }
+
     return {
-      total: 1247,
-      vip: 89,
-      regular: 456,
-      new: 234,
-      atRisk: 45,
-      inactive: 423,
-      totalRevenue: 2345670,
-      averageLifetimeValue: 1880,
-      averageOrderValue: 1456,
-      retentionRate: 68.5,
+      totalCustomers: total,
+      vipCustomers: vip,
+      regularCustomers: regular,
+      newCustomersThisMonth: newCust,
+      atRiskCustomers: atRisk,
+      inactiveCustomers: inactive,
+      totalRevenue: Math.round(totalRevenue * 100) / 100,
+      avgLifetimeValue: Math.round((totalRevenue / total) * 100) / 100,
+      averageOrderValue: Math.round((totalRevenue / orders.length) * 100) / 100,
+      retentionRate: Math.round((total / orders.length) * 1000) / 10,
+      churnRate: 0,
+      customerGrowth: 0,
       growth: {
-        thisMonth: 12.5,
-        lastMonth: 8.3
+        thisMonth: 0,
+        lastMonth: 0
       },
-      topCities: [
-        { city: 'İstanbul', count: 456 },
-        { city: 'Ankara', count: 234 },
-        { city: 'İzmir', count: 189 },
-        { city: 'Bursa', count: 98 },
-        { city: 'Antalya', count: 76 }
-      ]
+      topCities: []
     };
   }
 
@@ -218,35 +277,52 @@ export class CustomersService {
   }
 
   async getSegments(tenantId: string) {
+    const stats = await this.getStats(tenantId);
     return [
       {
         id: 'seg-1',
-        name: 'Yüksek Değerli Müşteriler',
-        description: 'Toplam harcaması 10.000₺ üzeri',
-        count: 156,
+        name: 'VIP Müşteriler',
+        description: 'En değerli müşterileriniz',
+        count: stats.vipCustomers,
         criteria: { totalSpent: { gte: 10000 } }
       },
       {
         id: 'seg-2',
         name: 'Sadık Müşteriler',
-        description: '5+ sipariş veren müşteriler',
-        count: 234,
+        description: 'Düzenli alışveriş yapanlar',
+        count: stats.regularCustomers,
         criteria: { totalOrders: { gte: 5 } }
       },
       {
         id: 'seg-3',
-        name: 'Risk Altındaki Müşteriler',
-        description: '30 gündür sipariş vermeyen',
-        count: 89,
-        criteria: { lastOrderDaysAgo: { gte: 30 } }
-      },
-      {
-        id: 'seg-4',
-        name: 'Yeni Müşteriler',
-        description: 'Son 30 günde katılan',
-        count: 67,
-        criteria: { createdDaysAgo: { lte: 30 } }
+        name: 'Risk Grubu',
+        description: 'Uzaklaşmaya başlayanlar',
+        count: stats.atRiskCustomers,
+        criteria: { lastOrderDaysAgo: { gte: 90 } }
       }
     ];
+  }
+  private calculateRecencyScore(days: number): number {
+    if (days <= 7) return 5;
+    if (days <= 30) return 4;
+    if (days <= 90) return 3;
+    if (days <= 180) return 2;
+    return 1;
+  }
+
+  private calculateFrequencyScore(count: number): number {
+    if (count >= 10) return 5;
+    if (count >= 5) return 4;
+    if (count >= 3) return 3;
+    if (count >= 2) return 2;
+    return 1;
+  }
+
+  private calculateMonetaryScore(amount: number): number {
+    if (amount >= 10000) return 5;
+    if (amount >= 5000) return 4;
+    if (amount >= 2000) return 3;
+    if (amount >= 500) return 2;
+    return 1;
   }
 }
