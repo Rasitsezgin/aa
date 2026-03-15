@@ -15,16 +15,32 @@
   --font-display: var(--theme-font, 'Inter', system-ui, sans-serif);
 }
 
-/* Hide Next.js 15 Dev Indicators (Static/Dynamic Icon) */
+/* Hide Next.js 15 Dev Indicators (Static/Dynamic Icon & Route Loading Bar) */
 nextjs-portal,
 [data-nextjs-indicator],
 [data-nextjs-portal],
 .__next-static-indicator,
-#nextjs-static-indicator {
+#nextjs-static-indicator,
+[data-nextjs-router-progress],
+[data-nextjs-page-transition],
+.next-loading-indicator,
+[data-nextjs-route-announcer],
+#next-route-announcer {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
   pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: fixed !important;
+  z-index: -9999 !important;
+}
+
+/* Additional aggressive hiding for any portal elements */
+[nextjs-portal=""],
+[nextjs-portal="true"] {
+  display: none !important;
+  visibility: hidden !important;
 }
 
 :root {
