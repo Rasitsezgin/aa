@@ -69,7 +69,7 @@ export default function ChannelPricingPage() {
     const applyBulkUpdate = () => {
         const val = parseFloat(bulkValue);
         if (isNaN(val)) return;
-        const targetIds = selectedProducts.length > 0 ? selectedProducts : products.map(p => p.id);
+        const targetIds = selectedProducts.length > 0 ? selectedProducts : products.map((p: Product) => p.id);
         const newOverrides = { ...priceOverrides };
         for (const pid of targetIds) {
             const product = rawProducts.find(p => p.id === pid);
@@ -153,7 +153,7 @@ export default function ChannelPricingPage() {
                     <div className="col-span-1">
                         <input type="checkbox"
                             checked={selectedProducts.length === products.length && products.length > 0}
-                            onChange={e => setSelectedProducts(e.target.checked ? products.map(p => p.id) : [])}
+                            onChange={e => setSelectedProducts(e.target.checked ? products.map((p: Product) => p.id) : [])}
                             className="rounded" />
                     </div>
                     <div className="col-span-3 text-[10px] font-black text-slate-500 uppercase tracking-wider">Ürün</div>

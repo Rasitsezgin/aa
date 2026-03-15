@@ -116,7 +116,7 @@ export default function ProductList() {
     }, [statsData]);
 
     const toggleSelect = (id: string) => setSelectedProducts(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-    const toggleSelectAll = () => setSelectedProducts(prev => prev.length === products.length ? [] : products.map(p => p.id));
+    const toggleSelectAll = () => setSelectedProducts(prev => prev.length === products.length ? [] : products.map((p: Product) => p.id));
     const handleOptimize = async (productId: string) => { 
         setOptimizing(productId); 
         try { 

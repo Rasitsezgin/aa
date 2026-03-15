@@ -80,7 +80,7 @@ export default function BulkActionsPage() {
         if (selectedProducts.length === products.length) {
             setSelectedProducts([]);
         } else {
-            setSelectedProducts(products.map(p => p.id));
+            setSelectedProducts(products.map((p: any) => p.id));
         }
     };
 
