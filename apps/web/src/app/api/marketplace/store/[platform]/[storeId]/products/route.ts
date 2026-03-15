@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+function getApiBaseUrl() {
+    const raw = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:3001';
+    return raw.replace(/\/$/, '').replace(/\/api$/, '');
+}
+
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ platform: string; storeId: string }> }
@@ -9,10 +14,28 @@ export async function GET(
         const { searchParams } = request.nextUrl;
         const limit = searchParams.get('limit') || '10';
 
-        // NestJS API'ye çağrı yap
-        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || ''}/api/marketplace/store/${platform}/${storeId}/products?limit=${limit}`;
+        const base = getApiBaseUrl();
+        const query = `?limit=${limit}`;
+        const candidates = [
+            `${base}/api/marketplace/store/${platform}/${storeId}/products${query}`,
+            `${base}/marketplace/store/${platform}/${storeId}/products${query}`,
+            `${base}/api/v1/marketplace/store/${platform}/${storeId}/products${query}`,
+        ];
 
-        const response = await fetch(apiUrl);
+        let response: Response | null = null;
+        for (const apiUrl of candidates) {
+            response = await fetch(apiUrl);
+            if (response.ok || response.status !== 404) {
+                break;
+            }
+        }
+
+        if (!response) {
+            return NextResponse.json(
+                { error: 'Backend API request failed' },
+                { status: 502 }
+            );
+        }
 
         if (!response.ok) {
             return NextResponse.json(
