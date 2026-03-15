@@ -14,8 +14,9 @@ export function useApiData<T>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Extract tenantId from authenticated session only.
+  // Extract tenantId and accessToken from authenticated session only.
   const tenantId = (session?.user as any)?.tenantId as string | undefined;
+  const accessToken = (session?.user as any)?.accessToken as string | undefined;
 
   const refetch = useCallback(async () => {
     if (!tenantId || options.skip) {
@@ -26,6 +27,10 @@ export function useApiData<T>(
     setLoading(true);
     setError(null);
     try {
+      // Set common credentials before fetch
+      if (accessToken) apiClient.setAccessToken(accessToken);
+      apiClient.setTenantId(tenantId);
+      
       const result = await fetcher(tenantId);
       setData(result);
     } catch (err) {
@@ -34,7 +39,7 @@ export function useApiData<T>(
     } finally {
       setLoading(false);
     }
-  }, [tenantId, fetcher, options.skip]);
+  }, [tenantId, accessToken, fetcher, options.skip]);
 
   // Only fetch on mount or when session changes
   useEffect(() => {
@@ -243,6 +248,7 @@ export function useAiChat() {
   const [isTyping, setIsTyping] = useState(false);
 
   const tenantId = (session?.user as any)?.tenantId || '';
+  const accessToken = (session?.user as any)?.accessToken || '';
 
   const sendMessage = async (message: string) => {
     if (!message.trim() || !tenantId) return;
@@ -252,6 +258,7 @@ export function useAiChat() {
     setIsTyping(true);
 
     try {
+      if (accessToken) apiClient.setAccessToken(accessToken);
       const response = await apiClient.chatWithAdvisor(tenantId, message, messages) as { response: string };
       const aiMessage: ChatMessage = { role: 'assistant', content: response.response };
       setMessages(prev => [...prev, aiMessage]);
@@ -363,7 +370,11 @@ export interface MarketIntelForecast {
 export function useAiImage() {
   const [loading, setLoading] = useState(false);
 
+  const { data: session } = useSession();
+  const accessToken = (session?.user as any)?.accessToken || '';
+
   const generate = async (prompt: string, size?: string) => {
+    if (accessToken) apiClient.setAccessToken(accessToken);
     setLoading(true);
     try {
       return await apiClient.generateImage(prompt, size) as { url: string };
@@ -373,6 +384,7 @@ export function useAiImage() {
   };
 
   const removeBg = async (imageUrl: string) => {
+    if (accessToken) apiClient.setAccessToken(accessToken);
     setLoading(true);
     try {
       return await apiClient.removeBg(imageUrl) as { url: string };
@@ -387,7 +399,11 @@ export function useAiImage() {
 export function useContentOptimizer() {
   const [loading, setLoading] = useState(false);
 
+  const { data: session } = useSession();
+  const accessToken = (session?.user as any)?.accessToken || '';
+
   const optimize = async (title: string, description: string, platform: string) => {
+    if (accessToken) apiClient.setAccessToken(accessToken);
     setLoading(true);
     try {
       return await apiClient.optimizeContent(title, description, platform) as OptimizedContent;
@@ -497,6 +513,8 @@ export interface GeneratedDescription {
 }
 
 export function useContentAnalysis() {
+  const { data: session } = useSession();
+  const accessToken = (session?.user as any)?.accessToken || '';
   const [loading, setLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<ContentAnalysisResult | null>(null);
 
@@ -508,6 +526,7 @@ export function useContentAnalysis() {
     keywords?: string[];
     category?: string;
   }) => {
+    if (accessToken) apiClient.setAccessToken(accessToken);
     setLoading(true);
     try {
       const result = await apiClient.deepAnalyzeContent(data) as ContentAnalysisResult;
@@ -519,6 +538,7 @@ export function useContentAnalysis() {
   };
 
   const bulkAnalyze = async (productIds: string[], platform: string) => {
+    if (accessToken) apiClient.setAccessToken(accessToken);
     setLoading(true);
     try {
       return await apiClient.bulkAnalyzeContent(productIds, platform);
@@ -553,6 +573,8 @@ export function useContentHealth() {
 }
 
 export function useContentOptimization() {
+  const { data: session } = useSession();
+  const accessToken = (session?.user as any)?.accessToken || '';
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ContentOptimizationResult | null>(null);
 
@@ -566,6 +588,7 @@ export function useContentOptimization() {
     category?: string;
     templateId?: string;
   }) => {
+    if (accessToken) apiClient.setAccessToken(accessToken);
     setLoading(true);
     try {
       const res = await apiClient.deepOptimizeContent(data) as ContentOptimizationResult;
@@ -732,9 +755,11 @@ export function useContentRules() {
 export function useOrders() {
   const { data: session } = useSession();
   const tenantId = (session?.user as any)?.tenantId as string | undefined;
+  const accessToken = (session?.user as any)?.accessToken as string | undefined;
   const [loading, setLoading] = useState(false);
 
   const getOrders = async (params: any) => {
+    if (accessToken) apiClient.setAccessToken(accessToken);
     if (tenantId) apiClient.setTenantId(tenantId);
     setLoading(true);
     try {
@@ -829,10 +854,12 @@ export function useReturnStats() {
 export function useFinance() {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
+  const accessToken = (session?.user as any)?.accessToken || '';
   const tenantId = (session?.user as any)?.tenantId || '';
 
   const getStats = async () => {
     if (!tenantId) return null;
+    if (accessToken) apiClient.setAccessToken(accessToken);
     setLoading(true);
     try {
       return await apiClient.request(`/finance/stats?tenantId=${tenantId}`);
@@ -842,6 +869,7 @@ export function useFinance() {
   };
 
   const calculateProfit = async (orderId: string) => {
+    if (accessToken) apiClient.setAccessToken(accessToken);
     setLoading(true);
     try {
       return await apiClient.request(`/finance/calculate-profit?orderId=${orderId}`, {
@@ -858,10 +886,12 @@ export function useFinance() {
 export function useInvoices() {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
+  const accessToken = (session?.user as any)?.accessToken || '';
   const tenantId = (session?.user as any)?.tenantId || '';
 
   const getInvoices = async () => {
     if (!tenantId) return null;
+    if (accessToken) apiClient.setAccessToken(accessToken);
     setLoading(true);
     try {
       return await apiClient.request(`/finance/invoices?tenantId=${tenantId}`);
@@ -871,6 +901,7 @@ export function useInvoices() {
   };
 
   const generateInvoice = async (orderId: string) => {
+    if (accessToken) apiClient.setAccessToken(accessToken);
     setLoading(true);
     try {
       return await apiClient.request(`/finance/generate-invoice`, {
@@ -1029,9 +1060,12 @@ export interface ChatMessage {
 }
 
 export function useSupport() {
+  const { data: session } = useSession();
+  const accessToken = (session?.user as any)?.accessToken || '';
   const [loading, setLoading] = useState(false);
 
   const getTickets = async (tenantId: string = 'demo-tenant-id') => {
+    if (accessToken) apiClient.setAccessToken(accessToken);
     setLoading(true);
     try {
       return await apiClient.request(`/support/tickets?tenantId=${tenantId}`);
@@ -1209,11 +1243,14 @@ export interface RFMAnalysisData {
 // STORE HOOKS
 // ==========================================
 export function useStores() {
+  const { data: session } = useSession();
+  const accessToken = (session?.user as any)?.accessToken || '';
   const [loading, setLoading] = useState(false);
   const [stores, setStores] = useState<Store[]>([]);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchStores = async () => {
+    if (accessToken) apiClient.setAccessToken(accessToken);
     setLoading(true);
     setError(null);
     try {
@@ -1283,11 +1320,14 @@ export interface Store {
 // CAMPAIGN HOOKS
 // ==========================================
 export function useCampaigns() {
+  const { data: session } = useSession();
+  const accessToken = (session?.user as any)?.accessToken || '';
   const [loading, setLoading] = useState(false);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchCampaigns = async (params: Record<string, string> = {}) => {
+    if (accessToken) apiClient.setAccessToken(accessToken);
     setLoading(true);
     setError(null);
     try {
@@ -1431,11 +1471,14 @@ export interface ReviewStats {
 // PRICING HOOKS
 // ==========================================
 export function usePricingAnalysis() {
+  const { data: session } = useSession();
+  const accessToken = (session?.user as any)?.accessToken || '';
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<PricingItem[]>([]);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchAnalysis = async (params: Record<string, string> = {}) => {
+    if (accessToken) apiClient.setAccessToken(accessToken);
     setLoading(true);
     setError(null);
     try {

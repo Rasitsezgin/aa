@@ -73,6 +73,7 @@ function emitApiError(error: ApiError) {
 class ApiClient {
   private baseUrl: string;
   private tenantId: string | null = null;
+  private accessToken: string | null = null;
   private retryConfig: RetryConfig;
 
   constructor(baseUrl: string = API_BASE_URL, retryConfig?: Partial<RetryConfig>) {
@@ -82,6 +83,10 @@ class ApiClient {
 
   setTenantId(tenantId: string) {
     this.tenantId = tenantId;
+  }
+
+  setAccessToken(token: string) {
+    this.accessToken = token;
   }
 
   private async sleep(ms: number): Promise<void> {
@@ -98,8 +103,14 @@ class ApiClient {
 
   private buildUrlCandidates(endpoint: string): string[] {
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-
     const base = (this.baseUrl || '').replace(/\/$/, '');
+    
+    // In production (if baseUrl starts with http), we only want the configured base
+    // To avoid redundant 404s in logs.
+    if (base.startsWith('http') && !base.includes('localhost')) {
+      return [`${base}${normalizedEndpoint}`];
+    }
+
     const root = base.replace(/\/api(?:\/v1)?$/, '');
 
     const baseCandidates = base
@@ -131,6 +142,7 @@ class ApiClient {
             headers: {
               'Content-Type': 'application/json',
               ...(this.tenantId ? { 'x-tenant-id': this.tenantId } : {}),
+              ...(this.accessToken ? { 'Authorization': `Bearer ${this.accessToken}` } : {}),
               ...options.headers,
             },
           });

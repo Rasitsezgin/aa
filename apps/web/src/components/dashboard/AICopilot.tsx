@@ -10,6 +10,7 @@ import {
     ChevronDown, Loader2, ThumbsUp, ThumbsDown,
     ArrowRight, BarChart3, AlertTriangle, Users,
 } from 'lucide-react';
+import { useIsMobile } from '@/hooks/useMediaQuery';
 
 interface Message {
     id: string;
@@ -51,6 +52,7 @@ export default function AICopilot() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const pathname = usePathname();
+    const isMobile = useIsMobile();
 
     // Scroll to bottom
     const scrollToBottom = useCallback(() => {
@@ -217,7 +219,7 @@ export default function AICopilot() {
         <>
             {/* Floating Button */}
             <AnimatePresence>
-                {!isOpen && (
+                {!isOpen && !isMobile && (
                     <motion.button
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}

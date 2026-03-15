@@ -76,43 +76,73 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
                     if (!credentials?.email || !credentials?.password) return null;
 
                     try {
-                        // Try real database lookup first
-                        const user = await prisma.user.findFirst({
-                            where: { email: credentials.email as string },
-                            include: { tenant: true },
+                        // 1. Call real backend API for authentication and token procurement
+                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+                        const res = await fetch(`${apiUrl.replace(/\/$/, '')}/auth/login`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                email: credentials.email,
+                                password: credentials.password,
+                            }),
+                            headers: { "Content-Type": "application/json" }
                         });
 
-                        if (user && user.password) {
-                            const isValid = await bcrypt.compare(
-                                credentials.password as string,
-                                user.password
-                            );
-                            if (isValid) {
-                                // Log successful login
+                        const data = await res.json();
+
+                        if (res.ok && data.accessToken) {
+                            // Log successful login (best effort)
+                            try {
                                 await prisma.activityLog.create({
                                     data: {
-                                        tenantId: user.tenantId,
-                                        userId: user.id,
+                                        tenantId: data.user.tenantId,
+                                        userId: data.user.id,
                                         action: 'LOGIN',
                                         resource: 'user',
-                                        resourceId: user.id,
-                                        details: { method: 'credentials', ip: 'server' },
+                                        resourceId: data.user.id,
+                                        details: { method: 'backend_sync', ip: 'server' },
                                     },
-                                }).catch(() => { }); // Don't block login on log failure
+                                });
+                            } catch (e) { }
 
-                                return {
-                                    id: user.id,
-                                    email: user.email,
-                                    name: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email,
-                                    type: user.type,
-                                    tenantId: user.tenantId,
-                                    isOnboarded: user.tenant?.isOnboarded ?? false,
-                                    image: user.image,
-                                };
+                            return {
+                                id: data.user.id,
+                                email: data.user.email,
+                                name: [data.user.firstName, data.user.lastName].filter(Boolean).join(' ') || data.user.email,
+                                type: data.user.type,
+                                tenantId: data.user.tenantId,
+                                accessToken: data.accessToken,
+                                isOnboarded: true, // Backend successful login implies some level of validity
+                            };
+                        }
+
+                        // 2. Fallback to local prisma if backend is down (only for dev/emergency)
+                        if (res.status >= 500 || !res.ok) {
+                            console.warn("[NextAuth] Backend auth failed, falling back to local DB");
+                            const user = await prisma.user.findFirst({
+                                where: { email: credentials.email as string },
+                                include: { tenant: true },
+                            });
+
+                            if (user && user.password) {
+                                const isValid = await bcrypt.compare(
+                                    credentials.password as string,
+                                    user.password
+                                );
+                                if (isValid) {
+                                    return {
+                                        id: user.id,
+                                        email: user.email,
+                                        name: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email,
+                                        type: user.type,
+                                        tenantId: user.tenantId,
+                                        isOnboarded: user.tenant?.isOnboarded ?? false,
+                                        image: user.image,
+                                    };
+                                }
                             }
                         }
                     } catch (dbError) {
-                        console.error("Database authentication error:", dbError);
+                        console.error("Authentication flow error:", dbError);
                     }
 
                     return null;
@@ -130,6 +160,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
                     (session.user as any).type = token.type;
                     (session.user as any).tenantId = token.tenantId;
                     (session.user as any).isOnboarded = token.isOnboarded;
+                    (session.user as any).accessToken = token.accessToken;
                 }
                 return session;
             },
@@ -139,6 +170,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
                     token.type = (user as any).type;
                     token.tenantId = (user as any).tenantId;
                     token.isOnboarded = (user as any).isOnboarded;
+                    token.accessToken = (user as any).accessToken;
                 }
                 return token;
             },
