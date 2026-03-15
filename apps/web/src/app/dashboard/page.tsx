@@ -719,13 +719,6 @@ function DashboardContent() {
                                 </div>
                             </div>
                         </div>
-                        <button
-                            onClick={() => setIsChatOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-white text-purple-600 rounded-xl text-sm font-bold hover:bg-white/90 transition-all"
-                        >
-                            <MessageSquare className="w-4 h-4" />
-                            AI ile Konuş
-                        </button>
                     </div>
                 </motion.div>
 
@@ -1220,29 +1213,6 @@ function DashboardContent() {
 
             {/* Realtime Notification Toast */}
             <RealtimeNotificationToast />
-
-            {/* Floating AI Chat Button */}
-            <AnimatePresence>
-                {!isChatOpen && (
-                    <motion.button
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0 }}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => setIsChatOpen(true)}
-                        className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl shadow-2xl shadow-purple-500/30 flex items-center justify-center z-40 group"
-                    >
-                        <Brain className="w-7 h-7 text-white group-hover:scale-110 transition-transform" />
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-surface animate-pulse" />
-                    </motion.button>
-                )}
-            </AnimatePresence>
-
-            {/* AI Chat Panel */}
-            <AnimatePresence>
-                {isChatOpen && <AIChatPanel isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />}
-            </AnimatePresence>
         </>
     );
 }

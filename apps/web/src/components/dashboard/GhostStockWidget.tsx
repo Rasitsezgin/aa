@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Ghost, AlertTriangle, TrendingUp, Calendar, ChevronRight } from 'lucide-react';
+import { useStockAlerts } from '@/lib/hooks';
 
 interface GhostStock {
     id: string;
@@ -14,10 +15,30 @@ interface GhostStock {
 }
 
 export const GhostStockWidget = () => {
-    const predictions: GhostStock[] = [
-        { id: '1', product: 'Oppo Enco Buds 2', stock: 42, daysLeft: 3, predictionDate: '12 Mart', velocity: 14 },
-        { id: '2', product: 'Xiaomi Mi Band 7', stock: 15, daysLeft: 2, predictionDate: '11 Mart', velocity: 7.5 }
-    ];
+    const { data: stockAlerts, loading } = useStockAlerts();
+
+    // Gerçek stok uyarılarından ghost stock tahminleri oluştur
+    const predictions: GhostStock[] = React.useMemo(() => {
+        if (!stockAlerts || !Array.isArray(stockAlerts)) return [];
+        
+        return stockAlerts
+            .filter((alert: any) => alert.daysUntilStockout && alert.daysUntilStockout <= 7)
+            .slice(0, 2)
+            .map((alert: any, idx: number) => {
+                const daysLeft = alert.daysUntilStockout || 1;
+                const predictionDate = new Date();
+                predictionDate.setDate(predictionDate.getDate() + daysLeft);
+                
+                return {
+                    id: alert.id || `${idx}`,
+                    product: alert.productName || alert.product || 'Bilinmeyen Ürün',
+                    stock: alert.currentStock || 0,
+                    daysLeft,
+                    predictionDate: predictionDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }),
+                    velocity: alert.velocity || Math.round((alert.currentStock || 0) / Math.max(daysLeft, 1))
+                };
+            });
+    }, [stockAlerts]);
 
     return (
         <div className="bg-surface rounded-3xl border border-border p-6 relative overflow-hidden h-full flex flex-col">
@@ -25,17 +46,17 @@ export const GhostStockWidget = () => {
                 <Ghost size={140} />
             </div>
 
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-orange-500/10 text-orange-500 rounded-2xl border border-orange-500/20 shadow-inner">
-                        <Ghost className="w-6 h-6" />
+            <div className="flex items-center justify-between mb-8 gap-2">
+                <div className="flex items-center gap-3 min-w-0">
+                    <div className="p-2.5 bg-orange-500/10 text-orange-500 rounded-2xl border border-orange-500/20 shadow-inner shrink-0">
+                        <Ghost className="w-5 h-5" />
                     </div>
-                    <div>
-                        <h3 className="text-base font-bold text-foreground uppercase tracking-tight">Ghost Stock Tahmini</h3>
-                        <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mt-0.5">Stok x Satış Hızı Analizi</p>
+                    <div className="min-w-0 flex flex-col gap-0.5">
+                        <h3 className="text-[13px] font-bold text-foreground uppercase tracking-tight truncate leading-tight">Ghost Stock Tahmini</h3>
+                        <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide truncate leading-tight">Stok x Satış Hızı</p>
                     </div>
                 </div>
-                <div className="px-3 py-1.5 bg-orange-500/10 text-orange-500 text-[10px] font-black rounded-lg border border-orange-500/20">
+                <div className="px-2.5 py-1 bg-orange-500/10 text-orange-500 text-[9px] font-black rounded-lg border border-orange-500/20 shrink-0">
                     KRİTİK
                 </div>
             </div>
@@ -90,7 +111,9 @@ export const GhostStockWidget = () => {
                     </div>
                     <p className="text-[11px] text-orange-600/90 font-semibold leading-relaxed">
                         <span className="text-orange-600 font-black uppercase mr-1">Zeki Uyarı:</span> 
-                        Mevcut stok miktarınız yeterli görünse de, satış ivmenizdeki artış sebebiyle 3 ürün pazartesi gününden önce tükenecek.
+                        {predictions.length > 0 
+                            ? `${predictions.length} ürün kritik seviyede. Stok tükenmeden tedarik planı yapın.`
+                            : 'Mevcut stok durumu stabil. Kritik seviyede ürün bulunmuyor.'}
                     </p>
                 </div>
             </div>
