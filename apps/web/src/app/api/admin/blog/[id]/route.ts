@@ -4,7 +4,8 @@ import { deleteBlogPost, updateBlogPost } from '@/lib/blog-service';
 
 export const dynamic = 'force-dynamic';
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -18,7 +19,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       isActive?: boolean;
     };
 
-    const post = await updateBlogPost(params.id, body);
+    const post = await updateBlogPost(id, body);
     return NextResponse.json({ post });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Blog guncellenemedi.';
@@ -26,14 +27,15 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    await deleteBlogPost(params.id);
+    await deleteBlogPost(id);
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Blog silinemedi.';

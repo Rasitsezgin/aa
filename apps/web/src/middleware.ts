@@ -178,7 +178,7 @@ export default async function middleware(req: NextRequest) {
 
     // Simplified for now:
     // If subdomain exists and is NOT 'www' and NOT 'app', it's a tenant.
-    if (currentHost && !allowedDomains.includes(currentHost) && currentHost !== 'www' && currentHost !== 'app') {
+    if (currentHost && !allowedDomains.includes(currentHost) && currentHost !== 'www' && currentHost !== 'app' && currentHost !== 'api') {
         const searchParams = req.nextUrl.searchParams.toString();
         // Rewrite to /_sites/[site]
         const path = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""
@@ -191,6 +191,13 @@ export default async function middleware(req: NextRequest) {
     }
 
     // If it's the main domain/app, just let Next.js handle it
-    const response = NextResponse.next();
+    const requestHeaders = new Headers(req.headers);
+    requestHeaders.set('x-pathname', pathname);
+
+    const response = NextResponse.next({
+        request: {
+            headers: requestHeaders,
+        }
+    });
     return addSecurityHeaders(response);
 }

@@ -7,7 +7,7 @@ import { getPublicBlogPostBySlug } from '@/lib/blog-service';
 export const dynamic = 'force-dynamic';
 
 type PageProps = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 function formatDate(value: string): string {
@@ -19,7 +19,8 @@ function formatDate(value: string): string {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const post = await getPublicBlogPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getPublicBlogPostBySlug(slug);
   if (!post) {
     return {
       title: 'Blog yazisi bulunamadi',
@@ -37,7 +38,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function BlogDetailPage({ params }: PageProps) {
-  const post = await getPublicBlogPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getPublicBlogPostBySlug(slug);
   if (!post) {
     notFound();
   }

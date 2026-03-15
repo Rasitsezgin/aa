@@ -105,13 +105,13 @@ export const metadata: Metadata = {
       alt: 'Pazaryonetimi - E-ticaret Yönetim Platformu',
     },
   },
-  // verification: {
-  //   google: 'GOOGLE_VERIFICATION_CODE',
-  //   yandex: 'YANDEX_VERIFICATION_CODE',
-  //   other: {
-  //     'msvalidate.01': 'BING_VERIFICATION_CODE',
-  //   },
-  // },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || 'GOOGLE_VERIFICATION_CODE',
+    yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION_CODE || 'YANDEX_VERIFICATION_CODE',
+    other: {
+      'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || 'BING_VERIFICATION_CODE',
+    },
+  },
   alternates: {
     canonical: 'https://pazaryonetimi.com',
     languages: {
@@ -129,7 +129,7 @@ export const metadata: Metadata = {
     title: 'Pazaryonetimi',
   },
   other: {
-    // 'google-site-verification': 'GOOGLE_VERIFICATION_CODE',
+    'google-site-verification': process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || 'GOOGLE_VERIFICATION_CODE',
     'mobile-web-app-capable': 'yes',
     'msapplication-TileColor': '#2563eb',
     'msapplication-config': '/browserconfig.xml',
@@ -183,6 +183,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
         {/* Skip to main content - Accessibility */}
         <a

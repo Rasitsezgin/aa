@@ -500,8 +500,8 @@ function DashboardContent() {
     const predictionText = aiSummary?.predictionText;
 
     // Platform verilerini dönüştür (profit/margin API'den geliyor)
-    const transformedPlatforms = hasRealPlatforms ? (apiPlatforms as any[]).map(p => ({
-        name: p.platform || p.name,
+    const transformedPlatforms = hasRealPlatforms ? (apiPlatforms as any[]).filter(p => !!p).map(p => ({
+        name: p.platform || p.name || 'Bilinmiyor',
         revenue: p.revenue || 0,
         orders: p.orders || 0,
         share: p.share || 0,
@@ -550,12 +550,12 @@ function DashboardContent() {
     })) : null;
 
     // Trend verisini dönüştür (profit/aiPrediction API'den geliyor)
-    const transformedTrend = hasRealTrend ? (apiTrend as any[]).slice(-7).map((t) => ({
+    const transformedTrend = hasRealTrend ? (apiTrend as any[]).filter(t => !!t).slice(-7).map((t) => ({
         day: t.dayName || '--',
-        revenue: t.revenue ?? t.value,
-        orders: t.orders,
-        profit: t.profit,
-        aiPrediction: t.aiPrediction ?? t.revenue ?? t.value,
+        revenue: t.revenue ?? t.value ?? 0,
+        orders: t.orders || 0,
+        profit: t.profit || 0,
+        aiPrediction: t.aiPrediction ?? t.revenue ?? t.value ?? 0,
     })) : null;
 
     // Stats dönüştürme (tüm değerler API'den geliyor)

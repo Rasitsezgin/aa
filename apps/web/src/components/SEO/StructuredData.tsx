@@ -1,4 +1,5 @@
 import Script from 'next/script';
+import { headers } from 'next/headers';
 import { getPricingCatalog } from '@/actions/pricing-settings';
 import { DEFAULT_PRICING_CATALOG, formatTryAmount } from '@/config/pricing-catalog';
 
@@ -220,18 +221,35 @@ export default async function StructuredData() {
         ],
     };
 
-    // 5. BreadcrumbList Schema
+    // 5. BreadcrumbList Schema (Dynamic)
+    const headerList = await headers();
+    const pathname = headerList.get('x-pathname') || '/';
+    const pathParts = pathname.split('/').filter(Boolean);
+    
+    const breadcrumbItems = [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Ana Sayfa",
+            "item": "https://pazaryonetimi.com",
+        },
+    ];
+
+    pathParts.forEach((part: string, index: number) => {
+        const url = `https://pazaryonetimi.com/${pathParts.slice(0, index + 1).join('/')}`;
+        const name = part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, ' ');
+        breadcrumbItems.push({
+            "@type": "ListItem",
+            "position": index + 2,
+            "name": name,
+            "item": url,
+        });
+    });
+
     const breadcrumbData = {
         "@context": "https://schema.org",
         "@type": "BreadcrumbList",
-        "itemListElement": [
-            {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Ana Sayfa",
-                "item": "https://pazaryonetimi.com",
-            },
-        ],
+        "itemListElement": breadcrumbItems,
     };
 
     return (
@@ -240,31 +258,26 @@ export default async function StructuredData() {
                 id="structured-data-organization"
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationData) }}
-                strategy="beforeInteractive"
             />
             <Script
                 id="structured-data-website"
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteData) }}
-                strategy="beforeInteractive"
             />
             <Script
                 id="structured-data-software"
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareData) }}
-                strategy="beforeInteractive"
             />
             <Script
                 id="structured-data-faq"
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(faqData) }}
-                strategy="beforeInteractive"
             />
             <Script
                 id="structured-data-breadcrumb"
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
-                strategy="beforeInteractive"
             />
         </>
     );

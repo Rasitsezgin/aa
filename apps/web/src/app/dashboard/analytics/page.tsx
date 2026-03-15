@@ -117,7 +117,7 @@ export default function AnalyticsPage() {
         refetchStats();
     }, [selectedPeriod, refetchStats]);
 
-    const maxTrendValue = trendData ? Math.max(...trendData.map((d: TrendData) => d.value)) : 0;
+    const maxTrendValue = trendData ? Math.max(...trendData.map((d: TrendData) => d.value || 0), 1) : 0;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-20">
@@ -205,11 +205,11 @@ export default function AnalyticsPage() {
                         <div className="absolute inset-0 flex items-center justify-center">
                             <Loader2 className="w-8 h-8 animate-spin text-primary opacity-20" />
                         </div>
-                    ) : trendData && trendData.map((d: TrendData, i: number) => (
+                    ) : trendData && trendData.filter((d: any) => !!d).map((d: TrendData, i: number) => (
                         <div key={i} className="flex-1 group relative">
                             <motion.div
                                 initial={{ height: 0 }}
-                                animate={{ height: `${(d.value / maxTrendValue) * 100}%` }}
+                                animate={{ height: `${(d.value / (maxTrendValue || 1)) * 100}%` }}
                                 className="w-full bg-primary/20 hover:bg-primary rounded-t-sm transition-all"
                             />
                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 font-bold">
