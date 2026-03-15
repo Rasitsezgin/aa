@@ -764,14 +764,31 @@ export function CheckoutWizard() {
 
   const handleConfirm = async () => {
     setIsProcessing(true);
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cartItems,
+          shipping: customer,
+          paymentMethod,
+          subtotal,
+          discount,
+          shippingCost,
+          total,
+        }),
+      });
 
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2500));
-
-    const orderNumber = Math.random().toString(36).substring(2, 10).toUpperCase();
-    setOrderResult({ success: true, orderNumber });
-    setIsProcessing(false);
-    setCurrentStep('result');
+      if (!res.ok) throw new Error('Siparis olusturulamadi');
+      const data = await res.json();
+      setOrderResult({ success: true, orderNumber: String(data?.orderNumber || data?.id || '') });
+      setCurrentStep('result');
+    } catch {
+      setOrderResult({ success: false, orderNumber: '' });
+      setCurrentStep('result');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleUpdateQuantity = (id: string, qty: number) => {

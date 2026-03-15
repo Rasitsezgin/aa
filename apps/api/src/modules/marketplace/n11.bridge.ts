@@ -89,7 +89,7 @@ export class N11Bridge implements MarketplaceBridge {
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            return { success: true, platform: 'N11', orders: [] };
+            throw new Error('N11 sipariş ayrıştırma henüz uygulanmadı; boş başarı çıktısı devre dışı bırakıldı');
         } catch (error) {
             this.logger.warn(`N11 syncOrders error: ${(error as Error).message}`);
             return { success: false, platform: 'N11', error: (error as Error).message };
@@ -156,7 +156,17 @@ export class N11Bridge implements MarketplaceBridge {
         try {
             const url = `https://www.n11.com/magaza/${storeId}`;
             const scraped = await this.scrapingService.scrapeStore(url, 'N11');
-            if (scraped) return scraped;
+            if (scraped) {
+                return {
+                    storeId,
+                    storeName: scraped.storeName || storeId,
+                    totalProducts: scraped.productCount ?? 0,
+                    averageRating: scraped.rating ?? 0,
+                    totalReviews: scraped.totalReviews ?? 0,
+                    followersCount: scraped.followerCount ?? 0,
+                    platform: 'N11',
+                };
+            }
         } catch (error) {
             this.logger.warn(`N11 getStoreInfo scraping failed: ${(error as Error).message}`);
         }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShoppingBag,
@@ -24,6 +24,7 @@ import {
   RefreshCw,
   Download,
 } from 'lucide-react';
+import { useOrders } from '@/lib/hooks';
 
 // Types
 export type OrderStatus = 
@@ -73,8 +74,6 @@ export interface Order {
   confirmedBy?: string;
 }
 
-// Demo orders
-// Orders will be loaded from API
 // Status config
 const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
   pending_payment: { label: 'Ödeme Bekleniyor', color: 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400', icon: Clock },
@@ -508,12 +507,72 @@ function OrderDetailModal({
 
 // Main Admin Order Management Component
 export function AdminOrderManagement() {
+  const { getOrders } = useOrders();
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'processing'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
+
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        const response: any = await getOrders({ limit: 100, page: 1 });
+        const incoming = Array.isArray(response?.items)
+          ? response.items
+          : Array.isArray(response?.data)
+            ? response.data
+            : Array.isArray(response)
+              ? response
+              : [];
+
+        const normalized: Order[] = incoming.map((o: any) => ({
+          id: String(o.id ?? ''),
+          orderNumber: String(o.orderNumber ?? o.marketplaceOrderId ?? ''),
+          customerId: String(o.customerId ?? ''),
+          customerName: String(o.customerName ?? ''),
+          customerEmail: String(o.customerEmail ?? ''),
+          customerPhone: String(o.customerPhone ?? ''),
+          items: Array.isArray(o.items) ? o.items.map((it: any, i: number) => ({
+            id: String(it.id ?? i),
+            name: String(it.name ?? ''),
+            quantity: Number(it.quantity ?? 0),
+            price: Number(it.price ?? 0),
+            variant: it.variant ? String(it.variant) : undefined,
+          })) : [],
+          subtotal: Number(o.subtotal ?? 0),
+          shippingCost: Number(o.shippingCost ?? 0),
+          discount: Number(o.discount ?? 0),
+          total: Number(o.total ?? o.totalAmount ?? 0),
+          paymentMethod: o.paymentMethod === 'bank_transfer' ? 'bank_transfer' : 'credit_card',
+          paymentStatus: (['pending', 'confirmed', 'failed'].includes(o.paymentStatus) ? o.paymentStatus : 'pending') as Order['paymentStatus'],
+          status: (['pending_payment', 'payment_confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'].includes(o.status)
+            ? o.status
+            : 'pending_payment') as OrderStatus,
+          shippingAddress: {
+            fullName: String(o.shippingAddress?.fullName ?? o.customerName ?? ''),
+            address: String(o.shippingAddress?.address ?? ''),
+            city: String(o.shippingAddress?.city ?? ''),
+            district: String(o.shippingAddress?.district ?? ''),
+            postalCode: String(o.shippingAddress?.postalCode ?? ''),
+          },
+          transferReceipt: o.transferReceipt ? String(o.transferReceipt) : undefined,
+          notes: o.notes ? String(o.notes) : undefined,
+          createdAt: o.createdAt ? new Date(o.createdAt) : new Date(),
+          updatedAt: o.updatedAt ? new Date(o.updatedAt) : new Date(),
+          confirmedAt: o.confirmedAt ? new Date(o.confirmedAt) : undefined,
+          confirmedBy: o.confirmedBy ? String(o.confirmedBy) : undefined,
+        }));
+
+        setOrders(normalized);
+      } catch {
+        setOrders([]);
+      }
+    };
+
+    void loadOrders();
+  }, [getOrders]);
 
   const pendingCount = orders.filter(
     o => o.status === 'pending_payment' && o.paymentMethod === 'bank_transfer'

@@ -7,6 +7,7 @@ import {
     Edit, Trash2, Copy, Play, Pause, CheckCircle, Clock,
     Percent, Gift, Zap, Users, BarChart3
 } from 'lucide-react';
+import { useCampaigns } from '@/lib/hooks';
 
 interface Campaign {
     id: string;
@@ -22,22 +23,29 @@ interface Campaign {
     conversionRate: number;
 }
 
-const mockCampaigns: Campaign[] = [
-    { id: '1', name: 'Kış İndirimi 2025', type: 'discount', status: 'active', startDate: '2025-01-15', endDate: '2025-02-15', platform: 'Tümü', discount: '%20', affectedProducts: 156, totalSales: '₺45.890', conversionRate: 12.5 },
-    { id: '2', name: '3 Al 2 Öde Aksesuarlar', type: 'bundle', status: 'active', startDate: '2025-01-20', endDate: '2025-01-31', platform: 'Trendyol', discount: '3 Al 2 Öde', affectedProducts: 45, totalSales: '₺12.340', conversionRate: 8.3 },
-    { id: '3', name: 'Flash Friday', type: 'flash', status: 'scheduled', startDate: '2025-02-01', endDate: '2025-02-01', platform: 'Hepsiburada', discount: '%40', affectedProducts: 30, totalSales: '₺0', conversionRate: 0 },
-    { id: '4', name: 'YENI20 Kupon', type: 'coupon', status: 'active', startDate: '2025-01-01', endDate: '2025-03-01', platform: 'Tümü', discount: '₺20', affectedProducts: 890, totalSales: '₺8.920', conversionRate: 6.7 },
-    { id: '5', name: 'Ücretsiz Kargo Haftası', type: 'freeShipping', status: 'ended', startDate: '2025-01-10', endDate: '2025-01-17', platform: 'Amazon', discount: 'Ücretsiz Kargo', affectedProducts: 500, totalSales: '₺34.560', conversionRate: 15.2 },
-];
-
 const statusLabels: Record<string, string> = { active: 'Aktif', scheduled: 'Planlanmış', ended: 'Bitti', draft: 'Taslak' };
 const statusColors: Record<string, string> = { active: 'emerald', scheduled: 'blue', ended: 'slate', draft: 'yellow' };
 
 export default function CampaignManagerPage() {
+    const { campaigns } = useCampaigns();
     const [filter, setFilter] = useState('all');
     const [showCreate, setShowCreate] = useState(false);
 
-    const filtered = filter === 'all' ? mockCampaigns : mockCampaigns.filter(c => c.status === filter);
+    const normalizedCampaigns: Campaign[] = (Array.isArray(campaigns) ? campaigns : []).map((c: any) => ({
+        id: String(c.id),
+        name: c.name,
+        type: c.type,
+        status: c.status === 'completed' ? 'ended' : c.status,
+        startDate: c.startDate,
+        endDate: c.endDate,
+        platform: Array.isArray(c.platforms) && c.platforms.length > 0 ? c.platforms.join(', ') : 'Tümü',
+        discount: c.discount !== undefined ? `%${c.discount}` : '-',
+        affectedProducts: Array.isArray(c.products) ? c.products.length : 0,
+        totalSales: `₺${Number(c.revenue || 0).toLocaleString('tr-TR')}`,
+        conversionRate: Number(c.conversionRate || 0),
+    }));
+
+    const filtered = filter === 'all' ? normalizedCampaigns : normalizedCampaigns.filter(c => c.status === filter);
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 pb-20">
@@ -55,10 +63,10 @@ export default function CampaignManagerPage() {
 
             <div className="grid grid-cols-4 gap-4">
                 {[
-                    { label: 'Aktif Kampanya', value: mockCampaigns.filter(c => c.status === 'active').length, icon: Play },
-                    { label: 'Toplam Gelir', value: '₺101.710', icon: TrendingUp },
-                    { label: 'Ort. Dönüşüm', value: '%10.7', icon: Target },
-                    { label: 'Etkilenen Ürün', value: mockCampaigns.reduce((s, c) => s + c.affectedProducts, 0), icon: Tag },
+                    { label: 'Aktif Kampanya', value: normalizedCampaigns.filter(c => c.status === 'active').length, icon: Play },
+                    { label: 'Toplam Gelir', value: `₺${normalizedCampaigns.reduce((s, c) => s + Number(String(c.totalSales).replace(/[^\d]/g, '')), 0).toLocaleString('tr-TR')}`, icon: TrendingUp },
+                    { label: 'Ort. Dönüşüm', value: normalizedCampaigns.length > 0 ? `%${(normalizedCampaigns.reduce((s, c) => s + c.conversionRate, 0) / normalizedCampaigns.length).toFixed(1)}` : '--', icon: Target },
+                    { label: 'Etkilenen Ürün', value: normalizedCampaigns.reduce((s, c) => s + c.affectedProducts, 0), icon: Tag },
                 ].map((s, i) => (
                     <div key={i} className="bg-surface rounded-2xl border border-border p-5">
                         <s.icon className="w-5 h-5 text-pink-500 mb-2" />
@@ -78,6 +86,9 @@ export default function CampaignManagerPage() {
             </div>
 
             <div className="space-y-4">
+                {filtered.length === 0 && (
+                    <div className="bg-surface rounded-2xl border border-border p-6 text-sm text-slate-500">Kampanya verisi bulunamadı</div>
+                )}
                 {filtered.map((c, i) => (
                     <motion.div key={c.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
                         className="bg-surface rounded-2xl border border-border p-5 hover:border-pink-500/30 transition-colors">

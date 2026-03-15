@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Check, X, Zap, Crown, Rocket, Star, Shield, Users, Globe, Brain,
@@ -8,6 +8,7 @@ import {
     TrendingUp, Package, BarChart3, Lock, Gift, BadgeCheck, Phone
 } from 'lucide-react';
 import Link from 'next/link';
+import { DEFAULT_PRICING_CATALOG, type PricingCatalog } from '@/config/pricing-catalog';
 
 const PRICING_DATA = {
     hero: {
@@ -167,6 +168,75 @@ const PRICING_DATA = {
 export default function PricingPage() {
     const [isYearly, setIsYearly] = useState(true);
     const [openFaq, setOpenFaq] = useState<number | null>(null);
+    const [catalog, setCatalog] = useState<PricingCatalog>(DEFAULT_PRICING_CATALOG);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadCatalog = async () => {
+            try {
+                const res = await fetch('/api/pricing-catalog', { cache: 'no-store' });
+                if (!res.ok) return;
+                const data = (await res.json()) as PricingCatalog;
+                if (isMounted) {
+                    setCatalog(data);
+                }
+            } catch {
+                // Varsayilan fiyatlar ile devam et
+            }
+        };
+
+        loadCatalog();
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const resolvedPlans = PRICING_DATA.plans.map((plan) => {
+        if (plan.id === 'starter') {
+            const starter = catalog.plans.find((item) => item.id === 'starter');
+            if (!starter) return plan;
+
+            return {
+                ...plan,
+                name: starter.name,
+                price: {
+                    monthly: starter.monthly ?? plan.price.monthly,
+                    yearly: starter.yearly ?? plan.price.yearly,
+                },
+            };
+        }
+
+        if (plan.id === 'professional') {
+            const professional = catalog.plans.find((item) => item.id === 'professional');
+            if (!professional) return plan;
+
+            return {
+                ...plan,
+                name: professional.name,
+                price: {
+                    monthly: professional.monthly ?? plan.price.monthly,
+                    yearly: professional.yearly ?? plan.price.yearly,
+                },
+            };
+        }
+
+        if (plan.id === 'enterprise') {
+            const enterprise = catalog.plans.find((item) => item.id === 'enterprise');
+            if (!enterprise) return plan;
+
+            return {
+                ...plan,
+                name: enterprise.name,
+                price: {
+                    monthly: enterprise.enterpriseLabel ?? 'Ozel',
+                    yearly: enterprise.enterpriseLabel ?? 'Ozel',
+                },
+            };
+        }
+
+        return plan;
+    });
 
     const formatPrice = (price: number | string) => {
         if (typeof price === 'string') return price;
@@ -236,7 +306,7 @@ export default function PricingPage() {
                                         : 'text-slate-500 dark:text-slate-400'
                                     }`}
                             >
-                                {PRICING_DATA.toggle.monthly}
+                                {catalog.monthlyLabel}
                             </button>
                             <button
                                 onClick={() => setIsYearly(true)}
@@ -245,9 +315,9 @@ export default function PricingPage() {
                                         : 'text-slate-500 dark:text-slate-400'
                                     }`}
                             >
-                                {PRICING_DATA.toggle.yearly}
+                                {catalog.yearlyLabel}
                                 <span className="px-2 py-0.5 bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 text-xs font-bold rounded-full">
-                                    {PRICING_DATA.toggle.discount}
+                                    {catalog.yearlyDiscountLabel}
                                 </span>
                             </button>
                         </motion.div>
@@ -259,7 +329,7 @@ export default function PricingPage() {
             <section className="py-12 relative">
                 <div className="container mx-auto px-6 max-w-7xl">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-                        {PRICING_DATA.plans.map((plan, i) => (
+                        {resolvedPlans.map((plan, i) => (
                             <motion.div
                                 key={plan.id}
                                 initial={{ opacity: 0, y: 30 }}

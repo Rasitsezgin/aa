@@ -1,55 +1,71 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Link as LinkIcon, RefreshCw, CheckCircle2, AlertTriangle,
-    Database, Receipt, FileText, Settings, ShieldCheck,
-    Cloud, ArrowRight, Activity, Clock
+    Link as LinkIcon, RefreshCw, CheckCircle2,
+    Database, Receipt, Settings, ShieldCheck,
+    Cloud, ArrowRight, Activity, Clock, Loader2
 } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
 
-const softwareList = [
-    {
-        id: 'parasut',
-        name: 'Paraşüt',
-        description: 'Bulut tabanlı ön muhasebe yazılımı',
-        logo: 'https://www.parasut.com/assets/images/logo/brand/logo.svg',
-        connected: true,
-        lastSync: '10 dakika önce',
-        status: 'active'
-    },
-    {
-        id: 'logo',
-        name: 'Logo GO',
-        description: 'KOBİ’ler için ERP ve muhasebe yazılımı',
-        logo: 'https://www.logo.com.tr/Assets/img/logo-dark-new.png',
-        connected: false,
-        status: 'disconnected'
-    },
-    {
-        id: 'mikro',
-        name: 'Mikro Yazılım',
-        description: 'Kurumsal kaynak planlama ve muhasebe',
-        connected: false,
-        status: 'disconnected'
-    },
-    {
-        id: 'izibiz',
-        name: 'iZİBİZ',
-        description: 'e-Dönüşüm ve özel entegratörlük',
-        connected: false,
-        status: 'disconnected'
-    }
-];
+interface AccountingIntegration {
+    id: string;
+    name: string;
+    description?: string;
+    connected: boolean;
+    lastSync?: string;
+}
+
+interface AccountingSyncLog {
+    id: string;
+    time: string;
+    type?: 'invoice' | 'inventory' | 'sync' | 'error';
+    message: string;
+    status: 'success' | 'error';
+}
 
 export default function AccountingIntegrationPage() {
-    const [integrations, setIntegrations] = useState(softwareList);
+    const [integrations, setIntegrations] = useState<AccountingIntegration[]>([]);
+    const [syncLogs, setSyncLogs] = useState<AccountingSyncLog[]>([]);
     const [isSyncing, setIsSyncing] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const loadAccountingData = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const [integrationRes, logsRes] = await Promise.all([
+                apiClient.request<AccountingIntegration[]>('/accounting/integrations').catch(() => []),
+                apiClient.request<AccountingSyncLog[]>('/accounting/sync-logs').catch(() => []),
+            ]);
+
+            setIntegrations(Array.isArray(integrationRes) ? integrationRes : []);
+            setSyncLogs(Array.isArray(logsRes) ? logsRes : []);
+        } catch {
+            setIntegrations([]);
+            setSyncLogs([]);
+            setError('Muhasebe entegrasyon verileri yüklenemedi.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadAccountingData();
+    }, []);
 
     const handleSync = async () => {
         setIsSyncing(true);
-        await new Promise(r => setTimeout(r, 1500));
-        setIsSyncing(false);
+        try {
+            await apiClient.request('/accounting/sync-all', { method: 'POST' });
+            await loadAccountingData();
+        } catch {
+            setError('Senkronizasyon başlatılamadı.');
+        } finally {
+            setIsSyncing(false);
+        }
     };
 
     return (
@@ -73,6 +89,18 @@ export default function AccountingIntegrationPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {loading && (
+                    <div className="lg:col-span-2 bg-surface rounded-2xl border border-border p-8 flex items-center justify-center gap-3 text-slate-500">
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span className="text-sm font-medium">Muhasebe entegrasyonları yükleniyor...</span>
+                    </div>
+                )}
+                {!loading && integrations.length === 0 && (
+                    <div className="lg:col-span-2 bg-surface rounded-2xl border border-border p-8 text-center">
+                        <p className="font-bold text-foreground">Bağlı muhasebe entegrasyonu bulunamadı</p>
+                        <p className="text-sm text-slate-500 mt-1">Bağlantılar API üzerinden geldiğinde burada listelenecektir.</p>
+                    </div>
+                )}
                 {integrations.map((app, i) => (
                     <motion.div
                         key={app.id}
@@ -141,22 +169,26 @@ export default function AccountingIntegrationPage() {
                     </button>
                 </div>
                 <div className="divide-y divide-border">
-                    {[
-                        { time: '14:20', type: 'invoice', msg: 'Paraşüt: 12 adet fatura başarıyla aktarıldı', status: 'success' },
-                        { time: '12:05', type: 'inventory', msg: 'Logo GO: Stok miktarları güncellendi (44 ürün)', status: 'success' },
-                        { time: '10:15', type: 'error', msg: 'Zirve: API bağlantı hatası (Timeout)', status: 'error' },
-                        { time: '09:00', type: 'sync', msg: 'Sistem: Günlük veriler hazırlandı', status: 'success' },
-                    ].map((log, i) => (
+                    {syncLogs.length === 0 && (
+                        <div className="p-6 text-sm text-slate-500">Senkronizasyon kaydı bulunamadı.</div>
+                    )}
+                    {syncLogs.map((log, i) => (
                         <div key={i} className="p-4 flex items-center gap-4 hover:bg-background/20 transition-all">
                             <div className="text-xs font-bold text-slate-500 w-12">{log.time}</div>
                             <div className={`w-2 h-2 rounded-full ${log.status === 'success' ? 'bg-emerald-500' : 'bg-red-500'} shrink-0`} />
                             {log.type === 'invoice' ? <Receipt size={14} className="text-blue-400" /> : <Database size={14} className="text-indigo-400" />}
-                            <div className="text-sm text-foreground flex-1 font-medium">{log.msg}</div>
+                            <div className="text-sm text-foreground flex-1 font-medium">{log.message}</div>
                             <ArrowRight size={14} className="text-slate-300" />
                         </div>
                     ))}
                 </div>
             </div>
+
+            {error && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 text-sm text-red-400">
+                    {error}
+                </div>
+            )}
 
             {/* Security Note */}
             <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-6 flex items-start gap-4">

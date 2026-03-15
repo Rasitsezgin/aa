@@ -48,20 +48,12 @@ export default function BulkOperationsPage() {
   const fetchTenants = async () => {
     try {
       const res = await fetch('/api/tenants');
+      if (!res.ok) throw new Error('Tenant listesi alınamadı');
       const data = await res.json();
-      setTenants(data);
+      setTenants(Array.isArray(data) ? data : []);
     } catch (error) {
-      // Mock data
-      setTenants([
-        { id: 't1', name: 'Mega Store', slug: 'mega-store', plan: 'PRO', isActive: true, email: 'info@megastore.com' },
-        { id: 't2', name: 'Fashion Hub', slug: 'fashion-hub', plan: 'STARTER', isActive: true, email: 'contact@fashionhub.com' },
-        { id: 't3', name: 'Tech World', slug: 'tech-world', plan: 'ENTERPRISE', isActive: true, email: 'admin@techworld.com' },
-        { id: 't4', name: 'Home Decor', slug: 'home-decor', plan: 'PRO', isActive: false, email: 'shop@homedecor.com' },
-        { id: 't5', name: 'Sport Zone', slug: 'sport-zone', plan: 'STARTER', isActive: true, email: 'info@sportzone.com' },
-        { id: 't6', name: 'Book Corner', slug: 'book-corner', plan: 'STARTER', isActive: true, email: 'contact@bookcorner.com' },
-        { id: 't7', name: 'Digital Shop', slug: 'digital-shop', plan: 'PRO', isActive: true, email: 'support@digitalshop.com' },
-        { id: 't8', name: 'Beauty Store', slug: 'beauty-store', plan: 'STARTER', isActive: true, email: 'info@beautystore.com' },
-      ]);
+      console.error('Tenant listesi yüklenemedi:', error);
+      setTenants([]);
     } finally {
       setLoading(false);
     }
@@ -108,13 +100,13 @@ export default function BulkOperationsPage() {
       const data = await res.json();
       setResult(data);
     } catch (error) {
-      // Mock result
+      console.error('Toplu işlem başarısız:', error);
       setResult({
         operation,
         total: selectedTenants.size,
-        success: selectedTenants.size,
-        failed: 0,
-        results: Array.from(selectedTenants).map(id => ({ tenantId: id, success: true })),
+        success: 0,
+        failed: selectedTenants.size,
+        results: Array.from(selectedTenants).map(id => ({ tenantId: id, success: false, error: 'İşlem tamamlanamadı' })),
       });
     } finally {
       setExecuting(false);

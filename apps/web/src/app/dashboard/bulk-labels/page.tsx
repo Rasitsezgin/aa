@@ -38,6 +38,7 @@ export default function BulkLabelsPage() {
     const [filterStatus, setFilterStatus] = useState('all');
     const [printing, setPrinting] = useState(false);
     const [printDone, setPrintDone] = useState(false);
+    const [printError, setPrintError] = useState<string | null>(null);
 
     const loadOrders = async () => {
         const filters: Record<string, string> = { status: 'CONFIRMED', limit: '100' };
@@ -76,13 +77,19 @@ export default function BulkLabelsPage() {
         setSelected(e.target.checked ? filtered.map(o => o.id) : []);
 
     const handlePrint = async () => {
+        setPrintError(null);
         setPrinting(true);
-        await new Promise(r => setTimeout(r, 2000));
-        setPrinting(false);
-        setPrintDone(true);
-        setPrintedIds(prev => [...new Set([...prev, ...selected])]);
-        setSelected([]);
-        setTimeout(() => setPrintDone(false), 3000);
+        try {
+            window.print();
+            setPrintDone(true);
+            setPrintedIds(prev => [...new Set([...prev, ...selected])]);
+            setSelected([]);
+        } catch {
+            setPrintDone(false);
+            setPrintError('Yazdırma işlemi başlatılamadı. Tarayıcı izinlerini kontrol edin.');
+        } finally {
+            setPrinting(false);
+        }
     };
 
     const readyCount = orders.filter(o => getLabelStatus(o) === 'ready').length;
@@ -127,10 +134,15 @@ export default function BulkLabelsPage() {
                     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                         className="bg-green-500/10 border border-green-500/30 rounded-2xl px-5 py-4 flex items-center gap-3">
                         <CheckCircle size={18} className="text-green-400" />
-                        <span className="text-sm font-bold text-green-300">Kargo etiketleri başarıyla oluşturuldu! Yazdırma penceresi açıldı.</span>
+                        <span className="text-sm font-bold text-green-300">Yazdırma penceresi açıldı. Seçili siparişler basıldı olarak işaretlendi.</span>
                     </motion.div>
                 )}
             </AnimatePresence>
+            {printError && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-2xl px-5 py-4 text-sm font-medium text-red-300">
+                    {printError}
+                </div>
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4">

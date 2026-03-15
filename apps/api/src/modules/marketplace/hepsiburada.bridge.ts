@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MarketplaceBridge, MarketplaceReview } from './marketplace.service';
 import { ScrapingService } from '../scraping/scraping.service';
+import {
+    MarketplaceAnalysisResponse,
+    computeConfidenceFromSources,
+} from './analysis.types';
 
 interface HepsiburadaStoreData {
     storeId: string;
@@ -11,10 +15,7 @@ interface HepsiburadaStoreData {
     totalReviews: number;
     followersCount: number;
     establishedDate: string;
-    responseTimeHours: number;
-    shippingQuality: number;
-    productQuality: number;
-    customerService: number;
+    responseTimeHours: number | null;
 }
 
 interface HepsiburadaProduct {
@@ -62,13 +63,10 @@ export class HepsiburadaBridge implements MarketplaceBridge {
                     categoryCount: Math.ceil(scrapedData.productCount / 15),
                     totalProducts: scrapedData.productCount,
                     averageRating: scrapedData.rating,
-                    totalReviews: scrapedData.totalReviews || 50,
+                    totalReviews: scrapedData.totalReviews ?? 0,
                     followersCount: scrapedData.followerCount,
-                    establishedDate: scrapedData.establishedDate || '2021-01-01',
-                    responseTimeHours: 3,
-                    shippingQuality: 9.0,
-                    productQuality: 9.0,
-                    customerService: 9.0,
+                    establishedDate: scrapedData.establishedDate || '',
+                    responseTimeHours: null,
                 };
             }
 
@@ -237,7 +235,7 @@ export class HepsiburadaBridge implements MarketplaceBridge {
     /**
      * SEO ve Performans analizi yap
      */
-    async analyzeStoreSEO(storeId?: string) {
+    async analyzeStoreSEO(storeId?: string): Promise<MarketplaceAnalysisResponse> {
         try {
             const storeInfo = await this.getStoreInfo(storeId);
             const products = await this.getStoreProducts(storeId, 20);
@@ -245,16 +243,50 @@ export class HepsiburadaBridge implements MarketplaceBridge {
             // SEO Score hesabı
             const seoScore = this.calculateSEOScore(storeInfo, products);
 
+            const metricSources = {
+                storeName: 'scraped',
+                rating: 'scraped',
+                followers: 'scraped',
+                totalProducts: 'scraped',
+                responseTime: 'not_available',
+                monthlyTraffic: 'not_available',
+                monthlyTurnover: 'not_available',
+                titleOptimization: 'calculated',
+                imageOptimization: 'calculated',
+                priceCompetitiveness: 'calculated',
+                stockHealth: 'calculated',
+                ratingTrend: 'scraped',
+                reviewCount: 'scraped',
+            } as const;
+
             return {
                 platform: 'HEPSIBURADA',
                 storeId: storeInfo.storeId,
                 storeName: storeInfo.storeName,
                 seoScore,
+                dataSources: {
+                    overall: 'scraped+calculated',
+                    seoScore: 'calculated',
+                    products: 'api_or_scraped',
+                    metrics: metricSources,
+                    reasons: {
+                        responseTime: 'Hepsiburada public source yanit suresi bilgisini acik olarak saglamiyor.',
+                        monthlyTraffic: 'Aylik trafik verisi platform public endpointlerinde bulunmuyor.',
+                        monthlyTurnover: 'Aylik ciro verisi platform public endpointlerinde bulunmuyor.',
+                    },
+                    evidence: {
+                        adapter: 'hepsiburada.bridge',
+                        productSampleSize: products.length,
+                        hasCredentials: Boolean(this.apiKey && this.apiKey !== 'public'),
+                    },
+                },
+                confidence: computeConfidenceFromSources(metricSources),
                 metrics: {
                     storeName: storeInfo.storeName,
                     rating: storeInfo.averageRating / 2, // Convert 10-scale to 5-scale for frontend
                     followers: storeInfo.followersCount,
-                    responseTime: `${storeInfo.responseTimeHours} saat`,
+                    totalProducts: storeInfo.totalProducts,
+                    responseTime: storeInfo.responseTimeHours !== null ? `${storeInfo.responseTimeHours} saat` : undefined,
                     titleOptimization: this.analyzeTitles(products),
                     imageOptimization: this.analyzeImages(products),
                     priceCompetitiveness: this.analyzePrices(products),
@@ -298,8 +330,10 @@ export class HepsiburadaBridge implements MarketplaceBridge {
         score += avgStock * 10;
 
         // Response time (max +5)
-        if (storeInfo.responseTimeHours < 4) score += 5;
-        else if (storeInfo.responseTimeHours < 12) score += 3;
+        if (storeInfo.responseTimeHours !== null) {
+            if (storeInfo.responseTimeHours < 4) score += 5;
+            else if (storeInfo.responseTimeHours < 12) score += 3;
+        }
 
         return Math.min(Math.round(score), 100);
     }
@@ -355,7 +389,7 @@ export class HepsiburadaBridge implements MarketplaceBridge {
             recommendations.push(`${lowStockProducts} ürün kritik stok seviyesinde`);
         }
 
-        if (storeInfo.responseTimeHours > 4) {
+        if (storeInfo.responseTimeHours !== null && storeInfo.responseTimeHours > 4) {
             recommendations.push('Müşteri sorularına yanıt süresini düşür (hedef < 4 saat)');
         }
 
@@ -371,7 +405,7 @@ export class HepsiburadaBridge implements MarketplaceBridge {
     async syncOrders(): Promise<any> {
         this.logger.log(`Syncing orders for Hepsiburada Merchant: ${this.merchantId}`);
         if (!this.apiKey || this.apiKey === 'public') {
-            return { success: true, platform: 'HEPSIBURADA', orders: [], source: 'fallback' };
+            throw new Error('Hepsiburada sipariş senkronizasyonu için API kimlik bilgileri zorunludur');
         }
 
         const endpoints = [
@@ -394,19 +428,19 @@ export class HepsiburadaBridge implements MarketplaceBridge {
                 const data = await response.json() as Record<string, unknown>;
                 const orders = this.extractOrderArray(data);
 
-                return { success: true, platform: 'HEPSIBURADA', orders, source: orders.length ? 'api' : 'fallback' };
+                return { success: true, platform: 'HEPSIBURADA', orders, source: 'api' };
             } catch (error) {
                 this.logger.warn(`Hepsiburada syncOrders request error: ${(error as Error).message}`);
             }
         }
 
-        return { success: true, platform: 'HEPSIBURADA', orders: [], source: 'fallback' };
+        throw new Error('Hepsiburada sipariş verisi alınamadı');
     }
 
     async updateStock(sku: string, stock: number): Promise<any> {
         this.logger.log(`Updating Hepsiburada stock for ${sku}: ${stock}`);
         if (!this.apiKey || this.apiKey === 'public') {
-            return { success: true, sku, stock, source: 'fallback' };
+            throw new Error('Hepsiburada stok güncelleme için API kimlik bilgileri zorunludur');
         }
 
         return this.sendListingMutation(
@@ -420,7 +454,7 @@ export class HepsiburadaBridge implements MarketplaceBridge {
     async updatePrice(sku: string, price: number): Promise<any> {
         this.logger.log(`Updating Hepsiburada price for ${sku}: ${price}`);
         if (!this.apiKey || this.apiKey === 'public') {
-            return { success: true, sku, price, source: 'fallback' };
+            throw new Error('Hepsiburada fiyat güncelleme için API kimlik bilgileri zorunludur');
         }
 
         return this.sendListingMutation(

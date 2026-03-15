@@ -24,14 +24,6 @@ interface Supplier {
     paymentTerms: string;
 }
 
-const mockSuppliers: Supplier[] = [
-    { id: '1', name: 'TechParts A.Ş.', contactPerson: 'Ali Yılmaz', email: 'ali@techparts.com', phone: '+90 532 111 2233', city: 'İstanbul', rating: 4.8, totalProducts: 156, avgDeliveryDays: 2, status: 'active', totalOrders: 342, lastOrderDate: '2025-01-25', paymentTerms: '30 gün vadeli' },
-    { id: '2', name: 'Global Aksesuar Ltd.', contactPerson: 'Fatma Demir', email: 'fatma@globalaksesuar.com', phone: '+90 541 222 3344', city: 'Ankara', rating: 4.5, totalProducts: 89, avgDeliveryDays: 3, status: 'active', totalOrders: 187, lastOrderDate: '2025-01-22', paymentTerms: '15 gün vadeli' },
-    { id: '3', name: 'Mega Elektronik', contactPerson: 'Mehmet Kaya', email: 'mehmet@megaelektronik.com', phone: '+90 555 333 4455', city: 'İzmir', rating: 4.2, totalProducts: 234, avgDeliveryDays: 4, status: 'active', totalOrders: 456, lastOrderDate: '2025-01-20', paymentTerms: 'Peşin' },
-    { id: '4', name: 'Prime Supply Co.', contactPerson: 'Ayşe Çelik', email: 'ayse@primesupply.com', phone: '+90 544 444 5566', city: 'Bursa', rating: 3.9, totalProducts: 67, avgDeliveryDays: 5, status: 'inactive', totalOrders: 89, lastOrderDate: '2024-12-15', paymentTerms: '45 gün vadeli' },
-    { id: '5', name: 'Quick Import', contactPerson: 'Can Öztürk', email: 'can@quickimport.com', phone: '+90 533 555 6677', city: 'İstanbul', rating: 4.6, totalProducts: 312, avgDeliveryDays: 7, status: 'active', totalOrders: 678, lastOrderDate: '2025-01-27', paymentTerms: '30 gün vadeli' },
-];
-
 import { useSuppliers, SupplierData } from '@/lib/hooks';
 
 export default function SuppliersPage() {

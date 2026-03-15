@@ -6,6 +6,7 @@ import {
     Logger,
     NotFoundException,
     Scope,
+    UnprocessableEntityException,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { ScrapingService } from '../scraping/scraping.service';
@@ -16,6 +17,7 @@ import { N11Bridge } from './n11.bridge';
 import { CicekSepetiBridge } from './ciceksepeti.bridge';
 import { Platform as PrismaPlatform, Prisma } from '@prisma/client';
 import { EncryptionService } from '../../common/encryption.service';
+import { MarketplaceAnalysisResponse, computeConfidenceFromSources } from './analysis.types';
 
 export interface MarketplaceReview {
     externalId: string;
@@ -114,11 +116,96 @@ export class MarketplaceService {
 
         const results: any[] = [];
         for (const integration of integrations) {
-            const bridge = await this.getBridgeForTenant(tenantId, integration.platform as unknown as Platform);
-            const res = await bridge.syncProducts();
-            results.push(res);
+            try {
+                const bridge = await this.getBridgeForTenant(tenantId, integration.platform as unknown as Platform);
+                const res = await bridge.syncProducts();
+                results.push({
+                    platform: integration.platform,
+                    integrationId: integration.id,
+                    ...res,
+                });
+            } catch (error) {
+                results.push({
+                    platform: integration.platform,
+                    integrationId: integration.id,
+                    success: false,
+                    error: (error as Error).message,
+                });
+            }
         }
         return results;
+    }
+
+    async syncIntegrationByStoreId(tenantId: string, storeId: string) {
+        if (!tenantId || !storeId) {
+            throw new BadRequestException('tenantId ve storeId zorunludur');
+        }
+
+        const integration = await this.prisma.integration.findFirst({
+            where: {
+                id: storeId,
+                tenantId,
+                isActive: true,
+            },
+        });
+
+        if (!integration) {
+            throw new NotFoundException('Aktif mağaza entegrasyonu bulunamadı');
+        }
+
+        const bridge = await this.getBridgeForTenant(tenantId, integration.platform as unknown as Platform);
+        const result = await bridge.syncProducts();
+        return {
+            integrationId: integration.id,
+            platform: integration.platform,
+            ...result,
+        };
+    }
+
+    async probeAllIntegrationsForTenant(
+        tenantId: string,
+        options?: { includeOrders?: boolean; productLimit?: number },
+    ) {
+        if (!tenantId) {
+            throw new BadRequestException('tenantId zorunludur');
+        }
+
+        const integrations = await this.prisma.integration.findMany({
+            where: { tenantId, isActive: true },
+            select: { id: true, platform: true },
+        });
+
+        const results: Array<Record<string, unknown>> = [];
+        for (const integration of integrations) {
+            try {
+                const probe = await this.probeIntegrationContract(
+                    tenantId,
+                    integration.platform as unknown as Platform,
+                    options,
+                );
+                results.push({
+                    integrationId: integration.id,
+                    integrationPlatform: integration.platform,
+                    ...probe,
+                });
+            } catch (error) {
+                results.push({
+                    integrationId: integration.id,
+                    platform: integration.platform,
+                    success: false,
+                    error: (error as Error).message,
+                });
+            }
+        }
+
+        const successful = results.filter((r) => r.success === true).length;
+        return {
+            tenantId,
+            total: results.length,
+            successful,
+            failed: results.length - successful,
+            results,
+        };
     }
 
     async syncPlatformOrdersForTenant(tenantId: string, platform: Platform) {
@@ -346,18 +433,23 @@ export class MarketplaceService {
                 ? (products[0] as Record<string, unknown>)
                 : null;
 
-            const productShapeOk = Boolean(first && first.title && (first.productId || first.id));
+            const firstHasShape = Boolean(
+                first
+                && (first.title || first.name)
+                && (first.productId || first.id || first.sku),
+            );
+            const productShapeOk = Array.isArray(productsRaw) && (products.length === 0 || firstHasShape);
 
             checks.push({
                 name: 'productsShape',
                 passed: productShapeOk,
                 detail: productShapeOk
-                    ? `${products.length} urun alindi, ilk urun shape dogrulandi`
+                    ? `${products.length} urun alindi, liste shape dogrulandi`
                     : 'urun listesi bos veya beklenen alanlar eksik',
                 sample: first
                     ? ({
-                        productId: first.productId ?? first.id ?? null,
-                        title: first.title ?? null,
+                        productId: first.productId ?? first.id ?? first.sku ?? null,
+                        title: first.title ?? first.name ?? null,
                         salePrice: first.salePrice ?? first.price ?? null,
                     } as Prisma.InputJsonValue)
                     : undefined,
@@ -433,7 +525,7 @@ export class MarketplaceService {
     /**
      * Pazaryerinden mağaza analizi yap
      */
-    async analyzeStore(platform: Platform, storeId: string) {
+    async analyzeStore(platform: Platform, storeId: string): Promise<MarketplaceAnalysisResponse> {
         const bridge = await this.getTempBridge(platform) as any;
 
         if (platform === Platform.TRENDYOL) {
@@ -446,15 +538,42 @@ export class MarketplaceService {
         if (storeId.startsWith('http')) {
             const scrapedData = await this.scrapingService.scrapeStore(storeId);
             if (scrapedData) {
+                const metricSources = {
+                    storeName: 'scraped',
+                    rating: 'scraped',
+                    followers: 'scraped',
+                    productCount: 'scraped',
+                    totalProducts: 'scraped',
+                    responseTime: 'scraped_or_unknown',
+                    monthlyTraffic: 'not_available',
+                    monthlyTurnover: 'not_available',
+                } as const;
+
                 return {
                     platform: scrapedData.platform || 'GENERIC',
                     storeId: storeId,
                     storeName: scrapedData.storeName,
                     seoScore: Math.round(scrapedData.rating * 10), // Approx conversion
+                    dataSources: {
+                        overall: 'scraped+calculated',
+                        seoScore: 'calculated',
+                        products: 'not_available',
+                        metrics: metricSources,
+                        reasons: {
+                            monthlyTraffic: 'Universal scrape akisi aylik trafik degeri saglamiyor.',
+                            monthlyTurnover: 'Universal scrape akisi aylik ciro degeri saglamiyor.',
+                        },
+                        evidence: {
+                            adapter: 'marketplace.service.generic',
+                            inputUrl: storeId,
+                        },
+                    },
+                    confidence: computeConfidenceFromSources(metricSources),
                     metrics: {
                         storeName: scrapedData.storeName,
                         rating: scrapedData.rating,
                         followers: scrapedData.followerCount,
+                        totalProducts: scrapedData.productCount,
                         productCount: scrapedData.productCount,
                         responseTime: scrapedData.responseTime || 'Bilinmiyor',
                     },
@@ -648,6 +767,8 @@ export class MarketplaceService {
             throw new BadRequestException(`Desteklenmeyen platform: ${platform}`);
         }
 
+        const sanitizedCredentials = this.validateAndNormalizeCredentials(normalizedPlatform, credentials);
+
         try {
             const existing = await this.prisma.integration.findFirst({
                 where: {
@@ -667,9 +788,9 @@ export class MarketplaceService {
                     tenantId,
                     platform: normalizedPlatform,
                     isActive: true,
-                    apiKey: typeof credentials.apiKey === 'string' ? credentials.apiKey : '',
-                    apiSecret: typeof credentials.apiSecret === 'string' ? credentials.apiSecret : '',
-                    apiExtra: credentials as Prisma.InputJsonValue,
+                    apiKey: this.encryption.encrypt(sanitizedCredentials.apiKey),
+                    apiSecret: this.encryption.encrypt(sanitizedCredentials.apiSecret),
+                    apiExtra: sanitizedCredentials.apiExtra,
                 },
             });
             return { success: true, integration, message: `${normalizedPlatform} mağazası başarıyla bağlandı` };
@@ -820,5 +941,46 @@ export class MarketplaceService {
             }
         }
         throw lastError;
+    }
+
+    private validateAndNormalizeCredentials(platform: PrismaPlatform, credentials: Record<string, unknown>) {
+        const apiKey = typeof credentials.apiKey === 'string' ? credentials.apiKey.trim() : '';
+        const apiSecret = typeof credentials.apiSecret === 'string' ? credentials.apiSecret.trim() : '';
+
+        if (!apiKey) {
+            throw new UnprocessableEntityException('apiKey zorunludur');
+        }
+
+        if (!apiSecret) {
+            throw new UnprocessableEntityException('apiSecret zorunludur');
+        }
+
+        const apiExtraEntries = Object.entries(credentials).filter(([key, value]) => {
+            if (key === 'apiKey' || key === 'apiSecret') return false;
+            return value !== undefined;
+        });
+        const apiExtra: Record<string, unknown> = Object.fromEntries(apiExtraEntries);
+
+        if (platform === PrismaPlatform.TRENDYOL) {
+            const supplierId = typeof credentials.supplierId === 'string' ? credentials.supplierId.trim() : '';
+            if (!supplierId) {
+                throw new UnprocessableEntityException('Trendyol için supplierId zorunludur');
+            }
+            apiExtra.supplierId = supplierId;
+        }
+
+        if (platform === PrismaPlatform.HEPSIBURADA) {
+            const merchantId = typeof credentials.merchantId === 'string' ? credentials.merchantId.trim() : '';
+            if (!merchantId) {
+                throw new UnprocessableEntityException('Hepsiburada için merchantId zorunludur');
+            }
+            apiExtra.merchantId = merchantId;
+        }
+
+        return {
+            apiKey,
+            apiSecret,
+            apiExtra: apiExtra as Prisma.InputJsonValue,
+        };
     }
 }

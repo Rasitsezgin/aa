@@ -37,17 +37,6 @@ interface Task {
     progress: number;
 }
 
-const mockTasks: Task[] = [
-    { id: 1, title: 'Trendyol API entegrasyonunu güncelle', description: 'Yeni API v3 endpointlerine geçiş', status: 'in-progress' as Status, priority: 'high' as Priority, assignee: 'Ahmet', dueDate: '2025-01-25', tags: ['api', 'trendyol'], progress: 60 },
-    { id: 2, title: 'Stok senkronizasyon hatası düzelt', description: 'Negatif stok sorunu çözülecek', status: 'todo' as Status, priority: 'high' as Priority, assignee: 'Mehmet', dueDate: '2025-01-23', tags: ['bug', 'stok'], progress: 0 },
-    { id: 3, title: 'Müşteri dashboard tasarımı', description: 'Yeni müşteri paneli UI tasarımı', status: 'review' as Status, priority: 'medium' as Priority, assignee: 'Ayşe', dueDate: '2025-01-28', tags: ['ui', 'tasarım'], progress: 85 },
-    { id: 4, title: 'Fatura modülü unit testleri', description: 'Eksik test caseler yazılacak', status: 'todo' as Status, priority: 'low' as Priority, assignee: 'Ali', dueDate: '2025-01-30', tags: ['test'], progress: 0 },
-    { id: 5, title: 'N11 marketplace bağlantısı', description: 'N11 API bağlantısı kurulacak', status: 'done' as Status, priority: 'medium' as Priority, assignee: 'Fatma', dueDate: '2025-01-20', tags: ['api', 'n11'], progress: 100 },
-    { id: 6, title: 'E-posta şablon tasarımı', description: 'Otomatik e-posta şablonları', status: 'in-progress' as Status, priority: 'medium' as Priority, assignee: 'Zeynep', dueDate: '2025-01-26', tags: ['email', 'tasarım'], progress: 40 },
-    { id: 7, title: 'Performans optimizasyonu', description: 'Dashboard yükleme süresini düşür', status: 'todo' as Status, priority: 'high' as Priority, assignee: 'Can', dueDate: '2025-01-24', tags: ['performance'], progress: 0 },
-    { id: 8, title: 'Kargo entegrasyonu - Aras', description: 'Aras Kargo API entegrasyonu', status: 'done' as Status, priority: 'low' as Priority, assignee: 'Mehmet', dueDate: '2025-01-18', tags: ['api', 'kargo'], progress: 100 },
-];
-
 import { useTasks } from '@/lib/hooks';
 
 export default function TaskManagerPage() {
@@ -56,7 +45,7 @@ export default function TaskManagerPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [showCreate, setShowCreate] = useState(false);
 
-    const tasks = (tasksData as Task[]) || mockTasks;
+    const tasks = Array.isArray(tasksData) ? (tasksData as Task[]) : [];
     const columns: Status[] = ['todo', 'in-progress', 'review', 'done'];
 
     const filteredTasks = tasks.filter(t => t.title.toLowerCase().includes(searchTerm.toLowerCase()));

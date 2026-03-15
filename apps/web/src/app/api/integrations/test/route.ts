@@ -75,11 +75,6 @@ export async function POST(req: NextRequest) {
                     } else if (hbRes.status === 401 || hbRes.status === 403) {
                         message = "Hepsiburada API Hatası: Yetkisiz erişim. Bilgilerinizi kontrol edin.";
                         connectionSuccess = false;
-                    } else if (hbRes.status === 404) {
-                        // Sometimes the merchant endpoint is not available or blocked, but credentials might be right.
-                        // We will simulate success in this demo edge case if not 401
-                        connectionSuccess = true;
-                        message = "Hepsiburada API bağlantısı kısmi başarılı (Ağ erişimi doğrulandı).";
                     } else {
                         connectionSuccess = false;
                         message = `Hepsiburada Hatası: HTTP ${hbRes.status}`;
@@ -87,12 +82,8 @@ export async function POST(req: NextRequest) {
                     break;
 
                 default:
-                    // For unimplemented APIs, simulate a successful connection for demonstration
-                    // In a full production scenario, you implement Amazon, N11, Ciceksepeti, etc. exactly like above.
-                    console.log(`Simulating connection test for ${platform}`);
-                    await new Promise(r => setTimeout(r, 1000));
-                    connectionSuccess = true;
-                    message = `${platform} API bağlantısı başarıyla simüle edildi.`;
+                    connectionSuccess = false;
+                    message = `${platform} için API bağlantı testi henüz uygulanmadı.`;
                     break;
             }
         } catch (apiError: any) {

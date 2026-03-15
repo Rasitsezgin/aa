@@ -8,15 +8,7 @@ import {
     FileArchive, Settings, Play, Trash2
 } from 'lucide-react';
 
-const mockBackups = [
-    { id: 1, name: 'Otomatik Yedek', date: '2025-01-22 03:00', size: '2.3 GB', type: 'full', status: 'completed', duration: '12 dk' },
-    { id: 2, name: 'Otomatik Yedek', date: '2025-01-21 03:00', size: '2.3 GB', type: 'full', status: 'completed', duration: '11 dk' },
-    { id: 3, name: 'Manuel Yedek', date: '2025-01-20 14:30', size: '2.2 GB', type: 'full', status: 'completed', duration: '13 dk' },
-    { id: 4, name: 'Otomatik Yedek', date: '2025-01-20 03:00', size: '2.2 GB', type: 'incremental', status: 'completed', duration: '4 dk' },
-    { id: 5, name: 'Otomatik Yedek', date: '2025-01-19 03:00', size: '2.1 GB', type: 'full', status: 'completed', duration: '10 dk' },
-    { id: 6, name: 'Otomatik Yedek', date: '2025-01-18 03:00', size: '450 MB', type: 'incremental', status: 'completed', duration: '3 dk' },
-    { id: 7, name: 'Otomatik Yedek', date: '2025-01-17 03:00', size: '2.1 GB', type: 'full', status: 'failed', duration: '-' },
-];
+const backups: any[] = [];
 
 export default function DataBackupPage() {
     const [showSchedule, setShowSchedule] = useState(false);
@@ -26,9 +18,9 @@ export default function DataBackupPage() {
     const [scheduleType, setScheduleType] = useState('full');
     const [retention, setRetention] = useState('30');
 
-    const completedBackups = mockBackups.filter(b => b.status === 'completed').length;
-    const failedBackups = mockBackups.filter(b => b.status === 'failed').length;
-    const totalSize = '14.7 GB';
+    const completedBackups = backups.filter(b => b.status === 'completed').length;
+    const failedBackups = backups.filter(b => b.status === 'failed').length;
+    const totalSize = '0 GB';
 
     const startBackup = () => {
         setIsBackingUp(true);
@@ -132,7 +124,12 @@ export default function DataBackupPage() {
                         </tr>
                     </thead>
                     <tbody>
-                        {mockBackups.map((b, i) => (
+                        {backups.length === 0 && (
+                            <tr>
+                                <td className="px-6 py-6 text-sm text-slate-500" colSpan={7}>Yedekleme geçmişi verisi bulunamadı</td>
+                            </tr>
+                        )}
+                        {backups.map((b, i) => (
                             <motion.tr key={b.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
                                 className="border-b border-border/50 hover:bg-background/50">
                                 <td className="px-6 py-3">

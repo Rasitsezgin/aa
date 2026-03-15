@@ -119,21 +119,9 @@ export default function ImportModal({ isOpen, onClose, onImportComplete }: Impor
             setStep('result');
             onImportComplete?.(result);
         } catch (err) {
-            // Offline/demo mode - simulate result
-            const simResult: ImportResult = {
-                total: parsedData.length,
-                created: importMode === 'update' ? 0 : parsedData.length,
-                updated: importMode === 'create' ? 0 : 0,
-                failed: 0,
-                results: parsedData.map((row, i) => ({
-                    row: i + 1,
-                    sku: row['SKU'] || row['sku'] || '',
-                    status: importMode === 'update' ? 'updated' : 'created',
-                })),
-            };
-            setImportResult(simResult);
-            setStep('result');
-            onImportComplete?.(simResult);
+            console.error('İçe aktarım hatası:', err);
+            setError('İçe aktarım tamamlanamadı. Lütfen bağlantı ve API durumunu kontrol edip tekrar deneyin.');
+            setStep('preview');
         }
     };
 

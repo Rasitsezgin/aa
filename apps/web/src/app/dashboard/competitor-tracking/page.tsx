@@ -33,16 +33,31 @@ export default function CompetitorTrackingPage() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // Mocking API call
-                await new Promise(r => setTimeout(r, 1000));
-                setProducts([
-                    { id: '1', name: 'Kablosuz Gaming Mouse', sku: 'MS-G900', myPrice: 1250, competitorPrice: 1190, diff: -60, platform: 'Trendyol', competitorName: 'TeknoStore', buyBox: false, status: 'over', lastUpdate: '5 dk önce' },
-                    { id: '2', name: 'Mekanik Klavye RGB', sku: 'KB-R88', myPrice: 2400, competitorPrice: 2450, diff: 50, platform: 'Hepsiburada', competitorName: 'HızlıBilişim', buyBox: true, status: 'under', lastUpdate: '12 dk önce' },
-                    { id: '3', name: 'Oyuncu Kulaklığı 7.1', sku: 'HS-71X', myPrice: 1800, competitorPrice: 1800, diff: 0, platform: 'Amazon', competitorName: 'Amazon.com', buyBox: true, status: 'equal', lastUpdate: '45 dk önce' },
-                    { id: '4', name: 'Gaming Monitor 144Hz', sku: 'MON-144', myPrice: 4500, competitorPrice: 4299, diff: -201, platform: 'N11', competitorName: 'EkranDunyasi', buyBox: false, status: 'over', lastUpdate: '1 saat önce' },
-                    { id: '5', name: 'Mousepad XL Black', sku: 'MP-XL', myPrice: 250, competitorPrice: 280, diff: 30, platform: 'Trendyol', competitorName: 'AksesuarEvi', buyBox: true, status: 'under', lastUpdate: '2 saat önce' },
-                ]);
-            } catch (err) { /* error */ }
+                const data = await apiClient.getCompetitors() as any[];
+                const normalized: CompetitorProduct[] = Array.isArray(data)
+                    ? data.map((p, i) => {
+                        const myPrice = Number(p.myPrice ?? p.ourPrice ?? 0);
+                        const competitorPrice = Number(p.competitorPrice ?? p.price ?? 0);
+                        const diff = competitorPrice - myPrice;
+                        return {
+                            id: String(p.id ?? i + 1),
+                            name: p.name || p.productName || '-',
+                            sku: p.sku || '-',
+                            myPrice,
+                            competitorPrice,
+                            diff,
+                            platform: p.platform || '-',
+                            competitorName: p.competitorName || p.storeName || '-',
+                            buyBox: Boolean(p.buyBox),
+                            status: diff < 0 ? 'over' : diff > 0 ? 'under' : 'equal',
+                            lastUpdate: p.lastUpdate || p.updatedAt || '-',
+                        };
+                    })
+                    : [];
+                setProducts(normalized);
+            } catch {
+                setProducts([]);
+            }
             setLoading(false);
         };
         fetchData();
@@ -166,6 +181,11 @@ export default function CompetitorTrackingPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
+                            {filtered.length === 0 && (
+                                <tr>
+                                    <td className="px-6 py-6 text-sm text-slate-500" colSpan={7}>Rakip takip verisi bulunamadı</td>
+                                </tr>
+                            )}
                             {filtered.map((p, i) => (
                                 <motion.tr
                                     key={p.id}

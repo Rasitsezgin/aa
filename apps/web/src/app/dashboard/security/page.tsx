@@ -32,27 +32,9 @@ import {
     Trash2
 } from 'lucide-react';
 
-// Fallback login history
-const fallbackLoginHistory = [
-    { id: 1, device: 'Chrome - Windows', ip: '192.168.1.45', location: 'İstanbul, TR', date: '2024-01-15 14:30', status: 'success', current: true },
-    { id: 2, device: 'Safari - iPhone', ip: '85.123.45.67', location: 'Ankara, TR', date: '2024-01-15 10:15', status: 'success', current: false },
-    { id: 3, device: 'Firefox - MacOS', ip: '192.168.1.45', location: 'İstanbul, TR', date: '2024-01-14 18:45', status: 'success', current: false },
-    { id: 4, device: 'Chrome - Android', ip: '95.70.123.45', location: 'İzmir, TR', date: '2024-01-14 09:20', status: 'failed', current: false },
-    { id: 5, device: 'Edge - Windows', ip: '192.168.1.45', location: 'İstanbul, TR', date: '2024-01-13 16:00', status: 'success', current: false }
-];
-
-// Fallback active sessions
-const fallbackActiveSessions = [
-    { id: 1, device: 'Chrome - Windows', location: 'İstanbul', lastActive: 'Şimdi', current: true },
-    { id: 2, device: 'Safari - iPhone', location: 'Ankara', lastActive: '2 saat önce', current: false }
-];
-
-// Fallback API keys
-const fallbackApiKeys = [
-    { id: 1, name: 'Production API', key: 'pk_live_*****1234', created: '2024-01-01', lastUsed: '2024-01-15', status: 'active' },
-    { id: 2, name: 'Test API', key: 'pk_test_*****5678', created: '2023-12-15', lastUsed: '2024-01-10', status: 'active' },
-    { id: 3, name: 'Old Integration', key: 'pk_live_*****9012', created: '2023-06-01', lastUsed: '2023-12-01', status: 'inactive' }
-];
+const loginHistoryData: any[] = [];
+const activeSessionsData: any[] = [];
+const apiKeysData: any[] = [];
 
 // Security alerts
 const securityAlerts = [
@@ -70,9 +52,9 @@ export default function SecurityPage() {
 
     const { loginHistory: apiLoginHistory, sessions: apiSessions, apiKeys: apiApiKeys, loading } = useSecurity();
 
-    const loginHistory = (Array.isArray(apiLoginHistory) && apiLoginHistory.length > 0) ? apiLoginHistory : fallbackLoginHistory;
-    const activeSessions = (Array.isArray(apiSessions) && apiSessions.length > 0) ? apiSessions : fallbackActiveSessions;
-    const apiKeys = (Array.isArray(apiApiKeys) && apiApiKeys.length > 0) ? apiApiKeys : fallbackApiKeys;
+    const loginHistory = Array.isArray(apiLoginHistory) ? apiLoginHistory : loginHistoryData;
+    const activeSessions = Array.isArray(apiSessions) ? apiSessions : activeSessionsData;
+    const apiKeys = Array.isArray(apiApiKeys) ? apiApiKeys : apiKeysData;
 
     if (loading) {
         return (

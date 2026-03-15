@@ -7,18 +7,9 @@ import {
     ArrowUpRight, ArrowDownRight, RefreshCw, Server
 } from 'lucide-react';
 
-const mockEndpoints = [
-    { path: '/api/products', method: 'GET', used: 847, limit: 1000, avgMs: 42, status: 'normal' },
-    { path: '/api/orders', method: 'GET', used: 523, limit: 1000, avgMs: 67, status: 'normal' },
-    { path: '/api/orders', method: 'POST', used: 289, limit: 500, avgMs: 124, status: 'normal' },
-    { path: '/api/products/sync', method: 'POST', used: 450, limit: 500, avgMs: 890, status: 'warning' },
-    { path: '/api/reports', method: 'GET', used: 192, limit: 200, avgMs: 1450, status: 'critical' },
-    { path: '/api/customers', method: 'GET', used: 312, limit: 1000, avgMs: 55, status: 'normal' },
-    { path: '/api/webhooks/send', method: 'POST', used: 98, limit: 100, avgMs: 230, status: 'critical' },
-    { path: '/api/analytics', method: 'GET', used: 156, limit: 500, avgMs: 320, status: 'normal' },
-];
+const endpointStats: Array<{ path: string; method: string; used: number; limit: number; avgMs: number; status: string }> = [];
 
-const mockHourlyUsage = [32, 45, 28, 56, 72, 88, 95, 87, 64, 55, 43, 67, 78, 92, 85, 71, 63, 58, 72, 81, 69, 54, 41, 35];
+const hourlyUsage: number[] = [];
 
 const statusColors: Record<string, string> = {
     normal: 'text-emerald-400',
@@ -35,11 +26,13 @@ const statusBg: Record<string, string> = {
 export default function ApiRateLimitPage() {
     const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d'>('24h');
 
-    const totalUsed = mockEndpoints.reduce((a, e) => a + e.used, 0);
-    const totalLimit = mockEndpoints.reduce((a, e) => a + e.limit, 0);
-    const criticalCount = mockEndpoints.filter(e => e.status === 'critical').length;
-    const avgLatency = Math.round(mockEndpoints.reduce((a, e) => a + e.avgMs, 0) / mockEndpoints.length);
-    const maxHourly = Math.max(...mockHourlyUsage);
+    const totalUsed = endpointStats.reduce((a, e) => a + e.used, 0);
+    const totalLimit = endpointStats.reduce((a, e) => a + e.limit, 0);
+    const criticalCount = endpointStats.filter(e => e.status === 'critical').length;
+    const avgLatency = endpointStats.length > 0
+        ? Math.round(endpointStats.reduce((a, e) => a + e.avgMs, 0) / endpointStats.length)
+        : 0;
+    const maxHourly = hourlyUsage.length > 0 ? Math.max(...hourlyUsage) : 0;
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -68,7 +61,7 @@ export default function ApiRateLimitPage() {
             <div className="grid grid-cols-4 gap-4">
                 {[
                     { label: 'Toplam İstek', value: totalUsed.toLocaleString(), sub: `/ ${totalLimit.toLocaleString()}`, icon: Zap, color: 'text-blue-400', change: '+12%', up: true },
-                    { label: 'Kullanım Oranı', value: `${Math.round((totalUsed / totalLimit) * 100)}%`, sub: 'kapasite', icon: BarChart3, color: 'text-indigo-400', change: '+5%', up: true },
+                    { label: 'Kullanım Oranı', value: totalLimit > 0 ? `${Math.round((totalUsed / totalLimit) * 100)}%` : '--', sub: 'kapasite', icon: BarChart3, color: 'text-indigo-400', change: '+5%', up: true },
                     { label: 'Ort. Latency', value: `${avgLatency}ms`, sub: 'ortalama', icon: Clock, color: 'text-emerald-400', change: '-8%', up: false },
                     { label: 'Kritik Endpoint', value: criticalCount.toString(), sub: 'limit yakın', icon: AlertTriangle, color: 'text-red-400', change: '+2', up: true },
                 ].map((stat, i) => (
@@ -89,8 +82,11 @@ export default function ApiRateLimitPage() {
             {/* Hourly Chart */}
             <div className="bg-surface rounded-xl border border-border p-6">
                 <h3 className="text-sm font-semibold text-foreground mb-4">Saatlik API Kullanımı</h3>
+                {hourlyUsage.length === 0 && (
+                    <div className="mb-4 text-sm text-slate-500">Saatlik API kullanım verisi bulunamadı</div>
+                )}
                 <div className="flex items-end gap-1 h-32">
-                    {mockHourlyUsage.map((val, i) => (
+                    {hourlyUsage.map((val, i) => (
                         <motion.div key={i} initial={{ height: 0 }} animate={{ height: `${(val / maxHourly) * 100}%` }}
                             transition={{ delay: i * 0.02 }}
                             className={`flex-1 rounded-t ${val / maxHourly > 0.85 ? 'bg-red-500/60' : val / maxHourly > 0.6 ? 'bg-amber-500/60' : 'bg-indigo-500/60'}`}
@@ -122,7 +118,12 @@ export default function ApiRateLimitPage() {
                         </tr>
                     </thead>
                     <tbody>
-                        {mockEndpoints.map((ep, i) => {
+                        {endpointStats.length === 0 && (
+                            <tr>
+                                <td className="px-6 py-6 text-sm text-slate-500" colSpan={6}>Endpoint kullanım verisi bulunamadı</td>
+                            </tr>
+                        )}
+                        {endpointStats.map((ep, i) => {
                             const pct = Math.round((ep.used / ep.limit) * 100);
                             return (
                                 <motion.tr key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}

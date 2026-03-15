@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     ChevronLeft,
     Sparkles,
@@ -26,25 +26,78 @@ export default function ProductDetail() {
     const productId = params?.id ?? '';
     const [activeTab, setActiveTab] = useState('details');
     const [isAiProcessing, setIsAiProcessing] = useState(false);
-
-    // Mock Product Data
-    const product = {
+    const [product, setProduct] = useState({
         id: productId,
-        name: "Kablosuz Gürültü Engelleyici Kulaklık Pro (v2)",
-        sku: "KUL-PRO-002",
-        price: 1299.90,
-        stock: 42,
-        category: "Elektronik > Ses",
-        description: "Gelişmiş gürültü engelleme teknolojisi, 40 saat pil ömrü ve kristal netliğinde ses kalitesi ile yeni nesil ses deneyimi.",
-        platforms: ["Trendyol", "Amazon", "Hepsiburada"],
-        seoScore: 82,
-        image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=2070&auto=format&fit=crop"
+        name: '',
+        sku: '',
+        price: 0,
+        stock: 0,
+        category: '',
+        description: '',
+        platforms: [] as string[],
+        seoScore: 0,
+        image: '',
+    });
+    const [hasLoaded, setHasLoaded] = useState(false);
+
+    useEffect(() => {
+        const loadProduct = async () => {
+            if (!productId) {
+                setHasLoaded(true);
+                return;
+            }
+
+            const candidates = [`/api/products/${productId}`, `/api/product/${productId}`];
+
+            for (const url of candidates) {
+                try {
+                    const res = await fetch(url, { cache: 'no-store' });
+                    if (!res.ok) continue;
+                    const payload = await res.json();
+                    const data = payload?.data ?? payload ?? {};
+
+                    setProduct({
+                        id: String(data.id ?? productId),
+                        name: String(data.name ?? ''),
+                        sku: String(data.sku ?? ''),
+                        price: Number(data.price ?? 0),
+                        stock: Number(data.stock ?? 0),
+                        category: String(data.category ?? ''),
+                        description: String(data.description ?? ''),
+                        platforms: Array.isArray(data.platforms) ? data.platforms.map(String) : [],
+                        seoScore: Number(data.seoScore ?? 0),
+                        image: String(data.image ?? ''),
+                    });
+                    setHasLoaded(true);
+                    return;
+                } catch {
+                    continue;
+                }
+            }
+
+            setHasLoaded(true);
+        };
+
+        void loadProduct();
+    }, [productId]);
+
+    const handleAiSEO = async () => {
+        setIsAiProcessing(true);
+        try {
+            await fetch('/api/ai/copilot/quick-action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-tenant-id': 'default' },
+                body: JSON.stringify({
+                    action: 'optimize_seo',
+                    context: { page: `/dashboard/products/${productId}`, productId },
+                }),
+            });
+        } finally {
+            setIsAiProcessing(false);
+        }
     };
 
-    const handleAiSEO = () => {
-        setIsAiProcessing(true);
-        setTimeout(() => setIsAiProcessing(false), 2000);
-    };
+    const hasProductData = Boolean(product.name || product.sku || product.description || product.image);
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
@@ -70,7 +123,11 @@ export default function ProductDetail() {
                 <div className="lg:col-span-1 space-y-6">
                     <div className="bg-surface rounded-3xl border border-border p-4 relative group overflow-hidden">
                         <div className="aspect-square rounded-2xl overflow-hidden bg-background relative">
-                            <Image src={product.image} alt={product.name} fill className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            {product.image ? (
+                                <Image src={product.image} alt={product.name || 'Urun'} fill className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs font-bold">Gorsel verisi bulunamadi</div>
+                            )}
                         </div>
                         <div className="absolute top-8 right-8 flex flex-col gap-2">
                             <button className="p-2.5 rounded-xl bg-white/90 dark:bg-black/90 backdrop-blur-md shadow-xl text-blue-500 hover:scale-110 transition-all border border-blue-500/20">
@@ -81,7 +138,7 @@ export default function ProductDetail() {
                             </button>
                         </div>
 
-                        {/* Background Removal Mockup */}
+                        {/* Background Removal Panel */}
                         <div className="mt-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-border flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Sparkles size={16} className="text-yellow-500" />
@@ -95,7 +152,7 @@ export default function ProductDetail() {
                     <div className="bg-surface rounded-2xl border border-border p-6 space-y-4">
                         <h4 className="text-sm font-black uppercase tracking-widest text-slate-500">Pazaryeri Durumu</h4>
                         <div className="space-y-3">
-                            {['Trendyol', 'Amazon', 'Hepsiburada'].map(p => (
+                            {product.platforms.map(p => (
                                 <div key={p} className="flex items-center justify-between p-3 rounded-xl bg-background/50 border border-border">
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full bg-green-500" />
@@ -104,6 +161,9 @@ export default function ProductDetail() {
                                     <span className="text-[10px] text-slate-500 font-bold tracking-widest uppercase">AKTİF</span>
                                 </div>
                             ))}
+                            {product.platforms.length === 0 && (
+                                <div className="text-xs text-slate-500">Platform verisi bulunamadi.</div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -134,7 +194,7 @@ export default function ProductDetail() {
                             >
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ürün Adı</label>
-                                    <input value={product.name} className="w-full bg-surface border border-border rounded-xl p-4 text-xl font-black outline-none focus:border-primary transition-all shadow-sm" />
+                                    <input value={product.name} readOnly className="w-full bg-surface border border-border rounded-xl p-4 text-xl font-black outline-none focus:border-primary transition-all shadow-sm" />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-6">
@@ -142,19 +202,22 @@ export default function ProductDetail() {
                                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fiyat</label>
                                         <div className="relative">
                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 uppercase">₺</span>
-                                            <input value={product.price} className="w-full bg-surface border border-border rounded-xl py-4 pl-10 pr-4 font-black outline-none focus:border-primary transition-all" />
+                                            <input value={product.price} readOnly className="w-full bg-surface border border-border rounded-xl py-4 pl-10 pr-4 font-black outline-none focus:border-primary transition-all" />
                                         </div>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Stok</label>
-                                        <input value={product.stock} className="w-full bg-surface border border-border rounded-xl p-4 font-black outline-none focus:border-primary transition-all" />
+                                        <input value={product.stock} readOnly className="w-full bg-surface border border-border rounded-xl p-4 font-black outline-none focus:border-primary transition-all" />
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Açıklama</label>
-                                    <textarea rows={5} defaultValue={product.description} className="w-full bg-surface border border-border rounded-2xl p-4 text-sm leading-relaxed outline-none focus:border-primary transition-all custom-scrollbar" />
+                                    <textarea rows={5} value={product.description} readOnly className="w-full bg-surface border border-border rounded-2xl p-4 text-sm leading-relaxed outline-none focus:border-primary transition-all custom-scrollbar" />
                                 </div>
+                                {hasLoaded && !hasProductData && (
+                                    <div className="text-xs text-slate-500">Urun verisi bulunamadi.</div>
+                                )}
                             </motion.div>
                         )}
 

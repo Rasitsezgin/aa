@@ -21,17 +21,17 @@ import { useAbTesting } from '@/lib/hooks';
 
 export default function ABTestPage() {
     const { data: testsData, loading } = useAbTesting();
-    const [selectedTest, setSelectedTest] = useState<number | null>(1);
+    const [selectedTest, setSelectedTest] = useState<number | string | null>(null);
 
-    const mockTests = (testsData as any[]) || [];
+    const tests = Array.isArray(testsData) ? (testsData as any[]) : [];
 
-    const runningCount = mockTests.filter(t => t.status === 'running').length;
-    const completedCount = mockTests.filter(t => t.status === 'completed').length;
-    const avgConfidence = mockTests.length > 0
-        ? Math.round(mockTests.reduce((a, t) => a + t.confidence, 0) / mockTests.length)
+    const runningCount = tests.filter(t => t.status === 'running').length;
+    const completedCount = tests.filter(t => t.status === 'completed').length;
+    const avgConfidence = tests.length > 0
+        ? Math.round(tests.reduce((a, t) => a + t.confidence, 0) / tests.length)
         : 0;
 
-    const selected = mockTests.find(t => t.id === selectedTest);
+    const selected = tests.find(t => t.id === selectedTest);
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -53,7 +53,7 @@ export default function ABTestPage() {
                     { label: 'Aktif Test', value: runningCount, icon: Play, color: 'text-emerald-400' },
                     { label: 'Tamamlanan', value: completedCount, icon: CheckCircle2, color: 'text-blue-400' },
                     { label: 'Ort. Güvenilirlik', value: `%${avgConfidence}`, icon: Target, color: 'text-indigo-400' },
-                    { label: 'Toplam Test', value: mockTests.length, icon: FlaskConical, color: 'text-amber-400' },
+                    { label: 'Toplam Test', value: tests.length, icon: FlaskConical, color: 'text-amber-400' },
                 ].map((stat, i) => (
                     <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                         className="bg-surface rounded-xl border border-border p-5">
@@ -67,7 +67,7 @@ export default function ABTestPage() {
             <div className="grid grid-cols-3 gap-6">
                 {/* Test List */}
                 <div className="space-y-3">
-                    {mockTests.map((test, i) => {
+                    {tests.map((test, i) => {
                         const cfg = statusConfig[test.status as TestStatus];
                         return (
                             <motion.div key={test.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}

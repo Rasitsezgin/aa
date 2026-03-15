@@ -16,7 +16,43 @@ describe('Integration Smoke (e2e)', () => {
     getBridgeForTenant: jest.fn().mockResolvedValue({
       syncProducts: jest.fn().mockResolvedValue({ success: true, count: 0 }),
     }),
-    analyzeStore: jest.fn().mockResolvedValue({ platform: 'TRENDYOL', seoScore: 80 }),
+    analyzeStore: jest.fn().mockResolvedValue({
+      platform: 'TRENDYOL',
+      storeId: '203786',
+      storeName: 'Test Store',
+      seoScore: 80,
+      dataSources: {
+        overall: 'scraped+calculated',
+        seoScore: 'calculated',
+        products: 'api_or_scraped',
+        metrics: {
+          rating: 'scraped',
+          followers: 'scraped',
+          titleOptimization: 'calculated',
+          monthlyTraffic: 'not_available',
+        },
+        reasons: {
+          monthlyTraffic: 'Public endpoint traffic bilgisi vermiyor.',
+        },
+      },
+      confidence: {
+        score: 78,
+        breakdown: {
+          total: 4,
+          real: 2,
+          calculated: 1,
+          estimated: 0,
+          unavailable: 1,
+        },
+      },
+      metrics: {
+        storeName: 'Test Store',
+        rating: 4.6,
+      },
+      products: [],
+      recommendations: [],
+      timestamp: new Date().toISOString(),
+    }),
     getStoreProducts: jest.fn().mockResolvedValue([]),
     getStoreInfo: jest.fn().mockResolvedValue({ storeName: 'Test' }),
     getStores: jest.fn().mockResolvedValue([]),
@@ -182,9 +218,14 @@ describe('Integration Smoke (e2e)', () => {
   });
 
   it('GET /marketplace/analyze/:platform/:storeId smoke', async () => {
-    await request(app.getHttpServer())
+    const response = await request(app.getHttpServer())
       .get('/marketplace/analyze/trendyol/203786')
       .expect(200);
+
+    expect(response.body).toHaveProperty('dataSources');
+    expect(response.body).toHaveProperty('confidence');
+    expect(response.body.dataSources).toHaveProperty('metrics');
+    expect(response.body.confidence).toHaveProperty('score');
   });
 
   it('GET /marketplace/store/:platform/:storeId/products smoke', async () => {

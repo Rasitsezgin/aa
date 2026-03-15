@@ -62,55 +62,25 @@ interface AuditStats {
   recentActivity: AuditLog[];
 }
 
-// Demo data generator
-function generateDemoLogs(count: number = 100): AuditLog[] {
-  const actions = [
-    'auth.login', 'auth.logout', 'auth.login_failed',
-    'product.create', 'product.update', 'product.delete',
-    'order.create', 'order.update', 'order.ship',
-    'settings.update', 'webhook.create', 'api_key.create',
-    'ai.analyze', 'automation.trigger', 'data.export'
-  ];
-
-  const users = [
-    { id: 'user1', email: 'admin@example.com' },
-    { id: 'user2', email: 'manager@example.com' },
-    { id: 'user3', email: 'staff@example.com' },
-  ];
-
-  const ips = ['192.168.1.100', '10.0.0.50', '172.16.0.25', '::1'];
-
-  const logs: AuditLog[] = [];
-  const now = new Date();
-
-  for (let i = 0; i < count; i++) {
-    const action = actions[Math.floor(Math.random() * actions.length)];
-    const user = users[Math.floor(Math.random() * users.length)];
-    const success = Math.random() > 0.1;
-
-    let severity: 'info' | 'warning' | 'error' | 'critical' = 'info';
-    if (!success) severity = 'error';
-    else if (action.includes('delete') || action.includes('api_key')) severity = 'critical';
-    else if (action.includes('failed') || action.includes('settings')) severity = 'warning';
-
-    logs.push({
-      id: `audit_${i}`,
-      timestamp: new Date(now.getTime() - i * 1000 * 60 * (Math.random() * 60)),
-      action,
-      severity,
-      userId: user.id,
-      userEmail: user.email,
-      ipAddress: ips[Math.floor(Math.random() * ips.length)],
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-      resourceType: action.split('.')[0],
-      resourceId: `${action.split('.')[0]}_${Math.floor(Math.random() * 1000)}`,
-      duration: Math.floor(Math.random() * 500),
-      success,
-      errorMessage: !success ? 'Operation failed' : undefined,
-    });
-  }
-
-  return logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+function normalizeAuditLog(item: any): AuditLog {
+  return {
+    id: String(item?.id ?? ''),
+    timestamp: item?.timestamp ? new Date(item.timestamp) : new Date(),
+    action: String(item?.action ?? ''),
+    severity: (['info', 'warning', 'error', 'critical'].includes(item?.severity) ? item.severity : 'info') as AuditLog['severity'],
+    userId: item?.userId ? String(item.userId) : undefined,
+    userEmail: item?.userEmail ? String(item.userEmail) : undefined,
+    ipAddress: item?.ipAddress ? String(item.ipAddress) : undefined,
+    userAgent: item?.userAgent ? String(item.userAgent) : undefined,
+    resourceType: item?.resourceType ? String(item.resourceType) : undefined,
+    resourceId: item?.resourceId ? String(item.resourceId) : undefined,
+    oldValue: item?.oldValue,
+    newValue: item?.newValue,
+    metadata: item?.metadata,
+    duration: item?.duration !== undefined ? Number(item.duration) : undefined,
+    success: Boolean(item?.success),
+    errorMessage: item?.errorMessage ? String(item.errorMessage) : undefined,
+  };
 }
 
 // Hooks
@@ -130,41 +100,40 @@ export function useAuditLogs() {
   }>({});
 
   useEffect(() => {
-    const fetchLogs = () => {
+    const fetchLogs = async () => {
       setLoading(true);
-      setTimeout(() => {
-        let allLogs = generateDemoLogs(200);
+      try {
+        const params = new URLSearchParams();
+        params.set('page', String(page));
+        if (filters.action) params.set('action', filters.action);
+        if (filters.severity) params.set('severity', filters.severity);
+        if (filters.userId) params.set('userId', filters.userId);
+        if (filters.success !== undefined) params.set('success', String(filters.success));
+        if (filters.search) params.set('search', filters.search);
+        if (filters.startDate) params.set('startDate', filters.startDate.toISOString());
+        if (filters.endDate) params.set('endDate', filters.endDate.toISOString());
 
-        // Apply filters
-        if (filters.action) {
-          allLogs = allLogs.filter(log => log.action.includes(filters.action!));
-        }
-        if (filters.severity) {
-          allLogs = allLogs.filter(log => log.severity === filters.severity);
-        }
-        if (filters.userId) {
-          allLogs = allLogs.filter(log => log.userId === filters.userId);
-        }
-        if (filters.success !== undefined) {
-          allLogs = allLogs.filter(log => log.success === filters.success);
-        }
-        if (filters.search) {
-          const search = filters.search.toLowerCase();
-          allLogs = allLogs.filter(log =>
-            log.action.includes(search) ||
-            log.userEmail?.toLowerCase().includes(search) ||
-            log.resourceType?.includes(search)
-          );
+        const res = await fetch(`/api/audit/logs?${params.toString()}`, { cache: 'no-store' });
+        if (!res.ok) {
+          setLogs([]);
+          setTotalPages(1);
+          setLoading(false);
+          return;
         }
 
-        const perPage = 20;
-        setTotalPages(Math.ceil(allLogs.length / perPage));
-        setLogs(allLogs.slice((page - 1) * perPage, page * perPage));
+        const payload = await res.json();
+        const incoming = Array.isArray(payload?.logs) ? payload.logs : Array.isArray(payload?.data) ? payload.data : [];
+        setLogs(incoming.map(normalizeAuditLog));
+        setTotalPages(Number(payload?.totalPages || 1));
+      } catch {
+        setLogs([]);
+        setTotalPages(1);
+      } finally {
         setLoading(false);
-      }, 500);
+      }
     };
 
-    fetchLogs();
+    void fetchLogs();
   }, [page, filters]);
 
   return { logs, loading, page, setPage, totalPages, filters, setFilters };
@@ -175,38 +144,33 @@ export function useAuditStats() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setTimeout(() => {
-      const logs = generateDemoLogs(200);
-
-      const byAction: Record<string, number> = {};
-      const bySeverity: Record<string, number> = {};
-      const userCounts: Record<string, { email: string; count: number }> = {};
-      let successCount = 0;
-
-      logs.forEach(log => {
-        byAction[log.action] = (byAction[log.action] || 0) + 1;
-        bySeverity[log.severity] = (bySeverity[log.severity] || 0) + 1;
-        if (log.userId) {
-          if (!userCounts[log.userId]) {
-            userCounts[log.userId] = { email: log.userEmail || '', count: 0 };
-          }
-          userCounts[log.userId].count++;
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('/api/audit/stats', { cache: 'no-store' });
+        if (!res.ok) {
+          setStats(null);
+          setLoading(false);
+          return;
         }
-        if (log.success) successCount++;
-      });
 
-      setStats({
-        totalLogs: logs.length,
-        byAction,
-        bySeverity,
-        byUser: Object.entries(userCounts)
-          .map(([userId, data]) => ({ userId, ...data }))
-          .sort((a, b) => b.count - a.count),
-        successRate: (successCount / logs.length) * 100,
-        recentActivity: logs.slice(0, 10),
-      });
-      setLoading(false);
-    }, 300);
+        const payload = await res.json();
+        const data = payload?.stats || payload?.data || payload;
+        setStats({
+          totalLogs: Number(data?.totalLogs || 0),
+          byAction: data?.byAction || {},
+          bySeverity: data?.bySeverity || {},
+          byUser: Array.isArray(data?.byUser) ? data.byUser : [],
+          successRate: Number(data?.successRate || 0),
+          recentActivity: Array.isArray(data?.recentActivity) ? data.recentActivity.map(normalizeAuditLog) : [],
+        });
+      } catch {
+        setStats(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchStats();
   }, []);
 
   return { stats, loading };

@@ -176,17 +176,8 @@ const getSeverityConfig = (severity: Incident['severity']) => {
     }
 };
 
-// 90 günlük uptime verisi oluştur
-const generateUptimeData = () => {
-    return Array.from({ length: 90 }, (_, i) => {
-        const rand = Math.random();
-        const date = new Date();
-        date.setDate(date.getDate() - (89 - i));
-        if (rand > 0.97) return { status: 'degraded' as const, date };
-        if (rand > 0.995) return { status: 'outage' as const, date };
-        return { status: 'operational' as const, date };
-    });
-};
+// Uptime geçmişi API kaynağından gelmelidir; veri yoksa boş bırakılır.
+const generateUptimeData = () => [] as Array<{ status: 'operational' | 'degraded' | 'outage'; date: Date }>;
 
 // Kategoriler
 const categories = [
@@ -233,10 +224,8 @@ export default function StatusPage() {
     // Yenileme fonksiyonu
     const handleRefresh = () => {
         setIsRefreshing(true);
-        setTimeout(() => {
-            setLastUpdated(new Date());
-            setIsRefreshing(false);
-        }, 1000);
+        setLastUpdated(new Date());
+        setIsRefreshing(false);
     };
 
     // Auto refresh
@@ -413,6 +402,11 @@ export default function StatusPage() {
                         </div>
                     </div>
                     <div className="flex gap-[2px]">
+                        {uptimeData.length === 0 && (
+                            <div className="w-full h-10 rounded-sm bg-slate-100 dark:bg-white/10 flex items-center justify-center text-xs text-slate-500">
+                                Uptime geçmiş verisi bulunamadı
+                            </div>
+                        )}
                         {uptimeData.map((day, i) => (
                             <div
                                 key={i}
@@ -431,7 +425,9 @@ export default function StatusPage() {
                     <div className="flex justify-between mt-2 text-xs text-slate-500">
                         <span>90 gün önce</span>
                         <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                            {((uptimeData.filter(d => d.status === 'operational').length / 90) * 100).toFixed(2)}% uptime
+                            {uptimeData.length > 0
+                                ? `${((uptimeData.filter(d => d.status === 'operational').length / uptimeData.length) * 100).toFixed(2)}% uptime`
+                                : 'Uptime verisi yok'}
                         </span>
                         <span>Bugün</span>
                     </div>

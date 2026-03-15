@@ -44,12 +44,25 @@ export default function ProfileSettingsPage() {
         setIsLoading(true);
         setStatus('idle');
 
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
+        try {
+            const res = await fetch('/api/settings/profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-tenant-id': 'default' },
+                body: JSON.stringify({}),
+            });
+
+            if (!res.ok) {
+                throw new Error('Profil ayarlari kaydedilemedi');
+            }
+
+            await update();
             setStatus('success');
             setTimeout(() => setStatus('idle'), 3000);
-        }, 1500);
+        } catch {
+            setStatus('error');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

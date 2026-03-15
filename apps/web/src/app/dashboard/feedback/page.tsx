@@ -35,7 +35,7 @@ interface FeatureRequest {
   hasVoted?: boolean;
 }
 
-const MOCK_FEATURES: FeatureRequest[] = [];
+const initialFeatures: FeatureRequest[] = [];
 
 const categoryConfig = {
   feature: { label: 'Yeni Özellik', icon: Lightbulb, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
@@ -52,7 +52,7 @@ const statusConfig = {
 };
 
 export default function FeedbackPage() {
-  const [features, setFeatures] = useState<FeatureRequest[]>(MOCK_FEATURES);
+  const [features, setFeatures] = useState<FeatureRequest[]>(initialFeatures);
   const [filter, setFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');

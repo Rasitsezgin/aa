@@ -52,6 +52,7 @@ import { useQuickActions } from '@/providers/quick-actions-provider';
 interface MobileSidebarProps {
     isOpen: boolean;
     onClose: () => void;
+    onHaptic?: () => void;
 }
 
 interface MenuItem {
@@ -134,7 +135,7 @@ const sections: Section[] = [
     }
 ];
 
-export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
+export default function MobileSidebar({ isOpen, onClose, onHaptic }: MobileSidebarProps) {
     const pathname = usePathname();
     const { data: session } = useSession();
     const { hasModuleAccess, tenantPlan } = useModules();
@@ -204,9 +205,12 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                                 </div>
                             </div>
                             <button
-                                onClick={onClose}
+                                onClick={() => {
+                                    onHaptic?.();
+                                    onClose();
+                                }}
                                 aria-label="Menüyü kapat"
-                                className="p-2 rounded-xl bg-surface border border-border text-slate-400 hover:text-foreground active:scale-90 transition-all"
+                                className="p-2 rounded-xl bg-surface border border-border text-slate-400 hover:text-foreground active:scale-90 transition-all haptic-tap"
                             >
                                 <X size={18} aria-hidden="true" />
                             </button>
@@ -217,19 +221,21 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => {
+                                        onHaptic?.();
                                         onClose();
                                         openQuickSale();
                                     }}
-                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-2xl text-xs font-bold text-primary transition-all active:scale-95"
+                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-2xl text-xs font-bold text-primary transition-all active:scale-95 haptic-tap"
                                 >
                                     <Zap size={15} /> Hızlı Satış
                                 </button>
                                 <button
                                     onClick={() => {
+                                        onHaptic?.();
                                         onClose();
                                         openAddProduct();
                                     }}
-                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 rounded-2xl text-xs font-bold text-green-500 transition-all active:scale-95"
+                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-3 bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 rounded-2xl text-xs font-bold text-green-500 transition-all active:scale-95 haptic-tap"
                                 >
                                     <Package size={15} /> Ürün Ekle
                                 </button>
@@ -250,7 +256,8 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                                                 <Link
                                                     key={item.href}
                                                     href={item.href}
-                                                    className={`flex items-center gap-3 px-3 py-3 rounded-2xl transition-all active:scale-[0.98] ${isActive
+                                                    onClick={onHaptic}
+                                                    className={`flex items-center gap-3 px-3 py-3 rounded-2xl transition-all active:scale-[0.98] haptic-tap ${isActive
                                                         ? 'bg-primary/10 text-primary border border-primary/20'
                                                         : 'text-slate-400 hover:bg-surface active:bg-surface'
                                                         }`}

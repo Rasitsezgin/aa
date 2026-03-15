@@ -1,6 +1,21 @@
 import Script from 'next/script';
+import { getPricingCatalog } from '@/actions/pricing-settings';
+import { DEFAULT_PRICING_CATALOG, formatTryAmount } from '@/config/pricing-catalog';
 
-export default function StructuredData() {
+export default async function StructuredData() {
+    const pricingCatalog = await getPricingCatalog();
+    const starter = pricingCatalog.plans.find((plan) => plan.id === 'starter');
+    const professional = pricingCatalog.plans.find((plan) => plan.id === 'professional');
+    const enterprise = pricingCatalog.plans.find((plan) => plan.id === 'enterprise');
+
+    const starterPrice = starter?.monthly !== null && starter?.monthly !== undefined
+        ? String(starter.monthly)
+        : String(DEFAULT_PRICING_CATALOG.plans.find((plan) => plan.id === 'starter')?.monthly ?? 499);
+    const professionalPrice = professional?.monthly !== null && professional?.monthly !== undefined
+        ? String(professional.monthly)
+        : String(DEFAULT_PRICING_CATALOG.plans.find((plan) => plan.id === 'professional')?.monthly ?? 1499);
+    const enterprisePriceLabel = enterprise?.enterpriseLabel || DEFAULT_PRICING_CATALOG.plans.find((plan) => plan.id === 'enterprise')?.enterpriseLabel || 'Ozel';
+
     // 1. Organization Schema
     const organizationData = {
         "@context": "https://schema.org",
@@ -83,7 +98,7 @@ export default function StructuredData() {
         "offers": {
             "@type": "AggregateOffer",
             "lowPrice": "0",
-            "highPrice": "4999",
+            "highPrice": professionalPrice,
             "priceCurrency": "TRY",
             "offerCount": 4,
             "offers": [
@@ -97,23 +112,30 @@ export default function StructuredData() {
                 {
                     "@type": "Offer",
                     "name": "Starter Plan",
-                    "price": "499",
+                    "price": starterPrice,
                     "priceCurrency": "TRY",
                     "description": "Küçük işletmeler için",
                 },
                 {
                     "@type": "Offer",
                     "name": "Pro Plan",
-                    "price": "1499",
+                    "price": professionalPrice,
                     "priceCurrency": "TRY",
                     "description": "Büyüyen işletmeler için AI destekli yönetim",
                 },
                 {
                     "@type": "Offer",
                     "name": "Enterprise Plan",
-                    "price": "4999",
+                    "price": "0",
+                    "priceSpecification": {
+                        "@type": "PriceSpecification",
+                        "priceCurrency": "TRY",
+                        "price": "0",
+                        "valueAddedTaxIncluded": true,
+                        "description": enterprisePriceLabel,
+                    },
                     "priceCurrency": "TRY",
-                    "description": "Kurumsal çözümler",
+                    "description": "Kurumsal çözümler - özel fiyat",
                 },
             ],
         },
@@ -192,7 +214,7 @@ export default function StructuredData() {
                 "name": "Fiyatlandırma nasıl çalışır?",
                 "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Ücretsiz, Starter (₺499/ay), Pro (₺1.499/ay) ve Enterprise (₺4.999/ay) olmak üzere 4 farklı plan sunulmaktadır. Yıllık ödeme ile %20 indirim uygulanır.",
+                    "text": `Ücretsiz, Starter (₺${formatTryAmount(Number(starterPrice))}/ay), Pro (₺${formatTryAmount(Number(professionalPrice))}/ay) ve Enterprise (${enterprisePriceLabel}) olmak üzere planlar sunulmaktadır. Yıllık ödeme ile ek indirim uygulanır.`,
                 },
             },
         ],

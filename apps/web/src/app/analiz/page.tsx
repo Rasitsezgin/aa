@@ -75,6 +75,29 @@ const formatNumber = (num: number): string => {
     return num.toString();
 };
 
+const hasNumericValue = (value: unknown): value is number =>
+    typeof value === 'number' && Number.isFinite(value);
+
+const getSourceBadgeLabel = (source?: string): string | null => {
+    if (!source) return null;
+    if (source === 'api' || source === 'scraped' || source === 'api_or_scraped') return 'Gercek';
+    if (source === 'calculated') return 'Hesaplanmis';
+    if (source === 'estimated' || source === 'scraped_or_unknown') return 'Tahmini';
+    if (source === 'not_available') return 'Yok';
+    return source;
+};
+
+const getMetricSourceLabel = (
+    dataSources: StoreData['dataSources'] | undefined,
+    metricKey: string,
+    altKeys: string[] = []
+): string | null => {
+    const sourceMap = dataSources?.metrics;
+    if (!sourceMap) return null;
+    const source = sourceMap[metricKey] || altKeys.map((k) => sourceMap[k]).find(Boolean);
+    return getSourceBadgeLabel(source);
+};
+
 // --- Platform Logo Mapping ---
 const PLATFORM_LOGOS: Record<string, { logo: string; name: string; color: string }> = {
     'TRENDYOL': { logo: '/images/pazaryeri/Trendyol.png', name: 'Trendyol', color: 'from-orange-500 to-red-500' },
@@ -298,6 +321,25 @@ interface StoreData {
     verified?: boolean;
     seoScore?: number;
     keywords?: string[];
+    dataSources?: {
+        overall?: string;
+        seoScore?: string;
+        products?: string;
+        metrics?: Record<string, string>;
+        reasons?: Record<string, string>;
+        evidence?: Record<string, string | number | boolean | null>;
+    };
+    confidence?: {
+        score?: number;
+        breakdown?: {
+            total?: number;
+            real?: number;
+            calculated?: number;
+            estimated?: number;
+            unavailable?: number;
+        };
+    };
+    timestamp?: string;
 }
 
 // --- Store Header Card ---
@@ -412,10 +454,38 @@ const StoreHeaderCard = ({
                     {!isLoading && storeData && (
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {[
-                                { icon: Star, label: 'Puan', value: storeData.metrics?.rating || '4.5', color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-500/10' },
-                                { icon: Users, label: 'Takipçi', value: (storeData.metrics?.followers || 1250).toLocaleString('tr-TR'), color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10' },
-                                { icon: Package, label: 'Ürün', value: storeData.metrics?.totalProducts || '287', color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-500/10' },
-                                { icon: Clock, label: 'Yanıt', value: storeData.metrics?.responseTime || '2 saat', color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-500/10' },
+                                {
+                                    icon: Star,
+                                    label: 'Puan',
+                                    value: hasNumericValue(storeData.metrics?.rating) ? storeData.metrics?.rating : '--',
+                                    color: 'text-yellow-500',
+                                    bg: 'bg-yellow-50 dark:bg-yellow-500/10',
+                                    source: getMetricSourceLabel(storeData.dataSources, 'rating')
+                                },
+                                {
+                                    icon: Users,
+                                    label: 'Takipçi',
+                                    value: hasNumericValue(storeData.metrics?.followers) ? storeData.metrics?.followers.toLocaleString('tr-TR') : '--',
+                                    color: 'text-blue-500',
+                                    bg: 'bg-blue-50 dark:bg-blue-500/10',
+                                    source: getMetricSourceLabel(storeData.dataSources, 'followers')
+                                },
+                                {
+                                    icon: Package,
+                                    label: 'Ürün',
+                                    value: hasNumericValue(storeData.metrics?.totalProducts) ? storeData.metrics?.totalProducts : '--',
+                                    color: 'text-green-500',
+                                    bg: 'bg-green-50 dark:bg-green-500/10',
+                                    source: getMetricSourceLabel(storeData.dataSources, 'totalProducts', ['productCount'])
+                                },
+                                {
+                                    icon: Clock,
+                                    label: 'Yanıt',
+                                    value: storeData.metrics?.responseTime || '--',
+                                    color: 'text-purple-500',
+                                    bg: 'bg-purple-50 dark:bg-purple-500/10',
+                                    source: getMetricSourceLabel(storeData.dataSources, 'responseTime')
+                                },
                             ].map((stat, i) => (
                                 <motion.div
                                     key={i}
@@ -428,6 +498,11 @@ const StoreHeaderCard = ({
                                     <div>
                                         <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{stat.label}</p>
                                         <p className="text-lg font-black text-slate-900 dark:text-white">{stat.value}</p>
+                                        {stat.source && (
+                                            <span className="inline-flex mt-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-white/70 dark:bg-white/10 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10">
+                                                {stat.source}
+                                            </span>
+                                        )}
                                     </div>
                                 </motion.div>
                             ))}
@@ -676,6 +751,7 @@ const MetricCard = ({
     icon: Icon,
     label,
     value,
+    sourceLabel,
     change,
     trend,
     color = 'blue',
@@ -685,6 +761,7 @@ const MetricCard = ({
     icon: React.ElementType;
     label: string;
     value: string | number;
+    sourceLabel?: string;
     change?: string;
     trend?: 'up' | 'down' | 'neutral';
     color?: string;
@@ -722,6 +799,11 @@ const MetricCard = ({
                 <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
                     {label}
                 </p>
+                {sourceLabel && (
+                    <span className="inline-flex mb-2 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10">
+                        {sourceLabel}
+                    </span>
+                )}
 
                 <div className="flex items-end gap-2">
                     <span className="text-2xl font-black text-slate-900 dark:text-white">
@@ -848,18 +930,10 @@ const SalesTrendChart = ({ isPremium = false, turnover }: { isPremium?: boolean;
 };
 
 // --- Keyword Analysis Panel ---
-const KeywordAnalysisPanel = ({ storeName = 'Mağaza', isPremium = false, extractedKeywords = [] }: { storeName?: string; isPremium?: boolean; extractedKeywords?: string[] }) => {
+function KeywordAnalysisPanel({ isPremium = false, extractedKeywords = [] }: { storeName?: string; isPremium?: boolean; extractedKeywords?: string[] }) {
     if (!extractedKeywords || extractedKeywords.length === 0) return null;
-
-    const keywords = extractedKeywords.map((kw, i) => ({
-        keyword: kw,
-        volume: `${10 + (i * 7 % 50)}K`, // These are still random estimates, but based on REAL keywords
-        position: 1 + (i * 3 % 15),
-        change: i % 2 === 0 ? `+${1 + (i % 5)}` : `-${1 + (i % 3)}`,
-        cpc: `₺${(0.5 + (i * 0.1 % 2)).toFixed(2)}`
-    }));
-
-    const freeLimit = 3;
+    const freeLimit = 6;
+    const displayKeywords = extractedKeywords.slice(0, freeLimit);
 
     return (
         <div className={`${THEME.card} rounded-[32px] p-6 md:p-8 relative overflow-hidden`}>
@@ -873,82 +947,32 @@ const KeywordAnalysisPanel = ({ storeName = 'Mağaza', isPremium = false, extrac
                             Anahtar Kelime Analizi
                         </h3>
                         <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-                            {isPremium ? '6 anahtar kelime' : `${freeLimit}/6 anahtar kelime • ${6 - freeLimit} kilitli`}
+                            {displayKeywords.length} gercek anahtar kelime bulundu
                         </p>
                     </div>
-                    {!isPremium && (
-                        <Link href="/checkout?plan=pro" className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl text-xs font-bold hover:shadow-lg transition-all">
-                            <Lock size={12} />
-                            Tümünü Aç
-                        </Link>
-                    )}
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                <th className="pb-4">Anahtar Kelime</th>
-                                <th className="pb-4 text-center">Hacim</th>
-                                <th className="pb-4 text-center">Sıralama</th>
-                                <th className="pb-4 text-center">Değişim</th>
-                                <th className="pb-4 text-right">CPC</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-white/5">
-                            {keywords.map((kw, i) => {
-                                const isLocked = !isPremium && i >= freeLimit;
-                                return (
-                                    <tr key={i} className={`${isLocked ? 'opacity-50' : ''} hover:bg-slate-50 dark:hover:bg-white/5 transition-colors`}>
-                                        <td className="py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Tag size={14} className="text-slate-400" />
-                                                <span className={`font-semibold ${isLocked ? 'blur-[4px]' : 'text-slate-900 dark:text-white'}`}>
-                                                    {isLocked ? '••••••••' : kw.keyword}
-                                                </span>
-                                                {isLocked && <Lock size={12} className="text-slate-400" />}
-                                            </div>
-                                        </td>
-                                        <td className="py-3 text-center">
-                                            <span className={`font-bold ${isLocked ? 'blur-[4px]' : 'text-slate-700 dark:text-slate-300'}`}>
-                                                {isLocked ? '---' : kw.volume}
-                                            </span>
-                                        </td>
-                                        <td className="py-3 text-center">
-                                            <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg font-bold ${isLocked ? 'bg-slate-100 dark:bg-slate-800 text-slate-400' :
-                                                kw.position <= 3 ? 'bg-green-100 dark:bg-green-500/10 text-green-600 dark:text-green-400' :
-                                                    kw.position <= 10 ? 'bg-yellow-100 dark:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' :
-                                                        'bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400'
-                                                }`}>
-                                                {isLocked ? '?' : kw.position}
-                                            </span>
-                                        </td>
-                                        <td className="py-3 text-center">
-                                            <span className={`inline-flex items-center gap-1 text-sm font-bold ${isLocked ? 'text-slate-400' :
-                                                kw.change.includes('+') ? 'text-green-600 dark:text-green-400' :
-                                                    kw.change.includes('-') ? 'text-red-600 dark:text-red-400' :
-                                                        'text-slate-500 dark:text-slate-400'
-                                                }`}>
-                                                {!isLocked && kw.change.includes('+') && <ArrowUpRight size={14} />}
-                                                {!isLocked && kw.change.includes('-') && <ArrowDownRight size={14} />}
-                                                {isLocked ? '---' : kw.change}
-                                            </span>
-                                        </td>
-                                        <td className="py-3 text-right">
-                                            <span className={`font-bold ${isLocked ? 'blur-[4px]' : 'text-slate-700 dark:text-slate-300'}`}>
-                                                {isLocked ? '---' : kw.cpc}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                <div className="flex flex-wrap gap-2">
+                    {displayKeywords.map((keyword, i) => (
+                        <span
+                            key={`${keyword}-${i}`}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-sm font-semibold text-slate-700 dark:text-slate-300"
+                        >
+                            <Tag size={14} className="text-slate-400" />
+                            {keyword}
+                        </span>
+                    ))}
                 </div>
+
+                {!isPremium && extractedKeywords.length > freeLimit && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-4">
+                        Tum anahtar kelimeler icin PRO planina gecebilirsiniz.
+                    </p>
+                )}
             </div>
         </div>
     );
-};
+}
 
 // --- Category Performance Widget ---
 const CategoryPerformance = ({ storeName = 'Mağaza', isPremium = false, products = [] }: { storeName?: string; isPremium?: boolean; products?: StoreProduct[] }) => {
@@ -1158,6 +1182,113 @@ const SupportedPlatformsWidget = ({ currentPlatform }: { currentPlatform: string
     );
 };
 
+const RawEvidencePanel = ({ storeData }: { storeData: StoreData | null }) => {
+    if (!storeData?.dataSources) return null;
+    const [showConfidenceHelp, setShowConfidenceHelp] = useState(false);
+
+    const overall = getSourceBadgeLabel(storeData.dataSources.overall);
+    const confidenceScore = storeData.confidence?.score;
+    const breakdown = storeData.confidence?.breakdown;
+    const reasons = storeData.dataSources.reasons || {};
+    const evidence = storeData.dataSources.evidence || {};
+    const timestamp = storeData.timestamp ? new Date(storeData.timestamp).toLocaleString('tr-TR') : null;
+
+    return (
+        <div className={`${THEME.card} rounded-[32px] p-6`}>
+            <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <FileJson className="text-blue-500" size={20} />
+                    Raw Evidence
+                </h3>
+                <button
+                    onClick={() => setShowConfidenceHelp((prev) => !prev)}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
+                    type="button"
+                    aria-label="Confidence hesaplama yöntemini göster"
+                >
+                    <Info size={13} />
+                    Confidence
+                </button>
+            </div>
+
+            {showConfidenceHelp && (
+                <div className="mb-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20">
+                    <p className="text-xs font-bold text-blue-800 dark:text-blue-200 mb-1">Confidence hesaplama yöntemi</p>
+                    <p className="text-xs text-blue-700 dark:text-blue-200 leading-relaxed">
+                        Skor, metrik kaynaklarına göre ağırlıklı hesaplanır: Gerçek veri = %100, Hesaplanmış = %70, Tahmini = %35, Veri yok = %0.
+                        Toplam değer, tüm metriklerin ağırlıklı ortalamasıdır.
+                    </p>
+                </div>
+            )}
+
+            <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                    <span className="text-slate-500 dark:text-slate-400">Genel Kaynak</span>
+                    <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300">
+                        {overall || 'Bilinmiyor'}
+                    </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                    <span className="text-slate-500 dark:text-slate-400">Güven Skoru</span>
+                    <span className="font-black text-slate-900 dark:text-white">{hasNumericValue(confidenceScore) ? `${confidenceScore}%` : '--'}</span>
+                </div>
+
+                {breakdown && (
+                    <div className="grid grid-cols-2 gap-2 pt-2">
+                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                            <p className="text-[10px] uppercase font-bold text-slate-500">Gercek</p>
+                            <p className="font-black text-slate-900 dark:text-white">{breakdown.real ?? '--'}</p>
+                        </div>
+                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                            <p className="text-[10px] uppercase font-bold text-slate-500">Hesaplanan</p>
+                            <p className="font-black text-slate-900 dark:text-white">{breakdown.calculated ?? '--'}</p>
+                        </div>
+                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                            <p className="text-[10px] uppercase font-bold text-slate-500">Tahmini</p>
+                            <p className="font-black text-slate-900 dark:text-white">{breakdown.estimated ?? '--'}</p>
+                        </div>
+                        <div className="p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                            <p className="text-[10px] uppercase font-bold text-slate-500">Yok</p>
+                            <p className="font-black text-slate-900 dark:text-white">{breakdown.unavailable ?? '--'}</p>
+                        </div>
+                    </div>
+                )}
+
+                {Object.keys(reasons).length > 0 && (
+                    <div className="pt-2 border-t border-slate-200 dark:border-white/10 space-y-2">
+                        <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Eksik veri nedenleri</p>
+                        {Object.entries(reasons).map(([key, reason]) => (
+                            <div key={key} className="p-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
+                                <p className="text-xs font-bold text-amber-800 dark:text-amber-300">{key}</p>
+                                <p className="text-xs text-amber-700 dark:text-amber-200">{reason}</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {Object.keys(evidence).length > 0 && (
+                    <div className="pt-2 border-t border-slate-200 dark:border-white/10 space-y-1">
+                        <p className="text-xs font-bold text-slate-600 dark:text-slate-300">Teknik kanıt</p>
+                        {Object.entries(evidence).map(([key, value]) => (
+                            <div key={key} className="flex items-center justify-between text-xs">
+                                <span className="text-slate-500 dark:text-slate-400">{key}</span>
+                                <span className="font-mono text-slate-700 dark:text-slate-300">{String(value)}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {timestamp && (
+                    <p className="pt-2 border-t border-slate-200 dark:border-white/10 text-xs text-slate-500 dark:text-slate-400">
+                        Son analiz: {timestamp}
+                    </p>
+                )}
+            </div>
+        </div>
+    );
+};
+
 // --- Performance Alerts ---
 const PerformanceAlerts = ({ score }: { score: number | null }) => {
     if (score === null) return null;
@@ -1213,8 +1344,14 @@ const PerformanceAlerts = ({ score }: { score: number | null }) => {
 };
 
 // --- SEO Analysis Panel ---
-const SEOAnalysisPanel = ({ metrics, isPremium = false }: { metrics?: StoreMetrics | null; isPremium?: boolean }) => {
+const SEOAnalysisPanel = ({ metrics, dataSources, isPremium = false }: { metrics?: StoreMetrics | null; dataSources?: StoreData['dataSources']; isPremium?: boolean }) => {
     if (!metrics) return null;
+
+    const sourceMap = dataSources?.metrics || {};
+    const sourceLabel = (key: string) => {
+        const source = sourceMap[key];
+        return getSourceBadgeLabel(source);
+    };
 
     const seoMetrics = [
         { label: "Başlık Optimizasyonu", score: metrics.titleOptimization || 0, icon: FileText, color: "blue", desc: "Ürün başlıklarının SEO uyumluluğu", locked: false },
@@ -1285,6 +1422,25 @@ const SEOAnalysisPanel = ({ metrics, isPremium = false }: { metrics?: StoreMetri
                                         </div>
                                         <div>
                                             <span className={`text-sm font-bold block ${isLocked ? 'text-slate-400' : 'text-slate-700 dark:text-slate-300'}`}>{metric.label}</span>
+                                            {!isLocked && sourceLabel(
+                                                metric.label === 'Başlık Optimizasyonu' ? 'titleOptimization' :
+                                                    metric.label === 'Görsel Kalitesi' ? 'imageOptimization' :
+                                                        metric.label === 'Fiyat Rekabetçiliği' ? 'priceCompetitiveness' :
+                                                            metric.label === 'Stok Sağlığı' ? 'stockHealth' :
+                                                                metric.label === 'Müşteri Memnuniyeti' ? 'customerSatisfaction' :
+                                                                    'responseScore'
+                                            ) && (
+                                                    <span className="inline-flex mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10">
+                                                        {sourceLabel(
+                                                            metric.label === 'Başlık Optimizasyonu' ? 'titleOptimization' :
+                                                                metric.label === 'Görsel Kalitesi' ? 'imageOptimization' :
+                                                                    metric.label === 'Fiyat Rekabetçiliği' ? 'priceCompetitiveness' :
+                                                                        metric.label === 'Stok Sağlığı' ? 'stockHealth' :
+                                                                            metric.label === 'Müşteri Memnuniyeti' ? 'customerSatisfaction' :
+                                                                                'responseScore'
+                                                        )}
+                                                    </span>
+                                                )}
                                             <span className={`text-[11px] ${isLocked ? 'text-slate-400' : 'text-slate-500 dark:text-slate-400'}`}>{metric.desc}</span>
                                         </div>
                                     </div>
@@ -2019,10 +2175,10 @@ const MobilePreview = ({ storeData, score, platform, isLoading, url }: {
                                         <div className="flex items-center gap-2 mt-0.5">
                                             <div className="flex items-center gap-0.5">
                                                 <Star size={10} className="fill-yellow-400 text-yellow-400" />
-                                                <span className="text-[10px] font-bold text-slate-700">{storeData?.metrics?.rating || 4.5}</span>
+                                                <span className="text-[10px] font-bold text-slate-700">{hasNumericValue(storeData?.metrics?.rating) ? storeData?.metrics?.rating : '--'}</span>
                                             </div>
                                             <span className="text-[9px] text-slate-400">•</span>
-                                            <span className="text-[9px] text-slate-500">{(storeData?.metrics?.followers || 1250).toLocaleString('tr-TR')} takipçi</span>
+                                            <span className="text-[9px] text-slate-500">{hasNumericValue(storeData?.metrics?.followers) ? storeData?.metrics?.followers.toLocaleString('tr-TR') : '--'} takipçi</span>
                                         </div>
                                     </div>
                                     <button className="px-2 py-1 bg-orange-500 text-white text-[9px] font-bold rounded-md">
@@ -2034,12 +2190,7 @@ const MobilePreview = ({ storeData, score, platform, isLoading, url }: {
                             {/* Products Grid */}
                             <div className="flex-1 overflow-y-auto p-2 bg-slate-50">
                                 <div className="grid grid-cols-2 gap-1.5">
-                                    {(storeData?.products || [
-                                        { name: 'Organik Bal 850g', price: 245, rating: 4.8 },
-                                        { name: 'Hindistan Cevizi Yağı', price: 189, rating: 4.9 },
-                                        { name: 'Chia Tohumu 1kg', price: 129, rating: 4.7 },
-                                        { name: 'Zerdeçal Tozu 250g', price: 79, rating: 4.6 }
-                                    ]).slice(0, 6).map((p, i: number) => (
+                                    {(storeData?.products || []).slice(0, 6).map((p, i: number) => (
                                         <motion.div
                                             key={i}
                                             initial={{ opacity: 0, y: 10 }}
@@ -2058,10 +2209,10 @@ const MobilePreview = ({ storeData, score, platform, isLoading, url }: {
                                             <div className="p-1.5">
                                                 <p className="text-[8px] text-slate-700 line-clamp-2 leading-tight mb-1">{p?.name || 'Ürün'}</p>
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-[10px] font-black text-orange-600">{p?.price || 99}₺</span>
+                                                    <span className="text-[10px] font-black text-orange-600">{hasNumericValue(p?.price) ? `${p.price}₺` : '--'}</span>
                                                     <div className="flex items-center gap-0.5">
                                                         <Star size={7} className="fill-yellow-400 text-yellow-400" />
-                                                        <span className="text-[7px] text-slate-500">{p?.rating || 4.5}</span>
+                                                        <span className="text-[7px] text-slate-500">{hasNumericValue(p?.rating) ? p.rating : '--'}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -2084,7 +2235,7 @@ const MobilePreview = ({ storeData, score, platform, isLoading, url }: {
                                 <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
                                     <motion.div
                                         initial={{ width: 0 }}
-                                        animate={{ width: `${score || 42}%` }}
+                                        animate={{ width: `${score || 0}%` }}
                                         transition={{ duration: 1 }}
                                         className={`h-full rounded-full ${(score || 0) >= 75 ? 'bg-gradient-to-r from-green-500 to-emerald-400' :
                                             (score || 0) >= 50 ? 'bg-gradient-to-r from-yellow-500 to-amber-400' :
@@ -2201,7 +2352,7 @@ www.pazaryonetimi.com
 // --- Main Content ---
 function AnalysisContent() {
     const searchParams = useSearchParams();
-    const url = searchParams?.get('url') || 'https://www.trendyol.com/magaza/daily-organics-m-1024688';
+    const url = searchParams?.get('url')?.trim() || '';
     const [analyzing, setAnalyzing] = useState(true);
     const [score, setScore] = useState<number | null>(null);
     const [activeTab, setActiveTab] = useState<'overview' | 'seo' | 'products' | 'keywords' | 'trends' | 'competitors' | 'comparison' | 'marketing' | 'reports' | 'tools'>('overview');
@@ -2221,7 +2372,8 @@ function AnalysisContent() {
                 if (match) {
                     const fullSlug = match[1]; // daily-organics-m-1024688
                     const parts = fullSlug.split('-');
-                    const storeId = parts.pop() || '1024688';
+                    const storeId = parts.pop();
+                    if (!storeId) throw new Error('Trendyol mağaza kimliği bulunamadı.');
                     parts.pop(); // 'm' harfini kaldır
                     const storeSlug = parts.join('-');
                     // Slug'dan mağaza adını oluştur (tire -> boşluk, ilk harfler büyük)
@@ -2244,9 +2396,9 @@ function AnalysisContent() {
             } else if (urlString.includes('amazon')) {
                 return { storeName: 'Amazon Mağaza', storeSlug: 'amazon-store', storeId: 'amazon', platform: 'AMAZON' };
             }
-            return { storeName: 'Mağaza', storeSlug: 'magaza', storeId: '1024688', platform: 'TRENDYOL' };
+            throw new Error('Desteklenmeyen veya hatalı mağaza URL formatı.');
         } catch {
-            return { storeName: 'Mağaza', storeSlug: 'magaza', storeId: '1024688', platform: 'TRENDYOL' };
+            throw new Error('Mağaza bilgileri URL içinden çözümlenemedi.');
         }
     };
 
@@ -2256,22 +2408,28 @@ function AnalysisContent() {
         try {
             if (urlString.includes('trendyol.com')) {
                 const match = urlString.match(/\/magaza\/([^/]+)/);
-                const storeId = match ? match[1].split('-').pop() || '1024688' : '1024688';
+                const storeId = match?.[1].split('-').pop();
+                if (!storeId) throw new Error('Trendyol mağaza kimliği URL içinde bulunamadı.');
                 return { platform: 'TRENDYOL', storeId };
             } else if (urlString.includes('hepsiburada.com')) {
                 return { platform: 'HEPSIBURADA', storeId: 'store' }; // Fix: Use placeholder, real ID extracted from query url
             } else if (urlString.includes('amazon')) {
                 return { platform: 'AMAZON', storeId: 'store' };
             }
-            return { platform: 'TRENDYOL', storeId: '1024688' };
+            throw new Error('URL platformı desteklenmiyor.');
         } catch {
-            return { platform: 'TRENDYOL', storeId: '1024688' };
+            throw new Error('Platform veya mağaza kimliği çözümlenemedi.');
         }
     };
 
     useEffect(() => {
         const loadAnalysis = async () => {
             setError(null);
+            if (!url) {
+                setError('Analiz için ?url= parametresi zorunludur.');
+                setAnalyzing(false);
+                return;
+            }
             // URL'den mağaza bilgilerini çıkar
             const storeInfo = extractStoreInfo(url);
             setPlatform(storeInfo.platform);
@@ -2289,7 +2447,7 @@ function AnalysisContent() {
                         const analysisData = await response.json();
                         if (analysisData && analysisData.metrics) {
                             setStoreData(analysisData);
-                            setScore(analysisData.seoScore || 75);
+                            setScore(hasNumericValue(analysisData.seoScore) ? analysisData.seoScore : 0);
                             setProducts(analysisData.products || []);
                             setAnalyzing(false);
                             return;
@@ -2315,7 +2473,7 @@ function AnalysisContent() {
 
                     if (analysisData && analysisData.metrics) {
                         setStoreData(analysisData);
-                        setScore(analysisData.seoScore || 0);
+                        setScore(hasNumericValue(analysisData.seoScore) ? analysisData.seoScore : 0);
                         setProducts(analysisData.products || []);
                         setAnalyzing(false);
                         return;
@@ -2333,7 +2491,7 @@ function AnalysisContent() {
                         const analysisData = await analysisResponse.json();
                         if (analysisData && analysisData.metrics) {
                             setStoreData(analysisData);
-                            setScore(analysisData.seoScore || 0); // Use successScore from metrics
+                            setScore(hasNumericValue(analysisData.seoScore) ? analysisData.seoScore : 0);
                             setProducts(analysisData.products || []);
                         } else {
                             throw new Error('Pazaryeri analizi şu an yapılamıyor veya geçerli veri alınamadı.');
@@ -2652,7 +2810,8 @@ function AnalysisContent() {
                                     <MetricCard
                                         icon={Star}
                                         label="Mağaza Puanı"
-                                        value={storeData?.metrics?.rating || '--'}
+                                        value={hasNumericValue(storeData?.metrics?.rating) ? storeData.metrics.rating : '--'}
+                                        sourceLabel={getMetricSourceLabel(storeData?.dataSources, 'rating') || undefined}
                                         change={undefined}
                                         trend="neutral"
                                         color="yellow"
@@ -2661,6 +2820,7 @@ function AnalysisContent() {
                                         icon={TrendingUp}
                                         label="Aylık Trafik"
                                         value={storeData?.metrics?.monthlyTraffic ? formatNumber(storeData.metrics.monthlyTraffic) : '--'}
+                                        sourceLabel={getMetricSourceLabel(storeData?.dataSources, 'monthlyTraffic') || undefined}
                                         change={undefined}
                                         trend="neutral"
                                         color="green"
@@ -2669,6 +2829,7 @@ function AnalysisContent() {
                                         icon={DollarSign}
                                         label="Tahmini Ciro"
                                         value={storeData?.metrics?.monthlyTurnover ? `${formatNumber(storeData.metrics.monthlyTurnover)}₺` : '--₺'}
+                                        sourceLabel={getMetricSourceLabel(storeData?.dataSources, 'monthlyTurnover') || undefined}
                                         change={undefined}
                                         trend="neutral"
                                         color="blue"
@@ -2677,7 +2838,8 @@ function AnalysisContent() {
                                     <MetricCard
                                         icon={ShoppingBag}
                                         label="Aktif Ürün"
-                                        value={storeData?.metrics?.totalProducts || '--'}
+                                        value={hasNumericValue(storeData?.metrics?.totalProducts) ? storeData.metrics.totalProducts : '--'}
+                                        sourceLabel={getMetricSourceLabel(storeData?.dataSources, 'totalProducts', ['productCount']) || undefined}
                                         change={undefined}
                                         trend="neutral"
                                         color="purple"
@@ -2685,19 +2847,14 @@ function AnalysisContent() {
                                 </div>
 
                                 {/* SEO Panel */}
-                                <SEOAnalysisPanel metrics={storeData?.metrics} />
+                                <SEOAnalysisPanel metrics={storeData?.metrics} dataSources={storeData?.dataSources} />
 
                                 {/* Sales Trend */}
-                                <SalesTrendChart isPremium={userPlan === 'FREE'} turnover={storeData?.metrics?.monthlyTurnover} />
-
                                 {/* Products */}
                                 <ProductGrid products={storeData?.products || products} />
 
                                 {/* Keyword Analysis */}
                                 <KeywordAnalysisPanel storeName={storeData?.metrics?.storeName} isPremium={userPlan === 'FREE'} extractedKeywords={storeData?.keywords} />
-
-                                {/* Category Performance */}
-                                <CategoryPerformance storeName={storeData?.metrics?.storeName} products={storeData?.products} />
 
                                 {/* Premium CTA */}
                                 {userPlan === 'FREE' && (
@@ -2708,7 +2865,7 @@ function AnalysisContent() {
 
                         {activeTab === 'seo' && (
                             <>
-                                <SEOAnalysisPanel metrics={storeData?.metrics} />
+                                <SEOAnalysisPanel metrics={storeData?.metrics} dataSources={storeData?.dataSources} />
 
                                 {/* SEO Recommendations */}
                                 <div className={`${THEME.card} rounded-[32px] p-6 md:p-8`}>
@@ -2761,8 +2918,12 @@ function AnalysisContent() {
 
                         {activeTab === 'trends' && (
                             <>
-                                <SalesTrendChart isPremium={userPlan === 'FREE'} turnover={storeData?.metrics?.monthlyTurnover} />
-                                <CategoryPerformance storeName={storeData?.metrics?.storeName} products={storeData?.products} />
+                                <div className={`${THEME.card} rounded-[32px] p-6 md:p-8`}>
+                                    <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2">Trend Verisi Yakında</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                                        Bu sekmede yalnızca tarihsel gerçek veri gösterilecek. Şu an veri kaynağı hazır olmadığı için tahmini grafikler kaldırıldı.
+                                    </p>
+                                </div>
                             </>
                         )}
 
@@ -2772,18 +2933,23 @@ function AnalysisContent() {
 
                         {activeTab === 'comparison' && (
                             <>
-                                <ComparisonWidget storeName={storeData?.metrics?.storeName} score={score || 0} />
-                                <AnomalyDetection />
-                                {userPlan === 'FREE' && <PremiumUpgradeCTA feature="Detaylı Karşılaştırma ve Anomali Tespiti" plan="PRO" />}
+                                <div className={`${THEME.card} rounded-[32px] p-6 md:p-8`}>
+                                    <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2">Karşılaştırma Verisi Yakında</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                                        Bu bölümde tahmini karşılaştırma verileri kaldırıldı. Rakip kıyaslaması yalnızca doğrulanmış gerçek veri ile gösterilecek.
+                                    </p>
+                                </div>
                             </>
                         )}
 
                         {activeTab === 'marketing' && (
                             <>
-                                <MarketingRecommendations score={score || 0} storeName={storeData?.metrics?.storeName} />
-                                <PriceSimulator />
-                                <CampaignPlanner />
-                                {userPlan === 'FREE' && <PremiumUpgradeCTA feature="Pazarlama Araçları" plan="PRO" />}
+                                <div className={`${THEME.card} rounded-[32px] p-6 md:p-8`}>
+                                    <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2">Pazarlama Öngörüleri Yakında</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                                        Simülatör ve tahmin tabanlı çıktılar kaldırıldı. Bu sekme, gerçek satış ve kampanya verileri bağlandığında aktif olacaktır.
+                                    </p>
+                                </div>
                             </>
                         )}
 
@@ -2796,9 +2962,12 @@ function AnalysisContent() {
 
                         {activeTab === 'tools' && (
                             <>
-                                <PriceSimulator />
-                                <CampaignPlanner />
-                                {userPlan === 'FREE' && <PremiumUpgradeCTA feature="Gelişmiş Araçlar" plan="PRO" />}
+                                <div className={`${THEME.card} rounded-[32px] p-6 md:p-8`}>
+                                    <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2">Araçlar Hazırlanıyor</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                                        Bu alanda sadece gerçek işlem verisi kullanan araçlar yayınlanacak. Tahmini simülasyonlar kaldırıldı.
+                                    </p>
+                                </div>
                             </>
                         )}
 
@@ -2854,14 +3023,11 @@ function AnalysisContent() {
                             {/* Quick Actions */}
                             <QuickActionsPanel platform={platform} />
 
-                            {/* Recent Activity */}
-                            <RecentActivityTimeline storeName={storeData?.metrics?.storeName} products={storeData?.products} />
-
-                            {/* Performance Alerts */}
-                            <PerformanceAlerts score={score || 0} />
-
                             {/* Supported Platforms */}
                             <SupportedPlatformsWidget currentPlatform={platform} />
+
+                            {/* Raw Evidence */}
+                            <RawEvidencePanel storeData={storeData} />
 
                             {/* Premium Features Card */}
                             <div className={`${THEME.card} rounded-[32px] p-6 overflow-hidden relative`}>

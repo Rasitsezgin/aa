@@ -307,11 +307,22 @@ export function ReportSettings() {
 
   const sendNow = async (period: ReportPeriod) => {
     setSending(period);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setSending(null);
-    setSentNotification(`${periodConfig[period].label} rapor ${email} adresine gönderildi!`);
-    setTimeout(() => setSentNotification(null), 4000);
+    try {
+      const res = await fetch('/api/reports/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ period, email }),
+      });
+      if (!res.ok) throw new Error('Rapor gönderilemedi');
+      setSentNotification(`${periodConfig[period].label} rapor ${email} adresine gönderildi!`);
+      setTimeout(() => setSentNotification(null), 4000);
+    } catch (error) {
+      console.error('Rapor gönderimi başarısız:', error);
+      setSentNotification('Rapor gönderimi başarısız oldu. Lütfen daha sonra tekrar deneyin.');
+      setTimeout(() => setSentNotification(null), 4000);
+    } finally {
+      setSending(null);
+    }
   };
 
   const enabledCount = Object.values(schedules).filter(s => s.enabled).length;

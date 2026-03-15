@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Github, Mail, ArrowRight, Chrome, Eye, EyeOff, Sparkles, Lock, Loader2, AlertCircle } from 'lucide-react';
+import { Github, Mail, ArrowRight, Chrome, Eye, EyeOff, Sparkles, Lock, Loader2, AlertCircle, ShieldCheck, Clock3, Zap } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 
 import { useSearchParams } from 'next/navigation';
@@ -54,20 +54,32 @@ function LoginForm() {
             animate="visible"
             className="w-full"
         >
-            <div className="mb-10 text-center lg:text-left">
-                <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
-                    Tekrar Hoş Geldiniz
+            <div className="mb-8 text-center lg:text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 mb-4 rounded-full border border-slate-200 dark:border-white/10 bg-slate-100/80 dark:bg-white/5 text-[10px] font-black uppercase tracking-[0.22em] text-slate-500 dark:text-slate-300">
+                    <Sparkles size={12} className="text-blue-500" />
+                    Guvenli Giris
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+                    Tekrar Hos Geldiniz
                 </h2>
                 <p className="text-slate-500 dark:text-slate-400 font-medium mt-2 text-sm leading-relaxed">
                     Hesabınıza giriş yaparak panelinize erişin.
                 </p>
+                <div className="mt-4 flex flex-wrap gap-2 justify-center lg:justify-start">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold">
+                        <ShieldCheck size={13} /> 2FA Destegi
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[11px] font-bold">
+                        <Clock3 size={13} /> 30 sn altinda giris
+                    </span>
+                </div>
             </div>
 
             {/* OAuth Buttons */}
             <motion.div variants={itemVariants} className="space-y-3">
                 <button
                     onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
-                    className="w-full group flex items-center justify-center gap-3 px-4 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl font-bold text-sm text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="w-full group flex items-center justify-center gap-3 px-4 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl font-bold text-sm text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all hover:scale-[1.01] active:scale-[0.98]"
                     type="button"
                 >
                     <Chrome size={18} className="group-hover:rotate-12 transition-transform" />
@@ -75,7 +87,7 @@ function LoginForm() {
                 </button>
                 <button
                     onClick={() => signIn('facebook', { callbackUrl: '/dashboard' })}
-                    className="w-full group flex items-center justify-center gap-3 px-4 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl font-bold text-sm text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="w-full group flex items-center justify-center gap-3 px-4 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl font-bold text-sm text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 transition-all hover:scale-[1.01] active:scale-[0.98]"
                     type="button"
                 >
                     <Github size={18} className="group-hover:rotate-12 transition-transform" />
@@ -83,12 +95,12 @@ function LoginForm() {
                 </button>
             </motion.div>
 
-            <motion.div variants={itemVariants} className="relative mb-8">
+            <motion.div variants={itemVariants} className="relative my-7">
                 <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-slate-200 dark:border-white/10"></div>
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-[#F8FAFC] dark:bg-[#0B0F19] px-4 text-slate-400 font-bold tracking-widest">
+                    <span className="bg-white/95 dark:bg-[#0b1220] px-4 text-slate-400 font-bold tracking-widest">
                         veya e-posta ile
                     </span>
                 </div>
@@ -213,7 +225,8 @@ function LoginForm() {
                 </div>
 
                 {/* Submit Button */}
-                <button type="submit" disabled={isLoading} className="w-full group mt-2 relative py-4 bg-slate-900 dark:bg-blue-600 text-white rounded-2xl font-bold text-sm overflow-hidden shadow-xl shadow-slate-900/20 dark:shadow-blue-600/20 hover:shadow-slate-900/40 dark:hover:shadow-blue-600/40 transition-all hover:scale-[1.02] active:scale-[0.98] duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100">
+                <button type="submit" disabled={isLoading} className="w-full group mt-2 relative py-4 bg-gradient-to-r from-slate-900 to-blue-700 dark:from-blue-600 dark:to-cyan-500 text-white rounded-2xl font-bold text-sm overflow-hidden shadow-xl shadow-slate-900/20 dark:shadow-blue-600/20 hover:shadow-slate-900/40 dark:hover:shadow-blue-600/40 transition-all hover:scale-[1.01] active:scale-[0.98] duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100">
+                    <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-[linear-gradient(120deg,transparent_0%,rgba(255,255,255,0.18)_45%,transparent_100%)] translate-x-[-120%] group-hover:translate-x-[120%] duration-700" />
                     <span className="relative z-10 flex items-center justify-center gap-2">
                         {isLoading ? (
                             <>
@@ -223,6 +236,7 @@ function LoginForm() {
                         ) : (
                             <>
                                 Giriş Yap
+                                <Zap size={15} className="opacity-90" />
                                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                             </>
                         )}
@@ -230,13 +244,18 @@ function LoginForm() {
                 </button>
             </motion.form>
 
-            <motion.div variants={itemVariants} className="mt-8 text-center bg-slate-100 dark:bg-white/5 p-4 rounded-xl">
+            <motion.div variants={itemVariants} className="mt-6 text-center bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200/80 dark:border-white/10">
                 <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
                     Hesabınız yok mu?{' '}
                     <Link href="/register" className="text-slate-900 dark:text-blue-400 font-black hover:underline transition-all">
                         Hemen Oluşturun
                     </Link>
                 </p>
+            </motion.div>
+
+            <motion.div variants={itemVariants} className="mt-4 flex items-center justify-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                <ShieldCheck size={14} className="text-emerald-500" />
+                Verileriniz sifrelenmis baglanti ile korunur.
             </motion.div>
         </motion.div>
     );

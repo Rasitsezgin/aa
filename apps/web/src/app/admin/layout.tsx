@@ -16,8 +16,6 @@ import {
     Package,
     ShoppingBag,
     Mail,
-    Sun,
-    Moon,
     Lock,
     UserCog,
     Flag,
@@ -31,23 +29,16 @@ import {
     Database,
     FileText,
     PieChart,
-    BarChart3,
     Terminal,
-    Search,
-    ChevronDown,
     Menu,
     X,
-    LogOut,
-    Plus,
-    Filter,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
 import { CommandPalette } from '@/components/admin/CommandPalette';
 
 interface SidebarItem {
-    icon: any;
+    icon: React.ComponentType<{ className?: string }>;
     label: string;
     href: string;
     badge?: string;
@@ -82,6 +73,8 @@ export default function AdminLayout({
             title: "Yönetim",
             items: [
                 { icon: PieChart, label: "Raporlar", href: "/admin/reports" },
+                { icon: CreditCard, label: "Fiyat Merkezi", href: "/admin/pricing" },
+                { icon: FileText, label: "Blog Yönetimi", href: "/admin/blog" },
                 { icon: Megaphone, label: "Kampanyalar", href: "/admin/campaigns" },
                 { icon: Mail, label: "E-Bülten", href: "/admin/newsletter" },
                 { icon: MessageSquare, label: "Yorumlar", href: "/admin/reviews" },

@@ -94,7 +94,11 @@ function Sparkline({ data, color = '#3b82f6', height = 40 }: { data: number[]; c
 // ============ MINI BAR CHART ============
 
 function MiniBarChart({ data, color = '#3b82f6' }: { data: { label: string; value: number }[]; color?: string }) {
-    const max = Math.max(...data.map(d => d.value)) || 1;
+    if (data.length === 0) {
+        return <div className="text-[10px] text-slate-500">Grafik verisi bulunamadi.</div>;
+    }
+
+    const max = Math.max(...data.map(d => d.value), 1);
 
     return (
         <div className="flex items-end gap-1 h-16">
@@ -223,58 +227,105 @@ function ActivityFeed({ activities }: { activities: { id: string; type: string; 
 export default function LiveAnalyticsDashboard() {
     const [lastRefresh, setLastRefresh] = useState(new Date());
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [analytics, setAnalytics] = useState({
+        revenue: 0,
+        revenueTrend: 0,
+        revenueHistory: [] as number[],
+        orders: 0,
+        ordersTrend: 0,
+        ordersHistory: [] as number[],
+        visitors: 0,
+        visitorsTrend: 0,
+        visitorsHistory: [] as number[],
+        conversionRate: 0,
+        conversionTrend: 0,
+        avgOrderValue: 0,
+        aovTrend: 0,
+        pendingOrders: 0,
+        lowStock: 0,
+        activeProducts: 0,
+        customerCount: 0,
+        customerTrend: 0,
+        returnRate: 0,
+        returnTrend: 0,
+        platforms: [] as { name: string; logo: string; orders: number; revenue: number; trend: number }[],
+        hourlyOrders: [] as { label: string; value: number }[],
+    });
+    const [activities, setActivities] = useState<{ id: string; type: string; text: string; time: string; icon: React.ComponentType<{ size?: number; className?: string }>; color: string }[]>([]);
 
-    // Mock live data - in real app this would come from WebSocket or polling
-    const mockData = {
-        revenue: 48750.90,
-        revenueTrend: 12.5,
-        revenueHistory: [32000, 35000, 38000, 42000, 39000, 44000, 48750],
-        orders: 156,
-        ordersTrend: 8.3,
-        ordersHistory: [120, 135, 128, 142, 150, 148, 156],
-        visitors: 3420,
-        visitorsTrend: -2.1,
-        visitorsHistory: [3800, 3500, 3200, 3600, 3400, 3300, 3420],
-        conversionRate: 4.56,
-        conversionTrend: 0.3,
-        avgOrderValue: 312.50,
-        aovTrend: 5.2,
-        pendingOrders: 23,
-        lowStock: 8,
-        activeProducts: 342,
-        customerCount: 1850,
-        customerTrend: 15.2,
-        returnRate: 2.8,
-        returnTrend: -0.5,
-        platforms: [
-            { name: 'Trendyol', logo: 'T', orders: 78, revenue: 24300, trend: 15 },
-            { name: 'Hepsiburada', logo: 'H', orders: 42, revenue: 13200, trend: 8 },
-            { name: 'Amazon', logo: 'A', orders: 23, revenue: 7800, trend: 22 },
-            { name: 'N11', logo: 'N', orders: 13, revenue: 3450, trend: -3 },
-        ],
-        hourlyOrders: [
-            { label: '09', value: 5 }, { label: '10', value: 12 }, { label: '11', value: 18 },
-            { label: '12', value: 22 }, { label: '13', value: 15 }, { label: '14', value: 28 },
-            { label: '15', value: 20 }, { label: '16', value: 16 },
-        ],
+    const loadAnalytics = async () => {
+        const candidates = ['/api/analytics/live', '/api/dashboard/live-analytics'];
+
+        for (const url of candidates) {
+            try {
+                const res = await fetch(url, { cache: 'no-store' });
+                if (!res.ok) continue;
+                const payload = await res.json();
+                const data = payload?.data ?? payload ?? {};
+
+                setAnalytics(prev => ({
+                    ...prev,
+                    revenue: Number(data.revenue ?? 0),
+                    revenueTrend: Number(data.revenueTrend ?? 0),
+                    revenueHistory: Array.isArray(data.revenueHistory) ? data.revenueHistory.map(Number) : [],
+                    orders: Number(data.orders ?? 0),
+                    ordersTrend: Number(data.ordersTrend ?? 0),
+                    ordersHistory: Array.isArray(data.ordersHistory) ? data.ordersHistory.map(Number) : [],
+                    visitors: Number(data.visitors ?? 0),
+                    visitorsTrend: Number(data.visitorsTrend ?? 0),
+                    visitorsHistory: Array.isArray(data.visitorsHistory) ? data.visitorsHistory.map(Number) : [],
+                    conversionRate: Number(data.conversionRate ?? 0),
+                    conversionTrend: Number(data.conversionTrend ?? 0),
+                    avgOrderValue: Number(data.avgOrderValue ?? 0),
+                    aovTrend: Number(data.aovTrend ?? 0),
+                    pendingOrders: Number(data.pendingOrders ?? 0),
+                    lowStock: Number(data.lowStock ?? 0),
+                    activeProducts: Number(data.activeProducts ?? 0),
+                    customerCount: Number(data.customerCount ?? 0),
+                    customerTrend: Number(data.customerTrend ?? 0),
+                    returnRate: Number(data.returnRate ?? 0),
+                    returnTrend: Number(data.returnTrend ?? 0),
+                    platforms: Array.isArray(data.platforms) ? data.platforms : [],
+                    hourlyOrders: Array.isArray(data.hourlyOrders) ? data.hourlyOrders : [],
+                }));
+
+                const incomingActivities = Array.isArray(data.activities) ? data.activities : [];
+                setActivities(
+                    incomingActivities.map((a: any, index: number) => ({
+                        id: String(a.id ?? `${index}`),
+                        type: String(a.type ?? 'activity'),
+                        text: String(a.text ?? ''),
+                        time: String(a.time ?? ''),
+                        icon: Activity,
+                        color: 'bg-blue-500/10 text-blue-400',
+                    }))
+                );
+
+                return;
+            } catch {
+                continue;
+            }
+        }
+
+        setAnalytics(prev => ({ ...prev }));
+        setActivities([]);
     };
 
-    const activities = [
-        { id: '1', type: 'order', text: 'Yeni sipariş: #TR-4521 (₺245.00)', time: '2dk', icon: ShoppingCart, color: 'bg-green-500/10 text-green-400' },
-        { id: '2', type: 'review', text: 'Yeni değerlendirme: ⭐⭐⭐⭐⭐', time: '5dk', icon: Star, color: 'bg-yellow-500/10 text-yellow-400' },
-        { id: '3', type: 'stock', text: 'Düşük stok: "Bluetooth Kulaklık" (3 adet)', time: '8dk', icon: AlertTriangle, color: 'bg-orange-500/10 text-orange-400' },
-        { id: '4', type: 'order', text: 'Yeni sipariş: #HB-1287 (₺189.90)', time: '12dk', icon: ShoppingCart, color: 'bg-green-500/10 text-green-400' },
-        { id: '5', type: 'shipping', text: 'Kargo teslim edildi: #TR-4498', time: '15dk', icon: Truck, color: 'bg-blue-500/10 text-blue-400' },
-        { id: '6', type: 'price', text: 'Rakip fiyat değişimi: -₺15 (Ürün #342)', time: '18dk', icon: TrendingDown, color: 'bg-red-500/10 text-red-400' },
-    ];
-
-    const handleRefresh = () => {
+    const handleRefresh = async () => {
         setIsRefreshing(true);
-        setTimeout(() => {
-            setLastRefresh(new Date());
-            setIsRefreshing(false);
-        }, 1000);
+        await loadAnalytics();
+        setLastRefresh(new Date());
+        setIsRefreshing(false);
     };
+
+    useEffect(() => {
+        void loadAnalytics();
+    }, []);
+
+    const busiestHour = analytics.hourlyOrders.reduce<{ label: string; value: number } | null>((acc, cur) => {
+        if (!acc || cur.value > acc.value) return cur;
+        return acc;
+    }, null);
 
     return (
         <div className="space-y-6">
@@ -302,40 +353,40 @@ export default function LiveAnalyticsDashboard() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <KPICard
                     title="Günlük Ciro"
-                    value={mockData.revenue}
+                    value={analytics.revenue}
                     prefix="₺"
                     decimals={2}
-                    trend={mockData.revenueTrend}
+                    trend={analytics.revenueTrend}
                     icon={DollarSign}
                     color="#22c55e"
-                    sparkData={mockData.revenueHistory}
+                    sparkData={analytics.revenueHistory}
                     subtitle="Dünden %12.5 fazla"
                 />
                 <KPICard
                     title="Toplam Sipariş"
-                    value={mockData.orders}
-                    trend={mockData.ordersTrend}
+                    value={analytics.orders}
+                    trend={analytics.ordersTrend}
                     icon={ShoppingCart}
                     color="#3b82f6"
-                    sparkData={mockData.ordersHistory}
-                    subtitle={`${mockData.pendingOrders} beklemede`}
-                    pulse={mockData.pendingOrders > 20}
+                    sparkData={analytics.ordersHistory}
+                    subtitle={`${analytics.pendingOrders} beklemede`}
+                    pulse={analytics.pendingOrders > 20}
                 />
                 <KPICard
                     title="Ziyaretçi"
-                    value={mockData.visitors}
-                    trend={mockData.visitorsTrend}
+                    value={analytics.visitors}
+                    trend={analytics.visitorsTrend}
                     icon={Eye}
                     color="#8b5cf6"
-                    sparkData={mockData.visitorsHistory}
-                    subtitle={`Dönüşüm: %${mockData.conversionRate}`}
+                    sparkData={analytics.visitorsHistory}
+                    subtitle={`Dönüşüm: %${analytics.conversionRate}`}
                 />
                 <KPICard
                     title="Ort. Sepet Değeri"
-                    value={mockData.avgOrderValue}
+                    value={analytics.avgOrderValue}
                     prefix="₺"
                     decimals={2}
-                    trend={mockData.aovTrend}
+                    trend={analytics.aovTrend}
                     icon={Target}
                     color="#f59e0b"
                     subtitle="Hedefe %87 ulaşıldı"
@@ -344,10 +395,10 @@ export default function LiveAnalyticsDashboard() {
 
             {/* Secondary row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <KPICard title="Aktif Ürünler" value={mockData.activeProducts} icon={Package} color="#06b6d4" />
-                <KPICard title="Müşteriler" value={mockData.customerCount} trend={mockData.customerTrend} icon={Users} color="#ec4899" />
-                <KPICard title="İade Oranı" value={mockData.returnRate} suffix="%" decimals={1} trend={mockData.returnTrend} icon={RefreshCw} color="#ef4444" />
-                <KPICard title="Düşük Stok" value={mockData.lowStock} icon={AlertTriangle} color="#f97316" pulse={mockData.lowStock > 5} subtitle="Dikkat gerekiyor" />
+                <KPICard title="Aktif Ürünler" value={analytics.activeProducts} icon={Package} color="#06b6d4" />
+                <KPICard title="Müşteriler" value={analytics.customerCount} trend={analytics.customerTrend} icon={Users} color="#ec4899" />
+                <KPICard title="İade Oranı" value={analytics.returnRate} suffix="%" decimals={1} trend={analytics.returnTrend} icon={RefreshCw} color="#ef4444" />
+                <KPICard title="Düşük Stok" value={analytics.lowStock} icon={AlertTriangle} color="#f97316" pulse={analytics.lowStock > 5} subtitle="Dikkat gerekiyor" />
             </div>
 
             {/* Bottom Section */}
@@ -359,9 +410,12 @@ export default function LiveAnalyticsDashboard() {
                         <Globe size={14} className="text-slate-600" />
                     </div>
                     <div className="space-y-1">
-                        {mockData.platforms.map(p => (
+                        {analytics.platforms.map(p => (
                             <PlatformCard key={p.name} {...p} />
                         ))}
+                        {analytics.platforms.length === 0 && (
+                            <div className="text-xs text-slate-500 px-2 py-3">Pazaryeri verisi bulunamadi.</div>
+                        )}
                     </div>
                 </div>
 
@@ -371,10 +425,10 @@ export default function LiveAnalyticsDashboard() {
                         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Saatlik Siparişler</h3>
                         <BarChart3 size={14} className="text-slate-600" />
                     </div>
-                    <MiniBarChart data={mockData.hourlyOrders} color="#3b82f6" />
+                    <MiniBarChart data={analytics.hourlyOrders} color="#3b82f6" />
                     <div className="mt-3 flex items-center justify-between">
-                        <span className="text-[10px] text-slate-600">En yoğun: 14:00</span>
-                        <span className="text-[10px] text-primary font-bold">28 sipariş</span>
+                        <span className="text-[10px] text-slate-600">En yoğun: {busiestHour ? `${busiestHour.label}:00` : '-'}</span>
+                        <span className="text-[10px] text-primary font-bold">{busiestHour ? `${busiestHour.value} siparis` : 'Veri yok'}</span>
                     </div>
                 </div>
 
@@ -387,6 +441,9 @@ export default function LiveAnalyticsDashboard() {
                         </h3>
                     </div>
                     <ActivityFeed activities={activities} />
+                    {activities.length === 0 && (
+                        <div className="text-xs text-slate-500 px-2 py-1">Aktivite verisi bulunamadi.</div>
+                    )}
                 </div>
             </div>
         </div>

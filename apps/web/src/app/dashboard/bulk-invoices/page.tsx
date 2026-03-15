@@ -8,14 +8,7 @@ import {
     Building, Calendar, DollarSign, Hash
 } from 'lucide-react';
 
-const mockInvoices = [
-    { id: 'FTR-2025-001', customer: 'Ahmet Yılmaz', company: 'Yılmaz Ticaret Ltd.', date: '2025-01-20', dueDate: '2025-02-20', items: 3, total: 4560.00, tax: 820.80, status: 'paid' },
-    { id: 'FTR-2025-002', customer: 'Mehmet Kaya', company: 'Kaya Elektronik A.Ş.', date: '2025-01-19', dueDate: '2025-02-19', items: 5, total: 12800.00, tax: 2304.00, status: 'pending' },
-    { id: 'FTR-2025-003', customer: 'Ayşe Demir', company: 'Demir Kozmetik', date: '2025-01-18', dueDate: '2025-02-18', items: 2, total: 890.00, tax: 160.20, status: 'paid' },
-    { id: 'FTR-2025-004', customer: 'Fatma Çelik', company: 'Çelik&Çelik Ltd.', date: '2025-01-17', dueDate: '2025-01-25', items: 8, total: 23450.00, tax: 4221.00, status: 'overdue' },
-    { id: 'FTR-2025-005', customer: 'Ali Şahin', company: 'Şahin Market', date: '2025-01-16', dueDate: '2025-02-16', items: 1, total: 1200.00, tax: 216.00, status: 'draft' },
-    { id: 'FTR-2025-006', customer: 'Zeynep Arslan', company: 'Arslan Giyim', date: '2025-01-15', dueDate: '2025-02-15', items: 12, total: 8900.00, tax: 1602.00, status: 'paid' },
-];
+const invoicesData: any[] = [];
 
 const statusConfig: Record<string, { label: string; color: string; bg: string; icon: typeof CheckCircle2 }> = {
     paid: { label: 'Ödendi', color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: CheckCircle2 },
@@ -30,14 +23,14 @@ export default function BulkInvoicePage() {
     const [showCreate, setShowCreate] = useState(false);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-    const filtered = mockInvoices.filter(inv =>
+    const filtered = invoicesData.filter(inv =>
         (statusFilter === 'all' || inv.status === statusFilter) &&
         (inv.customer.toLowerCase().includes(searchTerm.toLowerCase()) || inv.id.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    const totalAmount = mockInvoices.reduce((a, i) => a + i.total, 0);
-    const paidAmount = mockInvoices.filter(i => i.status === 'paid').reduce((a, i) => a + i.total, 0);
-    const pendingAmount = mockInvoices.filter(i => i.status === 'pending' || i.status === 'overdue').reduce((a, i) => a + i.total, 0);
+    const totalAmount = invoicesData.reduce((a, i) => a + i.total, 0);
+    const paidAmount = invoicesData.filter(i => i.status === 'paid').reduce((a, i) => a + i.total, 0);
+    const pendingAmount = invoicesData.filter(i => i.status === 'pending' || i.status === 'overdue').reduce((a, i) => a + i.total, 0);
 
     const toggleSelect = (id: string) => {
         setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -73,7 +66,7 @@ export default function BulkInvoicePage() {
                     { label: 'Toplam Tutar', value: `₺${totalAmount.toLocaleString()}`, icon: DollarSign, color: 'text-blue-400' },
                     { label: 'Ödenen', value: `₺${paidAmount.toLocaleString()}`, icon: CheckCircle2, color: 'text-emerald-400' },
                     { label: 'Bekleyen', value: `₺${pendingAmount.toLocaleString()}`, icon: Clock, color: 'text-amber-400' },
-                    { label: 'Toplam Fatura', value: mockInvoices.length.toString(), icon: Hash, color: 'text-indigo-400' },
+                    { label: 'Toplam Fatura', value: invoicesData.length.toString(), icon: Hash, color: 'text-indigo-400' },
                 ].map((stat, i) => (
                     <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                         className="bg-surface rounded-xl border border-border p-5">
@@ -121,6 +114,11 @@ export default function BulkInvoicePage() {
                         </tr>
                     </thead>
                     <tbody>
+                        {filtered.length === 0 && (
+                            <tr>
+                                <td colSpan={9} className="px-4 py-6 text-sm text-slate-500">Fatura verisi bulunamadı</td>
+                            </tr>
+                        )}
                         {filtered.map((inv, i) => {
                             const cfg = statusConfig[inv.status];
                             return (

@@ -100,7 +100,12 @@ export default function AuthLayout({
             </div>
 
             {/* Right Panel: Auth Flow */}
-            <div className="flex-1 flex flex-col relative bg-white dark:bg-[#0B0F19]">
+            <div className="flex-1 flex flex-col relative bg-white dark:bg-[#0B0F19] overflow-hidden">
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute -top-28 right-[-8rem] w-[26rem] h-[26rem] rounded-full bg-cyan-400/15 blur-[120px]" />
+                    <div className="absolute -bottom-24 left-[-8rem] w-[24rem] h-[24rem] rounded-full bg-blue-500/15 blur-[120px]" />
+                    <div className="absolute inset-0 opacity-[0.035] [background-image:linear-gradient(to_right,#334155_1px,transparent_1px),linear-gradient(to_bottom,#334155_1px,transparent_1px)] [background-size:22px_22px]" />
+                </div>
                 {/* Mobile Header */}
                 <div className="lg:hidden flex items-center justify-between p-6 absolute top-0 left-0 right-0 z-20">
                     <Link href="/" className="flex items-center gap-2">
@@ -116,9 +121,9 @@ export default function AuthLayout({
                 <main className="flex-1 flex items-center justify-center p-6 md:p-12 relative z-10 w-full">
                     <div className="w-full max-w-[440px] relative">
                         {/* Decorative Background Blur */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-blue-500/5 dark:bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-blue-500/10 dark:bg-blue-500/15 blur-[110px] rounded-full pointer-events-none" />
 
-                        <div className="relative">
+                        <div className="relative rounded-[2rem] border border-slate-200/70 dark:border-white/10 bg-white/90 dark:bg-[#0b1220]/80 backdrop-blur-xl shadow-[0_30px_80px_-30px_rgba(15,23,42,0.4)] p-5 sm:p-7">
                             {children}
                         </div>
                     </div>

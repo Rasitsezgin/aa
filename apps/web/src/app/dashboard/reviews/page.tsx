@@ -105,15 +105,7 @@ export default function ReviewsPage() {
             });
             if (res?.reply) setReplyText(res.reply);
         } catch {
-            // Generic fallback suggestion
-            const templates: Record<number, string> = {
-                5: 'Değerli yorumunuz için çok teşekkür ederiz! Ürünümüzü beğenmenize çok sevindik. Tekrar alışveriş yaparken sizi bekleriz 🙏',
-                4: 'Güzel geri bildiriminiz için teşekkür ederiz! Mütevazı eleştirilerinizi dikkate alarak kendinizi geliştirmeye devam edeceğiz.',
-                3: 'Değerlendirmeniz için teşekkür ederiz. Deneyiminizi daha iyi hale getirmek için ne yapabileceğimizi öğrenmek ister misiniz?',
-                2: 'Yaşadığınız olumsuz deneyim için özür dileriz. Memnuniyetinizi sağlamak için yardımcı olmak istiyoruz, lütfen bizimle iletişime geçin.',
-                1: 'Yaşadığınız sorun için içtenlikle özür dileriz. Bu durumu hemen çözmek için destek ekibimiz sizinle iletişime geçecektir.',
-            };
-            setReplyText(templates[review.rating] || templates[3]);
+            setReplyText('AI yanit onerisi alinamadi. Lutfen daha sonra tekrar deneyin.');
         } finally { setAiLoading(false); }
     };
 

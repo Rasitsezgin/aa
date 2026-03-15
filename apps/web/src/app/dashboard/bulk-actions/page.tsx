@@ -30,16 +30,7 @@ import {
     Search
 } from 'lucide-react';
 
-// Fallback products for when API data is not available
-const fallbackProducts = [
-    { id: 1, name: 'iPhone 15 Pro Max Kılıf', sku: 'IP15PM-001', price: 199.99, stock: 234, status: 'active', platforms: ['trendyol', 'hepsiburada'] },
-    { id: 2, name: 'Samsung Galaxy S24 Ekran Koruyucu', sku: 'SGS24-EC-001', price: 89.99, stock: 512, status: 'active', platforms: ['trendyol', 'amazon'] },
-    { id: 3, name: 'Apple Watch 9 Kayış', sku: 'AW9-KYS-001', price: 149.99, stock: 89, status: 'active', platforms: ['hepsiburada', 'n11'] },
-    { id: 4, name: 'MacBook Pro 14 Çanta', sku: 'MBP14-CNT-001', price: 399.99, stock: 45, status: 'paused', platforms: ['trendyol'] },
-    { id: 5, name: 'AirPods Pro 2 Kılıf', sku: 'APP2-KLF-001', price: 79.99, stock: 678, status: 'active', platforms: ['trendyol', 'hepsiburada', 'amazon'] },
-    { id: 6, name: 'iPad Pro 12.9 Kılıf', sku: 'IPP12-KLF-001', price: 249.99, stock: 156, status: 'active', platforms: ['n11'] },
-    { id: 7, name: 'Galaxy Buds 2 Pro Kılıf', sku: 'GB2P-KLF-001', price: 59.99, stock: 334, status: 'draft', platforms: [] }
-];
+const productsData: any[] = [];
 
 const bulkActions = [
     { id: 'price-update', name: 'Fiyat Güncelle', icon: Tag, description: 'Seçili ürünlerin fiyatlarını güncelle' },
@@ -51,12 +42,7 @@ const bulkActions = [
     { id: 'delete', name: 'Sil', icon: Trash2, description: 'Seçili ürünleri kalıcı olarak sil', danger: true }
 ];
 
-const recentOperations = [
-    { id: 1, action: 'Fiyat Güncelleme', products: 45, status: 'completed', date: '2 dakika önce', success: 45, failed: 0 },
-    { id: 2, action: 'Stok Güncelleme', products: 120, status: 'completed', date: '15 dakika önce', success: 118, failed: 2 },
-    { id: 3, action: 'Toplu İndirim', products: 30, status: 'processing', date: '1 saat önce', success: 18, failed: 0 },
-    { id: 4, action: 'Platform Senkron', products: 200, status: 'failed', date: '3 saat önce', success: 150, failed: 50 }
-];
+const recentOperations: any[] = [];
 
 export default function BulkActionsPage() {
     const { executeBulkAction, loading: bulkLoading, history } = useBulkActions();
@@ -72,7 +58,7 @@ export default function BulkActionsPage() {
             status: (p as any).status ?? 'active',
             platforms: (p as any).platforms ?? [],
         }))
-        : fallbackProducts;
+        : productsData;
 
     const isLoading = bulkLoading || productsLoading;
 

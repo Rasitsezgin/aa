@@ -1,5 +1,25 @@
 // API Base Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+function normalizeApiBaseUrl(raw?: string): string {
+  const value = (raw || '').trim();
+  if (!value) return '';
+
+  if (value.startsWith('/')) {
+    return value.replace(/\/$/, '');
+  }
+
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    return value.replace(/\/$/, '');
+  }
+
+  if (value.startsWith('//')) {
+    return `https:${value}`.replace(/\/$/, '');
+  }
+
+  return `https://${value}`.replace(/\/$/, '');
+}
+
+const API_BASE_URL = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_URL) ||
+  (typeof window !== 'undefined' ? '' : 'http://localhost:3001');
 
 // ─── Retry Configuration ──────────────────────────
 interface RetryConfig {
@@ -76,74 +96,97 @@ class ApiClient {
     return delay;
   }
 
+  private buildUrlCandidates(endpoint: string): string[] {
+    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+    const base = (this.baseUrl || '').replace(/\/$/, '');
+    const root = base.replace(/\/api(?:\/v1)?$/, '');
+
+    const baseCandidates = base
+      ? [base, `${root}/api`, `${root}/api/v1`]
+      : ['', '/api', '/api/v1'];
+
+    return [...new Set(baseCandidates.map((candidate) => `${candidate}${normalizedEndpoint}`))];
+  }
+
   public async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
     let lastError: ApiError | Error | null = null;
+    const urlCandidates = this.buildUrlCandidates(endpoint);
 
     for (let attempt = 0; attempt <= this.retryConfig.maxRetries; attempt++) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      for (let i = 0; i < urlCandidates.length; i++) {
+        const url = urlCandidates[i];
+        const isLastCandidate = i === urlCandidates.length - 1;
 
-        const response = await fetch(url, {
-          ...options,
-          signal: controller.signal,
-          headers: {
-            'Content-Type': 'application/json',
-            ...options.headers,
-          },
-        });
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
-        clearTimeout(timeoutId);
+          const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
+              ...options.headers,
+            },
+          });
 
-        if (!response.ok) {
-          let responseBody;
-          try { responseBody = await response.json(); } catch { }
+          clearTimeout(timeoutId);
 
-          const apiError = new ApiError(response.status, response.statusText, endpoint, responseBody);
+          if (!response.ok) {
+            let responseBody;
+            try { responseBody = await response.json(); } catch { }
 
-          // Don't retry auth errors or not found
-          if (apiError.isAuthError || apiError.isNotFound) {
+            const apiError = new ApiError(response.status, response.statusText, `${endpoint} (${url})`, responseBody);
+
+            // Try next URL candidate on 404 path mismatches.
+            if (apiError.isNotFound && !isLastCandidate) {
+              continue;
+            }
+
+            // Don't retry auth errors.
+            if (apiError.isAuthError) {
+              emitApiError(apiError);
+              throw apiError;
+            }
+
+            if (
+              attempt < this.retryConfig.maxRetries &&
+              this.retryConfig.retryableStatuses.includes(response.status)
+            ) {
+              lastError = apiError;
+              break;
+            }
+
             emitApiError(apiError);
             throw apiError;
           }
 
-          // Retry if retryable status
-          if (
-            attempt < this.retryConfig.maxRetries &&
-            this.retryConfig.retryableStatuses.includes(response.status)
-          ) {
-            lastError = apiError;
-            const delay = this.getRetryDelay(attempt);
-            console.warn(`[API] Retry ${attempt + 1}/${this.retryConfig.maxRetries} for ${endpoint} after ${delay}ms`);
-            await this.sleep(delay);
-            continue;
+          return response.json();
+        } catch (error: any) {
+          if (error instanceof ApiError) throw error;
+
+          if (error.name === 'AbortError') {
+            lastError = new ApiError(0, 'Request timeout', `${endpoint} (${url})`);
+          } else {
+            lastError = new ApiError(0, error.message || 'Network error', `${endpoint} (${url})`);
           }
 
-          emitApiError(apiError);
-          throw apiError;
+          // On network-level errors, try the next URL candidate first.
+          if (!isLastCandidate) {
+            continue;
+          }
         }
+      }
 
-        return response.json();
-      } catch (error: any) {
-        if (error instanceof ApiError) throw error;
-
-        // Network error or abort
-        if (error.name === 'AbortError') {
-          lastError = new ApiError(0, 'Request timeout', endpoint);
-        } else {
-          lastError = new ApiError(0, error.message || 'Network error', endpoint);
-        }
-
-        if (attempt < this.retryConfig.maxRetries) {
-          const delay = this.getRetryDelay(attempt);
-          console.warn(`[API] Network retry ${attempt + 1}/${this.retryConfig.maxRetries} for ${endpoint} after ${delay}ms`);
-          await this.sleep(delay);
-          continue;
-        }
+      if (attempt < this.retryConfig.maxRetries && lastError) {
+        const delay = this.getRetryDelay(attempt);
+        console.warn(`[API] Retry ${attempt + 1}/${this.retryConfig.maxRetries} for ${endpoint} after ${delay}ms`);
+        await this.sleep(delay);
+        continue;
       }
     }
 
@@ -587,7 +630,7 @@ class ApiClient {
   }
 
   async syncStore(storeId: string, syncType: string = 'all') {
-    return this.request(`/marketplace/sync/${storeId}`, {
+    return this.request(`/marketplace/sync-store/${storeId}`, {
       method: 'POST',
       body: JSON.stringify({ tenantId: this.tenantId, syncType }),
     });

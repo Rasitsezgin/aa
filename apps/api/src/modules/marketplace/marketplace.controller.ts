@@ -6,34 +6,66 @@ import { Public } from '../auth/public.decorator';
 export class MarketplaceController {
     constructor(private readonly marketplaceService: MarketplaceService) { }
 
+    private resolveTenantId(
+        headerTenantId?: string,
+        queryTenantId?: string,
+        bodyTenantId?: string,
+    ): string {
+        return headerTenantId || queryTenantId || bodyTenantId || '';
+    }
+
     @Post('sync-all')
-    async syncAll(@Headers('x-tenant-id') tenantId: string) {
+    async syncAll(
+        @Headers('x-tenant-id') headerTenantId: string,
+        @Query('tenantId') queryTenantId?: string,
+        @Body() body?: { tenantId?: string },
+    ) {
+        const tenantId = this.resolveTenantId(headerTenantId, queryTenantId, body?.tenantId);
         return this.marketplaceService.syncAllPlatformsForTenant(tenantId);
     }
 
     @Post('sync/:platform')
     async syncPlatform(
-        @Headers('x-tenant-id') tenantId: string,
-        @Param('platform') platform: string
+        @Headers('x-tenant-id') headerTenantId: string,
+        @Param('platform') platform: string,
+        @Query('tenantId') queryTenantId?: string,
+        @Body() body?: { tenantId?: string },
     ) {
+        const tenantId = this.resolveTenantId(headerTenantId, queryTenantId, body?.tenantId);
         const bridge = await this.marketplaceService.getBridgeForTenant(tenantId, platform.toUpperCase() as Platform);
         return bridge.syncProducts();
     }
 
+    @Post('sync-store/:storeId')
+    async syncStore(
+        @Headers('x-tenant-id') headerTenantId: string,
+        @Param('storeId') storeId: string,
+        @Query('tenantId') queryTenantId?: string,
+        @Body() body?: { tenantId?: string },
+    ) {
+        const tenantId = this.resolveTenantId(headerTenantId, queryTenantId, body?.tenantId);
+        return this.marketplaceService.syncIntegrationByStoreId(tenantId, storeId);
+    }
+
     @Post('sync-orders/:platform')
     async syncPlatformOrders(
-        @Headers('x-tenant-id') tenantId: string,
+        @Headers('x-tenant-id') headerTenantId: string,
         @Param('platform') platform: string,
+        @Query('tenantId') queryTenantId?: string,
+        @Body() body?: { tenantId?: string },
     ) {
+        const tenantId = this.resolveTenantId(headerTenantId, queryTenantId, body?.tenantId);
         return this.marketplaceService.syncPlatformOrdersForTenant(tenantId, platform.toUpperCase() as Platform);
     }
 
     @Post('stock/:platform')
     async updateStock(
-        @Headers('x-tenant-id') tenantId: string,
+        @Headers('x-tenant-id') headerTenantId: string,
         @Param('platform') platform: string,
+        @Query('tenantId') queryTenantId: string | undefined,
         @Body() body: { sku: string; stock: number; requestKey?: string },
     ) {
+        const tenantId = this.resolveTenantId(headerTenantId, queryTenantId);
         return this.marketplaceService.updateMarketplaceStock(
             tenantId,
             platform.toUpperCase() as Platform,
@@ -45,10 +77,12 @@ export class MarketplaceController {
 
     @Post('price/:platform')
     async updatePrice(
-        @Headers('x-tenant-id') tenantId: string,
+        @Headers('x-tenant-id') headerTenantId: string,
         @Param('platform') platform: string,
+        @Query('tenantId') queryTenantId: string | undefined,
         @Body() body: { sku: string; price: number; requestKey?: string },
     ) {
+        const tenantId = this.resolveTenantId(headerTenantId, queryTenantId);
         return this.marketplaceService.updateMarketplacePrice(
             tenantId,
             platform.toUpperCase() as Platform,
@@ -60,11 +94,13 @@ export class MarketplaceController {
 
     @Get('contract-probe/:platform')
     async probeContract(
-        @Headers('x-tenant-id') tenantId: string,
+        @Headers('x-tenant-id') headerTenantId: string,
         @Param('platform') platform: string,
+        @Query('tenantId') queryTenantId: string | undefined,
         @Query('includeOrders') includeOrders?: string,
         @Query('productLimit') productLimit?: string,
     ) {
+        const tenantId = this.resolveTenantId(headerTenantId, queryTenantId);
         return this.marketplaceService.probeIntegrationContract(
             tenantId,
             platform.toUpperCase() as Platform,
@@ -73,6 +109,20 @@ export class MarketplaceController {
                 productLimit: productLimit ? Number(productLimit) : undefined,
             },
         );
+    }
+
+    @Get('contract-probe-all')
+    async probeAllContracts(
+        @Headers('x-tenant-id') headerTenantId: string,
+        @Query('tenantId') queryTenantId: string | undefined,
+        @Query('includeOrders') includeOrders?: string,
+        @Query('productLimit') productLimit?: string,
+    ) {
+        const tenantId = this.resolveTenantId(headerTenantId, queryTenantId);
+        return this.marketplaceService.probeAllIntegrationsForTenant(tenantId, {
+            includeOrders: includeOrders === '1' || includeOrders === 'true',
+            productLimit: productLimit ? Number(productLimit) : undefined,
+        });
     }
 
     /**

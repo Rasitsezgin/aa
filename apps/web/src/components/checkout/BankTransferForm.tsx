@@ -165,6 +165,8 @@ export function BankTransferForm() {
   const [transferNote, setTransferNote] = useState('');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
+  const transferReference = transferNote.trim();
+
   return (
     <div className="space-y-6">
       {/* Warning Banner */}
@@ -210,15 +212,25 @@ export function BankTransferForm() {
           <FileText className="w-5 h-5" />
           Transfer Açıklaması
         </h4>
+        <input
+          value={transferNote}
+          onChange={e => setTransferNote(e.target.value)}
+          placeholder="Sipariş numaranızı girin (örn: ORD-2025-000123)"
+          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-sm"
+        />
         <div className="bg-blue-50 dark:bg-blue-500/10 rounded-xl p-4 mb-3">
           <p className="text-sm text-blue-800 dark:text-blue-300">
-            Aşağıdaki sipariş numarasını <strong>transfer açıklamasına</strong> yazın:
+            Transfer açıklamasına sipariş numaranızı birebir yazın:
           </p>
           <div className="mt-3 flex items-center gap-3">
             <code className="flex-1 bg-white dark:bg-gray-800 px-4 py-3 rounded-lg font-mono text-lg font-bold text-center">
-              SIP-{Math.random().toString(36).substring(2, 10).toUpperCase()}
+              {transferReference || 'Sipariş numarası bekleniyor'}
             </code>
-            <button className="p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <button
+              onClick={() => transferReference && navigator.clipboard.writeText(transferReference)}
+              disabled={!transferReference}
+              className="p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-40"
+            >
               <Copy className="w-5 h-5" />
             </button>
           </div>

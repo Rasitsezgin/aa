@@ -10,10 +10,12 @@ import {
     Bot,
     Menu,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import { useTheme } from '@/providers/theme-provider';
 
 interface MobileBottomNavProps {
     onMenuOpen: () => void;
+    onHaptic?: () => void;
 }
 
 const navItems = [
@@ -23,8 +25,11 @@ const navItems = [
     { icon: Bot, label: 'AI Danışman', href: '/dashboard/ai-advisor' },
 ];
 
-export default function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
+export default function MobileBottomNav({ onMenuOpen, onHaptic }: MobileBottomNavProps) {
     const pathname = usePathname();
+    const { theme } = useTheme();
+    const prefersReducedMotion = useReducedMotion();
+    const shouldReduceMotion = prefersReducedMotion || !theme.animations;
     const currentPath = pathname ?? '';
 
     const isActive = (href: string) => {
@@ -33,18 +38,16 @@ export default function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
     };
 
     return (
-        <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-[100] lg:hidden">
-            {/* Frosted glass background */}
-            <div className="absolute inset-0 bg-surface/90 backdrop-blur-2xl border-t border-border" />
-
-            <div className="relative flex items-end justify-around px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]">
+        <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-[100] lg:hidden px-2 pb-[calc(0.25rem+env(safe-area-inset-bottom,0px))]">
+            <div className="mobile-bottom-nav-inner relative mx-auto flex items-end justify-around px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))]">
                 {navItems.map((item) => {
                     const active = isActive(item.href);
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className="flex flex-col items-center justify-center min-w-[64px] py-1 relative group active:scale-90 transition-transform duration-150"
+                            onClick={onHaptic}
+                            className="flex flex-col items-center justify-center min-w-[64px] py-1 relative group active:scale-90 transition-transform duration-150 haptic-tap"
                         >
                             {/* Active indicator pill */}
                             {active && (
@@ -55,7 +58,11 @@ export default function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
                                 />
                             )}
 
-                            <div className="relative">
+                            <motion.div
+                                className="relative"
+                                animate={active && !shouldReduceMotion ? { y: [0, -3, 0], scale: [1, 1.08, 1] } : { y: 0, scale: 1 }}
+                                transition={{ duration: shouldReduceMotion ? 0.01 : 0.34, ease: 'easeOut' }}
+                            >
                                 <item.icon
                                     size={22}
                                     strokeWidth={active ? 2.5 : 1.8}
@@ -68,7 +75,7 @@ export default function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
                                         {item.badge}
                                     </span>
                                 )}
-                            </div>
+                            </motion.div>
 
                             <span
                                 className={`text-[10px] mt-1 font-semibold transition-colors duration-200 ${active ? 'text-primary' : 'text-slate-500'
@@ -82,8 +89,11 @@ export default function MobileBottomNav({ onMenuOpen }: MobileBottomNavProps) {
 
                 {/* More/Menu button */}
                 <button
-                    onClick={onMenuOpen}
-                    className="flex flex-col items-center justify-center min-w-[64px] py-1 active:scale-90 transition-transform duration-150"
+                    onClick={() => {
+                        onHaptic?.();
+                        onMenuOpen();
+                    }}
+                    className="flex flex-col items-center justify-center min-w-[64px] py-1 active:scale-90 transition-transform duration-150 haptic-tap"
                 >
                     <Menu size={22} strokeWidth={1.8} className="text-slate-400" />
                     <span className="text-[10px] mt-1 font-semibold text-slate-500">Menü</span>

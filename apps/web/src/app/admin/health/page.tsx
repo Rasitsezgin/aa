@@ -44,33 +44,19 @@ export default function SystemHealthPage() {
         fetch('/api/system/services'),
         fetch('/api/system/metrics'),
       ]);
+      if (!servicesRes.ok || !metricsRes.ok) {
+        throw new Error('Sistem sağlık verileri alınamadı');
+      }
       const [servicesData, metricsData] = await Promise.all([
         servicesRes.json(),
         metricsRes.json(),
       ]);
-      setServices(servicesData);
-      setMetrics(metricsData);
+      setServices(Array.isArray(servicesData) ? servicesData : []);
+      setMetrics(metricsData ?? null);
     } catch (error) {
-      // Mock data
-      setServices([
-        { name: 'PostgreSQL Database', status: 'healthy', responseTime: 5, lastCheck: new Date() },
-        { name: 'Redis Cache', status: 'healthy', responseTime: 2, lastCheck: new Date() },
-        { name: 'Job Queue (BullMQ)', status: 'healthy', responseTime: 8, lastCheck: new Date() },
-        { name: 'Trendyol API', status: 'healthy', responseTime: 120, lastCheck: new Date() },
-        { name: 'Hepsiburada API', status: 'healthy', responseTime: 95, lastCheck: new Date() },
-        { name: 'N11 API', status: 'degraded', responseTime: 450, lastCheck: new Date(), details: 'Yavaş yanıt süresi' },
-        { name: 'Amazon SP API', status: 'healthy', responseTime: 180, lastCheck: new Date() },
-        { name: 'Email Service', status: 'healthy', responseTime: 35, lastCheck: new Date() },
-      ]);
-      setMetrics({
-        cpu: 32,
-        memory: { used: 8589934592, total: 17179869184, percentage: 50 },
-        uptime: 864000,
-        activeConnections: 856,
-        requestsPerMinute: 1250,
-        errorRate: 0.12,
-        responseTime: 45,
-      });
+      console.error('Sistem sağlık verileri yüklenemedi:', error);
+      setServices([]);
+      setMetrics(null);
     } finally {
       setLoading(false);
     }
@@ -113,7 +99,13 @@ export default function SystemHealthPage() {
   }
 
   const healthyCount = services.filter(s => s.status === 'healthy').length;
-  const overallStatus = healthyCount === services.length ? 'healthy' : healthyCount > services.length * 0.8 ? 'degraded' : 'down';
+  const overallStatus = services.length === 0
+    ? 'down'
+    : healthyCount === services.length
+      ? 'healthy'
+      : healthyCount > services.length * 0.8
+        ? 'degraded'
+        : 'down';
 
   return (
     <div className="space-y-8">
@@ -148,6 +140,12 @@ export default function SystemHealthPage() {
         </div>
       </div>
 
+      {services.length === 0 && !metrics ? (
+        <div className="p-6 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/40 text-sm text-slate-500">
+          Sistem sağlık verisi alınamadı. Endpoint yanıt verdiğinde veriler burada gösterilecek.
+        </div>
+      ) : (
+      <>
       {/* Overall Status */}
       <div className={`p-6 rounded-2xl border ${
         overallStatus === 'healthy' 
@@ -227,6 +225,8 @@ export default function SystemHealthPage() {
           </div>
         ))}
       </div>
+      </>
+      )}
     </div>
   );
 }

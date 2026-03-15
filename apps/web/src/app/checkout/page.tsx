@@ -1099,13 +1099,7 @@ function CheckoutPage() {
       setOrderNumber(data.orderNumber || data.id || 'N/A');
       setCurrentStep('result');
     } catch {
-      // Fallback sipariş numarası
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      let num = 'SIP-';
-      for (let i = 0; i < 8; i++) {
-        num += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      setOrderNumber(num);
+      setOrderNumber('');
       setCurrentStep('result');
     } finally {
       setIsProcessing(false);

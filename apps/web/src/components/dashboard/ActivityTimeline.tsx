@@ -19,23 +19,12 @@ interface TimelineEvent {
     status?: 'success' | 'warning' | 'info' | 'error';
 }
 
-const fallbackEvents: TimelineEvent[] = [
-    { id: '1', type: 'order', title: 'Yeni Sipariş #TY-28934', description: 'iPhone 15 Pro Kılıf x3 - Trendyol', time: '2 dk önce', platform: 'Trendyol', value: '₺449,70', status: 'success' },
-    { id: '2', type: 'shipping', title: 'Kargo Teslim Edildi', description: 'Sipariş #HB-19384 müşteriye ulaştı', time: '15 dk önce', platform: 'Hepsiburada', status: 'success' },
-    { id: '3', type: 'review', title: 'Yeni Yorum ⭐⭐⭐⭐⭐', description: '"Harika ürün, çok beğendim!" - Samsung S24 Cam', time: '28 dk önce', platform: 'Amazon', status: 'success' },
-    { id: '4', type: 'stock', title: 'Stok Uyarısı', description: 'Xiaomi Kablosuz Şarj - Stok: 3 adet (kritik)', time: '45 dk önce', platform: 'Amazon', status: 'warning' },
-    { id: '5', type: 'sale', title: 'Günlük Satış Rekoru', description: 'Bugün 156 sipariş ile rekor kırdınız!', time: '1 saat önce', value: '₺52.340', status: 'success' },
-    { id: '6', type: 'campaign', title: 'Kampanya Başlatıldı', description: '%15 indirim kampanyası aktif edildi', time: '2 saat önce', platform: 'Trendyol', status: 'info' },
-    { id: '7', type: 'system', title: 'Fiyat Güncellendi', description: 'AI 12 ürünün fiyatını optimize etti', time: '3 saat önce', status: 'info' },
-    { id: '8', type: 'order', title: 'Toplu Sipariş', description: 'B2B müşteri 50 adetlik sipariş verdi', time: '4 saat önce', platform: 'N11', value: '₺12.500', status: 'success' },
-];
-
 interface ActivityTimelineProps {
     events?: TimelineEvent[];
 }
 
 export default function ActivityTimeline({ events: propEvents }: ActivityTimelineProps) {
-    const events = propEvents && propEvents.length > 0 ? propEvents : fallbackEvents;
+    const events = Array.isArray(propEvents) ? propEvents : [];
     const [filter, setFilter] = useState<string>('all');
     const [visibleCount, setVisibleCount] = useState(5);
 
@@ -99,6 +88,12 @@ export default function ActivityTimeline({ events: propEvents }: ActivityTimelin
             </div>
 
             {/* Timeline */}
+            {filteredEvents.length === 0 ? (
+                <div className="p-4 rounded-xl bg-background/50 border border-border text-center">
+                    <p className="text-sm font-semibold text-foreground">Aktivite verisi bulunamadı</p>
+                    <p className="text-xs text-slate-500 mt-1">Yeni olaylar geldiğinde burada gerçek akış görünecek.</p>
+                </div>
+            ) : (
             <div className="relative">
                 <div className="absolute left-4 top-0 bottom-0 w-px bg-border" />
 
@@ -138,6 +133,7 @@ export default function ActivityTimeline({ events: propEvents }: ActivityTimelin
                     </AnimatePresence>
                 </div>
             </div>
+            )}
 
             {filteredEvents.length > visibleCount && (
                 <button

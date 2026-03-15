@@ -20,7 +20,7 @@ export const MorningBriefing = ({ onClose }: { onClose: () => void }) => {
     useEffect(() => {
         const fetchBriefing = async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ai/briefing`, {
+                const res = await fetch('/api/ai/briefing', {
                     headers: { 'x-tenant-id': 'default' }
                 });
                 const briefing = await res.json();
@@ -36,6 +36,7 @@ export const MorningBriefing = ({ onClose }: { onClose: () => void }) => {
     }, []);
 
     if (loading) return null;
+    if (!data) return null;
 
     return (
         <motion.div
@@ -62,11 +63,11 @@ export const MorningBriefing = ({ onClose }: { onClose: () => void }) => {
                     <div className="flex gap-4 mb-2">
                         <div className="flex-1 bg-white/10 rounded-2xl p-3 backdrop-blur border border-white/10">
                             <div className="text-[10px] font-black text-indigo-200 uppercase mb-1">Dünkü Ciro</div>
-                            <div className="text-lg font-black">₺{data?.stats.revenue.toLocaleString()}</div>
+                            <div className="text-lg font-black">₺{(data?.stats?.revenue ?? 0).toLocaleString('tr-TR')}</div>
                         </div>
                         <div className="flex-1 bg-white/10 rounded-2xl p-3 backdrop-blur border border-white/10">
                             <div className="text-[10px] font-black text-indigo-200 uppercase mb-1">Sipariş</div>
-                            <div className="text-lg font-black">{data?.stats.orders} Adet</div>
+                            <div className="text-lg font-black">{data?.stats?.orders ?? 0} Adet</div>
                         </div>
                     </div>
                 </div>

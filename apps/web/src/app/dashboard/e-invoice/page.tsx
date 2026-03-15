@@ -57,26 +57,8 @@ export default function EInvoicePage() {
   const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
-    // Demo data
-    setStats({
-      total: 156,
-      byStatus: [
-        { status: 'SENT', count: 45 },
-        { status: 'ACCEPTED', count: 89 },
-        { status: 'REJECTED', count: 5 },
-        { status: 'CANCELLED', count: 3 },
-        { status: 'DRAFT', count: 14 },
-      ],
-      totals: { amount: 1250000, tax: 225000 },
-    });
-
-    setInvoices([
-      { id: '1', invoiceNumber: 'PYN2026000000001', invoiceDate: '2026-03-01', buyerTitle: 'ABC Teknoloji A.Ş.', buyerTaxNumber: '1234567890', type: 'SATIS', scenario: 'TEMEL', status: 'ACCEPTED', totalAmount: 12500, taxAmount: 2500, currency: 'TRY', gibInvoiceId: 'a1b2c3d4' },
-      { id: '2', invoiceNumber: 'PYN2026000000002', invoiceDate: '2026-03-02', buyerTitle: 'XYZ Ltd. Şti.', buyerTaxNumber: '9876543210', type: 'SATIS', scenario: 'TICARI', status: 'SENT', totalAmount: 8750, taxAmount: 1750, currency: 'TRY', gibInvoiceId: 'e5f6g7h8' },
-      { id: '3', invoiceNumber: 'PYN2026000000003', invoiceDate: '2026-03-03', buyerTitle: 'Demo Holding', buyerTaxNumber: '5555555555', type: 'IADE', scenario: 'TEMEL', status: 'DRAFT', totalAmount: 3200, taxAmount: 640, currency: 'TRY' },
-      { id: '4', invoiceNumber: 'PYN2026000000004', invoiceDate: '2026-03-04', buyerTitle: 'Global Dış Tic.', buyerTaxNumber: '1112223334', type: 'SATIS', scenario: 'IHRACAT', status: 'ACCEPTED', totalAmount: 45000, taxAmount: 0, currency: 'USD' },
-      { id: '5', invoiceNumber: 'PYN2026000000005', invoiceDate: '2026-03-05', buyerTitle: 'Test Yazılım', buyerTaxNumber: '9998887776', type: 'SATIS', scenario: 'TEMEL', status: 'REJECTED', totalAmount: 1800, taxAmount: 360, currency: 'TRY' },
-    ]);
+    setStats({ total: 0, byStatus: [], totals: { amount: 0, tax: 0 } });
+    setInvoices([]);
 
     setLoading(false);
   }, []);

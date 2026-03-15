@@ -70,65 +70,6 @@ const platformConfig: Record<string, { color: string; bgColor: string; borderCol
     },
 };
 
-// Fallback data when API returns empty
-const fallbackStores: Store[] = [
-    {
-        id: 'fallback-trendyol',
-        platform: 'trendyol',
-        storeName: 'TechStore TR',
-        status: 'connected',
-        lastSync: '2 dakika önce',
-        totalProducts: 1247,
-        totalOrders: 23,
-        revenue: 245780,
-        rating: 4.8,
-    },
-    {
-        id: 'fallback-amazon',
-        platform: 'amazon',
-        storeName: 'TechStore Official',
-        status: 'connected',
-        lastSync: '5 dakika önce',
-        totalProducts: 892,
-        totalOrders: 15,
-        revenue: 187650,
-        rating: 4.6,
-    },
-    {
-        id: 'fallback-hepsiburada',
-        platform: 'hepsiburada',
-        storeName: 'Tech Store HB',
-        status: 'connected',
-        lastSync: '8 dakika önce',
-        totalProducts: 654,
-        totalOrders: 9,
-        revenue: 134560,
-        rating: 4.7,
-    },
-    {
-        id: 'fallback-n11',
-        platform: 'n11',
-        storeName: 'N11 Mağaza',
-        status: 'disconnected',
-        lastSync: 'Bağlı değil',
-        totalProducts: 0,
-        totalOrders: 0,
-        revenue: 0,
-        rating: 0,
-    },
-    {
-        id: 'fallback-ciceksepeti',
-        platform: 'ciceksepeti',
-        storeName: 'Çiçeksepeti Mağaza',
-        status: 'error',
-        lastSync: 'API Hatası',
-        totalProducts: 312,
-        totalOrders: 0,
-        revenue: 45230,
-        rating: 4.5,
-    },
-];
-
 const platformDisplayName: Record<string, string> = {
     trendyol: 'Trendyol',
     amazon: 'Amazon',
@@ -151,12 +92,10 @@ export default function StoresPage() {
     const { stores, loading, error, fetchStores, connectStore, disconnectStore, syncStore } = useStores();
 
     const [syncingStoreId, setSyncingStoreId] = useState<string | null>(null);
-    const [syncProgress, setSyncProgress] = useState(0);
     const [confirmDialog, setConfirmDialog] = useState<{ type: 'connect' | 'disconnect'; storeId: string; platform: string } | null>(null);
     const [settingsPanelId, setSettingsPanelId] = useState<string | null>(null);
 
-    // Use API data or fallback
-    const displayStores = stores.length > 0 ? stores : fallbackStores;
+    const displayStores = stores;
 
     const connectedStores = displayStores.filter(s => s.status === 'connected');
     const totalRevenue = displayStores.reduce((sum, s) => sum + s.revenue, 0);
@@ -166,25 +105,13 @@ export default function StoresPage() {
     // Sync handler with progress
     const handleSync = useCallback(async (storeId: string) => {
         setSyncingStoreId(storeId);
-        setSyncProgress(0);
-        const interval = setInterval(() => {
-            setSyncProgress(prev => {
-                if (prev >= 95) { clearInterval(interval); return 95; }
-                return prev + Math.random() * 15;
-            });
-        }, 300);
         try {
             await syncStore(storeId);
-            setSyncProgress(100);
             await fetchStores();
         } catch {
             // error handled by hook
         } finally {
-            clearInterval(interval);
-            setTimeout(() => {
-                setSyncingStoreId(null);
-                setSyncProgress(0);
-            }, 600);
+            setSyncingStoreId(null);
         }
     }, [syncStore, fetchStores]);
 
@@ -470,14 +397,13 @@ export default function StoresPage() {
                                     <div className="mt-3">
                                         <div className="flex items-center justify-between text-[10px] text-blue-500 mb-1">
                                             <span>Senkronize ediliyor...</span>
-                                            <span>{Math.round(syncProgress)}%</span>
                                         </div>
                                         <div className="w-full h-1.5 bg-blue-500/10 rounded-full overflow-hidden">
                                             <motion.div
-                                                className="h-full bg-blue-500 rounded-full"
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${syncProgress}%` }}
-                                                transition={{ duration: 0.3 }}
+                                                className="h-full w-1/3 bg-blue-500 rounded-full"
+                                                initial={{ x: '-100%' }}
+                                                animate={{ x: '100%' }}
+                                                transition={{ duration: 1.1, repeat: Infinity, ease: 'linear' }}
                                             />
                                         </div>
                                     </div>

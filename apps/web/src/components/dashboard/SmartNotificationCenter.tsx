@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Bell, BellRing, X, Check, CheckCheck, Trash2,
@@ -53,111 +53,7 @@ const CATEGORY_CONFIG: Record<NotifCategory, { label: string; icon: React.Compon
     finance: { label: 'Finans', icon: TrendingUp },
 };
 
-// ============ MOCK NOTIFICATIONS ============
-
-const MOCK_NOTIFICATIONS: Notification[] = [
-    {
-        id: '1',
-        title: '🔴 Kritik Stok Uyarısı',
-        body: '"Samsung Galaxy Kılıf" ürününde stok 2 adete düştü. Acil tedarik gerekiyor.',
-        category: 'inventory',
-        priority: 'critical',
-        time: '2 dk önce',
-        read: false,
-        actionUrl: '/dashboard/inventory',
-        actionLabel: 'Stok Yönetimi',
-        icon: AlertTriangle,
-        color: 'text-red-400',
-        group: 'stok-uyarilari',
-    },
-    {
-        id: '2',
-        title: 'Yeni Toplu Sipariş',
-        body: 'Trendyol\'dan 15 adetlik toplu sipariş alındı. Toplam: ₺3,750',
-        category: 'orders',
-        priority: 'high',
-        time: '5 dk önce',
-        read: false,
-        actionUrl: '/dashboard/orders',
-        actionLabel: 'Siparişe Git',
-        icon: ShoppingCart,
-        color: 'text-green-400',
-    },
-    {
-        id: '3',
-        title: 'AI Fiyat Önerisi',
-        body: 'Rakip analizi sonucu 12 üründe fiyat optimizasyonu önerisi hazır.',
-        category: 'ai',
-        priority: 'high',
-        time: '12 dk önce',
-        read: false,
-        actionUrl: '/dashboard/pricing-optimization',
-        actionLabel: 'Önerileri Gör',
-        icon: Bot,
-        color: 'text-purple-400',
-    },
-    {
-        id: '4',
-        title: 'Olumsuz Değerlendirme',
-        body: 'Hepsiburada\'da 1 yıldızlı değerlendirme: "Ürün beklediğim gibi değildi"',
-        category: 'reviews',
-        priority: 'medium',
-        time: '25 dk önce',
-        read: false,
-        actionUrl: '/dashboard/reviews',
-        actionLabel: 'Yanıtla',
-        icon: Star,
-        color: 'text-yellow-400',
-    },
-    {
-        id: '5',
-        title: 'Kargo Gecikme Uyarısı',
-        body: '3 siparişte kargo teslim süresi aşılmak üzere. Taşıyıcı: Yurtiçi Kargo',
-        category: 'shipping',
-        priority: 'medium',
-        time: '30 dk önce',
-        read: true,
-        actionUrl: '/dashboard/shipping',
-        actionLabel: 'Kargo Takibi',
-        icon: Truck,
-        color: 'text-blue-400',
-    },
-    {
-        id: '6',
-        title: 'Günlük Ciro Hedefi',
-        body: 'Bugünkü ciro hedefinizin %87\'sine ulaştınız! Hedef: ₺55,000',
-        category: 'finance',
-        priority: 'info',
-        time: '1 saat önce',
-        read: true,
-        icon: TrendingUp,
-        color: 'text-emerald-400',
-    },
-    {
-        id: '7',
-        title: 'Rakip Fiyat Düşüşü',
-        body: 'Ana rakibiniz "Bluetooth Kulaklık" ürününde %15 indirim yaptı.',
-        category: 'pricing',
-        priority: 'high',
-        time: '1 saat önce',
-        read: true,
-        actionUrl: '/dashboard/competitor-tracking',
-        actionLabel: 'Rakip Analizi',
-        icon: TrendingDown,
-        color: 'text-red-400',
-    },
-    {
-        id: '8',
-        title: 'Stok Senkronizasyonu Tamamlandı',
-        body: '4 pazaryerinde stok senkronizasyonu başarıyla tamamlandı.',
-        category: 'system',
-        priority: 'low',
-        time: '2 saat önce',
-        read: true,
-        icon: CheckCheck,
-        color: 'text-slate-400',
-    },
-];
+// ============ NOTIFICATION DATA ============
 
 // ============ NOTIFICATION ITEM ============
 
@@ -262,7 +158,7 @@ export default function SmartNotificationCenter({
     isOpen: boolean;
     onClose: () => void;
 }) {
-    const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
     const [filter, setFilter] = useState<'all' | 'unread' | NotifCategory>('all');
     const [soundEnabled, setSoundEnabled] = useState(true);
 
@@ -307,6 +203,39 @@ export default function SmartNotificationCenter({
         { id: 'pricing', label: 'Fiyat' },
         { id: 'ai', label: 'AI' },
     ];
+
+    useEffect(() => {
+        const loadNotifications = async () => {
+            try {
+                const res = await fetch('/api/notifications', { cache: 'no-store' });
+                if (!res.ok) {
+                    setNotifications([]);
+                    return;
+                }
+
+                const payload = await res.json();
+                const incoming = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
+                const normalized: Notification[] = incoming.map((item: any, index: number) => ({
+                    id: String(item.id ?? index),
+                    title: String(item.title ?? ''),
+                    body: String(item.body ?? ''),
+                    category: (['orders', 'inventory', 'pricing', 'reviews', 'shipping', 'system', 'ai', 'finance'].includes(item.category) ? item.category : 'system') as NotifCategory,
+                    priority: (['critical', 'high', 'medium', 'low', 'info'].includes(item.priority) ? item.priority : 'info') as NotifPriority,
+                    time: String(item.time ?? ''),
+                    read: Boolean(item.read),
+                    actionUrl: item.actionUrl ? String(item.actionUrl) : undefined,
+                    actionLabel: item.actionLabel ? String(item.actionLabel) : undefined,
+                    icon: Bell,
+                    color: 'text-slate-300',
+                }));
+                setNotifications(normalized);
+            } catch {
+                setNotifications([]);
+            }
+        };
+
+        void loadNotifications();
+    }, []);
 
     return (
         <AnimatePresence>

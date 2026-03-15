@@ -80,6 +80,7 @@ export default function AnalyticsDashboard() {
 
   const revenueGrowth = prevMonthPnl.revenue ? ((currentMonthPnl.revenue - prevMonthPnl.revenue) / prevMonthPnl.revenue) * 100 : 0;
   const profitGrowth = prevMonthPnl.profit ? ((currentMonthPnl.profit - prevMonthPnl.profit) / prevMonthPnl.profit) * 100 : 0;
+  const costGrowth = prevMonthPnl.costs ? ((currentMonthPnl.costs - prevMonthPnl.costs) / prevMonthPnl.costs) * 100 : 0;
 
   return (
     <div className="space-y-6">
@@ -117,7 +118,7 @@ export default function AnalyticsDashboard() {
         <MetricCard
           title="Toplam Operasyon Gideri"
           value={`₺${currentMonthPnl.costs.toLocaleString('tr-TR')}`}
-          trend={5.2} // Dummy trend for costs
+          trend={costGrowth}
           icon={Activity}
           color="orange"
           inverseTrend // Higher costs = bad (red arrow)
@@ -125,7 +126,7 @@ export default function AnalyticsDashboard() {
         <MetricCard
           title="Aktif Cohort Sayısı"
           value={cohortData?.length?.toString() || "0"}
-          trend={12.5}
+          trend={0}
           icon={Users}
           color="purple"
         />

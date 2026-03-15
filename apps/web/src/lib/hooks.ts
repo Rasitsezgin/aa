@@ -14,8 +14,8 @@ export function useApiData<T>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Extract tenantId from session or use default test tenant
-  const tenantId = (session?.user as any)?.tenantId || 'test-tenant-id';
+  // Extract tenantId from authenticated session only.
+  const tenantId = (session?.user as any)?.tenantId as string | undefined;
 
   const refetch = useCallback(async () => {
     if (!tenantId || options.skip) {

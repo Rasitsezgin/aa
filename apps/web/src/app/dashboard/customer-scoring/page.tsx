@@ -8,16 +8,7 @@ import {
     ArrowUpRight, ArrowDownRight, ChevronDown
 } from 'lucide-react';
 
-const mockCustomers = [
-    { id: 1, name: 'Ahmet Yılmaz', email: 'ahmet@email.com', score: 92, tier: 'Platin', orders: 47, totalSpent: 28500, avgOrder: 606, lastOrder: '2 gün önce', rfmR: 5, rfmF: 5, rfmM: 4, trend: 'up' },
-    { id: 2, name: 'Mehmet Kaya', email: 'mehmet@email.com', score: 85, tier: 'Altın', orders: 32, totalSpent: 18900, avgOrder: 590, lastOrder: '5 gün önce', rfmR: 4, rfmF: 4, rfmM: 4, trend: 'up' },
-    { id: 3, name: 'Ayşe Demir', email: 'ayse@email.com', score: 78, tier: 'Altın', orders: 28, totalSpent: 15200, avgOrder: 542, lastOrder: '1 hafta önce', rfmR: 4, rfmF: 3, rfmM: 3, trend: 'stable' },
-    { id: 4, name: 'Fatma Çelik', email: 'fatma@email.com', score: 65, tier: 'Gümüş', orders: 15, totalSpent: 8600, avgOrder: 573, lastOrder: '2 hafta önce', rfmR: 3, rfmF: 3, rfmM: 3, trend: 'down' },
-    { id: 5, name: 'Ali Şahin', email: 'ali@email.com', score: 45, tier: 'Bronz', orders: 5, totalSpent: 2100, avgOrder: 420, lastOrder: '1 ay önce', rfmR: 2, rfmF: 1, rfmM: 1, trend: 'down' },
-    { id: 6, name: 'Zeynep Arslan', email: 'zeynep@email.com', score: 88, tier: 'Platin', orders: 38, totalSpent: 22400, avgOrder: 589, lastOrder: '1 gün önce', rfmR: 5, rfmF: 4, rfmM: 4, trend: 'up' },
-    { id: 7, name: 'Can Özkan', email: 'can@email.com', score: 35, tier: 'Bronz', orders: 2, totalSpent: 650, avgOrder: 325, lastOrder: '2 ay önce', rfmR: 1, rfmF: 1, rfmM: 1, trend: 'down' },
-    { id: 8, name: 'Deniz Yıldız', email: 'deniz@email.com', score: 72, tier: 'Gümüş', orders: 19, totalSpent: 11200, avgOrder: 589, lastOrder: '4 gün önce', rfmR: 4, rfmF: 3, rfmM: 3, trend: 'up' },
-];
+const customers: any[] = [];
 
 const tierConfig: Record<string, { color: string; bg: string; icon: typeof Star }> = {
     Platin: { color: 'text-violet-400', bg: 'bg-violet-500/10', icon: Award },
@@ -35,14 +26,14 @@ export default function CustomerScoringPage() {
     const [sortBy, setSortBy] = useState<'score' | 'spent'>('score');
     const [selectedCustomer, setSelectedCustomer] = useState<number | null>(null);
 
-    const filtered = mockCustomers
+    const filtered = customers
         .filter(c => (tierFilter === 'all' || c.tier === tierFilter) && c.name.toLowerCase().includes(searchTerm.toLowerCase()))
         .sort((a, b) => sortBy === 'score' ? b.score - a.score : b.totalSpent - a.totalSpent);
 
-    const avgScore = Math.round(mockCustomers.reduce((a, c) => a + c.score, 0) / mockCustomers.length);
-    const totalSpent = mockCustomers.reduce((a, c) => a + c.totalSpent, 0);
+    const avgScore = customers.length > 0 ? Math.round(customers.reduce((a, c) => a + c.score, 0) / customers.length) : 0;
+    const totalSpent = customers.reduce((a, c) => a + c.totalSpent, 0);
 
-    const selected = mockCustomers.find(c => c.id === selectedCustomer);
+    const selected = customers.find(c => c.id === selectedCustomer);
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -58,9 +49,9 @@ export default function CustomerScoringPage() {
             {/* Stats */}
             <div className="grid grid-cols-4 gap-4">
                 {[
-                    { label: 'Toplam Müşteri', value: mockCustomers.length, icon: Users, color: 'text-indigo-400' },
+                    { label: 'Toplam Müşteri', value: customers.length, icon: Users, color: 'text-indigo-400' },
                     { label: 'Ort. Puan', value: avgScore, icon: Star, color: getScoreColor(avgScore) },
-                    { label: 'Platin Müşteri', value: mockCustomers.filter(c => c.tier === 'Platin').length, icon: Award, color: 'text-violet-400' },
+                    { label: 'Platin Müşteri', value: customers.filter(c => c.tier === 'Platin').length, icon: Award, color: 'text-violet-400' },
                     { label: 'Toplam Gelir', value: `₺${(totalSpent / 1000).toFixed(0)}K`, icon: DollarSign, color: 'text-emerald-400' },
                 ].map((stat, i) => (
                     <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
@@ -77,8 +68,8 @@ export default function CustomerScoringPage() {
                 <h3 className="text-sm font-semibold text-foreground mb-3">Kademe Dağılımı</h3>
                 <div className="flex gap-3">
                     {Object.entries(tierConfig).map(([tier, cfg]) => {
-                        const count = mockCustomers.filter(c => c.tier === tier).length;
-                        const pct = Math.round((count / mockCustomers.length) * 100);
+                        const count = customers.filter(c => c.tier === tier).length;
+                        const pct = customers.length > 0 ? Math.round((count / customers.length) * 100) : 0;
                         return (
                             <div key={tier} className="flex-1 text-center p-3 rounded-xl bg-background">
                                 <cfg.icon className={`w-5 h-5 ${cfg.color} mx-auto mb-1`} />
@@ -112,6 +103,9 @@ export default function CustomerScoringPage() {
             <div className="grid grid-cols-3 gap-6">
                 {/* Customer List */}
                 <div className="col-span-2 space-y-3">
+                    {filtered.length === 0 && (
+                        <div className="bg-surface rounded-xl border border-border p-6 text-sm text-slate-500">Müşteri puanlama verisi bulunamadı</div>
+                    )}
                     {filtered.map((c, i) => {
                         const tCfg = tierConfig[c.tier];
                         return (

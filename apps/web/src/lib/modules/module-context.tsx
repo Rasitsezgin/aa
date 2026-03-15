@@ -80,12 +80,11 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
         // setEnabledModules(tenant.enabledModules);
         // setAnnouncements(announcements);
 
-        // Fallback: Eğer API'den veri gelmezse, sadece core modülleri aktif yap
-        setEnabledModules(DEFAULT_MODULES.filter(m => m.isCore).map(m => m.key));
+        setEnabledModules([]);
         setAnnouncements([]);
       } catch (error) {
         console.error('Failed to load tenant data:', error);
-        setEnabledModules(DEFAULT_MODULES.filter(m => m.isCore).map(m => m.key));
+        setEnabledModules([]);
       } finally {
         setIsLoading(false);
       }

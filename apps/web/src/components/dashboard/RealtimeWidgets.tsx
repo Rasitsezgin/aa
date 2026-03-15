@@ -121,11 +121,10 @@ export function RealtimeNotificationToast() {
 export function LivePerformanceIndicator() {
     const { data: stats } = useDashboardStats('24h');
 
-    // Şimdilik ziyaretçi verisi mock, diğerleri stats'tan
     const metrics = {
         todayRevenue: stats?.totalRevenue || 0,
         todayOrders: stats?.totalOrders || 0,
-        activeVisitors: 847, // Ziyaretçi takibi henüz aktif değil
+        activeVisitors: 0,
         conversionRate: stats?.conversionRate || 0,
     };
 

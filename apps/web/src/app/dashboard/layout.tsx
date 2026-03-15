@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
@@ -19,7 +19,7 @@ import {
     FlaskConical, Layers
 } from 'lucide-react';
 import LiveFeed from '@/components/LiveFeed';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ModuleProvider, useModules, useAnnouncements } from '@/lib/modules';
 import { AnnouncementBanner, AnnouncementDropdown } from '@/components/announcements/AnnouncementComponents';
 import { CommandPalette } from '@/components/CommandPalette';
@@ -122,11 +122,32 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     const [expandedSection, setExpandedSection] = useState<string | null>('Genel');
     const { hasModuleAccess, tenantPlan } = useModules();
     const { active: activeAnnouncements, unreadCount, markAsRead, dismiss } = useAnnouncements();
-    const { toggleTheme, resolvedMode } = useTheme();
+    const { theme, toggleTheme, resolvedMode } = useTheme();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+    const [isCompactHeader, setIsCompactHeader] = useState(false);
+    const [platformTransitionDuration, setPlatformTransitionDuration] = useState(0.24);
+    const prefersReducedMotion = useReducedMotion();
+    const shouldReduceMotion = prefersReducedMotion || !theme.animations;
     const { openQuickSale, openAddProduct } = useQuickActions();
     useKeyboardShortcuts();
+
+    const currentPageTitle = useMemo(() => {
+        const allItems = sections.flatMap(section => section.items);
+        const exactMatch = allItems.find(item => item.href === pathname);
+        if (exactMatch) return exactMatch.label;
+
+        const startsWithMatch = allItems.find(item => pathname?.startsWith(item.href) && item.href !== '/dashboard');
+        if (startsWithMatch) return startsWithMatch.label;
+
+        return 'Dashboard';
+    }, [pathname]);
+
+    const triggerHaptic = () => {
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+            navigator.vibrate(8);
+        }
+    };
 
     // Auth guard - redirect to login if not authenticated
     useEffect(() => {
@@ -143,6 +164,34 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             return () => clearTimeout(timer);
         }
     }, [pathname]);
+
+    useEffect(() => {
+        const onScroll = () => {
+            setIsCompactHeader(window.scrollY > 24);
+        };
+
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+
+    useEffect(() => {
+        const userAgent = navigator.userAgent.toLowerCase();
+        const isIOS = /iphone|ipad|ipod/.test(userAgent);
+        const isAndroid = /android/.test(userAgent);
+
+        if (isIOS) {
+            setPlatformTransitionDuration(0.3);
+            return;
+        }
+
+        if (isAndroid) {
+            setPlatformTransitionDuration(0.22);
+            return;
+        }
+
+        setPlatformTransitionDuration(0.24);
+    }, []);
 
     // Show loading skeleton while checking auth status
     if (status !== 'authenticated' || !session) {
@@ -166,7 +215,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <div className="flex min-h-[100dvh] bg-background text-foreground font-sans selection:bg-primary/30 overflow-x-hidden">
+        <div className="dashboard-mobile-shell flex min-h-[100dvh] bg-background text-foreground font-sans selection:bg-primary/30 overflow-x-hidden">
             {/* Sidebar - sadece desktop'ta görünür */}
             <aside
                 role="navigation"
@@ -294,7 +343,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             {/* Main Content Area */}
             <div className="flex-1 lg:ml-72 flex flex-col min-h-[100dvh]">
                 {/* Header */}
-                <header role="banner" aria-label="Üst menü" className="h-20 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-40 safe-area-top">
+                <header role="banner" aria-label="Üst menü" className={`dashboard-mobile-header h-20 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-40 safe-area-top ${isCompactHeader ? 'dashboard-mobile-header-compact' : ''}`}>
                     <div className="h-full px-4 lg:px-8 flex items-center justify-between max-w-screen-2xl mx-auto w-full">
                         {/* Mobile: Page title area / Desktop: Command Palette */}
                         <div className="hidden lg:block flex-1 max-w-md">
@@ -304,7 +353,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/20">
                                 <span className="text-sm font-black italic text-white">P</span>
                             </div>
-                            <span className="text-sm font-bold text-foreground">Pazar Yönetimi</span>
+                            <div className="dashboard-mobile-title-chip flex flex-col leading-tight">
+                                <span className={`text-[10px] font-black uppercase tracking-widest text-primary/80 transition-all duration-200 ${isCompactHeader ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'}`}>
+                                    Pazar Yonetimi
+                                </span>
+                                <span className="text-sm font-black text-foreground">{currentPageTitle}</span>
+                            </div>
                         </div>
 
                         <div className="flex items-center gap-4 lg:gap-8">
@@ -322,13 +376,20 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                                     onRead={markAsRead}
                                     onDismiss={dismiss}
                                 />
-                                <button aria-label="Yardım" className="hidden sm:flex p-2.5 rounded-xl hover:bg-surface text-slate-400 hover:text-foreground transition-all group">
+                                <button
+                                    aria-label="Yardım"
+                                    onClick={triggerHaptic}
+                                    className="hidden sm:flex p-2.5 rounded-xl hover:bg-surface text-slate-400 hover:text-foreground transition-all group haptic-tap"
+                                >
                                     <HelpCircle className="w-5 h-5 group-hover:scale-110 transition-transform" aria-hidden="true" />
                                 </button>
                                 <button
-                                    onClick={toggleTheme}
+                                    onClick={() => {
+                                        triggerHaptic();
+                                        toggleTheme();
+                                    }}
                                     aria-label="Tema değiştir"
-                                    className="p-2.5 rounded-xl hover:bg-surface text-slate-400 hover:text-foreground transition-all group"
+                                    className="p-2.5 rounded-xl hover:bg-surface text-slate-400 hover:text-foreground transition-all group haptic-tap"
                                     title={resolvedMode === 'dark' ? 'Açık moda geç' : 'Koyu moda geç'}
                                 >
                                     {resolvedMode === 'dark' ?
@@ -408,26 +469,37 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
                 {/* Content with Sidebar */}
                 <div className="flex flex-1 flex-col lg:flex-row min-h-0">
-                    <main id="main-content" role="main" aria-label="Ana içerik" className="flex-1 p-4 lg:p-8 overflow-x-hidden pb-40 lg:pb-8">
-                        {/* Announcement Banner - Sabit Duyurular */}
-                        <AnnouncementBanner
-                            announcements={activeAnnouncements}
-                            onDismiss={dismiss}
-                            onRead={markAsRead}
-                        />
-                        {children}
+                    <main id="main-content" role="main" aria-label="Ana içerik" className="dashboard-mobile-content flex-1 p-4 lg:p-8 overflow-x-hidden pb-40 lg:pb-8">
+                        <AnimatePresence mode="wait" initial={false}>
+                            <motion.div
+                                key={pathname}
+                                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12, scale: 0.995 }}
+                                animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+                                exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -8, scale: 0.995 }}
+                                transition={{ duration: shouldReduceMotion ? 0.01 : platformTransitionDuration, ease: [0.22, 1, 0.36, 1] }}
+                            >
+                                {/* Announcement Banner - Sabit Duyurular */}
+                                <AnnouncementBanner
+                                    announcements={activeAnnouncements}
+                                    onDismiss={dismiss}
+                                    onRead={markAsRead}
+                                />
+                                {children}
+                            </motion.div>
+                        </AnimatePresence>
                     </main>
                     <LiveFeed />
                 </div>
             </div>
 
             {/* Mobile Bottom Navigation */}
-            <MobileBottomNav onMenuOpen={() => setMobileMenuOpen(true)} />
+            <MobileBottomNav onMenuOpen={() => setMobileMenuOpen(true)} onHaptic={triggerHaptic} />
 
             {/* Mobile Sidebar Drawer */}
             <MobileSidebar
                 isOpen={mobileMenuOpen}
                 onClose={() => setMobileMenuOpen(false)}
+                onHaptic={triggerHaptic}
             />
 
             <KeyboardShortcutsHelp />

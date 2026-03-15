@@ -22,77 +22,6 @@ const SUGGESTED_QUESTIONS = [
     { icon: Zap, text: 'Kârlılığımı nasıl artırabilirim?', category: 'Strateji' },
 ];
 
-const AI_RESPONSES: Record<string, string> = {
-    'En çok satan ürünlerim hangileri?': `📊 **En Çok Satan 5 Ürününüz (Son 30 Gün)**
-
-| # | Ürün | Satış | Gelir |
-|---|------|-------|-------|
-| 1 | iPhone 15 Pro Max Kılıf | 342 adet | ₺27.360 |
-| 2 | Galaxy S24 Ekran Koruyucu | 287 adet | ₺14.350 |
-| 3 | AirPods Pro 2 Kılıf | 198 adet | ₺11.880 |
-| 4 | MacBook Çanta | 156 adet | ₺31.200 |
-| 5 | USB-C Hub Adaptör | 134 adet | ₺16.080 |
-
-💡 **Öneri:** iPhone 15 serisi aksesuarlarına odaklanmanız gelirinizi %15 artırabilir. Stok seviyelerini yüksek tutmanızı öneriyorum.`,
-
-    'Bu ayki satış trendim nasıl?': `📈 **Ocak 2025 Satış Trendi**
-
-- **Toplam Satış:** ₺284.520 (+12.5% geçen aya göre)
-- **Sipariş Sayısı:** 1.245 (+8.3%)
-- **Ortalama Sepet:** ₺228
-- **İade Oranı:** %3.2 (-0.5%)
-
-🟢 **Güçlü Yönler:**
-- Trendyol kanalında %18 büyüme
-- Elektronik kategorisinde %22 artış
-
-🟡 **Dikkat Edilmesi Gerekenler:**
-- Amazon kanalında %5 düşüş var
-- Kırtasiye kategorisi durağan
-
-💡 **Aksiyon Önerisi:** Amazon listelerinizi güncellemek ve fiyat rekabetini gözden geçirmek iyi olabilir.`,
-
-    'Stoku azalan ürünlerimi göster': `⚠️ **Düşük Stok Uyarısı (< 10 adet)**
-
-🔴 **Kritik (0 adet):**
-- Samsung Galaxy Buds FE Kılıf
-- iPad Air 5 Ekran Koruyucu
-
-🟠 **Acil (1-5 adet):**
-- iPhone 15 Pro Kılıf Şeffaf (3 adet)
-- MacBook Pro 14" Çanta (2 adet)
-- USB-C Lightning Kablo (5 adet)
-
-🟡 **Yakında Bitecek (6-10 adet):**
-- AirPods Max Kılıf (7 adet)
-- Galaxy Watch Band (8 adet)
-- Apple Watch Kordon (10 adet)
-
-📦 **Önerilen Sipariş:** Toplam 8 ürün için tedarik siparişi oluşturmanız gerekiyor. Otomatik sipariş oluşturmamı ister misiniz?`,
-
-    'Kârlılığımı nasıl artırabilirim?': `🎯 **Kârlılık Artırma Stratejileri**
-
-Mevcut kâr marjınız: **%18.5** (sektör ortalaması: %15)
-
-**1. Fiyatlandırma Optimizasyonu 💰**
-- 23 ürününüz rakiplerden %10+ pahalı → Fiyat düşürüp hacmi artırın
-- 15 ürününüz çok ucuz → %5-8 zam yapabilirsiniz
-
-**2. Maliyet Düşürme 📉**
-- Toplu alım ile birim maliyeti %12 düşürebilirsiniz
-- Kargo anlaşmanızı yenileyerek %8 tasarruf
-
-**3. Ürün Karması 🎨**
-- Yüksek marjlı aksesuarları öne çıkarın (%35+ marj)
-- Düşük marjlı ürünleri bundle olarak satın
-
-**4. İade Azaltma 🔄**
-- İade oranınız %3.2 → %2'ye düşürürseniz aylık ₺4.500 tasarruf
-- Ürün fotoğrafları ve açıklamaları iyileştirin
-
-📊 Tahmini etki: Bu stratejileri uygularsanız kâr marjınız **%18.5 → %24** çıkabilir.`,
-};
-
 export default function AIChatbotPage() {
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
@@ -126,19 +55,39 @@ export default function AIChatbotPage() {
         setInput('');
         setIsTyping(true);
 
-        // Simulate AI response
-        setTimeout(() => {
-            const response = AI_RESPONSES[msgText] || `Sorunuzu analiz ettim. "${msgText}" hakkında verilerinizi inceliyorum.\n\n📊 Şu anda bu konuda detaylı bir analiz hazırlıyorum. Birkaç saniye içinde sonuçları paylaşacağım.\n\n💡 Daha spesifik sonuçlar için lütfen tarih aralığı veya platform belirtin.`;
+        try {
+            const res = await fetch('/api/ai/copilot/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-tenant-id': 'default' },
+                body: JSON.stringify({ message: msgText, context: '/dashboard/ai-assistant' }),
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData?.error || 'Copilot backend kullanilamiyor');
+            }
+
+            const data = await res.json();
             const aiMsg: ChatMessage = {
                 id: `a${baseTime + messages.length + 1}`,
                 role: 'assistant',
-                content: response,
+                content: data.message || 'Yanit alinamadi',
                 timestamp: new Date(),
-                suggestions: ['Daha detaylı göster', 'Rapor olarak indir', 'Başka bir soru sor'],
+                suggestions: Array.isArray(data.suggestions) ? data.suggestions : [],
             };
             setMessages(prev => [...prev, aiMsg]);
+        } catch (error: any) {
+            const aiMsg: ChatMessage = {
+                id: `a${baseTime + messages.length + 1}`,
+                role: 'assistant',
+                content: error?.message || 'Copilot servisine baglanilamadi',
+                timestamp: new Date(),
+                suggestions: [],
+            };
+            setMessages(prev => [...prev, aiMsg]);
+        } finally {
             setIsTyping(false);
-        }, 1500);
+        }
     };
 
     const copyMessage = (text: string) => {

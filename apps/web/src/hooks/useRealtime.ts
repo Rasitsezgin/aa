@@ -18,8 +18,31 @@ export interface RealtimeEvent {
   timestamp: Date;
 }
 
-// Simulated WebSocket for demo - replace with actual WebSocket in production
-export function useRealtime(tenantId: string = 'tenant-1') {
+function getWsBaseUrl() {
+  const raw = process.env.NEXT_PUBLIC_WS_URL || '';
+  if (!raw) return '';
+  const value = raw.trim();
+  if (!value) return '';
+
+  if (value.startsWith('ws://') || value.startsWith('wss://')) return value.replace(/\/$/, '');
+  if (value.startsWith('http://')) return value.replace(/^http:\/\//, 'ws://').replace(/\/$/, '');
+  if (value.startsWith('https://')) return value.replace(/^https:\/\//, 'wss://').replace(/\/$/, '');
+  return `wss://${value}`.replace(/\/$/, '');
+}
+
+function normalizeRealtimeData(payload: any): RealtimeData {
+  return {
+    activeVisitors: Number(payload?.activeVisitors || 0),
+    ordersLastHour: Number(payload?.ordersLastHour || 0),
+    revenueLastHour: Number(payload?.revenueLastHour || 0),
+    pendingOrders: Number(payload?.pendingOrders || 0),
+    lowStockAlerts: Number(payload?.lowStockAlerts || 0),
+    conversionRate: String(payload?.conversionRate ?? '0'),
+    lastUpdate: payload?.lastUpdate ? new Date(payload.lastUpdate) : new Date(),
+  };
+}
+
+export function useRealtime(tenantId: string = '') {
   const [data, setData] = useState<RealtimeData>({
     activeVisitors: 0,
     ordersLastHour: 0,
@@ -32,58 +55,61 @@ export function useRealtime(tenantId: string = 'tenant-1') {
   
   const [events, setEvents] = useState<RealtimeEvent[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Simulate real-time data updates
-  const simulateUpdate = useCallback(() => {
-    setData(prev => ({
-      activeVisitors: Math.max(0, prev.activeVisitors + Math.floor(Math.random() * 10) - 5),
-      ordersLastHour: prev.ordersLastHour + (Math.random() > 0.7 ? 1 : 0),
-      revenueLastHour: prev.revenueLastHour + (Math.random() > 0.7 ? Math.floor(Math.random() * 500) : 0),
-      pendingOrders: Math.max(0, prev.pendingOrders + Math.floor(Math.random() * 3) - 1),
-      lowStockAlerts: Math.max(0, prev.lowStockAlerts + (Math.random() > 0.9 ? 1 : 0)),
-      conversionRate: (Math.random() * 5 + 8).toFixed(1),
-      lastUpdate: new Date()
-    }));
-
-    // Random events
-    if (Math.random() > 0.8) {
-      const eventTypes: RealtimeEvent['type'][] = ['order', 'stock', 'visitor', 'payment', 'alert'];
-      const type = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-      
-      const newEvent: RealtimeEvent = {
-        type,
-        data: generateEventData(type),
-        timestamp: new Date()
-      };
-
-      setEvents(prev => [newEvent, ...prev.slice(0, 49)]);
-    }
-  }, []);
+  const socketRef = useRef<WebSocket | null>(null);
 
   const connect = useCallback(() => {
-    setIsConnected(true);
-    
-    // Initial data
-    setData({
-      activeVisitors: Math.floor(Math.random() * 100) + 50,
-      ordersLastHour: Math.floor(Math.random() * 20) + 5,
-      revenueLastHour: Math.floor(Math.random() * 5000) + 2000,
-      pendingOrders: Math.floor(Math.random() * 30) + 10,
-      lowStockAlerts: Math.floor(Math.random() * 10),
-      conversionRate: (Math.random() * 5 + 8).toFixed(1),
-      lastUpdate: new Date()
-    });
+    const wsBase = getWsBaseUrl();
+    if (!wsBase || !tenantId) {
+      setIsConnected(false);
+      return;
+    }
 
-    // Start polling (simulating WebSocket)
-    intervalRef.current = setInterval(simulateUpdate, 3000);
-  }, [simulateUpdate]);
+    const wsUrl = `${wsBase}/realtime?tenantId=${encodeURIComponent(tenantId)}`;
+    const socket = new WebSocket(wsUrl);
+    socketRef.current = socket;
+
+    socket.onopen = () => {
+      setIsConnected(true);
+    };
+
+    socket.onclose = () => {
+      setIsConnected(false);
+    };
+
+    socket.onerror = () => {
+      setIsConnected(false);
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+
+        if (payload?.type === 'snapshot' || payload?.type === 'stats') {
+          setData(normalizeRealtimeData(payload.data || payload));
+          return;
+        }
+
+        if (payload?.type === 'event') {
+          const realtimeEvent: RealtimeEvent = {
+            type: (payload.eventType || payload.data?.type || 'alert') as RealtimeEvent['type'],
+            data: payload.data || {},
+            timestamp: payload.timestamp ? new Date(payload.timestamp) : new Date(),
+          };
+
+          setEvents((prev) => [realtimeEvent, ...prev.slice(0, 49)]);
+          setData((prev) => ({ ...prev, lastUpdate: new Date() }));
+        }
+      } catch {
+        // Ignore malformed message.
+      }
+    };
+  }, [tenantId]);
 
   const disconnect = useCallback(() => {
     setIsConnected(false);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
+    if (socketRef.current) {
+      socketRef.current.close();
+      socketRef.current = null;
     }
   }, []);
 
@@ -99,43 +125,6 @@ export function useRealtime(tenantId: string = 'tenant-1') {
     connect,
     disconnect
   };
-}
-
-function generateEventData(type: RealtimeEvent['type']) {
-  switch (type) {
-    case 'order':
-      return {
-        orderId: `ORD-${Date.now()}`,
-        customer: ['Ahmet Y.', 'Mehmet D.', 'Fatma K.', 'Ali V.'][Math.floor(Math.random() * 4)],
-        amount: Math.floor(Math.random() * 2000) + 100,
-        platform: ['Trendyol', 'Hepsiburada', 'Amazon', 'N11'][Math.floor(Math.random() * 4)]
-      };
-    case 'stock':
-      return {
-        sku: `SKU-${Math.floor(Math.random() * 1000)}`,
-        product: 'Ürün ' + Math.floor(Math.random() * 100),
-        remaining: Math.floor(Math.random() * 10),
-        threshold: 10
-      };
-    case 'visitor':
-      return {
-        count: Math.floor(Math.random() * 50) + 10,
-        source: ['organic', 'paid', 'social', 'direct'][Math.floor(Math.random() * 4)]
-      };
-    case 'payment':
-      return {
-        transactionId: `TXN-${Date.now()}`,
-        amount: Math.floor(Math.random() * 5000) + 500,
-        status: 'completed'
-      };
-    case 'alert':
-      return {
-        level: ['info', 'warning', 'error'][Math.floor(Math.random() * 3)],
-        message: ['Stok uyarısı', 'Fiyat değişikliği', 'Sistem bildirimi'][Math.floor(Math.random() * 3)]
-      };
-    default:
-      return {};
-  }
 }
 
 // Real-time Stats Component Hook

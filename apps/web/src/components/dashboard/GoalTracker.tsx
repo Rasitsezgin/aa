@@ -32,60 +32,12 @@ const getGoalIcon = (goal: Goal): React.ElementType => {
     return goal.icon || iconMap[goal.id] || Target;
 };
 
-const defaultGoals: Goal[] = [
-    {
-        id: 'revenue',
-        title: 'Aylık Gelir Hedefi',
-        target: 1500000,
-        current: 1248750,
-        unit: '',
-        prefix: '₺',
-        icon: DollarSign,
-        color: 'text-green-500',
-        deadline: '28 Şubat',
-        status: 'on-track',
-    },
-    {
-        id: 'orders',
-        title: 'Sipariş Hedefi',
-        target: 5000,
-        current: 3842,
-        unit: 'sipariş',
-        icon: ShoppingCart,
-        color: 'text-blue-500',
-        deadline: '28 Şubat',
-        status: 'on-track',
-    },
-    {
-        id: 'customers',
-        title: 'Yeni Müşteri',
-        target: 500,
-        current: 387,
-        unit: 'müşteri',
-        icon: Users,
-        color: 'text-purple-500',
-        deadline: '28 Şubat',
-        status: 'on-track',
-    },
-    {
-        id: 'products',
-        title: 'Ürün Listesi',
-        target: 2000,
-        current: 1847,
-        unit: 'ürün',
-        icon: Package,
-        color: 'text-amber-500',
-        deadline: '28 Şubat',
-        status: 'at-risk',
-    },
-];
-
 interface GoalTrackerProps {
     goals?: Goal[];
 }
 
 export default function GoalTracker({ goals: propGoals }: GoalTrackerProps) {
-    const goals = propGoals && propGoals.length > 0 ? propGoals : defaultGoals;
+    const goals = Array.isArray(propGoals) ? propGoals : [];
     const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
 
     const getStatusBadge = (status: string) => {
@@ -123,6 +75,12 @@ export default function GoalTracker({ goals: propGoals }: GoalTrackerProps) {
                 </div>
             </div>
 
+            {goals.length === 0 ? (
+                <div className="p-4 rounded-xl bg-background/50 border border-border text-center">
+                    <p className="text-sm font-semibold text-foreground">Hedef verisi bulunamadı</p>
+                    <p className="text-xs text-slate-500 mt-1">Hedefleriniz tanımlandığında burada gerçek veriler görünecek.</p>
+                </div>
+            ) : (
             <div className="space-y-3">
                 {goals.map((goal) => {
                     const percentage = Math.min(100, (goal.current / goal.target) * 100);
@@ -191,9 +149,10 @@ export default function GoalTracker({ goals: propGoals }: GoalTrackerProps) {
                     );
                 })}
             </div>
+            )}
 
             {/* Overall Progress */}
-            <div className="mt-4 p-3 rounded-xl bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20">
+            {goals.length > 0 && <div className="mt-4 p-3 rounded-xl bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20">
                 <div className="flex items-center gap-2">
                     <Trophy className="w-4 h-4 text-primary" />
                     <span className="text-xs font-bold text-foreground">Genel Başarı Oranı</span>
@@ -201,7 +160,7 @@ export default function GoalTracker({ goals: propGoals }: GoalTrackerProps) {
                         %{(goals.reduce((acc, g) => acc + (g.current / g.target) * 100, 0) / goals.length).toFixed(0)}
                     </span>
                 </div>
-            </div>
+            </div>}
         </div>
     );
 }

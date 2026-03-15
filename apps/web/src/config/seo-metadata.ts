@@ -13,7 +13,7 @@ export const pageMetadata: Record<string, Metadata> = {
     },
     '/pricing': {
         title: 'Fiyatlandırma — Ücretsiz Başlayın',
-        description: 'Pazaryonetimi fiyatlandırma planları. Ücretsiz plan ile başlayın, işletmeniz büyüdükçe yükseltin. Starter ₺499/ay, Pro ₺1.499/ay, Enterprise ₺4.999/ay. Yıllık planda %20 indirim.',
+        description: 'Pazaryonetimi fiyatlandırma planları. Ücretsiz plan ile başlayın, işletmeniz büyüdükçe yükseltin. Güncel paket ve indirim detayları için fiyatlandırma sayfasını inceleyin.',
         keywords: ['pazaryonetimi fiyat', 'e-ticaret yazılımı fiyat', 'pazaryeri yönetim fiyatlandırma'],
         alternates: { canonical: 'https://pazaryonetimi.com/pricing' },
     },
@@ -80,7 +80,7 @@ export const pageMetadata: Record<string, Metadata> = {
     },
     '/signup': {
         title: 'Ücretsiz Hesap Oluştur — 14 Gün Ücretsiz Deneyin',
-        description: 'Pazaryonetimi\'ne hemen kaydolun. 14 gün ücretsiz Pro deneme, kredi kartı gerekmez. Tüm pazaryerlerinizi dakikalar içinde bağlayın.',
+        description: 'Pazaryonetimi\'ne hemen kaydolun. 14 gün ücretsiz deneme, kredi kartı gerekmez. Tüm pazaryerlerinizi dakikalar içinde bağlayın.',
         keywords: ['pazaryonetimi kayıt', 'ücretsiz e-ticaret yazılımı', 'e-ticaret platformu kayıt'],
         alternates: { canonical: 'https://pazaryonetimi.com/signup' },
     },

@@ -470,6 +470,87 @@ body {
   backdrop-filter: blur(24px);
 }
 
+/* Dashboard specific mobile app-shell */
+@media (max-width: 1023px) {
+  .dashboard-mobile-shell {
+    background:
+      radial-gradient(120% 80% at 8% -10%, rgba(var(--theme-primary-rgb), 0.22), transparent 56%),
+      radial-gradient(100% 60% at 100% 8%, rgba(168, 85, 247, 0.15), transparent 60%),
+      var(--background);
+  }
+
+  .dashboard-mobile-header {
+    margin: 0.5rem 0.5rem 0;
+    border-radius: 22px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+    transition: margin 0.25s ease, border-radius 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+  }
+
+  .dashboard-mobile-header-compact {
+    margin: 0.2rem 0.35rem 0;
+    border-radius: 18px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    background: color-mix(in srgb, var(--surface-color) 94%, transparent);
+  }
+
+  .dashboard-mobile-title-chip {
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface-color) 90%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
+  }
+
+  .dashboard-mobile-content {
+    padding-bottom: calc(9rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-bottom-nav {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: min(calc(100% - 0.9rem), 460px);
+  }
+
+  .mobile-bottom-nav-inner {
+    border-radius: 26px;
+    border: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--surface-color) 92%, transparent);
+    box-shadow:
+      0 10px 24px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+}
+
+.haptic-tap {
+  transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.18s ease;
+}
+
+.haptic-tap:active {
+  transform: scale(0.94);
+  filter: brightness(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-mobile-header,
+  .dashboard-mobile-header-compact,
+  .dashboard-mobile-title-chip,
+  .mobile-bottom-nav-inner,
+  .haptic-tap {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .haptic-tap:active {
+    transform: none;
+    filter: none;
+  }
+
+  .mobile-scroll {
+    scroll-behavior: auto;
+  }
+}
+
 /* Smooth scrolling for mobile content */
 .mobile-scroll {
   -webkit-overflow-scrolling: touch;
@@ -558,6 +639,23 @@ body {
   /* Remove extra spacing since browser chrome is gone */
   .safe-area-top {
     padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .dashboard-mobile-header {
+    margin: 0.15rem 0.25rem 0;
+    border-radius: 16px;
+    min-height: 4.25rem;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .dashboard-mobile-title-chip {
+    padding: 0.14rem 0.45rem;
+  }
+
+  .dashboard-mobile-header .w-9.h-9 {
+    width: 2rem;
+    height: 2rem;
   }
 
   /* Disable text selection globally in standalone mode for app-like feel */

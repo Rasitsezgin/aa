@@ -141,7 +141,17 @@ export class CicekSepetiBridge implements MarketplaceBridge {
         try {
             const url = `https://www.ciceksepeti.com/magaza/${storeId}`;
             const scraped = await this.scrapingService.scrapeStore(url, 'CICEKSEPETI');
-            if (scraped) return scraped;
+            if (scraped) {
+                return {
+                    storeId,
+                    storeName: scraped.storeName || storeId,
+                    totalProducts: scraped.productCount ?? 0,
+                    averageRating: scraped.rating ?? 0,
+                    totalReviews: scraped.totalReviews ?? 0,
+                    followersCount: scraped.followerCount ?? 0,
+                    platform: 'CICEKSEPETI',
+                };
+            }
         } catch (error) {
             this.logger.warn(`CicekSepeti getStoreInfo scraping failed: ${(error as Error).message}`);
         }

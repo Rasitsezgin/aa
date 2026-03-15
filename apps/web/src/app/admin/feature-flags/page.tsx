@@ -27,20 +27,12 @@ export default function FeatureFlagsPage() {
   const fetchFlags = async () => {
     try {
       const res = await fetch('/api/admin/feature-flags');
+      if (!res.ok) throw new Error('Feature flag verileri alınamadı');
       const data = await res.json();
-      setFlags(data);
+      setFlags(Array.isArray(data) ? data : []);
     } catch (error) {
-      // Mock data
-      setFlags([
-        { key: 'ai_pricing', name: 'AI Fiyatlandırma', enabled: true, tenantOverrides: [] },
-        { key: 'bulk_edit', name: 'Toplu Düzenleme', enabled: true, tenantOverrides: [] },
-        { key: 'multi_warehouse', name: 'Çoklu Depo', enabled: false, tenantOverrides: ['tenant_1', 'tenant_2'] },
-        { key: 'advanced_analytics', name: 'Gelişmiş Analitik', enabled: true, tenantOverrides: [] },
-        { key: 'api_v2', name: 'API v2', enabled: false, tenantOverrides: [] },
-        { key: 'new_dashboard', name: 'Yeni Dashboard', enabled: false, tenantOverrides: ['tenant_3'] },
-        { key: 'mobile_app', name: 'Mobil Uygulama', enabled: true, tenantOverrides: [] },
-        { key: 'webhooks', name: 'Webhook Desteği', enabled: true, tenantOverrides: [] },
-      ]);
+      console.error('Feature flag verileri yüklenemedi:', error);
+      setFlags([]);
     } finally {
       setLoading(false);
     }

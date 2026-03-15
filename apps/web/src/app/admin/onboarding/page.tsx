@@ -53,15 +53,12 @@ export default function OnboardingPage() {
   const fetchTenants = async () => {
     try {
       const res = await fetch('/api/admin/tenants?onboarding=incomplete');
+      if (!res.ok) throw new Error('Onboarding tenant listesi alınamadı');
       const data = await res.json();
-      setTenants(data);
+      setTenants(Array.isArray(data) ? data : []);
     } catch (error) {
-      // Mock data
-      setTenants([
-        { id: 't1', name: 'Yeni Mağaza', email: 'info@yenimagaza.com', onboardingProgress: 43, currentStep: 'billing', completedSteps: ['basic_info', 'email_verify', 'security'] },
-        { id: 't2', name: 'Fashion Store', email: 'contact@fashion.com', onboardingProgress: 14, currentStep: 'email_verify', completedSteps: ['basic_info'] },
-        { id: 't3', name: 'Tech Market', email: 'admin@techmarket.com', onboardingProgress: 71, currentStep: 'team', completedSteps: ['basic_info', 'email_verify', 'security', 'billing', 'store_setup'] },
-      ]);
+      console.error('Onboarding tenant listesi yüklenemedi:', error);
+      setTenants([]);
     } finally {
       setLoading(false);
     }
@@ -77,6 +74,7 @@ export default function OnboardingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTenant),
       });
+      if (!res.ok) throw new Error('Tenant oluşturulamadı');
       const data = await res.json();
       setTenants(prev => [...prev, {
         id: data.id || 't' + Date.now(),
@@ -89,16 +87,7 @@ export default function OnboardingPage() {
       setNewTenant({ name: '', slug: '', email: '', plan: 'STARTER' });
       setView('list');
     } catch (error) {
-      setTenants(prev => [...prev, {
-        id: 't' + Date.now(),
-        name: newTenant.name,
-        email: newTenant.email,
-        onboardingProgress: 0,
-        currentStep: 'basic_info',
-        completedSteps: [],
-      }]);
-      setNewTenant({ name: '', slug: '', email: '', plan: 'STARTER' });
-      setView('list');
+      console.error('Tenant oluşturma hatası:', error);
     } finally {
       setCreating(false);
     }
@@ -106,12 +95,16 @@ export default function OnboardingPage() {
 
   const completeStep = async (tenantId: string, stepId: string) => {
     try {
-      await fetch(`/api/admin/onboarding/${tenantId}/step`, {
+      const res = await fetch(`/api/admin/onboarding/${tenantId}/step`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stepId }),
       });
-    } catch (error) { }
+      if (!res.ok) throw new Error('Adım güncellenemedi');
+    } catch (error) {
+      console.error('Onboarding adımı güncellenemedi:', error);
+      return;
+    }
 
     setTenants(prev => prev.map(t => {
       if (t.id === tenantId && !t.completedSteps.includes(stepId)) {

@@ -57,16 +57,16 @@ export default function AnnouncementsPage() {
         fetch('/api/admin/announcements'),
         fetch('/api/admin/maintenance'),
       ]);
+      if (!announcementsRes.ok || !maintenanceRes.ok) {
+        throw new Error('Duyuru veya bakım verisi alınamadı');
+      }
       const announcementsData = await announcementsRes.json();
       const maintenanceData = await maintenanceRes.json();
-      setAnnouncements(announcementsData);
+      setAnnouncements(Array.isArray(announcementsData) ? announcementsData : []);
       setMaintenance(maintenanceData);
     } catch (error) {
-      // Mock data
-      setAnnouncements([
-        { id: '1', title: 'Yeni Özellik!', message: 'AI Fiyat Optimizasyonu artık kullanılabilir.', type: 'info', targetAudience: 'all', createdAt: new Date().toISOString(), expiresAt: null, sent: true },
-        { id: '2', title: 'Planlı Bakım', message: 'Bu hafta sonu 02:00-04:00 arası bakım yapılacaktır.', type: 'warning', targetAudience: 'all', createdAt: new Date(Date.now() - 86400000).toISOString(), expiresAt: null, sent: true },
-      ]);
+      console.error('Duyuru verileri yüklenemedi:', error);
+      setAnnouncements([]);
     } finally {
       setLoading(false);
     }
@@ -82,6 +82,7 @@ export default function AnnouncementsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newAnnouncement),
       });
+      if (!res.ok) throw new Error('Duyuru gönderilemedi');
       const data = await res.json();
       setAnnouncements(prev => [{
         id: data.id || Date.now().toString(),
@@ -91,13 +92,7 @@ export default function AnnouncementsPage() {
         sent: true,
       }, ...prev]);
     } catch (error) {
-      setAnnouncements(prev => [{
-        id: Date.now().toString(),
-        ...newAnnouncement,
-        createdAt: new Date().toISOString(),
-        expiresAt: newAnnouncement.expiresAt || null,
-        sent: true,
-      }, ...prev]);
+      console.error('Duyuru gönderme hatası:', error);
     } finally {
       setSending(false);
       setShowNewAnnouncement(false);
@@ -108,23 +103,31 @@ export default function AnnouncementsPage() {
   const toggleMaintenance = async () => {
     const newEnabled = !maintenance.enabled;
     try {
-      await fetch('/api/admin/maintenance', {
+      const res = await fetch('/api/admin/maintenance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...maintenance, enabled: newEnabled }),
       });
-    } catch (error) { }
+      if (!res.ok) throw new Error('Bakım modu güncellenemedi');
+    } catch (error) {
+      console.error('Bakım modu güncellenemedi:', error);
+      return;
+    }
     setMaintenance(prev => ({ ...prev, enabled: newEnabled, lastUpdated: new Date().toISOString() }));
   };
 
   const updateMaintenance = async () => {
     try {
-      await fetch('/api/admin/maintenance', {
+      const res = await fetch('/api/admin/maintenance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(maintenanceForm),
       });
-    } catch (error) { }
+      if (!res.ok) throw new Error('Bakım ayarları kaydedilemedi');
+    } catch (error) {
+      console.error('Bakım ayarları kaydedilemedi:', error);
+      return;
+    }
     setMaintenance({ ...maintenanceForm, lastUpdated: new Date().toISOString() });
     setShowMaintenanceEdit(false);
   };

@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MarketplaceBridge, MarketplaceReview } from './marketplace.service';
 import { ScrapingService } from '../scraping/scraping.service';
+import {
+    MarketplaceAnalysisResponse,
+    computeConfidenceFromSources,
+} from './analysis.types';
 
 interface TrendyolStoreData {
     storeId: string;
@@ -11,10 +15,7 @@ interface TrendyolStoreData {
     totalReviews: number;
     followersCount: number;
     establishedDate: string;
-    responseTimeHours: number;
-    shippingQuality: number;
-    productQuality: number;
-    customerService: number;
+    responseTimeHours: number | null;
 }
 
 interface TrendyolProduct {
@@ -62,13 +63,10 @@ export class TrendyolBridge implements MarketplaceBridge {
                     categoryCount: Math.ceil(scrapedData.productCount / 20), // Estimate categories from product count
                     totalProducts: scrapedData.productCount,
                     averageRating: scrapedData.rating,
-                    totalReviews: scrapedData.totalReviews || 100,
+                    totalReviews: scrapedData.totalReviews ?? 0,
                     followersCount: scrapedData.followerCount,
-                    establishedDate: scrapedData.establishedDate || '2020-01-01',
-                    responseTimeHours: 2,
-                    shippingQuality: 9.0,
-                    productQuality: 9.0,
-                    customerService: 9.0,
+                    establishedDate: scrapedData.establishedDate || '',
+                    responseTimeHours: null,
                 };
             }
 
@@ -227,7 +225,7 @@ export class TrendyolBridge implements MarketplaceBridge {
     /**
      * SEO ve Performans analizi yap
      */
-    async analyzeStoreSEO(storeId?: string) {
+    async analyzeStoreSEO(storeId?: string): Promise<MarketplaceAnalysisResponse> {
         try {
             const storeInfo = await this.getStoreInfo(storeId);
             const products = await this.getStoreProducts(storeId, 20);
@@ -235,16 +233,50 @@ export class TrendyolBridge implements MarketplaceBridge {
             // SEO Score hesabı
             const seoScore = this.calculateSEOScore(storeInfo, products);
 
+            const metricSources = {
+                storeName: 'scraped',
+                rating: 'scraped',
+                followers: 'scraped',
+                totalProducts: 'scraped',
+                responseTime: 'not_available',
+                monthlyTraffic: 'not_available',
+                monthlyTurnover: 'not_available',
+                titleOptimization: 'calculated',
+                imageOptimization: 'calculated',
+                priceCompetitiveness: 'calculated',
+                stockHealth: 'calculated',
+                ratingTrend: 'scraped',
+                reviewCount: 'scraped',
+            } as const;
+
             return {
                 platform: 'TRENDYOL',
                 storeId: storeInfo.storeId,
                 storeName: storeInfo.storeName,
                 seoScore,
+                dataSources: {
+                    overall: 'scraped+calculated',
+                    seoScore: 'calculated',
+                    products: 'api_or_scraped',
+                    metrics: metricSources,
+                    reasons: {
+                        responseTime: 'Trendyol public source yanit suresi bilgisini acik olarak saglamiyor.',
+                        monthlyTraffic: 'Aylik trafik verisi platform public endpointlerinde bulunmuyor.',
+                        monthlyTurnover: 'Aylik ciro verisi platform public endpointlerinde bulunmuyor.',
+                    },
+                    evidence: {
+                        adapter: 'trendyol.bridge',
+                        productSampleSize: products.length,
+                        hasCredentials: Boolean(this.apiKey && this.apiKey !== 'public' && this.apiSecret && this.apiSecret !== 'public'),
+                    },
+                },
+                confidence: computeConfidenceFromSources(metricSources),
                 metrics: {
                     storeName: storeInfo.storeName,
                     rating: storeInfo.averageRating,
                     followers: storeInfo.followersCount,
-                    responseTime: `${storeInfo.responseTimeHours} saat`,
+                    totalProducts: storeInfo.totalProducts,
+                    responseTime: storeInfo.responseTimeHours !== null ? `${storeInfo.responseTimeHours} saat` : undefined,
                     titleOptimization: this.analyzeTitles(products),
                     imageOptimization: this.analyzeImages(products),
                     priceCompetitiveness: this.analyzePrices(products),
@@ -288,8 +320,10 @@ export class TrendyolBridge implements MarketplaceBridge {
         score += avgStock * 10;
 
         // Response time (max +5)
-        if (storeInfo.responseTimeHours < 4) score += 5;
-        else if (storeInfo.responseTimeHours < 12) score += 3;
+        if (storeInfo.responseTimeHours !== null) {
+            if (storeInfo.responseTimeHours < 4) score += 5;
+            else if (storeInfo.responseTimeHours < 12) score += 3;
+        }
 
         return Math.min(Math.round(score), 100);
     }
@@ -346,7 +380,7 @@ export class TrendyolBridge implements MarketplaceBridge {
             recommendations.push(`${lowStockProducts} ürünün stok seviyesi düşük, tedarikçi ile iletişime geç`);
         }
 
-        if (storeInfo.responseTimeHours > 6) {
+        if (storeInfo.responseTimeHours !== null && storeInfo.responseTimeHours > 6) {
             recommendations.push('Müşteri sorularına daha hızlı cevap ver (2-4 saat ideal)');
         }
 
@@ -367,18 +401,18 @@ export class TrendyolBridge implements MarketplaceBridge {
         this.logger.log(`Syncing orders for Trendyol Supplier: ${this.supplierId}`);
         const supplierId = this.supplierId;
         if (!this.apiKey || !this.apiSecret || this.apiKey === 'public' || this.apiSecret === 'public') {
-            return { success: true, platform: 'TRENDYOL', orders: [], source: 'fallback' };
+            throw new Error('Trendyol sipariş senkronizasyonu için API kimlik bilgileri zorunludur');
         }
 
         const response = await this.requestTrendyol(`/suppliers/${encodeURIComponent(supplierId)}/orders?page=0&size=50`);
         const orders = this.extractOrdersArray(response);
-        return { success: true, platform: 'TRENDYOL', orders, source: orders.length ? 'api' : 'fallback' };
+        return { success: true, platform: 'TRENDYOL', orders, source: 'api' };
     }
 
     async updateStock(sku: string, stock: number): Promise<any> {
         this.logger.log(`Updating Trendyol stock for ${sku}: ${stock}`);
         if (!this.apiKey || !this.apiSecret || this.apiKey === 'public' || this.apiSecret === 'public') {
-            return { success: true, sku, stock, source: 'fallback' };
+            throw new Error('Trendyol stok güncelleme için API kimlik bilgileri zorunludur');
         }
 
         return this.sendPriceInventoryUpdate(
@@ -391,7 +425,7 @@ export class TrendyolBridge implements MarketplaceBridge {
     async updatePrice(sku: string, price: number): Promise<any> {
         this.logger.log(`Updating Trendyol price for ${sku}: ${price}`);
         if (!this.apiKey || !this.apiSecret || this.apiKey === 'public' || this.apiSecret === 'public') {
-            return { success: true, sku, price, source: 'fallback' };
+            throw new Error('Trendyol fiyat güncelleme için API kimlik bilgileri zorunludur');
         }
 
         return this.sendPriceInventoryUpdate(

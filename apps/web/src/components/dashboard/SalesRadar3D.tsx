@@ -1,37 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Zap, TrendingUp, AlertCircle, ShoppingCart } from 'lucide-react';
-
-interface Pulse {
-    id: number;
-    platform: string;
-    value: number;
-    angle: number;
-}
+import { motion } from 'framer-motion';
+import { Target, Zap } from 'lucide-react';
 
 export const SalesRadar3D = () => {
-    const [pulses, setPulses] = useState<Pulse[]>([]);
     const [scanAngle, setScanAngle] = useState(0);
 
     useEffect(() => {
-        // Simüle edilmiş canlı veri akışı
-        const interval = setInterval(() => {
-            const id = Date.now();
-            const platform = ['Trendyol', 'Amazon', 'Hepsiburada'][Math.floor(Math.random() * 3)];
-            const value = Math.floor(Math.random() * 1000) + 100;
-            const angle = Math.random() * 360;
-
-            setPulses(prev => [...prev, { id, platform, value, angle }].slice(-5));
-        }, 3000);
-
         const scanInterval = setInterval(() => {
             setScanAngle(prev => (prev + 2) % 360);
         }, 30);
 
         return () => {
-            clearInterval(interval);
             clearInterval(scanInterval);
         };
     }, []);
@@ -60,27 +41,9 @@ export const SalesRadar3D = () => {
                     }}
                 />
 
-                {/* Pulses (Sales) */}
-                <AnimatePresence>
-                    {pulses.map((pulse) => (
-                        <motion.div
-                            key={pulse.id}
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: [0, 1, 0] }}
-                            exit={{ scale: 2, opacity: 0 }}
-                            transition={{ duration: 4, ease: "easeOut" }}
-                            className="absolute flex flex-col items-center"
-                            style={{
-                                transform: `rotate(${pulse.angle}deg) translateY(-100px) rotate(-${pulse.angle}deg)`
-                            }}
-                        >
-                            <div className="w-4 h-4 rounded-full bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.8)]" />
-                            <div className="mt-2 bg-indigo-500/20 backdrop-blur-md border border-indigo-500/30 px-2 py-1 rounded text-[8px] font-black text-indigo-400 whitespace-nowrap">
-                                {pulse.platform}: ₺{pulse.value}
-                            </div>
-                        </motion.div>
-                    ))}
-                </AnimatePresence>
+                <div className="absolute inset-0 flex items-center justify-center text-[11px] text-slate-500 text-center px-10">
+                    Canlı satış pulse verisi yok. Bu alan API verisi geldiğinde işlenecektir.
+                </div>
 
                 {/* Center Core */}
                 <div className="w-8 h-8 rounded-full bg-surface border-2 border-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.5)] z-10 flex items-center justify-center animate-pulse">

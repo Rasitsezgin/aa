@@ -40,7 +40,7 @@ export default function XmlImportPage() {
     const [selectedMarketplaces, setSelectedMarketplaces] = useState<string[]>([]);
     const [wizardStep, setWizardStep] = useState<WizardStep>(1);
     const [importing, setImporting] = useState(false);
-    const [importProgress, setImportProgress] = useState(0);
+    const [importError, setImportError] = useState<string | null>(null);
     const [syncing, setSyncing] = useState<string | null>(null);
 
     const { products, loading: productsLoading, fetchProducts } = useProducts();
@@ -94,9 +94,8 @@ export default function XmlImportPage() {
     };
 
     const handleImport = async () => {
+        setImportError(null);
         setImporting(true);
-        setImportProgress(0);
-        const interval = setInterval(() => setImportProgress(p => Math.min(p + Math.random() * 8, 99)), 200);
         try {
             await apiClient.request('/xml-feeds/import', {
                 method: 'POST',
@@ -105,12 +104,12 @@ export default function XmlImportPage() {
                     marketplaces: selectedMarketplaces,
                 }),
             });
-        } catch { /* ignore */ }
-        clearInterval(interval);
-        setImportProgress(100);
-        await new Promise(r => setTimeout(r, 500));
-        setImporting(false);
-        setWizardStep(4);
+            setWizardStep(4);
+        } catch {
+            setImportError('Yükleme işlemi tamamlanamadı. Lütfen tekrar deneyin.');
+        } finally {
+            setImporting(false);
+        }
     };
 
     const toggleProduct = (id: string) =>
@@ -393,12 +392,17 @@ export default function XmlImportPage() {
                                 <button onClick={() => setWizardStep(2)} className="px-6 py-3 bg-background border border-border rounded-xl font-bold text-foreground hover:bg-surface transition-all">Geri</button>
                                 <button onClick={handleImport} disabled={importing}
                                     className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-500 transition-all disabled:opacity-70">
-                                    {importing ? <><Loader2 size={16} className="animate-spin" /> Yükleniyor... %{Math.round(importProgress)}</> : <><Upload size={16} /> Pazaryerlerine Yükle</>}
+                                    {importing ? <><Loader2 size={16} className="animate-spin" /> Yükleniyor...</> : <><Upload size={16} /> Pazaryerlerine Yükle</>}
                                 </button>
                             </div>
                             {importing && (
                                 <div className="w-full h-2 bg-indigo-500/10 rounded-full overflow-hidden">
-                                    <motion.div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" animate={{ width: `${importProgress}%` }} transition={{ duration: 0.3 }} />
+                                    <motion.div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" animate={{ x: ['-100%', '100%'] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }} />
+                                </div>
+                            )}
+                            {importError && (
+                                <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                                    {importError}
                                 </div>
                             )}
                         </div>

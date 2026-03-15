@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@pazaryonetimi/database";
 import { auth } from "@/auth";
 
-export async function POST(req: NextRequest) {
+export async function POST() {
     try {
         const session = await auth();
         const tenantId = (session?.user as any)?.tenantId as string;
@@ -108,27 +108,7 @@ export async function POST(req: NextRequest) {
                         results.push({ platform: 'TRENDYOL', status: 'error', error: `HTTP ${response.status}` });
                     }
                 } else if (integration.platform === 'HEPSIBURADA') {
-                    // Logic would go here. For now, we simulate pulling 5 items since we don't have HB catalog sandbox docs handy
-                    const dummyHB = [
-                        { sku: `HB-${Date.now()}-1`, title: 'Hepsiburada Ürünü 1', price: 299, stock: 15 },
-                        { sku: `HB-${Date.now()}-2`, title: 'Hepsiburada Ürünü 2', price: 499, stock: 8 },
-                    ];
-
-                    for (const product of dummyHB) {
-                        await prisma.product.create({
-                            data: {
-                                tenantId,
-                                title: product.title,
-                                sku: product.sku,
-                                price: product.price,
-                                stock: product.stock,
-                            }
-                        });
-                    }
-                    totalSynced += 2;
-                    results.push({ platform: 'HEPSIBURADA', status: 'success', count: 2, note: 'Simulated catalog fetch' });
-
-                    await prisma.integration.update({ where: { id: integration.id }, data: { isActive: true } });
+                    results.push({ platform: 'HEPSIBURADA', status: 'skipped', error: 'Product sync endpoint mevcut degil' });
                 } else {
                     results.push({ platform: integration.platform, status: 'skipped', error: 'Unimplemented platform sync' });
                 }

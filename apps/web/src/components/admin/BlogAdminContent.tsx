@@ -1,0 +1,363 @@
+"use client";
+
+import React from 'react';
+import { Loader2, Sparkles, Plus, Save, Trash2, RefreshCcw } from 'lucide-react';
+
+type BlogPostItem = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  readTimeMinutes: number;
+};
+
+type DraftResponse = {
+  title: string;
+  excerpt: string;
+  content: string;
+  slug: string;
+  source: 'ai' | 'fallback';
+};
+
+function toLocalDate(value: string): string {
+  return new Date(value).toLocaleDateString('tr-TR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}
+
+export default function BlogAdminContent() {
+  const [posts, setPosts] = React.useState<BlogPostItem[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [saving, setSaving] = React.useState(false);
+  const [generating, setGenerating] = React.useState(false);
+  const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const [message, setMessage] = React.useState<string>('');
+
+  const [topic, setTopic] = React.useState('Trendyol satis arttirma stratejileri');
+  const [audience, setAudience] = React.useState('KOBI e-ticaret saticilari');
+  const [tone, setTone] = React.useState('Profesyonel ve aksiyon odakli');
+  const [keywords, setKeywords] = React.useState('trendyol, satis arttirma, pazaryeri, e-ticaret');
+
+  const [form, setForm] = React.useState({
+    title: '',
+    slug: '',
+    content: '',
+    isActive: false,
+  });
+
+  const loadPosts = React.useCallback(async () => {
+    setLoading(true);
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/admin/blog', { cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Blog listesi alinamadi.');
+      setPosts(Array.isArray(data.posts) ? data.posts : []);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Blog listesi alinamadi.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadPosts();
+  }, [loadPosts]);
+
+  const resetForm = () => {
+    setSelectedId(null);
+    setForm({ title: '', slug: '', content: '', isActive: false });
+  };
+
+  const selectPost = (post: BlogPostItem) => {
+    setSelectedId(post.id);
+    setForm({
+      title: post.title,
+      slug: post.slug,
+      content: post.content,
+      isActive: post.isActive,
+    });
+  };
+
+  const handleSave = async () => {
+    if (!form.title.trim() || !form.content.trim()) {
+      setMessage('Baslik ve icerik zorunludur.');
+      return;
+    }
+
+    setSaving(true);
+    setMessage('');
+
+    try {
+      const endpoint = selectedId ? `/api/admin/blog/${selectedId}` : '/api/admin/blog';
+      const method = selectedId ? 'PATCH' : 'POST';
+
+      const response = await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Kayit islemi basarisiz.');
+
+      setMessage(selectedId ? 'Blog guncellendi.' : 'Blog olusturuldu.');
+      await loadPosts();
+
+      if (data.post) {
+        selectPost(data.post as BlogPostItem);
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Kayit islemi basarisiz.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedId) return;
+    if (!window.confirm('Bu blog yazisini silmek istediginize emin misiniz?')) return;
+
+    setSaving(true);
+    setMessage('');
+
+    try {
+      const response = await fetch(`/api/admin/blog/${selectedId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Silme islemi basarisiz.');
+
+      setMessage('Blog silindi.');
+      resetForm();
+      await loadPosts();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Silme islemi basarisiz.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleGenerateDraft = async () => {
+    if (!topic.trim()) {
+      setMessage('AI taslak icin konu giriniz.');
+      return;
+    }
+
+    setGenerating(true);
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/admin/blog/ai-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, audience, tone, keywords }),
+      });
+
+      const data = (await response.json()) as DraftResponse & { message?: string };
+      if (!response.ok) throw new Error(data.message || 'AI taslak olusturulamadi.');
+
+      setForm((prev) => ({
+        ...prev,
+        title: data.title || prev.title,
+        slug: data.slug || prev.slug,
+        content: data.content || prev.content,
+      }));
+
+      if (data.source === 'fallback') {
+        setMessage('AI servisi kullanilamadi, akilli taslak olusturuldu.');
+      } else {
+        setMessage('AI blog taslagi hazirlandi.');
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'AI taslak olusturulamadi.');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div>
+        <h1 className="text-3xl font-black text-foreground tracking-tight mb-1">Blog Yonetimi</h1>
+        <p className="text-slate-500 font-medium">Blog yazilarini buradan olusturun, yayinlayin ve AI ile hizli taslaklar üretin.</p>
+      </div>
+
+      {message && (
+        <div className="p-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 text-sm font-semibold text-slate-700 dark:text-slate-200">
+          {message}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div className="xl:col-span-4 space-y-4">
+          <div className="bg-white dark:bg-slate-900/50 p-5 rounded-3xl border border-slate-200 dark:border-white/5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">Yayinlanan Taslaklar</h2>
+              <button
+                onClick={loadPosts}
+                className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500"
+                title="Yenile"
+              >
+                <RefreshCcw size={16} />
+              </button>
+            </div>
+
+            {loading ? (
+              <div className="py-8 flex items-center justify-center text-slate-500 gap-2 text-sm">
+                <Loader2 className="animate-spin" size={16} /> Yukleniyor...
+              </div>
+            ) : posts.length === 0 ? (
+              <div className="text-sm text-slate-500 py-6">Henuz blog yazisi bulunmuyor.</div>
+            ) : (
+              <div className="space-y-3 max-h-[520px] overflow-auto pr-1">
+                {posts.map((post) => {
+                  const active = selectedId === post.id;
+                  return (
+                    <button
+                      key={post.id}
+                      type="button"
+                      onClick={() => selectPost(post)}
+                      className={`w-full text-left p-4 rounded-2xl border transition-all ${
+                        active
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 bg-white/60 dark:bg-black/10'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="font-bold text-sm text-foreground line-clamp-1">{post.title}</span>
+                        <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${post.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                          {post.isActive ? 'Yayinda' : 'Taslak'}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-500">/{post.slug}</div>
+                      <div className="text-xs text-slate-500 mt-1">{toLocalDate(post.updatedAt)} • {post.readTimeMinutes} dk</div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="xl:col-span-8 space-y-6">
+          <div className="bg-white dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
+            <h3 className="text-sm font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
+              <Sparkles size={15} /> AI Blog Taslagi
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input
+                value={topic}
+                onChange={(event) => setTopic(event.target.value)}
+                placeholder="Konu"
+                className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
+              />
+              <input
+                value={audience}
+                onChange={(event) => setAudience(event.target.value)}
+                placeholder="Hedef kitle"
+                className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
+              />
+              <input
+                value={tone}
+                onChange={(event) => setTone(event.target.value)}
+                placeholder="Yazi tonu"
+                className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
+              />
+              <input
+                value={keywords}
+                onChange={(event) => setKeywords(event.target.value)}
+                placeholder="Anahtar kelimeler (virgulle)"
+                className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleGenerateDraft}
+              disabled={generating}
+              className="inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-sm disabled:opacity-60"
+            >
+              {generating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+              {generating ? 'Taslak olusturuluyor...' : 'AI ile Taslak Uret'}
+            </button>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-white/5 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-black uppercase tracking-widest text-slate-500">Blog Editoru</h3>
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={form.isActive}
+                  onChange={(event) => setForm((prev) => ({ ...prev, isActive: event.target.checked }))}
+                />
+                Yayinda
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input
+                value={form.title}
+                onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+                placeholder="Blog basligi"
+                className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
+              />
+              <input
+                value={form.slug}
+                onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))}
+                placeholder="slug"
+                className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
+              />
+            </div>
+
+            <textarea
+              value={form.content}
+              onChange={(event) => setForm((prev) => ({ ...prev, content: event.target.value }))}
+              placeholder="Blog icerigi (Markdown destekli)"
+              className="w-full min-h-[360px] rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 p-4 text-sm font-medium"
+            />
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm disabled:opacity-60"
+              >
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                {selectedId ? 'Blogu Guncelle' : 'Yeni Blog Kaydet'}
+              </button>
+
+              <button
+                type="button"
+                onClick={resetForm}
+                className="inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-sm"
+              >
+                <Plus size={16} /> Yeni Form
+              </button>
+
+              {selectedId && (
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={saving}
+                  className="inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm disabled:opacity-60"
+                >
+                  <Trash2 size={16} /> Sil
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -21,14 +21,6 @@ const quickReplies = [
     'Entegrasyonlar hakkında',
 ];
 
-const botResponses: { [key: string]: string } = {
-    'fiyat': 'Fiyatlarımız aylık 499₺\'den başlıyor. Detaylı bilgi için fiyatlandırma sayfamızı ziyaret edebilir veya demo talep edebilirsiniz. 🚀',
-    'demo': 'Harika! Demo talep etmek için size birkaç bilgi sormam gerekiyor. İsminizi ve e-posta adresinizi paylaşır mısınız? Ya da doğrudan demo sayfamızı ziyaret edebilirsiniz: /demo',
-    'destek': 'Teknik destek için 7/24 hizmetinizdeyiz! Sorununuzu detaylı anlatır mısınız? Ayrıca destek@pazaryonetimi.com adresine e-posta gönderebilirsiniz.',
-    'entegrasyon': 'Trendyol, Hepsiburada, Amazon, N11, Çiçeksepeti ve daha birçok pazaryeri ile entegrasyonumuz var. Hangi pazaryeri hakkında bilgi almak istersiniz?',
-    'default': 'Anlıyorum! Size en iyi şekilde yardımcı olmak istiyorum. Lütfen sorunuzu biraz daha detaylandırır mısınız? 😊'
-};
-
 export default function LiveChatWidget() {
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
@@ -59,26 +51,7 @@ export default function LiveChatWidget() {
         }
     }, [isOpen, isMinimized]);
 
-    const getBotResponse = (userMessage: string): string => {
-        const lowerMessage = userMessage.toLowerCase();
-
-        if (lowerMessage.includes('fiyat') || lowerMessage.includes('ücret') || lowerMessage.includes('paket')) {
-            return botResponses['fiyat'];
-        }
-        if (lowerMessage.includes('demo') || lowerMessage.includes('deneme') || lowerMessage.includes('test')) {
-            return botResponses['demo'];
-        }
-        if (lowerMessage.includes('destek') || lowerMessage.includes('yardım') || lowerMessage.includes('sorun')) {
-            return botResponses['destek'];
-        }
-        if (lowerMessage.includes('entegrasyon') || lowerMessage.includes('pazaryeri') || lowerMessage.includes('trendyol') || lowerMessage.includes('hepsiburada')) {
-            return botResponses['entegrasyon'];
-        }
-
-        return botResponses['default'];
-    };
-
-    const sendMessage = (content: string) => {
+    const sendMessage = async (content: string) => {
         if (!content.trim()) return;
 
         // Add user message
@@ -92,20 +65,43 @@ export default function LiveChatWidget() {
         setMessages(prev => [...prev, userMessage]);
         setInputValue('');
 
-        // Simulate bot typing
         setIsTyping(true);
-        const responseDelay = 1500; // Fixed delay instead of random
-        setTimeout(() => {
-            const responseTime = new Date();
+        try {
+            const res = await fetch('/api/ai/copilot/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-tenant-id': 'default',
+                },
+                body: JSON.stringify({ message: content, context: '/live-chat-widget' }),
+            });
+
+            let reply = 'Canli destek servisi su anda yanit veremiyor. Lutfen daha sonra tekrar deneyin.';
+            if (res.ok) {
+                const data = await res.json();
+                reply = typeof data?.message === 'string' && data.message.trim()
+                    ? data.message
+                    : reply;
+            }
+
             const botMessage: Message = {
-                id: `bot-${responseTime.getTime()}`,
+                id: `bot-${Date.now()}`,
                 type: 'bot',
-                content: getBotResponse(content),
-                timestamp: responseTime
+                content: reply,
+                timestamp: new Date()
             };
             setMessages(prev => [...prev, botMessage]);
+        } catch {
+            const botMessage: Message = {
+                id: `bot-${Date.now()}`,
+                type: 'bot',
+                content: 'Canli destek servisine ulasilamadi. Lutfen tekrar deneyin.',
+                timestamp: new Date()
+            };
+            setMessages(prev => [...prev, botMessage]);
+        } finally {
             setIsTyping(false);
-        }, responseDelay);
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {

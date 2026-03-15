@@ -56,7 +56,7 @@ interface ReportType {
     color: string;
 }
 
-// Mock report types
+// Report type definitions
 const reportTypes = [
     { id: 'sales', name: 'Satış Raporu', icon: ShoppingCart, description: 'Satış performansı ve trendler', color: 'emerald' },
     { id: 'revenue', name: 'Gelir Raporu', icon: DollarSign, description: 'Gelir analizi ve kar marjları', color: 'blue' },

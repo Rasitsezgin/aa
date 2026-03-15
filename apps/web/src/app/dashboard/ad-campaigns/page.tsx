@@ -38,16 +38,29 @@ export default function AdCampaignsPage() {
         const fetchCampaigns = async () => {
             setLoading(true);
             try {
-                // Mocking API call for now with realistic data
-                await new Promise(r => setTimeout(r, 800));
-                const data: Campaign[] = [
-                    { id: '1', name: 'Kış Sezonu Ayakkabı Search', platform: 'Trendyol', type: 'Search', status: 'active', budget: 5000, spent: 3200, roas: 4.8, ctr: 2.1, impressions: 120000, clicks: 2520, sales: 85, startDate: '2025-01-01' },
-                    { id: '2', name: 'Hafta Sonu Fırsatları Banner', platform: 'Hepsiburada', type: 'Display', status: 'paused', budget: 2000, spent: 1800, roas: 3.2, ctr: 0.8, impressions: 450000, clicks: 3600, sales: 42, startDate: '2025-02-15', endDate: '2025-02-17' },
-                    { id: '3', name: 'Prime Day Hazırlık', platform: 'Amazon', type: 'Product', status: 'active', budget: 10000, spent: 1500, roas: 6.5, ctr: 3.4, impressions: 50000, clicks: 1700, sales: 55, startDate: '2025-02-20' },
-                    { id: '4', name: 'Yeni Koleksiyon Lansman', platform: 'N11', type: 'Search', status: 'scheduled', budget: 3000, spent: 0, roas: 0, ctr: 0, impressions: 0, clicks: 0, sales: 0, startDate: '2025-03-01' },
-                ];
-                setCampaigns(data);
-            } catch (err) { /* error */ }
+                const data = await apiClient.getCampaigns() as any[];
+                const normalized: Campaign[] = Array.isArray(data)
+                    ? data.map((c, i) => ({
+                        id: String(c.id ?? i + 1),
+                        name: c.name,
+                        platform: (Array.isArray(c.platforms) && c.platforms[0]) || c.platform || 'Trendyol',
+                        type: c.type || 'Search',
+                        status: c.status === 'completed' ? 'ended' : (c.status || 'paused'),
+                        budget: Number(c.budget || 0),
+                        spent: Number(c.spent || 0),
+                        roas: Number(c.roas || 0),
+                        ctr: Number(c.ctr || 0),
+                        impressions: Number(c.impressions || 0),
+                        clicks: Number(c.clicks || 0),
+                        sales: Number(c.conversions || c.sales || 0),
+                        startDate: c.startDate || '',
+                        endDate: c.endDate,
+                    }))
+                    : [];
+                setCampaigns(normalized);
+            } catch {
+                setCampaigns([]);
+            }
             setLoading(false);
         };
         fetchCampaigns();
@@ -60,7 +73,9 @@ export default function AdCampaignsPage() {
 
     const stats = {
         totalSpent: campaigns.reduce((acc, c) => acc + c.spent, 0),
-        avgRoas: campaigns.filter(c => c.roas > 0).reduce((acc, c, _, arr) => acc + (c.roas / arr.length), 0),
+        avgRoas: campaigns.filter(c => c.roas > 0).length > 0
+            ? campaigns.filter(c => c.roas > 0).reduce((acc, c, _, arr) => acc + (c.roas / arr.length), 0)
+            : 0,
         totalClicks: campaigns.reduce((acc, c) => acc + c.clicks, 0),
         totalSales: campaigns.reduce((acc, c) => acc + c.sales, 0),
     };
@@ -165,6 +180,11 @@ export default function AdCampaignsPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
+                            {filteredCampaigns.length === 0 && (
+                                <tr>
+                                    <td className="px-6 py-6 text-sm text-slate-500" colSpan={7}>Reklam kampanya verisi bulunamadı</td>
+                                </tr>
+                            )}
                             {filteredCampaigns.map((c) => (
                                 <tr key={c.id} className="hover:bg-background/20 transition-all group">
                                     <td className="px-6 py-4">

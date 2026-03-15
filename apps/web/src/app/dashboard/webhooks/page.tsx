@@ -56,84 +56,25 @@ const eventTypes = [
     { id: 'payment.failed', label: 'Ödeme Başarısız', category: 'Finans' },
 ];
 
-// Fallback webhooklar
-const fallbackWebhooksData = [
-    {
-        id: 1,
-        name: "ERP Sipariş Senkronizasyonu",
-        url: "https://erp.firma.com/api/webhooks/orders",
-        events: ["order.created", "order.updated", "order.shipped"],
-        isActive: true,
-        secret: "whsec_abc123xyz...",
-        lastTriggered: "2024-01-15T14:30:00",
-        successRate: 98.5,
-        totalCalls: 1247,
-        createdAt: "2023-10-01"
-    },
-    {
-        id: 2,
-        name: "Stok Yönetim Sistemi",
-        url: "https://stock.firma.com/webhook/receive",
-        events: ["stock.low", "stock.critical", "stock.updated"],
-        isActive: true,
-        secret: "whsec_def456uvw...",
-        lastTriggered: "2024-01-15T13:15:00",
-        successRate: 100,
-        totalCalls: 456,
-        createdAt: "2023-11-15"
-    },
-    {
-        id: 3,
-        name: "Slack Bildirimleri",
-        url: "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXX",
-        events: ["order.created", "stock.critical", "payment.failed"],
-        isActive: true,
-        secret: "whsec_ghi789rst...",
-        lastTriggered: "2024-01-15T15:22:00",
-        successRate: 99.2,
-        totalCalls: 892,
-        createdAt: "2023-09-20"
-    },
-    {
-        id: 4,
-        name: "Muhasebe Entegrasyonu",
-        url: "https://muhasebe.firma.com/api/hooks",
-        events: ["payment.received", "order.delivered"],
-        isActive: false,
-        secret: "whsec_jkl012opq...",
-        lastTriggered: "2024-01-10T09:00:00",
-        successRate: 95.5,
-        totalCalls: 234,
-        createdAt: "2024-01-01"
-    },
-];
-
-// Son webhook logları
-const recentLogs = [
-    { id: 1, webhook: "ERP Sipariş Senkronizasyonu", event: "order.created", status: "success", time: "2 dakika önce", duration: "245ms", statusCode: 200 },
-    { id: 2, webhook: "Slack Bildirimleri", event: "stock.critical", status: "success", time: "15 dakika önce", duration: "189ms", statusCode: 200 },
-    { id: 3, webhook: "Stok Yönetim Sistemi", event: "stock.updated", status: "success", time: "32 dakika önce", duration: "312ms", statusCode: 200 },
-    { id: 4, webhook: "Muhasebe Entegrasyonu", event: "payment.received", status: "error", time: "1 saat önce", duration: "5023ms", statusCode: 500 },
-    { id: 5, webhook: "ERP Sipariş Senkronizasyonu", event: "order.shipped", status: "success", time: "2 saat önce", duration: "198ms", statusCode: 200 },
-];
+const recentLogs: any[] = [];
 
 export default function WebhooksPage() {
     const [activeTab, setActiveTab] = useState<'webhooks' | 'logs' | 'events'>('webhooks');
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [showSecrets, setShowSecrets] = useState<Record<number, boolean>>({});
+    const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
 
     const { webhooks: apiWebhooks, loading, fetchWebhooks: refetch } = useWebhooks();
 
     const webhooksData = (Array.isArray(apiWebhooks) && apiWebhooks.length > 0)
         ? apiWebhooks.map((w, i) => ({
             ...w,
-            id: Number(w.id) || i + 1,
+            id: String(w.id || i + 1),
             isActive: w.status === 'active',
             secret: w.secret || '',
             lastTriggered: w.lastTriggered || w.createdAt,
           }))
-        : fallbackWebhooksData;
+        : [];
 
     const filteredWebhooks = webhooksData.filter(w =>
         w.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -144,10 +85,12 @@ export default function WebhooksPage() {
         total: webhooksData.length,
         active: webhooksData.filter(w => w.isActive).length,
         totalCalls: webhooksData.reduce((sum, w) => sum + w.totalCalls, 0),
-        avgSuccess: Math.round(webhooksData.reduce((sum, w) => sum + w.successRate, 0) / webhooksData.length * 10) / 10
+        avgSuccess: webhooksData.length > 0
+            ? Math.round(webhooksData.reduce((sum, w) => sum + w.successRate, 0) / webhooksData.length * 10) / 10
+            : 0
     };
 
-    const toggleSecret = (id: number) => {
+    const toggleSecret = (id: string) => {
         setShowSecrets(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
@@ -285,6 +228,11 @@ export default function WebhooksPage() {
 
                     {/* Webhook List */}
                     <div className="space-y-4">
+                        {filteredWebhooks.length === 0 && (
+                            <div className="bg-surface border border-border rounded-2xl p-8 text-center">
+                                <p className="text-sm text-slate-500">Webhook verisi bulunamadı</p>
+                            </div>
+                        )}
                         {filteredWebhooks.map((webhook, index) => (
                             <motion.div
                                 key={webhook.id}
@@ -416,6 +364,11 @@ export default function WebhooksPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
+                                {recentLogs.length === 0 && (
+                                    <tr>
+                                        <td className="px-4 py-6 text-sm text-slate-500" colSpan={7}>Webhook çağrı geçmişi bulunamadı</td>
+                                    </tr>
+                                )}
                                 {recentLogs.map((log) => (
                                     <tr key={log.id} className="hover:bg-white/[0.02] transition-all">
                                         <td className="px-4 py-4 font-medium text-foreground">{log.webhook}</td>

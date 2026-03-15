@@ -112,12 +112,12 @@ const AI_QUICK_PROMPTS = [
 
 // ==================== UTILITY FUNCTIONS ====================
 const formatCurrency = (value: number | undefined | null) => {
-    if (!value && value !== 0) return '₺0';
+    if (!value && value !== 0) return '--';
     return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(value);
 };
 
 const formatNumber = (value: number | undefined | null) => {
-    if (!value && value !== 0) return '0';
+    if (!value && value !== 0) return '--';
     return new Intl.NumberFormat('tr-TR').format(value);
 };
 
@@ -469,7 +469,7 @@ function DashboardContent() {
     const { data: apiStockAlerts, loading: stockLoading } = useStockAlerts();
     const { data: apiTopProducts, loading: productsLoading } = useTopProducts(selectedPeriod);
     const { data: apiAiInsights, loading: insightsLoading } = useAiInsights();
-    const { data: apiTrend, loading: trendLoading } = usePerformanceTrend(selectedPeriod);
+    const { data: apiTrend, loading: trendLoading } = usePerformanceTrend('revenue', selectedPeriod);
     const { data: apiAiSummary } = useAiSummary();
     const { data: apiMarketplaceHealth } = useMarketplaceHealth();
     const { data: apiGoals } = useGoals();
@@ -480,7 +480,7 @@ function DashboardContent() {
         try {
             await refetchStats();
         } catch (e) {
-            // fallback
+            // ignore refresh error
         }
         setTimeout(() => setIsRefreshing(false), 800);
     };
@@ -497,7 +497,7 @@ function DashboardContent() {
     // AI Summary verileri
     const aiSummary = apiAiSummary as any;
     const statNotes = aiSummary?.statNotes || {};
-    const predictionText = aiSummary?.predictionText || '';
+    const predictionText = aiSummary?.predictionText;
 
     // Platform verilerini dönüştür (profit/margin API'den geliyor)
     const transformedPlatforms = hasRealPlatforms ? (apiPlatforms as any[]).map(p => ({
@@ -516,23 +516,23 @@ function DashboardContent() {
     const transformedOrders = hasRealOrders ? (apiRecentOrders as any[]).map(o => ({
         id: o.id || o.marketplaceOrderId,
         platform: o.platform,
-        customer: o.customer || o.customerName || 'Müşteri',
-        amount: o.price || o.totalAmount || 0,
+        customer: o.customer || o.customerName,
+        amount: o.price ?? o.totalAmount,
         status: o.status,
-        time: new Date(o.createdAt).toLocaleString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-        items: o.items || 1,
+        time: o.createdAt ? new Date(o.createdAt).toLocaleString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '--',
+        items: o.items,
         aiFlag: null,
     })) : null;
 
     // Ürün verilerini dönüştür (profit/margin/trend/aiInsight API'den geliyor)
     const transformedProducts = hasRealProducts ? (apiTopProducts as any[]).map(p => ({
         name: p.name || p.title,
-        sales: p.sales || 0,
-        revenue: p.revenue || 0,
-        profit: p.profit || 0,
-        margin: p.margin || 0,
-        trend: p.trend || 'stable',
-        aiInsight: p.aiInsight || '',
+        sales: p.sales,
+        revenue: p.revenue,
+        profit: p.profit,
+        margin: p.margin,
+        trend: p.trend,
+        aiInsight: p.aiInsight,
     })) : null;
 
     // Stok uyarılarını dönüştür (minimum/platform API'den geliyor)
@@ -540,43 +540,41 @@ function DashboardContent() {
         product: a.productName,
         sku: a.sku,
         current: a.currentStock,
-        minimum: a.minimumStock || a.reorderPoint || 20,
-        platform: (a.platforms || ['Trendyol']).join(', '),
+        minimum: a.minimumStock ?? a.reorderPoint,
+        platform: Array.isArray(a.platforms) ? a.platforms.join(', ') : a.platform,
         urgency: a.status as 'critical' | 'warning',
-        aiPrediction: a.daysUntilStockout === 0 ? 'STOKTA YOK' : `${a.daysUntilStockout} gün içinde tükenebilir`,
+        aiPrediction: a.daysUntilStockout !== undefined
+            ? (a.daysUntilStockout === 0 ? 'STOKTA YOK' : `${a.daysUntilStockout} gün içinde tükenebilir`)
+            : undefined,
         daysUntilOut: a.daysUntilStockout,
     })) : null;
 
     // Trend verisini dönüştür (profit/aiPrediction API'den geliyor)
     const transformedTrend = hasRealTrend ? (apiTrend as any[]).slice(-7).map((t) => ({
-        day: t.dayName || '',
-        revenue: t.revenue || t.value || 0,
-        orders: t.orders || 0,
-        profit: t.profit || 0,
-        aiPrediction: t.aiPrediction || 0,
+        day: t.dayName || '--',
+        revenue: t.revenue ?? t.value,
+        orders: t.orders,
+        profit: t.profit,
+        aiPrediction: t.aiPrediction ?? t.revenue ?? t.value,
     })) : null;
 
     // Stats dönüştürme (tüm değerler API'den geliyor)
     const transformedStats = hasRealStats ? {
-        totalRevenue: (apiStats as any).totalRevenue || 0,
-        revenueChange: (apiStats as any).periodComparison?.revenueChange || 0,
-        totalOrders: (apiStats as any).totalOrders || 0,
-        ordersChange: (apiStats as any).periodComparison?.ordersChange || 0,
-        avgOrderValue: (apiStats as any).averageOrderValue || ((apiStats as any).totalOrders > 0 ? (apiStats as any).totalRevenue / (apiStats as any).totalOrders : 0),
-        avgOrderChange: (apiStats as any).periodComparison?.avgOrderChange || 0,
-        totalProfit: (apiStats as any).netProfit || 0,
-        profitChange: (apiStats as any).periodComparison?.profitChange || 0,
-        profitMargin: (apiStats as any).profitMargin || 0,
-        marginChange: (apiStats as any).periodComparison?.marginChange || 0,
-        totalCost: (apiStats as any).totalCost || 0,
-        costChange: (apiStats as any).periodComparison?.costChange || 0,
+        totalRevenue: (apiStats as any).totalRevenue,
+        revenueChange: (apiStats as any).periodComparison?.revenueChange,
+        totalOrders: (apiStats as any).totalOrders,
+        ordersChange: (apiStats as any).periodComparison?.ordersChange,
+        avgOrderValue: (apiStats as any).averageOrderValue ?? ((apiStats as any).totalOrders > 0 ? (apiStats as any).totalRevenue / (apiStats as any).totalOrders : undefined),
+        avgOrderChange: (apiStats as any).periodComparison?.avgOrderChange,
+        totalProfit: (apiStats as any).netProfit,
+        profitChange: (apiStats as any).periodComparison?.profitChange,
+        profitMargin: (apiStats as any).profitMargin,
+        marginChange: (apiStats as any).periodComparison?.marginChange,
+        totalCost: (apiStats as any).totalCost,
+        costChange: (apiStats as any).periodComparison?.costChange,
     } : null;
 
-    const mainStats = transformedStats || {
-        totalRevenue: 0, revenueChange: 0, totalOrders: 0, ordersChange: 0,
-        avgOrderValue: 0, avgOrderChange: 0, totalProfit: 0, profitChange: 0,
-        profitMargin: 0, marginChange: 0, totalCost: 0, costChange: 0,
-    };
+    const mainStats = transformedStats;
     const platformPerformance = transformedPlatforms || [];
     const recentOrders = transformedOrders || [];
     const stockAlerts = transformedAlerts || [];
@@ -587,9 +585,9 @@ function DashboardContent() {
         title: insight.title,
         description: insight.description,
         impact: insight.impact,
-        impactValue: parseInt(String(insight.impact).replace(/[^\d-]/g, '')) || 0,
+        impactValue: parseInt(String(insight.impact).replace(/[^\d-]/g, '')),
         confidence: insight.confidence,
-        action: insight.actions?.[0] || 'Detayları Gör',
+        action: insight.actions?.[0],
         priority: insight.priority as 'critical' | 'high' | 'medium' | 'low',
         category: insight.category || insight.type,
         timestamp: new Date(insight.createdAt),
@@ -607,15 +605,7 @@ function DashboardContent() {
         revenueTrend,
         costBreakdown: [],
         stockStats: {},
-        aiMetrics: (apiStats as any)?.aiMetrics || {
-            totalPredictions: 0,
-            accuracy: 0,
-            savingsGenerated: 0,
-            automatedActions: 0,
-            activeModels: 0,
-            tokensUsed: 0,
-            monthlyBudget: 0,
-        },
+        aiMetrics: (apiStats as any)?.aiMetrics,
     };
 
     const isLoading = statsLoading || platformsLoading;
@@ -707,25 +697,25 @@ function DashboardContent() {
                         </div>
                         <div className="flex items-center gap-4 lg:gap-6 overflow-x-auto w-full lg:w-auto pb-1 lg:pb-0">
                             <div className="text-center flex-shrink-0">
-                                <div className="text-lg lg:text-2xl font-black text-white">{formatNumber(data.aiMetrics.totalPredictions)}</div>
+                                <div className="text-lg lg:text-2xl font-black text-white">{formatNumber(data.aiMetrics?.totalPredictions)}</div>
                                 <div className="text-[9px] lg:text-[10px] text-white/70 uppercase tracking-wider">Tahmin</div>
                             </div>
                             <div className="text-center flex-shrink-0">
-                                <div className="text-lg lg:text-2xl font-black text-white">%{data.aiMetrics.accuracy}</div>
+                                <div className="text-lg lg:text-2xl font-black text-white">{data.aiMetrics?.accuracy !== undefined ? `%${data.aiMetrics.accuracy}` : '--'}</div>
                                 <div className="text-[9px] lg:text-[10px] text-white/70 uppercase tracking-wider">Doğruluk</div>
                             </div>
                             <div className="text-center flex-shrink-0">
-                                <div className="text-lg lg:text-2xl font-black text-white">{formatCurrency(data.aiMetrics.savingsGenerated)}</div>
+                                <div className="text-lg lg:text-2xl font-black text-white">{formatCurrency(data.aiMetrics?.savingsGenerated)}</div>
                                 <div className="text-[9px] lg:text-[10px] text-white/70 uppercase tracking-wider">Tasarruf</div>
                             </div>
                             <div className="text-center flex-shrink-0">
-                                <div className="text-lg lg:text-2xl font-black text-white">{data.aiMetrics.automatedActions}</div>
+                                <div className="text-lg lg:text-2xl font-black text-white">{data.aiMetrics?.automatedActions ?? '--'}</div>
                                 <div className="text-[9px] lg:text-[10px] text-white/70 uppercase tracking-wider">Otomasyon</div>
                             </div>
                             <div className="hidden lg:block">
                                 <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-xl backdrop-blur">
                                     <Cpu className="w-4 h-4 text-white" />
-                                    <span className="text-xs text-white font-medium">{data.aiMetrics.activeModels} Model Aktif</span>
+                                    <span className="text-xs text-white font-medium">{data.aiMetrics?.activeModels ?? '--'} Model Aktif</span>
                                 </div>
                             </div>
                         </div>
@@ -748,44 +738,50 @@ function DashboardContent() {
                 </div>
 
                 {/* Main Stats Cards */}
+                {!mainStats ? (
+                    <div className="p-4 rounded-xl bg-surface border border-border text-center">
+                        <p className="text-sm font-semibold text-foreground">Özet metrik verisi bulunamadı</p>
+                        <p className="text-xs text-slate-500 mt-1">API yanıtı geldiğinde kartlar gerçek verilerle dolacaktır.</p>
+                    </div>
+                ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4">
                     {[
                         {
                             label: "Toplam Gelir",
-                            value: data.mainStats.totalRevenue,
-                            change: data.mainStats.revenueChange,
+                            value: mainStats.totalRevenue,
+                            change: mainStats.revenueChange,
                             icon: DollarSign,
                             color: "from-green-500 to-emerald-600",
                             aiNote: statNotes.revenue || ''
                         },
                         {
                             label: "Sipariş",
-                            value: data.mainStats.totalOrders,
-                            change: data.mainStats.ordersChange,
+                            value: mainStats.totalOrders,
+                            change: mainStats.ordersChange,
                             icon: ShoppingCart,
                             color: "from-blue-500 to-cyan-600",
                             aiNote: statNotes.orders || ''
                         },
                         {
                             label: "Ort. Sepet",
-                            value: data.mainStats.avgOrderValue,
-                            change: data.mainStats.avgOrderChange,
+                            value: mainStats.avgOrderValue,
+                            change: mainStats.avgOrderChange,
                             icon: ShoppingBag,
                             color: "from-purple-500 to-pink-600",
                             aiNote: statNotes.avgOrder || ''
                         },
                         {
                             label: "Net Kâr",
-                            value: data.mainStats.totalProfit,
-                            change: data.mainStats.profitChange,
+                            value: mainStats.totalProfit,
+                            change: mainStats.profitChange,
                             icon: TrendingUp,
                             color: "from-emerald-500 to-teal-600",
                             aiNote: statNotes.profit || ''
                         },
                         {
                             label: "Kâr Marjı",
-                            value: data.mainStats.profitMargin,
-                            change: data.mainStats.marginChange,
+                            value: mainStats.profitMargin,
+                            change: mainStats.marginChange,
                             icon: Percent,
                             color: "from-amber-500 to-orange-600",
                             aiNote: statNotes.margin || '',
@@ -793,8 +789,8 @@ function DashboardContent() {
                         },
                         {
                             label: "Toplam Maliyet",
-                            value: data.mainStats.totalCost,
-                            change: -data.mainStats.costChange,
+                            value: mainStats.totalCost,
+                            change: mainStats.costChange !== undefined ? -mainStats.costChange : undefined,
                             icon: Receipt,
                             color: "from-rose-500 to-red-600",
                             invertTrend: true,
@@ -814,18 +810,22 @@ function DashboardContent() {
                                 <div className={`p-2 rounded-xl bg-gradient-to-br ${stat.color} text-white`}>
                                     <stat.icon className="w-4 h-4" />
                                 </div>
-                                <div className={`flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-md ${(stat.invertTrend ? stat.change > 0 : stat.change >= 0)
+                                <div className={`flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-md ${((stat.change ?? 0) !== 0 && (stat.invertTrend ? (stat.change ?? 0) > 0 : (stat.change ?? 0) >= 0))
                                     ? 'bg-green-500/10 text-green-500'
                                     : 'bg-red-500/10 text-red-500'
                                     }`}>
-                                    {stat.change >= 0 ? '+' : ''}{stat.change.toFixed(1)}%
-                                    {(stat.invertTrend ? stat.change > 0 : stat.change >= 0)
+                                    {stat.change !== undefined ? `${stat.change >= 0 ? '+' : ''}${stat.change.toFixed(1)}%` : '--'}
+                                    {(stat.change !== undefined && (stat.invertTrend ? stat.change > 0 : stat.change >= 0))
                                         ? <ArrowUpRight className="w-3 h-3" />
                                         : <ArrowDownRight className="w-3 h-3" />}
                                 </div>
                             </div>
                             <div className="text-xl font-black text-foreground tracking-tight relative z-10">
-                                {stat.isPercentage ? `%${stat.value.toFixed(1)}` : formatCurrency(stat.value)}
+                                {stat.value === undefined || stat.value === null
+                                    ? '--'
+                                    : stat.isPercentage
+                                        ? `%${Number(stat.value).toFixed(1)}`
+                                        : formatCurrency(Number(stat.value))}
                             </div>
                             <div className="text-[11px] font-medium text-slate-500 relative z-10">{stat.label}</div>
 
@@ -839,6 +839,7 @@ function DashboardContent() {
                         </motion.div>
                     ))}
                 </div>
+                )}
 
                 {/* AI Insights Section */}
                 <div className="bg-surface p-4 lg:p-6 rounded-2xl lg:rounded-3xl border border-border">
@@ -963,7 +964,7 @@ function DashboardContent() {
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-sm text-foreground">
-                                        <span className="font-bold">AI Tahmin:</span> {predictionText || 'Tahmin verisi yükleniyor...'}
+                                        <span className="font-bold">AI Tahmin:</span> {predictionText || 'Tahmin verisi bulunamadı'}
                                     </p>
                                 </div>
                                 <button className="px-4 py-2 bg-purple-500 text-white text-xs font-bold rounded-xl hover:bg-purple-600 transition-colors">
@@ -1067,7 +1068,7 @@ function DashboardContent() {
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-slate-500">{order.customer} • {order.items} ürün</span>
+                                        <span className="text-slate-500">{order.customer || '--'} • {order.items ?? '--'} ürün</span>
                                         <span className="font-bold text-foreground">{formatCurrency(order.amount)}</span>
                                     </div>
                                     {order.aiFlag && (
@@ -1119,8 +1120,8 @@ function DashboardContent() {
                                                             }`}>
                                                             {alert.urgency === 'critical' ? 'KRİTİK' : 'UYARI'}
                                                         </span>
-                                                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${platformColors[alert.platform]?.bg} ${platformColors[alert.platform]?.text}`}>
-                                                            {alert.platform}
+                                                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${platformColors[alert.platform]?.bg || 'bg-slate-500/10'} ${platformColors[alert.platform]?.text || 'text-slate-500'}`}>
+                                                            {alert.platform || '--'}
                                                         </span>
                                                     </div>
                                                     <div className="text-sm font-bold text-foreground">{alert.product}</div>
@@ -1129,7 +1130,7 @@ function DashboardContent() {
                                                     <div className={`text-xl font-black ${alert.current === 0 ? 'text-red-500' : 'text-amber-500'}`}>
                                                         {alert.current}
                                                     </div>
-                                                    <div className="text-[10px] text-slate-500">/ {alert.minimum} min</div>
+                                                    <div className="text-[10px] text-slate-500">/ {alert.minimum ?? '--'} min</div>
                                                 </div>
                                             </div>
 
@@ -1137,7 +1138,7 @@ function DashboardContent() {
                                             <div className="flex items-center justify-between p-2 bg-purple-500/5 rounded-lg border border-purple-500/10">
                                                 <div className="flex items-center gap-2">
                                                     <Brain className="w-3 h-3 text-purple-500" />
-                                                    <span className="text-[10px] text-purple-600 dark:text-purple-400">{alert.aiPrediction}</span>
+                                                    <span className="text-[10px] text-purple-600 dark:text-purple-400">{alert.aiPrediction || 'Tahmin verisi yok'}</span>
                                                 </div>
                                                 <button className="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-primary/90 transition-colors">
                                                     Sipariş Ver
@@ -1200,7 +1201,7 @@ function DashboardContent() {
                                 <div className="p-2 bg-purple-500/5 rounded-xl border border-purple-500/10">
                                     <div className="flex items-center gap-1.5 text-[10px] text-purple-600 dark:text-purple-400">
                                         <Sparkles className="w-3 h-3 flex-shrink-0" />
-                                        <span>{product.aiInsight}</span>
+                                        <span>{product.aiInsight || 'AI içgörüsü yok'}</span>
                                     </div>
                                 </div>
                             </motion.div>

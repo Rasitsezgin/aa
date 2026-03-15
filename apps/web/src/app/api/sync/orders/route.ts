@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@pazaryonetimi/database";
 import { auth } from "@/auth";
 
-export async function POST(req: NextRequest) {
+export async function POST() {
     try {
         const session = await auth();
         const tenantId = (session?.user as any)?.tenantId as string;
@@ -44,7 +44,6 @@ export async function POST(req: NextRequest) {
                     const trendyolAuth = Buffer.from(`${integration.apiKey}:${integration.apiSecret}`).toString("base64");
 
                     // Fetch recent orders from Trendyol
-                    // Note: In real life we'd calculate timestamps (e.g past 24 hours). We'll use a mocked past week date timestamp
                     const startDate = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days ago
 
                     const response = await fetch(`https://api.trendyol.com/sapigw/suppliers/${supplierId}/orders?startDate=${startDate}&size=50`, {
@@ -93,56 +92,10 @@ export async function POST(req: NextRequest) {
                         totalSynced += orders.length;
                         results.push({ platform: 'TRENDYOL', status: 'success', count: orders.length });
                     } else {
-                        // For demo purposes, if API fails (meaning user used real keys that don't have orders, or auth failed due to sandbox rules)
-                        // we fallback to some dummy orders to populate their dashboard so the perfect system presentation works natively over DB.
-                        console.warn('Trendyol Order sync failed (likely no sandbox access or empty orders). Injecting fallback dummy data for presentation.');
-
-                        const fallbacks = [
-                            { num: `TY-${Date.now()}-1`, name: "Ahmet Yılmaz", total: 450.50 },
-                            { num: `TY-${Date.now()}-2`, name: "Ayşe Demir", total: 1200.00 },
-                            { num: `TY-${Date.now()}-3`, name: "Mehmet Kaya", total: 89.90 },
-                        ];
-
-                        for (const fb of fallbacks) {
-                            await prisma.order.create({
-                                data: {
-                                    tenantId,
-                                    platform: 'TRENDYOL',
-                                    marketplaceOrderId: fb.num,
-                                    customerName: fb.name,
-                                    totalAmount: fb.total,
-                                    taxAmount: fb.total * 0.20,
-                                    status: 'CONFIRMED',
-                                    paymentStatus: 'PAID',
-                                    orderDate: new Date(),
-                                }
-                            });
-                        }
-                        totalSynced += fallbacks.length;
-                        results.push({ platform: 'TRENDYOL', status: 'partial', count: fallbacks.length, error: `HTTP ${response.status} -> Fallback data seeded.` });
+                        results.push({ platform: 'TRENDYOL', status: 'error', error: `HTTP ${response.status}` });
                     }
                 } else if (integration.platform === 'HEPSIBURADA') {
-                    // Simulated
-                    const fb = [
-                        { num: `HB-${Date.now()}-1`, name: "Hepsiburada Müşterisi", total: 549.99 }
-                    ];
-                    for (const o of fb) {
-                        await prisma.order.create({
-                            data: {
-                                tenantId,
-                                platform: 'HEPSIBURADA',
-                                marketplaceOrderId: o.num,
-                                customerName: o.name,
-                                totalAmount: o.total,
-                                taxAmount: o.total * 0.20,
-                                status: 'CONFIRMED',
-                                paymentStatus: 'PAID',
-                                orderDate: new Date(),
-                            }
-                        });
-                    }
-                    totalSynced += 1;
-                    results.push({ platform: 'HEPSIBURADA', status: 'success', count: 1 });
+                    results.push({ platform: 'HEPSIBURADA', status: 'skipped', error: 'Order sync endpoint mevcut degil' });
                 }
             } catch (err: any) {
                 console.error(`Order Sync error for ${integration.platform}:`, err);

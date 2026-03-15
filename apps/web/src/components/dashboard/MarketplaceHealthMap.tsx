@@ -23,47 +23,12 @@ interface MarketplaceHealth {
     aiRecommendation: string;
 }
 
-const fallbackData: MarketplaceHealth[] = [
-    {
-        name: 'Trendyol',
-        status: 'excellent',
-        score: 92,
-        metrics: { listingHealth: 95, priceCompetitiveness: 88, stockAvailability: 85, customerSatisfaction: 96, shippingPerformance: 94 },
-        alerts: [],
-        aiRecommendation: 'Fiyatları %5 artırabilirsiniz, rakipleriniz ortalama %12 pahalı',
-    },
-    {
-        name: 'Hepsiburada',
-        status: 'good',
-        score: 78,
-        metrics: { listingHealth: 82, priceCompetitiveness: 75, stockAvailability: 70, customerSatisfaction: 85, shippingPerformance: 78 },
-        alerts: ['3 ürün listede görünmüyor'],
-        aiRecommendation: 'SEO skorunuz düşük, ürün başlıklarını optimize edin',
-    },
-    {
-        name: 'Amazon',
-        status: 'good',
-        score: 85,
-        metrics: { listingHealth: 88, priceCompetitiveness: 82, stockAvailability: 80, customerSatisfaction: 90, shippingPerformance: 86 },
-        alerts: [],
-        aiRecommendation: 'Prime uyumlu ürün sayısını artırın, dönüşüm %35 artabilir',
-    },
-    {
-        name: 'N11',
-        status: 'warning',
-        score: 65,
-        metrics: { listingHealth: 70, priceCompetitiveness: 60, stockAvailability: 55, customerSatisfaction: 72, shippingPerformance: 68 },
-        alerts: ['Stok güncelleme sıklığı düşük', '2 olumsuz yorum yanıtlanmadı'],
-        aiRecommendation: 'Stok sync sıklığını artırın, günlük ₺850 kayıp tespit edildi',
-    },
-];
-
 interface MarketplaceHealthMapProps {
     data?: MarketplaceHealth[];
 }
 
 export default function MarketplaceHealthMap({ data: propData }: MarketplaceHealthMapProps) {
-    const data = propData && propData.length > 0 ? propData : fallbackData;
+    const data = Array.isArray(propData) ? propData : [];
     const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
 
     const getStatusStyle = (status: string) => {
@@ -94,6 +59,12 @@ export default function MarketplaceHealthMap({ data: propData }: MarketplaceHeal
                 <span className="text-[10px] font-bold text-slate-500 uppercase">Gerçek Zamanlı</span>
             </div>
 
+            {data.length === 0 ? (
+                <div className="p-4 rounded-xl bg-background/50 border border-border text-center">
+                    <p className="text-sm font-semibold text-foreground">Pazaryeri sağlık verisi bulunamadı</p>
+                    <p className="text-xs text-slate-500 mt-1">Entegrasyon verisi geldiğinde platform skorları burada görünecek.</p>
+                </div>
+            ) : (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {data.map((platform) => {
                     const style = getStatusStyle(platform.status);
@@ -154,6 +125,7 @@ export default function MarketplaceHealthMap({ data: propData }: MarketplaceHeal
                     );
                 })}
             </div>
+            )}
 
             {/* Selected Platform Details */}
             {selectedPlatform && (

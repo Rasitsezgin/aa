@@ -14,6 +14,7 @@ import {
   StatsSkeleton,
   CardSkeleton
 } from "@/components/ui/Skeleton";
+import { mapCatalogToHomepagePricing, type PricingCatalog } from '@/config/pricing-catalog';
 
 const AnimatedStats = dynamic(() => import("@/components/AnimatedStats"), { loading: () => <StatsSkeleton /> });
 const BentoGrid = dynamic(() => import("@/components/BentoGrid"), { loading: () => <BentoGridSkeleton /> });
@@ -81,7 +82,27 @@ export default function Home() {
         }
       }
     }, 0);
-    return () => clearTimeout(timer);
+
+    const pricingTimer = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/pricing-catalog', { cache: 'no-store' });
+        if (!res.ok) return;
+        const catalog = (await res.json()) as PricingCatalog;
+
+        setTexts((prev) => ({
+          ...prev,
+          pricing: mapCatalogToHomepagePricing(catalog),
+        }));
+      } catch {
+        // Varsayilan metinler ile devam et
+      }
+    }, 0);
+
+    setActiveConfig(INITIAL_CONFIG);
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(pricingTimer);
+    };
   }, []);
 
   return (

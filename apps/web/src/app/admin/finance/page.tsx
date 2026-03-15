@@ -49,39 +49,12 @@ export default function BillingDashboardPage() {
   const fetchBillingData = async () => {
     try {
       const res = await fetch('/api/admin/billing');
+      if (!res.ok) throw new Error('Faturalama verisi alınamadı');
       const billingData = await res.json();
       setData(billingData);
     } catch (error) {
-      // Mock data
-      setData({
-        summary: {
-          totalTenants: 3420,
-          paidSubscriptions: 2150,
-          trialSubscriptions: 1270,
-          conversionRate: 62.8,
-        },
-        revenue: {
-          thisMonth: 2850000,
-          lastMonth: 2620000,
-          growthRate: 8.8,
-          projected: 3135000,
-        },
-        overduePayments: [
-          { tenantId: 't1', tenantName: 'Acme Corp', amount: 2500, daysOverdue: 15 },
-          { tenantId: 't2', tenantName: 'Tech Store', amount: 1800, daysOverdue: 7 },
-          { tenantId: 't3', tenantName: 'Fashion Hub', amount: 3200, daysOverdue: 3 },
-        ],
-        upcomingRenewals: [
-          { tenantId: 't4', tenantName: 'Digital Shop', plan: 'PRO', renewalDate: new Date(Date.now() + 3 * 86400000), amount: 1500 },
-          { tenantId: 't5', tenantName: 'Home Goods', plan: 'ENTERPRISE', renewalDate: new Date(Date.now() + 7 * 86400000), amount: 5000 },
-          { tenantId: 't6', tenantName: 'Sport Center', plan: 'PRO', renewalDate: new Date(Date.now() + 14 * 86400000), amount: 1500 },
-        ],
-        planDistribution: [
-          { plan: 'STARTER', count: 1270 },
-          { plan: 'PRO', count: 1650 },
-          { plan: 'ENTERPRISE', count: 500 },
-        ],
-      });
+      console.error('Faturalama verisi yüklenemedi:', error);
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -95,10 +68,18 @@ export default function BillingDashboardPage() {
     return new Date(date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
   };
 
-  if (loading || !data) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/40 p-6 text-sm text-slate-500">
+        Finans verisi alınamadı. API yanıt verdiğinde bu ekran otomatik olarak güncellenecek.
       </div>
     );
   }

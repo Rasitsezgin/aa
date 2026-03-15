@@ -22,14 +22,18 @@ export default function VerificationSettings() {
         yandexVerificationCode: '',
     });
 
-    // Mock tenant ID - in real app, this would come from auth context
-    const tenantId = "current-tenant-id";
-
     const handleSave = async () => {
         setLoading(true);
         try {
-            // Simulated API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const res = await fetch('/api/settings/verification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-tenant-id': 'default' },
+                body: JSON.stringify(codes),
+            });
+
+            if (!res.ok) {
+                throw new Error('Dogrulama ayarlari kaydedilemedi');
+            }
 
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);

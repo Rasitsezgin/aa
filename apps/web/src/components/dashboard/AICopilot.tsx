@@ -84,11 +84,7 @@ export default function AICopilot() {
                 setSuggestions(data.suggestions || []);
             }
         } catch {
-            setSuggestions([
-                'Satış performansımı analiz et',
-                'Stok durumu nasıl?',
-                'Bugünkü gündem ne?',
-            ]);
+            setSuggestions([]);
         }
     };
 

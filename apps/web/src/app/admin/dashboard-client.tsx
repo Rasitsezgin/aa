@@ -54,7 +54,7 @@ export default function DashboardClient({ config }: { config: DashboardConfig | 
         refetchInterval: 600000, // 10 min
     });
 
-    const { data: dashboardData, isLoading } = useQuery({
+    const { data: dashboardData, isLoading, isError } = useQuery({
         queryKey: ['admin-dashboard-stats'],
         queryFn: () => adminApi.getDashboardStats(),
         refetchInterval: 60000,
@@ -79,6 +79,39 @@ export default function DashboardClient({ config }: { config: DashboardConfig | 
         if (val >= 1_000) return `₺${(val / 1_000).toFixed(0)}K`;
         return `₺${val}`;
     };
+
+    const formatUptime = (seconds?: number) => {
+        if (!seconds || seconds < 1) return '0dk';
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor((seconds % 86400) / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+
+        if (days > 0) return `${days}g ${hours}s`;
+        if (hours > 0) return `${hours}s ${minutes}dk`;
+        return `${minutes}dk`;
+    };
+
+    const demandChanges: number[] = Array.isArray(predictions?.demandForecast)
+        ? predictions.demandForecast
+            .map((item: any) => Number(item?.change || 0))
+            .filter((value: number) => Number.isFinite(value))
+        : [];
+
+    const expectedGrowth = demandChanges.length > 0
+        ? (demandChanges.reduce((sum, value) => sum + value, 0) / demandChanges.length)
+        : 0;
+
+    const proactiveAlerts = Array.isArray(predictions?.stockPredictions)
+        ? predictions.stockPredictions.slice(0, 5).map((stock: any) => {
+            const daysUntilStockout = Number(stock?.daysUntilStockout || 0);
+            const severity = daysUntilStockout <= 7 ? 'warning' : daysUntilStockout <= 14 ? 'info' : 'success';
+            return {
+                type: 'stock',
+                severity,
+                message: `${stock?.productName || 'Ürün'} için stok tahmini: ${Math.max(daysUntilStockout, 0)} gün`,
+            };
+        })
+        : [];
 
     return (
         <div className="space-y-8 animate-in fade-in duration-700 relative">
@@ -165,16 +198,28 @@ export default function DashboardClient({ config }: { config: DashboardConfig | 
                                 <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-wider">AI PREDICTION</span>
                                 <span className="text-white/60 text-xs font-medium">• 7 Günlük Tahmin</span>
                             </div>
-                            <h2 className="text-3xl font-black mb-2 tracking-tight">Satışlarda <span className="text-green-400">%{predictions?.forecast?.expectedGrowth || 12.4}</span> Artış Bekleniyor</h2>
+                            <h2 className="text-3xl font-black mb-2 tracking-tight">Satışlarda <span className="text-green-400">%{expectedGrowth.toFixed(1)}</span> Değişim Öngörülüyor</h2>
                             <p className="text-indigo-100/80 text-sm font-medium max-w-md mb-8">
-                                {aiSummary?.summary || "AI algoritmalarımız mevcut trendleri analiz ederek önümüzdeki hafta için güçlü bir büyüme potansiyeli tespit etti."}
+                                {summaryLoading ? 'AI özeti hazırlanıyor...' : (aiSummary?.predictionText || 'AI özeti bulunamadı.')}
                             </p>
 
                             <div className="grid grid-cols-3 gap-4">
                                 {[
-                                    { label: "Olası Gelir", value: formatCurrency(predictions?.forecast?.estimatedRevenue || 450000), trend: "+14%" },
-                                    { label: "Doğruluk Payı", value: `%${predictions?.forecast?.confidence || 94}`, trend: "Yüksek" },
-                                    { label: "Etki Faktörü", value: "Kampanya", trend: "Pozitif" }
+                                    {
+                                        label: "30 Gün Gelir Tahmini",
+                                        value: formatCurrency(Number(predictions?.revenuePrediction?.next30Days || 0)),
+                                        trend: `${expectedGrowth >= 0 ? '+' : ''}${expectedGrowth.toFixed(1)}%`
+                                    },
+                                    {
+                                        label: "Doğruluk Payı",
+                                        value: `%${Number(predictions?.revenuePrediction?.confidence || 0)}`,
+                                        trend: Number(predictions?.revenuePrediction?.confidence || 0) >= 80 ? 'Yüksek' : 'Orta'
+                                    },
+                                    {
+                                        label: "Risk Seviyesi",
+                                        value: String(predictions?.riskAnalysis?.overallRisk || 'unknown').toUpperCase(),
+                                        trend: predictions?.revenuePrediction?.trend === 'up' ? 'Yukarı Trend' : 'Aşağı Trend'
+                                    }
                                 ].map((item, i) => (
                                     <div key={i} className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10">
                                         <div className="text-[10px] font-bold text-white/60 uppercase mb-1">{item.label}</div>
@@ -194,19 +239,23 @@ export default function DashboardClient({ config }: { config: DashboardConfig | 
                             Proaktif Analiz
                         </h3>
                         <div className="space-y-4">
-                            {(predictions?.stockAlerts || [
-                                { type: 'stock', message: '5 Üründe stok tükenme riski', severity: 'warning' },
-                                { type: 'price', message: 'Rakip fiyat düşüşü tespit edildi', severity: 'info' },
-                                { type: 'traffic', message: 'Anormal trafik artışı: %24', severity: 'success' }
-                            ]).map((alert: any, i: number) => (
+                            {predictionsLoading && (
+                                <div className="p-4 rounded-2xl border bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-500 text-sm">
+                                    Proaktif analiz verileri yükleniyor...
+                                </div>
+                            )}
+                            {!predictionsLoading && proactiveAlerts.length === 0 && (
+                                <div className="p-4 rounded-2xl border bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-500 text-sm">
+                                    Gösterilecek stok uyarısı bulunamadı.
+                                </div>
+                            )}
+                            {proactiveAlerts.map((alert: any, i: number) => (
                                 <div key={i} className={`p-4 rounded-2xl border flex gap-4 transition-all hover:scale-[1.02] cursor-pointer ${alert.severity === 'warning' ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/20 text-amber-900 dark:text-amber-100' :
                                     alert.severity === 'info' ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/20 text-blue-900 dark:text-blue-100' :
                                         'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/20 text-green-900 dark:text-green-100'
                                     }`}>
                                     <div className="mt-0.5">
-                                        {alert.type === 'stock' ? <Package size={18} /> :
-                                            alert.type === 'price' ? <TrendingUp size={18} /> :
-                                                <Zap size={18} />}
+                                        {alert.type === 'stock' ? <Package size={18} /> : <TrendingUp size={18} />}
                                     </div>
                                     <div>
                                         <div className="text-[13px] font-bold leading-tight">{alert.message}</div>
@@ -239,7 +288,16 @@ export default function DashboardClient({ config }: { config: DashboardConfig | 
                                     const revenueChart = dashboardData?.revenueChart || [];
                                     const chartData = revenueChart.length > 0
                                         ? revenueChart.map((item: any) => item.revenue || 0)
-                                        : [40, 65, 45, 80, 55, 70, 40, 90, 60, 75, 50, 95];
+                                        : [];
+
+                                    if (chartData.length === 0) {
+                                        return (
+                                            <div className="w-full h-full flex items-center justify-center text-sm text-slate-500">
+                                                Gelir grafiği için yeterli veri yok.
+                                            </div>
+                                        );
+                                    }
+
                                     const maxVal = Math.max(...chartData, 1);
                                     return chartData.map((val: number, i: number) => {
                                         const h = Math.max((val / maxVal) * 100, 5);
@@ -267,11 +325,16 @@ export default function DashboardClient({ config }: { config: DashboardConfig | 
                             <div className="flex-1 flex items-center justify-center relative my-4">
                                 <div className="w-44 h-44 rounded-full border-[10px] border-slate-200 dark:border-slate-800 flex items-center justify-center relative">
                                     <div className="text-center z-10">
-                                        <div className="text-4xl font-black text-foreground">99.9%</div>
-                                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Uptime</div>
+                                        <div className="text-3xl font-black text-foreground">{isLoading ? '...' : formatUptime(dashboardData?.serverStatus?.uptime)}</div>
+                                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Çalışma Süresi</div>
                                     </div>
                                 </div>
                             </div>
+                            {isError && (
+                                <div className="mt-4 text-xs text-red-500 font-medium text-center">
+                                    Sunucu sağlık verisi alınamadı.
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

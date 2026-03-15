@@ -1,15 +1,19 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import {
     Rocket, Mail, Lock, User, Building2, Phone, Eye, EyeOff,
     CheckCircle, ArrowRight, Sparkles, Shield, Zap, Clock,
     CreditCard, Globe, Package, BarChart3, Users, Gift, AlertCircle, Loader2
 } from 'lucide-react';
+import { DEFAULT_PRICING_CATALOG, formatTryAmount, type PricingCatalog } from '@/config/pricing-catalog';
+
+const DEFAULT_STARTER = DEFAULT_PRICING_CATALOG.plans.find((plan) => plan.id === 'starter')!;
+const DEFAULT_PROFESSIONAL = DEFAULT_PRICING_CATALOG.plans.find((plan) => plan.id === 'professional')!;
+const DEFAULT_ENTERPRISE = DEFAULT_PRICING_CATALOG.plans.find((plan) => plan.id === 'enterprise')!;
 
 const benefits = [
     { icon: Clock, title: '14 Gün Ücretsiz', description: 'Kredi kartı gerekmez' },
@@ -27,17 +31,36 @@ const includedFeatures = [
     '7/24 e-posta ve chat desteği',
 ];
 
-const plans = [
-    { id: 'starter', name: 'Başlangıç', price: '₺499', period: '/ay', description: '500 SKU\'ya kadar' },
-    { id: 'growth', name: 'Büyüme', price: '₺999', period: '/ay', description: '2000 SKU\'ya kadar', popular: true },
-    { id: 'enterprise', name: 'Kurumsal', price: 'Özel', period: '', description: 'Sınırsız SKU' },
+const DEFAULT_SIGNUP_PLANS = [
+    {
+        id: 'starter',
+        name: DEFAULT_STARTER.name,
+        price: DEFAULT_STARTER.monthly !== null ? `₺${formatTryAmount(DEFAULT_STARTER.monthly)}` : 'Ozel',
+        period: DEFAULT_STARTER.monthly !== null ? '/ay' : '',
+        description: DEFAULT_STARTER.signupDescription,
+    },
+    {
+        id: 'professional',
+        name: DEFAULT_PROFESSIONAL.name,
+        price: DEFAULT_PROFESSIONAL.monthly !== null ? `₺${formatTryAmount(DEFAULT_PROFESSIONAL.monthly)}` : 'Ozel',
+        period: DEFAULT_PROFESSIONAL.monthly !== null ? '/ay' : '',
+        description: DEFAULT_PROFESSIONAL.signupDescription,
+        popular: true,
+    },
+    {
+        id: 'enterprise',
+        name: DEFAULT_ENTERPRISE.name,
+        price: DEFAULT_ENTERPRISE.enterpriseLabel ?? 'Ozel',
+        period: '',
+        description: DEFAULT_ENTERPRISE.signupDescription,
+    },
 ];
 
 export default function SignupPage() {
-    const router = useRouter();
     const [step, setStep] = useState(1);
     const [showPassword, setShowPassword] = useState(false);
-    const [selectedPlan, setSelectedPlan] = useState('growth');
+    const [selectedPlan, setSelectedPlan] = useState('professional');
+    const [plans, setPlans] = useState(DEFAULT_SIGNUP_PLANS);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
@@ -60,6 +83,63 @@ export default function SignupPage() {
             [name]: type === 'checkbox' ? checked : value
         }));
     };
+
+    useEffect(() => {
+        const selected = new URLSearchParams(window.location.search).get('plan');
+        if (selected === 'starter' || selected === 'professional' || selected === 'enterprise') {
+            setSelectedPlan(selected);
+        }
+    }, []);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadPricingCatalog = async () => {
+            try {
+                const res = await fetch('/api/pricing-catalog', { cache: 'no-store' });
+                if (!res.ok) return;
+
+                const catalog = (await res.json()) as PricingCatalog;
+                const starter = catalog.plans.find((plan) => plan.id === 'starter') ?? DEFAULT_PRICING_CATALOG.plans[0];
+                const professional = catalog.plans.find((plan) => plan.id === 'professional') ?? DEFAULT_PRICING_CATALOG.plans[1];
+                const enterprise = catalog.plans.find((plan) => plan.id === 'enterprise') ?? DEFAULT_PRICING_CATALOG.plans[2];
+
+                if (isMounted) {
+                    setPlans([
+                        {
+                            id: 'starter',
+                            name: starter.name,
+                            price: starter.monthly !== null ? `₺${formatTryAmount(starter.monthly)}` : 'Ozel',
+                            period: starter.monthly !== null ? '/ay' : '',
+                            description: starter.signupDescription,
+                        },
+                        {
+                            id: 'professional',
+                            name: professional.name,
+                            price: professional.monthly !== null ? `₺${formatTryAmount(professional.monthly)}` : 'Ozel',
+                            period: professional.monthly !== null ? '/ay' : '',
+                            description: professional.signupDescription,
+                            popular: true,
+                        },
+                        {
+                            id: 'enterprise',
+                            name: enterprise.name,
+                            price: enterprise.enterpriseLabel ?? 'Ozel',
+                            period: '',
+                            description: enterprise.signupDescription,
+                        },
+                    ]);
+                }
+            } catch {
+                // Varsayilan planlar ile devam et
+            }
+        };
+
+        loadPricingCatalog();
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

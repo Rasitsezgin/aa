@@ -152,7 +152,7 @@ function parseApiResponse(data: TrendyolApiResponse, storeInfo: { storeName: str
         rating: p.ratingScore?.averageRating || 0,
         reviews: p.ratingScore?.totalRatingCount || 0,
         favorites: formatNumber(p.favoriteCount || 0),
-        stock: p.hasStock ? Math.floor(Math.random() * 150) + 50 : 0, // Realistic stock estimation
+        stock: p.hasStock ? 1 : 0,
         imageUrl: p.images?.[0]?.url,
         hasDiscount: (p.price?.discountedPrice || 0) < (p.price?.originalPrice || 0),
         discountRate: p.price?.discountedPrice && p.price?.originalPrice
@@ -164,18 +164,12 @@ function parseApiResponse(data: TrendyolApiResponse, storeInfo: { storeName: str
     const activeProducts = parsedProducts.filter(p => p.rating > 0);
     const avgRating = activeProducts.length > 0
         ? activeProducts.reduce((sum, p) => sum + p.rating, 0) / activeProducts.length
-        : 4.5;
-
-    const totalSampleReviews = parsedProducts.reduce((sum, p) => sum + p.reviews, 0);
-    const avgPrice = parsedProducts.length > 0
-        ? parsedProducts.reduce((sum, p) => sum + p.price, 0) / parsedProducts.length
         : 0;
 
-    // Estimate based on reviews and price
-    // Typical conversion: 1 review per 25-50 orders. We'll use 40.
-    const estimatedMonthlyOrders = totalSampleReviews / 10; // Simple heuristic for monthly volume
-    const monthlyTurnover = Math.round(estimatedMonthlyOrders * avgPrice);
-    const monthlyTraffic = Math.round(totalSampleReviews * 2.5); // Simple heuristic
+    const totalSampleReviews = parsedProducts.reduce((sum, p) => sum + p.reviews, 0);
+
+    const monthlyTurnover = 0;
+    const monthlyTraffic = 0;
 
     // Extract real keywords from product names
     const keywords = extractKeywords(parsedProducts);
@@ -187,25 +181,25 @@ function parseApiResponse(data: TrendyolApiResponse, storeInfo: { storeName: str
         storeName: storeInfo.storeName,
         storeId: storeInfo.storeId,
         rating: Math.round(avgRating * 10) / 10,
-        followers: formatNumber(totalSampleReviews * 8),
-        followersCount: totalSampleReviews * 8,
+        followers: formatNumber(0),
+        followersCount: 0,
         products: parsedProducts,
         seoScore,
         keywords,
         metrics: {
             storeName: storeInfo.storeName,
             rating: Math.round(avgRating * 10) / 10,
-            followers: totalSampleReviews * 8,
+            followers: 0,
             monthlyTurnover,
             monthlyTraffic,
-            responseTime: '1 saat içinde',
+            responseTime: 'Veri yok',
             totalProducts: totalCount,
             titleOptimization: calculateTitleScore(parsedProducts),
-            imageOptimization: 85,
+            imageOptimization: calculateImageScore(parsedProducts),
             priceCompetitiveness: calculatePriceScore(parsedProducts),
             stockHealth: calculateStockHealth(parsedProducts),
             customerSatisfaction: Math.round(avgRating * 20),
-            responseScore: 90,
+            responseScore: 0,
         },
     };
 }
@@ -288,9 +282,14 @@ function calculatePriceScore(products: TrendyolProduct[]): number {
 
 function calculateStockHealth(products: TrendyolProduct[]): number {
     if (products.length === 0) return 0;
-    // Since public API doesn't show exact stock, we assume if it has stock, it's healthy
-    const inStock = products.filter(p => (p.price > 0)).length;
+    const inStock = products.filter(p => p.stock > 0).length;
     return Math.round((inStock / products.length) * 100);
+}
+
+function calculateImageScore(products: TrendyolProduct[]): number {
+    if (products.length === 0) return 0;
+    const withImage = products.filter(p => Boolean(p.imageUrl)).length;
+    return Math.round((withImage / products.length) * 100);
 }
 
 function formatNumber(num: number): string {

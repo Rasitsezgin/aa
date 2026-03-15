@@ -322,7 +322,7 @@ export default function ThemePage() {
                             <div className="flex items-center justify-between p-4 bg-background/50 rounded-xl">
                                 <div>
                                     <div className="font-medium text-foreground">Animasyonlar</div>
-                                    <div className="text-sm text-slate-500">Geçiş ve hover efektleri</div>
+                                    <div className="text-sm text-slate-500">Kapatıldığında geçişler sadeleşir (Animasyonları Azalt)</div>
                                 </div>
                                 <button
                                     onClick={() => setThemeSettings({ animations: !theme.animations })}

@@ -37,28 +37,32 @@ export default function CommissionCalculatorPage() {
     const calculate = async () => {
         setIsCalculating(true);
         try {
-            // In a real scenario, this would be an API call
-            // const data = await apiClient.request('/finance/calculate-commission', { method: 'POST', body: JSON.stringify({ price, cost, category }) });
-
-            // For now, simulating API response with realistic formulas
-            await new Promise(r => setTimeout(r, 600));
-
-            const pVal = parseFloat(price) || 0;
-            const cVal = parseFloat(cost) || 0;
-
-            const mockResults: CalculationResult[] = [
-                { platform: 'Trendyol', commissionRate: 18, commissionAmount: pVal * 0.18, shippingFee: 45, vatAmount: pVal * 0.20, serviceFee: 5, netProfit: 0, margin: 0 },
-                { platform: 'Hepsiburada', commissionRate: 15, commissionAmount: pVal * 0.15, shippingFee: 42, vatAmount: pVal * 0.20, serviceFee: 4, netProfit: 0, margin: 0 },
-                { platform: 'Amazon', commissionRate: 12, commissionAmount: pVal * 0.12, shippingFee: 38, vatAmount: pVal * 0.20, serviceFee: 0, netProfit: 0, margin: 0 },
-                { platform: 'N11', commissionRate: 20, commissionAmount: pVal * 0.20, shippingFee: 40, vatAmount: pVal * 0.20, serviceFee: 2, netProfit: 0, margin: 0 },
-            ].map(res => {
-                const totalExp = res.commissionAmount + res.shippingFee + res.vatAmount + res.serviceFee + cVal;
-                const net = pVal - totalExp;
-                return { ...res, netProfit: net, margin: (net / pVal) * 100 };
+            const payload = {
+                price: parseFloat(price) || 0,
+                cost: parseFloat(cost) || 0,
+                category,
+            };
+            const data = await apiClient.request<any[]>('/finance/calculate-commission', {
+                method: 'POST',
+                body: JSON.stringify(payload),
             });
 
-            setResults(mockResults);
-        } catch { /* error */ }
+            const normalized: CalculationResult[] = Array.isArray(data)
+                ? data.map((r) => ({
+                    platform: String(r.platform || '-'),
+                    commissionRate: Number(r.commissionRate || 0),
+                    commissionAmount: Number(r.commissionAmount || 0),
+                    shippingFee: Number(r.shippingFee || 0),
+                    vatAmount: Number(r.vatAmount || 0),
+                    serviceFee: Number(r.serviceFee || 0),
+                    netProfit: Number(r.netProfit || 0),
+                    margin: Number(r.margin || 0),
+                }))
+                : [];
+            setResults(normalized);
+        } catch {
+            setResults([]);
+        }
         setIsCalculating(false);
     };
 
@@ -145,6 +149,11 @@ export default function CommissionCalculatorPage() {
                     <h2 className="text-lg font-bold text-foreground">Karşılaştırmalı Analiz</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {results.length === 0 && (
+                            <div className="md:col-span-2 bg-surface rounded-2xl border border-border p-5 text-sm text-slate-500">
+                                Komisyon hesaplama verisi bulunamadi
+                            </div>
+                        )}
                         {results.map((res, i) => (
                             <m.div
                                 key={res.platform}

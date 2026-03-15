@@ -53,19 +53,38 @@ export default function AIConsultantPage() {
         setIsTyping(true);
 
         try {
-            // Simulate AI logic
-            await new Promise(r => setTimeout(r, 1500));
+            const res = await fetch('/api/ai/copilot/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-tenant-id': 'default' },
+                body: JSON.stringify({ message: userMsg.content, context: '/dashboard/ai-consultant' }),
+            });
 
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData?.error || 'Copilot backend kullanilamiyor');
+            }
+
+            const data = await res.json();
             const aiMsg: ChatMessage = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
-                content: "Verilerinizi analiz ettiğimde, son 7 günde Trendyol'daki 'Kablosuz Gaming Mouse' ürününüzün gösterim sayısının %22 arttığını ancak dönüşüm oranının %1.2'de kaldığını görüyorum. Bu genellikle fiyatın rakiplerden %5-10 daha yüksek olması veya ana görselin etkileyiciliğinin düşük olmasıyla ilgilidir. Rakipleriniz şu an ₺1190 bandında, sizin fiyatınız ise ₺1250. Fiyatı ₺1195'e çekip 'Kupon' tanımlamanızı öneririm.",
+                content: data.message || 'Yanit alinamadi',
                 timestamp: new Date(),
-                type: 'suggestion'
+                type: 'suggestion',
             };
             setMessages(prev => [...prev, aiMsg]);
-        } catch (err) { /* error */ }
-        setIsTyping(false);
+        } catch (err: any) {
+            const aiMsg: ChatMessage = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: err?.message || 'Copilot servisine baglanilamadi',
+                timestamp: new Date(),
+                type: 'warning',
+            };
+            setMessages(prev => [...prev, aiMsg]);
+        } finally {
+            setIsTyping(false);
+        }
     };
 
     return (

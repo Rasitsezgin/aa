@@ -21,18 +21,7 @@ interface AuditEntry {
     resource: string;
 }
 
-const mockAuditLogs: AuditEntry[] = [
-    { id: '1', action: 'Ürün Güncellendi', category: 'product', user: 'Ahmet Yıldız', userRole: 'Admin', ip: '192.168.1.100', timestamp: '2025-01-27 14:32:15', details: 'iPhone 15 Kılıf fiyatı ₺89.90 → ₺79.90 olarak güncellendi', severity: 'info', resource: 'product/PRD-001' },
-    { id: '2', action: 'Kullanıcı Giriş', category: 'auth', user: 'Fatma Demir', userRole: 'Editor', ip: '192.168.1.105', timestamp: '2025-01-27 14:28:00', details: 'Başarılı giriş - Chrome/Windows', severity: 'info', resource: 'auth/session' },
-    { id: '3', action: 'Toplu Fiyat Değişikliği', category: 'product', user: 'Ahmet Yıldız', userRole: 'Admin', ip: '192.168.1.100', timestamp: '2025-01-27 14:15:30', details: '45 ürünün fiyatı toplu güncellendi', severity: 'warning', resource: 'product/bulk' },
-    { id: '4', action: 'API Anahtarı Oluşturuldu', category: 'security', user: 'Sistem', userRole: 'System', ip: '127.0.0.1', timestamp: '2025-01-27 13:45:00', details: 'Yeni API anahtarı oluşturuldu: pk_live_***', severity: 'critical', resource: 'api-key/AK-003' },
-    { id: '5', action: 'Sipariş İptal', category: 'order', user: 'Mehmet Kaya', userRole: 'Support', ip: '192.168.1.110', timestamp: '2025-01-27 13:30:00', details: 'Sipariş #ORD-2024-00892 iptal edildi. Sebep: Müşteri talebi', severity: 'warning', resource: 'order/ORD-2024-00892' },
-    { id: '6', action: 'Rol Değişikliği', category: 'security', user: 'Ahmet Yıldız', userRole: 'Admin', ip: '192.168.1.100', timestamp: '2025-01-27 12:00:00', details: 'Fatma Demir rolü "Viewer" → "Editor" olarak değiştirildi', severity: 'critical', resource: 'user/USR-005' },
-    { id: '7', action: 'Stok Uyarısı', category: 'product', user: 'Sistem', userRole: 'System', ip: '127.0.0.1', timestamp: '2025-01-27 11:30:00', details: '5 ürün stok kritik seviyeye düştü', severity: 'warning', resource: 'product/stock-alert' },
-    { id: '8', action: 'Başarısız Giriş', category: 'auth', user: 'bilinmeyen@test.com', userRole: '-', ip: '203.0.113.50', timestamp: '2025-01-27 10:15:00', details: '3 başarısız giriş denemesi', severity: 'critical', resource: 'auth/failed' },
-    { id: '9', action: 'Dışa Aktarım', category: 'data', user: 'Fatma Demir', userRole: 'Editor', ip: '192.168.1.105', timestamp: '2025-01-27 09:45:00', details: '1.245 ürün CSV olarak dışa aktarıldı', severity: 'info', resource: 'export/EXP-002' },
-    { id: '10', action: 'Webhook Hatası', category: 'system', user: 'Sistem', userRole: 'System', ip: '127.0.0.1', timestamp: '2025-01-27 09:00:00', details: 'İade webhook 3 kez başarısız oldu', severity: 'critical', resource: 'webhook/WH-003' },
-];
+const auditLogs: AuditEntry[] = [];
 
 const categoryIcons: Record<string, React.ElementType> = {
     product: Package,
@@ -55,7 +44,7 @@ export default function AuditLogPage() {
     const [severityFilter, setSeverityFilter] = useState('all');
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
-    const filtered = mockAuditLogs.filter(log => {
+    const filtered = auditLogs.filter(log => {
         if (search && !log.action.toLowerCase().includes(search.toLowerCase()) && !log.user.toLowerCase().includes(search.toLowerCase()) && !log.details.toLowerCase().includes(search.toLowerCase())) return false;
         if (categoryFilter !== 'all' && log.category !== categoryFilter) return false;
         if (severityFilter !== 'all' && log.severity !== severityFilter) return false;
@@ -79,10 +68,10 @@ export default function AuditLogPage() {
             {/* Stats */}
             <div className="grid grid-cols-4 gap-4">
                 {[
-                    { label: 'Toplam Log', value: mockAuditLogs.length, color: 'slate' },
-                    { label: 'Bilgi', value: mockAuditLogs.filter(l => l.severity === 'info').length, color: 'blue' },
-                    { label: 'Uyarı', value: mockAuditLogs.filter(l => l.severity === 'warning').length, color: 'yellow' },
-                    { label: 'Kritik', value: mockAuditLogs.filter(l => l.severity === 'critical').length, color: 'red' },
+                    { label: 'Toplam Log', value: auditLogs.length, color: 'slate' },
+                    { label: 'Bilgi', value: auditLogs.filter(l => l.severity === 'info').length, color: 'blue' },
+                    { label: 'Uyarı', value: auditLogs.filter(l => l.severity === 'warning').length, color: 'yellow' },
+                    { label: 'Kritik', value: auditLogs.filter(l => l.severity === 'critical').length, color: 'red' },
                 ].map((s, i) => (
                     <div key={i} className="bg-surface rounded-2xl border border-border p-4">
                         <div className={`text-2xl font-bold text-${s.color}-400`}>{s.value}</div>
@@ -119,6 +108,9 @@ export default function AuditLogPage() {
 
             {/* Log Entries */}
             <div className="space-y-2">
+                {filtered.length === 0 && (
+                    <div className="bg-surface rounded-xl border border-border p-6 text-sm text-slate-500">Audit log verisi bulunamadı</div>
+                )}
                 {filtered.map((log, i) => {
                     const Icon = categoryIcons[log.category] || Settings;
                     const sev = severityConfig[log.severity];

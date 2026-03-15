@@ -45,32 +45,21 @@ export function useExport() {
     setProgress(0);
 
     try {
-      // Simulate export progress
-      for (let i = 0; i <= 100; i += 10) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        setProgress(i);
+      setProgress(30);
+      const res = await fetch('/api/data/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(options),
+      });
+
+      if (!res.ok) {
+        throw new Error('Disa aktarim servisi kullanilamiyor');
       }
 
-      // Generate demo data based on type
-      const data = generateDemoData(options.dataType, 100);
-      
-      let blob: Blob;
-      let filename: string;
-
-      switch (options.format) {
-        case 'csv':
-          blob = new Blob([convertToCSV(data)], { type: 'text/csv;charset=utf-8;' });
-          filename = `${options.dataType}_export_${Date.now()}.csv`;
-          break;
-        case 'json':
-          blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-          filename = `${options.dataType}_export_${Date.now()}.json`;
-          break;
-        default:
-          // For xlsx, we'd use a library like xlsx in production
-          blob = new Blob([convertToCSV(data)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-          filename = `${options.dataType}_export_${Date.now()}.xlsx`;
-      }
+      setProgress(80);
+      const blob = await res.blob();
+      const filename = `${options.dataType}_export_${Date.now()}.${options.format}`;
+      setProgress(100);
 
       // Trigger download
       const url = URL.createObjectURL(blob);
@@ -102,25 +91,39 @@ export function useImport() {
     setProgress(0);
 
     try {
-      // Simulate import progress
-      for (let i = 0; i <= 100; i += 5) {
-        await new Promise(resolve => setTimeout(resolve, 50));
-        setProgress(i);
+      setProgress(25);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('dataType', dataType);
+
+      const res = await fetch('/api/data/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error('Ice aktarim servisi kullanilamiyor');
       }
 
-      // Simulate processing
-      const totalRows = Math.floor(Math.random() * 500) + 100;
-      const errorCount = Math.floor(Math.random() * 5);
+      setProgress(75);
+      const payload = await res.json();
+      const data = payload?.data || payload;
+      setProgress(100);
 
       return {
-        success: true,
-        totalRows,
-        successRows: totalRows - errorCount,
-        errorRows: errorCount,
-        errors: errorCount > 0 ? [
-          { row: 15, message: 'Geçersiz SKU formatı' },
-          { row: 42, message: 'Fiyat değeri eksik' }
-        ].slice(0, errorCount) : []
+        success: Boolean(data?.success),
+        totalRows: Number(data?.totalRows || 0),
+        successRows: Number(data?.successRows || 0),
+        errorRows: Number(data?.errorRows || 0),
+        errors: Array.isArray(data?.errors) ? data.errors : [],
+      };
+    } catch {
+      return {
+        success: false,
+        totalRows: 0,
+        successRows: 0,
+        errorRows: 1,
+        errors: [{ row: 0, message: 'Ice aktarim servisine ulasilamadi' }],
       };
     } finally {
       setIsImporting(false);
@@ -476,55 +479,3 @@ export function ImportModal({ isOpen, onClose, dataType, onSuccess }: ImportModa
   );
 }
 
-// Helper functions
-function generateDemoData(type: DataType, count: number): any[] {
-  const data = [];
-  for (let i = 0; i < count; i++) {
-    switch (type) {
-      case 'products':
-        data.push({
-          id: `PRD-${i + 1}`,
-          name: `Ürün ${i + 1}`,
-          sku: `SKU-${1000 + i}`,
-          price: Math.floor(Math.random() * 10000) + 100,
-          stock: Math.floor(Math.random() * 100),
-          category: ['Elektronik', 'Moda', 'Ev', 'Spor'][Math.floor(Math.random() * 4)]
-        });
-        break;
-      case 'orders':
-        data.push({
-          id: `ORD-${i + 1}`,
-          customer: `Müşteri ${i + 1}`,
-          total: Math.floor(Math.random() * 5000) + 100,
-          status: ['pending', 'shipped', 'delivered'][Math.floor(Math.random() * 3)],
-          date: new Date(Date.now() - Math.random() * 30 * 86400000).toISOString()
-        });
-        break;
-      case 'customers':
-        data.push({
-          id: `CUS-${i + 1}`,
-          name: `Müşteri ${i + 1}`,
-          email: `musteri${i + 1}@example.com`,
-          totalOrders: Math.floor(Math.random() * 50),
-          totalSpent: Math.floor(Math.random() * 50000)
-        });
-        break;
-      case 'inventory':
-        data.push({
-          sku: `SKU-${1000 + i}`,
-          product: `Ürün ${i + 1}`,
-          quantity: Math.floor(Math.random() * 500),
-          warehouse: ['Ana Depo', 'Yedek Depo'][Math.floor(Math.random() * 2)]
-        });
-        break;
-    }
-  }
-  return data;
-}
-
-function convertToCSV(data: any[]): string {
-  if (data.length === 0) return '';
-  const headers = Object.keys(data[0]);
-  const rows = data.map(row => headers.map(h => JSON.stringify(row[h] ?? '')).join(','));
-  return [headers.join(','), ...rows].join('\n');
-}

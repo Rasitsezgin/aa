@@ -25,93 +25,8 @@ import {
     ChevronDown
 } from 'lucide-react';
 
-// Fallback shipping companies
-const fallbackShippingCompanies = [
-    {
-        id: 1,
-        name: 'Yurtiçi Kargo',
-        logo: '🚚',
-        status: 'active',
-        defaultRate: 29.90,
-        freeShippingMin: 250,
-        avgDelivery: '1-3 gün',
-        rating: 4.5,
-        integrationStatus: 'connected',
-        todayShipments: 45,
-        totalShipments: 2340
-    },
-    {
-        id: 2,
-        name: 'Aras Kargo',
-        logo: '📦',
-        status: 'active',
-        defaultRate: 27.50,
-        freeShippingMin: 200,
-        avgDelivery: '2-4 gün',
-        rating: 4.2,
-        integrationStatus: 'connected',
-        todayShipments: 32,
-        totalShipments: 1890
-    },
-    {
-        id: 3,
-        name: 'MNG Kargo',
-        logo: '🚛',
-        status: 'active',
-        defaultRate: 25.00,
-        freeShippingMin: 300,
-        avgDelivery: '2-4 gün',
-        rating: 4.0,
-        integrationStatus: 'connected',
-        todayShipments: 18,
-        totalShipments: 956
-    },
-    {
-        id: 4,
-        name: 'Sürat Kargo',
-        logo: '⚡',
-        status: 'inactive',
-        defaultRate: 32.00,
-        freeShippingMin: 350,
-        avgDelivery: '1-2 gün',
-        rating: 4.3,
-        integrationStatus: 'disconnected',
-        todayShipments: 0,
-        totalShipments: 420
-    },
-    {
-        id: 5,
-        name: 'PTT Kargo',
-        logo: '✉️',
-        status: 'active',
-        defaultRate: 22.00,
-        freeShippingMin: 150,
-        avgDelivery: '3-5 gün',
-        rating: 3.8,
-        integrationStatus: 'connected',
-        todayShipments: 12,
-        totalShipments: 678
-    }
-];
-
-// Fallback shipping zones
-const fallbackShippingZones = [
-    { id: 1, name: 'Marmara Bölgesi', provinces: 11, baseCost: 25, deliveryTime: '1-2 gün' },
-    { id: 2, name: 'Ege Bölgesi', provinces: 8, baseCost: 28, deliveryTime: '2-3 gün' },
-    { id: 3, name: 'İç Anadolu', provinces: 7, baseCost: 30, deliveryTime: '2-3 gün' },
-    { id: 4, name: 'Akdeniz', provinces: 8, baseCost: 32, deliveryTime: '2-4 gün' },
-    { id: 5, name: 'Karadeniz', provinces: 18, baseCost: 35, deliveryTime: '3-4 gün' },
-    { id: 6, name: 'Doğu Anadolu', provinces: 14, baseCost: 40, deliveryTime: '3-5 gün' },
-    { id: 7, name: 'Güneydoğu Anadolu', provinces: 9, baseCost: 38, deliveryTime: '3-5 gün' }
-];
-
-// Fallback shipping rules
-const fallbackShippingRules = [
-    { id: 1, name: 'Ücretsiz Kargo', condition: '250₺ üzeri', discount: '100%', active: true },
-    { id: 2, name: 'Hafta Sonu İndirimi', condition: 'Cumartesi-Pazar', discount: '15%', active: true },
-    { id: 3, name: 'VIP Müşteri', condition: 'VIP üyelik', discount: '50%', active: true },
-    { id: 4, name: 'Hızlı Teslimat', condition: 'Express seçimi', surcharge: '+15₺', active: false }
-];
+const shippingZones: any[] = [];
+const shippingRules: any[] = [];
 
 export default function ShippingPage() {
     const [activeTab, setActiveTab] = useState('companies');
@@ -121,29 +36,28 @@ export default function ShippingPage() {
     // API hook
     const { shipments: apiShipments, providers: apiProviders, loading, error, fetchShipments, fetchProviders } = useShipping();
 
-    // API verilerini fallback ile birleştir
+    // API verilerini göster
     const shippingCompanies = (Array.isArray(apiProviders) && apiProviders.length > 0)
         ? apiProviders.map((p, i) => ({
             id: Number(p.id) || i + 1,
             name: p.name,
-            logo: p.logo || fallbackShippingCompanies[i]?.logo || '📦',
+            logo: p.logo || '📦',
             status: p.isActive ? 'active' : 'inactive',
-            defaultRate: p.pricePerKg || fallbackShippingCompanies[i]?.defaultRate || 0,
-            freeShippingMin: fallbackShippingCompanies[i]?.freeShippingMin || 200,
+            defaultRate: p.pricePerKg || 0,
+            freeShippingMin: 0,
             avgDelivery: `${p.avgDeliveryDays} gün`,
             rating: p.rating || 0,
             integrationStatus: p.isActive ? 'connected' : 'disconnected',
-            todayShipments: fallbackShippingCompanies[i]?.todayShipments || 0,
-            totalShipments: fallbackShippingCompanies[i]?.totalShipments || 0
+            todayShipments: 0,
+            totalShipments: 0
         }))
-        : fallbackShippingCompanies;
-
-    const shippingZones = fallbackShippingZones;
-    const shippingRules = fallbackShippingRules;
+        : [];
 
     const activeCompanies = shippingCompanies.filter(c => c.status === 'active').length;
     const todayShipments = shippingCompanies.reduce((sum, c) => sum + c.todayShipments, 0);
-    const avgDeliveryRating = (shippingCompanies.reduce((sum, c) => sum + c.rating, 0) / shippingCompanies.length).toFixed(1);
+    const avgDeliveryRating = shippingCompanies.length > 0
+        ? (shippingCompanies.reduce((sum, c) => sum + c.rating, 0) / shippingCompanies.length).toFixed(1)
+        : '--';
 
     if (loading) {
         return (

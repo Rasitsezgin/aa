@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@pazaryonetimi/database";
 import { auth } from "@/auth";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     try {
         const session = await auth();
         const tenantId = (session?.user as any)?.tenantId as string;
@@ -11,9 +11,13 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Get recent orders from Prisma to calculate basic metrics
+        // Current 30-day period
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        // Previous 30-day period
+        const sixtyDaysAgo = new Date();
+        sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
         const orders = await prisma.order.findMany({
             where: {
@@ -24,11 +28,31 @@ export async function GET(req: NextRequest) {
             }
         });
 
+        const previousOrders = await prisma.order.findMany({
+            where: {
+                tenantId,
+                orderDate: {
+                    gte: sixtyDaysAgo,
+                    lt: thirtyDaysAgo,
+                }
+            }
+        });
+
         // 1) Total Revenue
         const totalRevenue = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
+        const previousRevenue = previousOrders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
 
         // 2) Total Orders
         const totalOrders = orders.length;
+        const previousTotalOrders = previousOrders.length;
+
+        const currentCustomers = new Set(orders.map(o => o.customerEmail).filter(Boolean)).size;
+        const previousCustomers = new Set(previousOrders.map(o => o.customerEmail).filter(Boolean)).size;
+
+        const calcChange = (current: number, previous: number) => {
+            if (previous <= 0) return current > 0 ? 100 : 0;
+            return Number((((current - previous) / previous) * 100).toFixed(1));
+        };
 
         // 3) Calculate daily revenue arrays for charts
         const dailyRevenue: Record<string, number> = {};
@@ -53,10 +77,10 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({
             summary: {
-                totalRevenue: { value: totalRevenue, change: 15 }, // mock generic change for now
-                totalOrders: { value: totalOrders, change: 8 },
-                activeCustomers: { value: new Set(orders.map(o => o.customerEmail)).size || 0, change: 5 },
-                conversionRate: { value: 3.2, change: 0.5 }, // Simulated
+                totalRevenue: { value: totalRevenue, change: calcChange(totalRevenue, previousRevenue) },
+                totalOrders: { value: totalOrders, change: calcChange(totalOrders, previousTotalOrders) },
+                activeCustomers: { value: currentCustomers, change: calcChange(currentCustomers, previousCustomers) },
+                conversionRate: { value: null, change: null },
             },
             charts: {
                 revenue: {

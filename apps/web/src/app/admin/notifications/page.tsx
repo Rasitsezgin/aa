@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Bell, Send, Users, AlertTriangle, Info, CheckCircle, Plus, Edit3,
@@ -45,97 +45,9 @@ interface Announcement {
     createdAt: Date;
 }
 
-const MOCK_ANNOUNCEMENTS = [
-    {
-        id: '1',
-        title: '🚀 Yeni AI Görsel İşleme Modülü!',
-        content: 'Yapay zeka destekli görsel işleme modülümüz artık kullanımda. Arka plan silme, görsel iyileştirme ve daha fazlası...',
-        summary: 'AI görsel işleme modülü yayında!',
-        type: 'UPDATE',
-        target: 'ALL',
-        actionUrl: '/dashboard/ai-tools',
-        actionText: 'Keşfet',
-        startsAt: new Date(),
-        endsAt: null,
-        isActive: true,
-        isPinned: true,
-        priority: 10,
-        viewCount: 1250,
-        readCount: 890,
-        dismissCount: 45,
-        createdAt: new Date(),
-    },
-    {
-        id: '2',
-        title: '⚡ Performans İyileştirmeleri',
-        content: 'Sistem genelinde %40 daha hızlı yükleme süreleri ve geliştirilmiş kullanıcı deneyimi.',
-        summary: 'Sistem performansı artırıldı',
-        type: 'SUCCESS',
-        target: 'ALL',
-        startsAt: new Date(Date.now() - 86400000),
-        isActive: true,
-        isPinned: false,
-        priority: 5,
-        viewCount: 890,
-        readCount: 650,
-        dismissCount: 120,
-        createdAt: new Date(Date.now() - 86400000),
-    },
-    {
-        id: '3',
-        title: '🎁 Pro Kullanıcılara Özel İndirim!',
-        content: 'Bu hafta sonu Pro pakette %20 indirim fırsatını kaçırmayın. Kod: PROWEEKEND',
-        summary: 'Pro pakette %20 indirim',
-        type: 'PROMOTION',
-        target: 'FREE_USERS',
-        actionUrl: '/pricing',
-        actionText: 'Yükselt',
-        startsAt: new Date(),
-        endsAt: new Date(Date.now() + 172800000),
-        isActive: true,
-        isPinned: false,
-        priority: 8,
-        viewCount: 456,
-        readCount: 320,
-        dismissCount: 23,
-        createdAt: new Date(),
-    },
-    {
-        id: '4',
-        title: '🔧 Planlı Bakım Bildirimi',
-        content: '5 Şubat 2026 saat 03:00-05:00 arasında planlı bakım yapılacaktır.',
-        summary: '5 Şubat planlı bakım',
-        type: 'MAINTENANCE',
-        target: 'ALL',
-        startsAt: new Date(),
-        isActive: true,
-        isPinned: false,
-        priority: 7,
-        viewCount: 234,
-        readCount: 180,
-        dismissCount: 12,
-        createdAt: new Date(),
-    },
-    {
-        id: '5',
-        title: '⚠️ Trendyol API Güncellemesi',
-        content: 'Trendyol API\'si yeni sürüme geçti. Entegrasyonlarınızı kontrol edin.',
-        summary: 'Trendyol API güncellendi',
-        type: 'WARNING',
-        target: 'ALL',
-        startsAt: new Date(Date.now() - 172800000),
-        isActive: false,
-        isPinned: false,
-        priority: 6,
-        viewCount: 1850,
-        readCount: 1650,
-        dismissCount: 200,
-        createdAt: new Date(Date.now() - 172800000),
-    },
-];
-
 export default function NotificationsPage() {
-    const [announcements, setAnnouncements] = useState<Announcement[]>(MOCK_ANNOUNCEMENTS as Announcement[]);
+    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+    const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
     const [filterType, setFilterType] = useState<string | null>(null);
@@ -155,6 +67,43 @@ export default function NotificationsPage() {
         priority: 5,
     });
 
+    const refreshAnnouncements = async () => {
+        try {
+            const res = await fetch('/api/admin/announcements', { cache: 'no-store' });
+            if (!res.ok) throw new Error('Duyurular yüklenemedi');
+            const data = await res.json();
+            const normalized = (Array.isArray(data) ? data : []).map((item: any) => ({
+                id: String(item.id),
+                title: String(item.title || ''),
+                content: String(item.content || item.message || ''),
+                summary: item.summary ? String(item.summary) : undefined,
+                type: String(item.type || 'INFO'),
+                target: String(item.target || 'ALL'),
+                actionUrl: item.actionUrl ? String(item.actionUrl) : undefined,
+                actionText: item.actionText ? String(item.actionText) : undefined,
+                startsAt: new Date(item.startsAt || item.createdAt || Date.now()),
+                endsAt: item.endsAt ? new Date(item.endsAt) : null,
+                isActive: Boolean(item.isActive),
+                isPinned: Boolean(item.isPinned),
+                priority: Number(item.priority || 0),
+                viewCount: Number(item.viewCount || 0),
+                readCount: Number(item.readCount || 0),
+                dismissCount: Number(item.dismissCount || 0),
+                createdAt: new Date(item.createdAt || Date.now()),
+            })) as Announcement[];
+            setAnnouncements(normalized);
+        } catch (error) {
+            console.error('Duyurular alınamadı:', error);
+            setAnnouncements([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        refreshAnnouncements();
+    }, []);
+
     const filteredAnnouncements = announcements.filter(a => {
         if (searchQuery && !a.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
         if (filterType && a.type !== filterType) return false;
@@ -170,58 +119,77 @@ export default function NotificationsPage() {
         totalReads: announcements.reduce((sum, a) => sum + a.readCount, 0),
     };
 
-    const toggleStatus = (id: string) => {
-        setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, isActive: !a.isActive } : a));
+    const toggleStatus = async (id: string) => {
+        const targetAnnouncement = announcements.find(a => a.id === id);
+        if (!targetAnnouncement) return;
+        try {
+            const res = await fetch(`/api/admin/announcements/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isActive: !targetAnnouncement.isActive }),
+            });
+            if (!res.ok) throw new Error('Durum güncellenemedi');
+            await refreshAnnouncements();
+        } catch (error) {
+            console.error('Duyuru durumu güncellenemedi:', error);
+        }
     };
 
-    const togglePin = (id: string) => {
-        setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, isPinned: !a.isPinned } : a));
+    const togglePin = async (id: string) => {
+        const targetAnnouncement = announcements.find(a => a.id === id);
+        if (!targetAnnouncement) return;
+        try {
+            const res = await fetch(`/api/admin/announcements/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isPinned: !targetAnnouncement.isPinned }),
+            });
+            if (!res.ok) throw new Error('Sabit durumu güncellenemedi');
+            await refreshAnnouncements();
+        } catch (error) {
+            console.error('Duyuru sabitleme güncellenemedi:', error);
+        }
     };
 
-    const deleteAnnouncement = (id: string) => {
-        setAnnouncements(prev => prev.filter(a => a.id !== id));
+    const deleteAnnouncement = async (id: string) => {
+        try {
+            const res = await fetch(`/api/admin/announcements/${id}`, {
+                method: 'DELETE',
+            });
+            if (!res.ok) throw new Error('Duyuru silinemedi');
+            await refreshAnnouncements();
+        } catch (error) {
+            console.error('Duyuru silinemedi:', error);
+        }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (editingAnnouncement) {
-            setAnnouncements(prev => prev.map(a => {
-                if (a.id === editingAnnouncement.id) {
-                    return {
-                        ...a,
-                        title: formData.title,
-                        content: formData.content,
-                        summary: formData.summary,
-                        type: formData.type,
-                        target: formData.target,
-                        actionUrl: formData.actionUrl,
-                        actionText: formData.actionText,
-                        isPinned: formData.isPinned,
-                        priority: formData.priority,
-                    };
-                }
-                return a;
-            }));
+            try {
+                const res = await fetch(`/api/admin/announcements/${editingAnnouncement.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData),
+                });
+                if (!res.ok) throw new Error('Duyuru güncellenemedi');
+                await refreshAnnouncements();
+            } catch (error) {
+                console.error('Duyuru güncellenemedi:', error);
+                return;
+            }
         } else {
-            const newAnnouncement = {
-                id: Date.now().toString(),
-                title: formData.title,
-                content: formData.content,
-                summary: formData.summary,
-                type: formData.type,
-                target: formData.target,
-                actionUrl: formData.actionUrl,
-                actionText: formData.actionText,
-                startsAt: new Date(),
-                endsAt: null,
-                isActive: true,
-                isPinned: formData.isPinned,
-                priority: formData.priority,
-                viewCount: 0,
-                readCount: 0,
-                dismissCount: 0,
-                createdAt: new Date(),
-            };
-            setAnnouncements(prev => [newAnnouncement, ...prev]);
+            try {
+                const res = await fetch('/api/admin/announcements', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData),
+                });
+                if (!res.ok) throw new Error('Duyuru oluşturulamadı');
+                await refreshAnnouncements();
+            } catch (error) {
+                console.error('Duyuru oluşturulamadı:', error);
+                return;
+            }
         }
         setShowCreateModal(false);
         setEditingAnnouncement(null);
@@ -249,6 +217,11 @@ export default function NotificationsPage() {
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
+            {loading && (
+                <div className="flex items-center justify-center h-40">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+                </div>
+            )}
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
