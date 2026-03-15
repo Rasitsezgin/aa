@@ -1028,8 +1028,8 @@ function DashboardContent() {
                     </div>
                 </div>
 
-                {/* Second Row - Orders & Stock with AI */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+                {/* Second Row - Orders & Stock with AI - Equal Widths */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
                     {/* Recent Orders with AI Flags */}
                     <div className="bg-surface p-4 lg:p-6 rounded-2xl lg:rounded-3xl border border-border">
                         <div className="flex items-center justify-between mb-4 lg:mb-6">
@@ -1075,75 +1075,72 @@ function DashboardContent() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2">
-                            {/* Stock Alerts Section */}
-                            <div className="bg-surface p-4 lg:p-6 rounded-2xl lg:rounded-3xl border border-border h-full">
-                                <div className="flex items-center justify-between mb-4 lg:mb-6">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
-                                            <AlertTriangle size={18} />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-bold text-foreground">AI Stok Uyarıları</h3>
-                                            <p className="text-xs text-slate-500">{data.stockAlerts.length} ürün dikkat gerektiriyor</p>
-                                        </div>
-                                    </div>
-                                    <Link href="/dashboard/inventory" className="text-xs font-bold text-primary hover:underline">Tümü →</Link>
+                    {/* Stock Alerts Section */}
+                    <div className="bg-surface p-4 lg:p-6 rounded-2xl lg:rounded-3xl border border-border h-full">
+                        <div className="flex items-center justify-between mb-4 lg:mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
+                                    <AlertTriangle size={18} />
                                 </div>
-
-                                <div className="space-y-3">
-                                    {data.stockAlerts.slice(0, 3).map((alert, i) => (
-                                        <motion.div
-                                            initial={{ opacity: 0, scale: 0.95 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ delay: i * 0.05 }}
-                                            key={i}
-                                            className={`p-4 rounded-xl border ${alert.urgency === 'critical'
-                                                ? 'bg-red-500/5 border-red-500/20'
-                                                : 'bg-amber-500/5 border-amber-500/20'
-                                                }`}
-                                        >
-                                            <div className="flex items-start justify-between mb-2">
-                                                <div>
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${alert.urgency === 'critical'
-                                                            ? 'bg-red-500/10 text-red-500'
-                                                            : 'bg-amber-500/10 text-amber-500'
-                                                            }`}>
-                                                            {alert.urgency === 'critical' ? 'KRİTİK' : 'UYARI'}
-                                                        </span>
-                                                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${platformColors[alert.platform]?.bg || 'bg-slate-500/10'} ${platformColors[alert.platform]?.text || 'text-slate-500'}`}>
-                                                            {alert.platform || '--'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="text-sm font-bold text-foreground">{alert.product}</div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className={`text-xl font-black ${alert.current === 0 ? 'text-red-500' : 'text-amber-500'}`}>
-                                                        {alert.current}
-                                                    </div>
-                                                    <div className="text-[10px] text-slate-500">/ {alert.minimum ?? '--'} min</div>
-                                                </div>
-                                            </div>
-
-                                            {/* AI Prediction */}
-                                            <div className="flex items-center justify-between p-2 bg-purple-500/5 rounded-lg border border-purple-500/10">
-                                                <div className="flex items-center gap-2">
-                                                    <Brain className="w-3 h-3 text-purple-500" />
-                                                    <span className="text-[10px] text-purple-600 dark:text-purple-400">{alert.aiPrediction || 'Tahmin verisi yok'}</span>
-                                                </div>
-                                                <button className="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-primary/90 transition-colors">
-                                                    Sipariş Ver
-                                                </button>
-                                            </div>
-                                        </motion.div>
-                                    ))}
+                                <div>
+                                    <h3 className="text-lg font-bold text-foreground">AI Stok Uyarıları</h3>
+                                    <p className="text-xs text-slate-500">{data.stockAlerts.length} ürün dikkat gerektiriyor</p>
                                 </div>
                             </div>
+                            <Link href="/dashboard/inventory" className="text-xs font-bold text-primary hover:underline">Tümü →</Link>
                         </div>
-                        <GhostStockWidget />
+
+                        <div className="space-y-3">
+                            {data.stockAlerts.slice(0, 3).map((alert, i) => (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    key={i}
+                                    className={`p-4 rounded-xl border ${alert.urgency === 'critical'
+                                        ? 'bg-red-500/5 border-red-500/20'
+                                        : 'bg-amber-500/5 border-amber-500/20'
+                                        }`}
+                                >
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${alert.urgency === 'critical'
+                                                    ? 'bg-red-500/10 text-red-500'
+                                                    : 'bg-amber-500/10 text-amber-500'
+                                                    }`}>
+                                                    {alert.urgency === 'critical' ? 'KRİTİK' : 'UYARI'}
+                                                </span>
+                                                <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${platformColors[alert.platform]?.bg || 'bg-slate-500/10'} ${platformColors[alert.platform]?.text || 'text-slate-500'}`}>
+                                                    {alert.platform || '--'}
+                                                </span>
+                                            </div>
+                                            <div className="text-sm font-bold text-foreground">{alert.product}</div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className={`text-xl font-black ${alert.current === 0 ? 'text-red-500' : 'text-amber-500'}`}>
+                                                {alert.current}
+                                            </div>
+                                            <div className="text-[10px] text-slate-500">/ {alert.minimum ?? '--'} min</div>
+                                        </div>
+                                    </div>
+
+                                    {/* AI Prediction */}
+                                    <div className="flex items-center justify-between p-2 bg-purple-500/5 rounded-lg border border-purple-500/10">
+                                        <div className="flex items-center gap-2">
+                                            <Brain className="w-3 h-3 text-purple-500" />
+                                            <span className="text-[10px] text-purple-600 dark:text-purple-400">{alert.aiPrediction || 'Tahmin verisi yok'}</span>
+                                        </div>
+                                        <button className="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-primary/90 transition-colors">
+                                            Sipariş Ver
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
                     </div>
+
+                    {/* Ghost Stock Prediction */}
                 </div>
 
                 {/* Top Products with AI Insights */}
