@@ -1,5 +1,6 @@
 import { Controller, Post, Get, Param, Headers, Query, Body } from '@nestjs/common';
 import { MarketplaceService, Platform } from './marketplace.service';
+import { Public } from '../auth/public.decorator';
 
 @Controller('marketplace')
 export class MarketplaceController {
@@ -77,6 +78,7 @@ export class MarketplaceController {
     /**
      * Mağaza analizi - Pazaryerinden gerçek veriler çek ve analiz et
      */
+    @Public()
     @Get('analyze/:platform/:storeId')
     async analyzeStore(
         @Param('platform') platform: string,
@@ -97,6 +99,7 @@ export class MarketplaceController {
     /**
      * Mağaza ürünlerini getir
      */
+    @Public()
     @Get('store/:platform/:storeId/products')
     async getStoreProducts(
         @Param('platform') platform: string,
@@ -110,6 +113,7 @@ export class MarketplaceController {
     /**
      * Mağaza bilgilerini getir
      */
+    @Public()
     @Get('store/:platform/:storeId/info')
     async getStoreInfo(
         @Param('platform') platform: string,
