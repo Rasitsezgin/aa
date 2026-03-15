@@ -2,26 +2,54 @@
 
 import { motion } from 'framer-motion';
 import { Moon, Sun, Smartphone } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
 type ThemeMode = 'light' | 'dark' | 'oled';
 
 export function ThemeToggleAdvanced() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [theme, setThemeState] = useState<ThemeMode>('dark');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    const savedTheme = localStorage.getItem('theme') as ThemeMode;
+    if (savedTheme && ['light', 'dark', 'oled'].includes(savedTheme)) {
+      setThemeState(savedTheme);
+      applyTheme(savedTheme);
+    } else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialTheme: ThemeMode = prefersDark ? 'dark' : 'light';
+      setThemeState(initialTheme);
+      applyTheme(initialTheme);
+    }
   }, []);
 
-  const currentTheme = (resolvedTheme as ThemeMode) || 'dark';
+  const applyTheme = (newTheme: ThemeMode) => {
+    const root = document.documentElement;
+    root.classList.remove('light', 'dark', 'oled');
+    root.removeAttribute('data-theme');
+    
+    if (newTheme === 'oled') {
+      root.setAttribute('data-theme', 'oled');
+    } else if (newTheme === 'light') {
+      root.setAttribute('data-theme', 'light');
+      root.classList.add('light');
+    } else {
+      root.setAttribute('data-theme', 'dark');
+      root.classList.add('dark');
+    }
+    
+    localStorage.setItem('theme', newTheme);
+  };
 
   const cycleTheme = () => {
     const themes: ThemeMode[] = ['light', 'dark', 'oled'];
-    const currentIndex = themes.indexOf(currentTheme);
+    const currentIndex = themes.indexOf(theme);
     const nextIndex = (currentIndex + 1) % themes.length;
-    setTheme(themes[nextIndex]);
+    const nextTheme = themes[nextIndex];
+    
+    setThemeState(nextTheme);
+    applyTheme(nextTheme);
   };
 
   if (!mounted) return null;
@@ -38,7 +66,7 @@ export function ThemeToggleAdvanced() {
     oled: 'OLED Siyah',
   };
 
-  const Icon = icons[currentTheme];
+  const Icon = icons[theme];
 
   return (
     <motion.button
@@ -48,7 +76,7 @@ export function ThemeToggleAdvanced() {
       whileHover={{ scale: 1.05 }}
     >
       <motion.div
-        key={currentTheme}
+        key={theme}
         initial={{ rotate: -90, opacity: 0 }}
         animate={{ rotate: 0, opacity: 1 }}
         exit={{ rotate: 90, opacity: 0 }}
@@ -56,7 +84,7 @@ export function ThemeToggleAdvanced() {
       >
         <Icon className="w-5 h-5" />
       </motion.div>
-      <span className="sr-only">{labels[currentTheme]}</span>
+      <span className="sr-only">{labels[theme]}</span>
     </motion.button>
   );
 }
