@@ -46,7 +46,7 @@ const recentOperations: any[] = [];
 
 export default function BulkActionsPage() {
     const { executeBulkAction, loading: bulkLoading, history } = useBulkActions();
-    const { products: apiProducts, loading: productsLoading } = useProducts();
+    const { data: apiProducts, loading: productsLoading } = useProducts();
 
     const products = (Array.isArray(apiProducts) && apiProducts.length > 0)
         ? apiProducts.map((p, i) => ({
