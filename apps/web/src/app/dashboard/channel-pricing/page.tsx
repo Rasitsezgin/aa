@@ -18,7 +18,7 @@ const marketplaces = [
 ];
 
 export default function ChannelPricingPage() {
-    const { products: rawProducts, loading, fetchProducts } = useProducts();
+    const { data: rawProducts, loading, refetch } = useProducts();
     // Local prices overrides map: productId -> { CHANNEL: price }
     const [priceOverrides, setPriceOverrides] = useState<Record<string, Record<string, number>>>({});
     const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
@@ -112,7 +112,7 @@ export default function ChannelPricingPage() {
                     <p className="text-slate-500 font-medium ml-14">Her pazaryeri için özel fiyat belirleyin, rekabeti yönetin</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button onClick={() => fetchProducts()}
+                    <button onClick={() => refetch()}
                         className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-xl text-sm font-bold text-foreground hover:bg-surface/80 transition-all">
                         <RefreshCw size={15} className={loading ? "animate-spin" : ""} /> Yenile
                     </button>

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Package, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
-import { useProducts } from '@/lib/hooks';
+import { apiClient } from '@/lib/api-client';
 
 interface AddProductModalProps {
     isOpen: boolean;
@@ -11,7 +11,7 @@ interface AddProductModalProps {
 }
 
 export default function AddProductModal({ isOpen, onClose }: AddProductModalProps) {
-    const { createProduct, loading } = useProducts();
+    const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState('');
     const [formData, setFormData] = useState({
@@ -47,12 +47,16 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
         try {
-            await createProduct({
-                ...formData,
-                price: parseFloat(formData.price),
-                stock: parseInt(formData.stock, 10),
-                status: 'active'
+            await apiClient.request('/products', {
+                method: 'POST',
+                body: {
+                    ...formData,
+                    price: parseFloat(formData.price),
+                    stock: parseInt(formData.stock, 10),
+                    status: 'active'
+                }
             });
             setStatus('success');
             setTimeout(() => {
@@ -61,6 +65,8 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
         } catch (err: any) {
             setStatus('error');
             setErrorMessage(err.message || 'Ürün oluşturulurken bir hata oluştu.');
+        } finally {
+            setLoading(false);
         }
     };
 

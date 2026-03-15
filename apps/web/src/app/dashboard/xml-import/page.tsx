@@ -43,7 +43,7 @@ export default function XmlImportPage() {
     const [importError, setImportError] = useState<string | null>(null);
     const [syncing, setSyncing] = useState<string | null>(null);
 
-    const { products, loading: productsLoading, fetchProducts } = useProducts();
+    const { data: products, loading: productsLoading } = useProducts();
 
     useEffect(() => { loadFeeds(); }, []);
 
