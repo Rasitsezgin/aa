@@ -64,6 +64,21 @@ nextjs-portal,
   --text-secondary: #475569;
 }
 
+[data-theme="oled"] {
+  /* OLED Pure Black - Battery saving for AMOLED displays */
+  --background: #000000;
+  --foreground: #ffffff;
+  --border-color: rgba(255, 255, 255, 0.06);
+  --surface-color: rgba(20, 20, 25, 0.4);
+  --spotlight-opacity: 0.1;
+  --nav-bg: rgba(0, 0, 0, 0.85);
+  --bento-bg-1: rgba(255, 255, 255, 0.02);
+  --bento-bg-2: rgba(255, 255, 255, 0);
+  --bento-border-hover: rgba(255, 255, 255, 0.12);
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

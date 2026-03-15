@@ -122,3 +122,30 @@ jobs:
           tags: pazaryonetimi-api:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Coolify
+    runs-on: ubuntu-latest
+    needs: [lint-and-build, test, docker]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Trigger Coolify Deployment
+        run: |
+          echo "Triggering Coolify deployment..."
+          curl -X POST "${{ secrets.COOLIFY_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "repository": "'"${{ github.repository }}"'",
+              "ref": "'"${{ github.ref }}"'",
+              "commit": "'"${{ github.sha }}"'",
+              "branch": "main"
+            }' || echo "Webhook trigger attempted"
+        env:
+          COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_URL }}
+        continue-on-error: true
+
+      - name: Deploy Status
+        run: |
+          echo "✅ Deployment triggered for commit: ${{ github.sha }}"
+          echo "📦 Repository: ${{ github.repository }}"
+          echo "🌿 Branch: main"

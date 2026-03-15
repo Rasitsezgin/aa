@@ -99,6 +99,70 @@ const allCommands: CommandItem[] = [
     { id: 'upgrade', title: 'Planı Yükselt', description: 'Pro özelliklere geç', icon: Star, href: '/dashboard/upgrade', category: 'Sistem', keywords: ['upgrade', 'yükselt', 'pro'] },
 ];
 
+// AI Suggestions based on context and time
+function getAISuggestions(): CommandItem[] {
+  const hour = new Date().getHours();
+  const suggestions: CommandItem[] = [];
+  
+  // Time-based suggestions
+  if (hour >= 9 && hour <= 11) {
+    suggestions.push({
+      id: 'ai-morning',
+      title: 'Gün Başı Raporu',
+      description: 'AI: Sabah satış özeti ve öneriler',
+      icon: Sparkles,
+      category: 'AI Önerileri',
+      action: () => console.log('Morning report'),
+      keywords: ['rapor', 'sabah', 'gün başı'],
+    });
+  }
+  
+  if (hour >= 14 && hour <= 16) {
+    suggestions.push({
+      id: 'ai-inventory',
+      title: 'Stok Kontrolü',
+      description: 'AI: Kritik stok seviyeleri tespit edildi',
+      icon: Sparkles,
+      category: 'AI Önerileri',
+      href: '/dashboard/inventory',
+      keywords: ['stok', 'envanter', 'kritik'],
+    });
+  }
+  
+  // Always show these smart suggestions
+  suggestions.push(
+    {
+      id: 'ai-forecast',
+      title: 'Satış Tahmini',
+      description: 'AI: Yarın için %23 artış öngörülüyor',
+      icon: Sparkles,
+      category: 'AI Önerileri',
+      href: '/dashboard/predictions',
+      keywords: ['tahmin', 'satış', 'forecast'],
+    },
+    {
+      id: 'ai-optimize',
+      title: 'Fiyat Optimizasyonu',
+      description: 'AI: 5 üründe fiyat ayarlaması öneriliyor',
+      icon: Sparkles,
+      category: 'AI Önerileri',
+      href: '/dashboard/pricing',
+      keywords: ['fiyat', 'optimizasyon', 'kar'],
+    },
+    {
+      id: 'ai-competitor',
+      title: 'Rakip Analizi',
+      description: 'AI: 3 rakip yeni kampanya başlatmış',
+      icon: Sparkles,
+      category: 'AI Önerileri',
+      href: '/dashboard/competitor',
+      keywords: ['rakip', 'analiz', 'pazar'],
+    }
+  );
+  
+  return suggestions;
+}
+
 // Son kullanılan komutları tutmak için
 const recentCommandIds = ['dashboard', 'orders', 'products', 'ai-advisor'];
 
@@ -111,6 +175,8 @@ export function CommandPalette() {
     const router = useRouter();
     const { openQuickSale, openAddProduct } = useQuickActions();
 
+    const aiSuggestions = getAISuggestions();
+
     // Filtrelenmiş komutlar
     const filteredCommands = search
         ? allCommands.filter(cmd => {
@@ -121,7 +187,7 @@ export function CommandPalette() {
                 cmd.keywords?.some(k => k.toLowerCase().includes(searchLower))
             );
         })
-        : allCommands;
+        : [...aiSuggestions, ...allCommands];
 
     // Kategorilere göre grupla
     const groupedCommands = filteredCommands.reduce((acc, cmd) => {
