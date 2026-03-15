@@ -48,4 +48,4 @@ COPY --from=builder --chown=nestjs:nodejs /app/ ./
 
 EXPOSE 3001
 
-CMD ["node", "apps/api/dist/main"]
+CMD ["sh", "-c", "npx prisma db push --schema=packages/database/prisma/schema.prisma && node apps/api/dist/main"]
