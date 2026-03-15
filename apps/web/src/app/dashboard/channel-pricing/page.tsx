@@ -18,7 +18,8 @@ const marketplaces = [
 ];
 
 export default function ChannelPricingPage() {
-    const { data: rawProducts, loading, refetch } = useProducts();
+    const { data, loading, refetch } = useProducts();
+    const rawProducts: Product[] = data ?? [];
     // Local prices overrides map: productId -> { CHANNEL: price }
     const [priceOverrides, setPriceOverrides] = useState<Record<string, Record<string, number>>>({});
     const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
