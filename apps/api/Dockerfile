@@ -13,6 +13,7 @@ ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres"
 ENV PRISMA_CLIENT_ENGINE_TYPE="library"
 ENV PRISMA_CLI_QUERY_ENGINE_TYPE="library"
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npx turbo run build --filter=@pazaryonetimi/api
 RUN df -h
 
@@ -38,13 +39,12 @@ RUN useradd --system --uid 1001 nestjs
 # Create home directory for nestjs user (critical for Puppeteer/Chromium)
 RUN mkdir -p /home/nestjs/.puppeteer_data && chown -R nestjs:nodejs /home/nestjs
 
-COPY --from=builder --chown=root:root /app/ ./
-
-# Reinstall dependencies as root to ensure all are available at runtime
-RUN npm install --legacy-peer-deps
-
-# Change ownership after npm install
-RUN chown -R nestjs:nodejs /app
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./apps/api/dist
+COPY --from=builder --chown=nestjs:nodejs /app/apps/api/package.json ./apps/api/package.json
+COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
+COPY --from=builder --chown=nestjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nestjs:nodejs /app/package-lock.json ./package-lock.json 2>/dev/null || true
 
 USER nestjs
 
