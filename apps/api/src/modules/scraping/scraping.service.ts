@@ -97,6 +97,8 @@ export class ScrapingService implements OnModuleInit, OnModuleDestroy {
             // 1. Platform Auto-Detection Pattern Matching
             if (url.includes('trendyol.com')) return this.scrapeTrendyolStore(url);
             if (url.includes('hepsiburada.com')) return this.scrapeHepsiburadaStore(url);
+            if (url.includes('n11.com')) return this.scrapeN11Store(url);
+            if (url.includes('ciceksepeti.com')) return this.scrapeCicekSepetiStore(url);
 
             // Global Giants
             if (url.includes('amazon.')) return this.scrapeAmazonStore(url);
@@ -139,6 +141,14 @@ export class ScrapingService implements OnModuleInit, OnModuleDestroy {
 
         if (normalizedPlatform === 'HEPSIBURADA') {
             return this.scrapeHepsiburadaProducts(url, limit);
+        }
+
+        if (normalizedPlatform === 'N11') {
+            return this.scrapeN11Products(url, limit);
+        }
+
+        if (normalizedPlatform === 'CICEKSEPETI') {
+            return this.scrapeCicekSepetiProducts(url, limit);
         }
 
         return [];
@@ -305,6 +315,110 @@ export class ScrapingService implements OnModuleInit, OnModuleDestroy {
                 const image = node.find('img').first().attr('src') || node.find('img').first().attr('data-src') || '';
                 const ratingText = node.find('[data-test-id="review-star-rating"]').first().text().trim();
                 const reviewText = node.find('[data-test-id="review-count"]').first().text().trim();
+
+                if (!title) return;
+
+                extracted.push({
+                    title,
+                    price: this.parsePrice(priceText),
+                    images: image ? [image] : [],
+                    rating: this.parseRating(ratingText),
+                    reviewCount: this.parseMetric(reviewText),
+                    stockStatus: true,
+                });
+            });
+
+            return extracted;
+        });
+
+        return products.slice(0, limit);
+    }
+
+    private async scrapeN11Store(url: string): Promise<ScrapedStoreData> {
+        return this.navAndScrape(url, ($) => {
+            const storeName = $('h1.store-name').text().trim() || $('.seller-name h1').text().trim() || 'N11 Mağazası';
+            const ratingText = $('.store-rating span').text().trim() || $('.rating-score').text().trim();
+            const rating = parseFloat(ratingText.replace(',', '.')) || 8.5;
+            const followerText = $('.follower-count').text().trim() || $('.store-followers').text().trim();
+            const followerCount = this.parseMetric(followerText);
+            const productCountText = $('.product-count').text().trim() || $('.store-product-count').text().trim();
+            const productCount = this.parseMetric(productCountText) || 50;
+
+            return {
+                storeName,
+                rating,
+                followerCount,
+                productCount,
+                platform: 'N11'
+            };
+        });
+    }
+
+    private async scrapeN11Products(url: string, limit: number): Promise<ScrapedProductData[]> {
+        const products = await this.navAndScrapeProducts(url, ($) => {
+            const extracted: ScrapedProductData[] = [];
+
+            $('.product-item, .catalog-item').each((_, el) => {
+                if (extracted.length >= limit) return false;
+                const node = $(el);
+
+                const title = node.find('.productName, .product-name, h3').first().text().trim();
+                const priceText = node.find('.newPrice, .price, .product-price').first().text().trim();
+                const image = node.find('img').first().attr('src') || node.find('img').first().attr('data-original') || '';
+                const ratingText = node.find('.ratingScore, .rating-score').first().text().trim();
+                const reviewText = node.find('.ratingCount, .review-count').first().text().trim();
+
+                if (!title) return;
+
+                extracted.push({
+                    title,
+                    price: this.parsePrice(priceText),
+                    images: image ? [image] : [],
+                    rating: this.parseRating(ratingText),
+                    reviewCount: this.parseMetric(reviewText),
+                    stockStatus: true,
+                });
+            });
+
+            return extracted;
+        });
+
+        return products.slice(0, limit);
+    }
+
+    private async scrapeCicekSepetiStore(url: string): Promise<ScrapedStoreData> {
+        return this.navAndScrape(url, ($) => {
+            const storeName = $('h1.store-name').text().trim() || $('.merchant-name').text().trim() || 'ÇiçekSepeti Mağazası';
+            const ratingText = $('.store-rating .score').text().trim() || $('.rating-value').text().trim();
+            const rating = parseFloat(ratingText.replace(',', '.')) || 9.0;
+            const followerText = $('.store-followers').text().trim() || $('.follower-count').text().trim();
+            const followerCount = this.parseMetric(followerText);
+            const productCountText = $('.product-count').text().trim() || $('.store-product-count').text().trim();
+            const productCount = this.parseMetric(productCountText) || 30;
+
+            return {
+                storeName,
+                rating,
+                followerCount,
+                productCount,
+                platform: 'CICEKSEPETI'
+            };
+        });
+    }
+
+    private async scrapeCicekSepetiProducts(url: string, limit: number): Promise<ScrapedProductData[]> {
+        const products = await this.navAndScrapeProducts(url, ($) => {
+            const extracted: ScrapedProductData[] = [];
+
+            $('.product-card, .product-item').each((_, el) => {
+                if (extracted.length >= limit) return false;
+                const node = $(el);
+
+                const title = node.find('.product-title, .product-name, h3').first().text().trim();
+                const priceText = node.find('.price, .product-price, .sale-price').first().text().trim();
+                const image = node.find('img').first().attr('src') || node.find('img').first().attr('data-src') || '';
+                const ratingText = node.find('.rating-score, .product-rating').first().text().trim();
+                const reviewText = node.find('.review-count, .comment-count').first().text().trim();
 
                 if (!title) return;
 

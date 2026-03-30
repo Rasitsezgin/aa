@@ -175,9 +175,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
                 return token;
             },
             async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
-                // Redirect to dashboard after login
+                // Allows relative callback URLs
                 if (url.startsWith('/')) return `${baseUrl}${url}`;
-                if (url.startsWith(baseUrl)) return url;
+                // Allows callback URLs on the same origin
+                else if (new URL(url).origin === baseUrl) return url;
+                // Default to dashboard after login
                 return `${baseUrl}/dashboard`;
             },
         },

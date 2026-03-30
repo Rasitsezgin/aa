@@ -6,11 +6,14 @@ import { SyncJobProcessor } from './processors/sync-job.processor';
 import { EmailJobProcessor } from './processors/email-job.processor';
 import { DatabaseModule } from '../../database/database.module';
 import { MarketIntelligenceModule } from '../market-intelligence/market-intelligence.module';
+import { MarketplaceModule } from '../marketplace/marketplace.module';
+import { CompetitorAnalysisService } from '../marketplace/competitor-analysis.service';
 
 @Module({
   imports: [
     DatabaseModule,
     MarketIntelligenceModule,
+    MarketplaceModule,
     BullModule.registerQueue(
       { name: 'reports' },
       { name: 'sync' },
@@ -23,6 +26,7 @@ import { MarketIntelligenceModule } from '../market-intelligence/market-intellig
     ReportJobProcessor,
     SyncJobProcessor,
     EmailJobProcessor,
+    CompetitorAnalysisService,
   ],
   exports: [SchedulerService],
 })

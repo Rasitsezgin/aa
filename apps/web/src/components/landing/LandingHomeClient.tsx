@@ -29,16 +29,30 @@ const EcosystemCloud = dynamic(() => import("@/components/EcosystemCloud"), { lo
 const ComparisonTable = dynamic(() => import("@/components/ComparisonTable"), { loading: () => <CardSkeleton /> });
 const CTASection = dynamic(() => import("@/components/CTASection"), { loading: () => <CardSkeleton /> });
 
+// New Feature Components
+const LiveDemoSpotlight = dynamic(() => import("@/components/landing/LiveDemoSpotlight").then(mod => ({ default: mod.LiveDemoSpotlight })), { loading: () => <CardSkeleton /> });
+const BeforeAfterSlider = dynamic(() => import("@/components/landing/BeforeAfterSlider").then(mod => ({ default: mod.BeforeAfterSlider })), { loading: () => <CardSkeleton /> });
+const ScrollParticles = dynamic(() => import("@/components/landing/ScrollParticles").then(mod => ({ default: mod.ScrollParticles })), { loading: () => <CardSkeleton /> });
+const RealtimeCounter = dynamic(() => import("@/components/landing/RealtimeCounter").then(mod => ({ default: mod.RealtimeCounter })), { loading: () => <CardSkeleton /> });
+const AIExitIntent = dynamic(() => import("@/components/landing/AIExitIntent").then(mod => ({ default: mod.AIExitIntent })), { ssr: false });
+const ROICalculator2 = dynamic(() => import("@/components/landing/ROICalculator2").then(mod => ({ default: mod.ROICalculator2 })), { loading: () => <CardSkeleton /> });
+const CommandPaletteLanding = dynamic(() => import("@/components/landing/CommandPaletteLanding").then(mod => ({ default: mod.CommandPaletteLanding })), { ssr: false });
+
 // This would normally come from a database or API
 const INITIAL_CONFIG = [
   { id: 'hero', component: HeroNew, isActive: true },
   { id: 'social-proof', component: SocialProof, isActive: true },
   { id: 'chaos-control', component: ChaosVsControl, isActive: true },
+  { id: 'before-after', component: BeforeAfterSlider, isActive: true },
   { id: 'preview', component: DashboardPreview, isActive: true },
+  { id: 'live-demo', component: LiveDemoSpotlight, isActive: true },
+  { id: 'particles', component: ScrollParticles, isActive: true },
+  { id: 'realtime-counter', component: RealtimeCounter, isActive: true },
   { id: 'map', component: GlobalMap, isActive: true },
-  { id: 'roi', component: RoiCalculator, isActive: true },
+  { id: 'roi', component: ROICalculator2, isActive: true },
   { id: 'ecosystem', component: EcosystemCloud, isActive: true },
   { id: 'bento', component: BentoGrid, isActive: true },
+  { id: 'command-palette', component: CommandPaletteLanding, isActive: true },
   { id: 'testimonials', component: Testimonials, isActive: true },
   { id: 'comparison', component: ComparisonTable, isActive: true },
   { id: 'pricing', component: Pricing, isActive: true },
@@ -49,6 +63,15 @@ const INITIAL_CONFIG = [
 export default function LandingHomeClient() {
   const [activeConfig, setActiveConfig] = useState(INITIAL_CONFIG);
   const [texts, setTexts] = useState(HOMEPAGE_TEXTS);
+  const [features, setFeatures] = useState({
+    liveDemo: { enabled: true, spotlightIntensity: 70, mouseFollow: true },
+    beforeAfter: { enabled: true, autoPlay: true, animationSpeed: 3000 },
+    particles: { enabled: true, particleCount: 50, triggerScroll: true },
+    realTimeCounter: { enabled: true, showCountries: true, updateInterval: 5000 },
+    exitIntent: { enabled: true, discountPercent: 20, triggerDelay: 1000 },
+    commandPalette: { enabled: true, shortcutKey: 'cmd+k' },
+    spotlightTour: { enabled: false, autoStart: false, stepDelay: 2000 },
+  });
 
   useEffect(() => {
     // Hydrate Text Config - use setTimeout to avoid synchronous setState in effect
@@ -78,10 +101,24 @@ export default function LandingHomeClient() {
       }
     }, 0);
 
+    // Load Features
+    const featuresTimer = setTimeout(() => {
+      const savedFeatures = localStorage.getItem('homepage_features');
+      if (savedFeatures) {
+        try {
+          const parsed = JSON.parse(savedFeatures);
+          setFeatures(parsed);
+        } catch (e) {
+          console.error("Failed to load homepage features", e);
+        }
+      }
+    }, 0);
+
     setActiveConfig(INITIAL_CONFIG);
     return () => {
       clearTimeout(timer);
       clearTimeout(pricingTimer);
+      clearTimeout(featuresTimer);
     };
   }, []);
 
@@ -127,10 +164,18 @@ export default function LandingHomeClient() {
           if (section.id === 'bento') componentProps.texts = texts.bento;
           if (section.id === 'pricing') componentProps.texts = texts.pricing;
           if (section.id === 'faq') componentProps.texts = texts.faq;
+          
+          // Pass features to new components
+          if (['live-demo', 'before-after', 'particles', 'realtime-counter', 'exit-intent', 'command-palette', 'spotlight-tour'].includes(section.id)) {
+            componentProps.features = features;
+          }
 
           return <Component key={section.id} {...componentProps} />;
         })}
       </div>
+
+      {/* Global Components (Always Render) */}
+      <AIExitIntent features={features} />
     </main>
   );
 }

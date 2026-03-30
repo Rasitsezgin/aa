@@ -244,22 +244,71 @@ export class EmailService {
     };
   }
 
-  // Send email
+  // Send email with ad-hoc content
   async sendEmail(
-    templateId: string,
-    recipientEmail: string,
-    variables?: Record<string, any>,
-    campaignId?: string
-  ): Promise<{ success: boolean; messageId: string; message: string }> {
-    // This existing method seems to rely on template IDs.
-    // In a real scenario, this would fetch the template from DB, replace vars, and send.
-    // For now, we'll keep the mock behavior but log it.
-    this.logger.log(`[Email] Sending template ${templateId} to ${recipientEmail}`);
-    return {
-      success: true,
-      messageId: `msg_${Date.now()}`,
-      message: `Email başarıyla gönderildi: ${recipientEmail}`,
+    to: string,
+    subject: string,
+    html: string,
+    text?: string
+  ): Promise<boolean> {
+    return this.sendSystemEmail(to, subject, html);
+  }
+
+  // Create template
+  async createTemplate(params: {
+    name: string;
+    subject: string;
+    htmlContent: string;
+    type: string;
+  }): Promise<EmailTemplate> {
+    const newTemplate: EmailTemplate = {
+      id: `tpl_${Date.now()}`,
+      name: params.name,
+      type: params.type as EmailType,
+      subject: params.subject,
+      htmlContent: params.htmlContent,
+      textContent: params.htmlContent.replace(/<[^>]*>/g, ''), // Strip HTML tags
+      variables: params.subject.match(/\{\{(\w+)\}\}/g)?.map(v => v.replace(/\{\{|\}\}/g, '')) || [],
     };
+    this.logger.log(`[Email] Template created: ${newTemplate.id}`);
+    return newTemplate;
+  }
+
+  // Send campaign immediately
+  async sendCampaign(campaignId: string): Promise<{ success: boolean; sentCount: number }> {
+    this.logger.log(`[Email] Sending campaign: ${campaignId}`);
+    // In real implementation, this would queue emails to be sent
+    return { success: true, sentCount: 100 };
+  }
+
+  // Get analytics with period filter
+  async getAnalytics(
+    period?: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<EmailAnalytics> {
+    return this.getEmailAnalytics(
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined
+    );
+  }
+
+  // Delete campaign
+  async deleteCampaign(campaignId: string): Promise<{ success: boolean }> {
+    this.logger.log(`[Email] Deleting campaign: ${campaignId}`);
+    return { success: true };
+  }
+
+  // Pause campaign
+  async pauseCampaign(campaignId: string): Promise<{ success: boolean }> {
+    this.logger.log(`[Email] Pausing campaign: ${campaignId}`);
+    return { success: true };
+  }
+
+  // Resume campaign
+  async resumeCampaign(campaignId: string): Promise<{ success: boolean }> {
+    this.logger.log(`[Email] Resuming campaign: ${campaignId}`);
+    return { success: true };
   }
 
   // Helper for sending system emails without templates (Ad-hoc)

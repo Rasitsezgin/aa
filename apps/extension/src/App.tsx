@@ -45,7 +45,7 @@ function App() {
         </div>
 
         <button
-          onClick={() => window.open(process.env.VITE_DASHBOARD_URL || 'https://pazaryonetimi.com/dashboard', '_blank')}
+          onClick={() => window.open(import.meta.env.VITE_DASHBOARD_URL || 'https://pazaryonetimi.com/dashboard', '_blank')}
           className="w-full flex items-center justify-center gap-2 py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl text-xs font-black shadow-xl hover:scale-[1.02] transition-all"
         >
           <ExternalLink size={16} /> Dashboard'u Aç

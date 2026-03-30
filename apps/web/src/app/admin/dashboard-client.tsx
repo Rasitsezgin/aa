@@ -3,9 +3,11 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '@/lib/admin-api';
+import Link from 'next/link';
 import {
     Users, CreditCard, Activity, Zap, ArrowUpRight, Globe, Server,
-    Clock, ShoppingBag, Sparkles, BarChart3, Edit, Save, X, Loader2, Package, TrendingUp
+    Clock, ShoppingBag, Sparkles, BarChart3, Edit, Save, X, Loader2, Package, TrendingUp, Settings,
+    Layers, FileText, Menu, LayoutTemplate, Gift
 } from 'lucide-react';
 import { saveDashboardLayout } from '@/actions/dashboard';
 
@@ -151,6 +153,43 @@ export default function DashboardClient({ config }: { config: DashboardConfig | 
                     </div>
                     <h1 className="text-3xl font-black text-foreground tracking-tight">{greeting}, <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">Admin</span></h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Platform özeti ve kritik metrikler.</p>
+                    <div className="flex items-center gap-3 mt-3">
+                        <Link 
+                            href="/admin/dashboard" 
+                            className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg text-xs font-bold hover:bg-primary/20 transition-colors"
+                        >
+                            <Settings size={14} />
+                            Dashboard Widget'ları
+                        </Link>
+                        <Link 
+                            href="/admin/pages" 
+                            className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 text-purple-600 rounded-lg text-xs font-bold hover:bg-purple-500/20 transition-colors"
+                        >
+                            <Layers size={14} />
+                            Sayfa Yönetimi
+                        </Link>
+                        <Link 
+                            href="/admin/menus" 
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-500/20 transition-colors"
+                        >
+                            <Menu size={14} />
+                            Menü Yönetimi
+                        </Link>
+                        <Link 
+                            href="/admin/footers" 
+                            className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-600 rounded-lg text-xs font-bold hover:bg-emerald-500/20 transition-colors"
+                        >
+                            <LayoutTemplate size={14} />
+                            Footer Yönetimi
+                        </Link>
+                        <Link 
+                            href="/admin/offers" 
+                            className="flex items-center gap-2 px-4 py-2 bg-pink-500/10 text-pink-600 rounded-lg text-xs font-bold hover:bg-pink-500/20 transition-colors"
+                        >
+                            <Gift size={14} />
+                            Özel Teklifler
+                        </Link>
+                    </div>
                 </div>
             </div>
 

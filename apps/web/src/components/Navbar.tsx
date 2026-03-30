@@ -247,17 +247,28 @@ const navLinks: MegaMenuItem[] = [
 
 // ─── Animations ───────────────────────────────────────
 const megaMenuVariants = {
-    hidden: { opacity: 0, y: 16, scale: 0.97 },
-    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
-    exit: { opacity: 0, y: 10, scale: 0.98, transition: { duration: 0.2, ease: 'easeIn' as const } }
+    hidden: { opacity: 0, y: 20, scale: 0.96 },
+    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
+    exit: { opacity: 0, y: 12, scale: 0.97, transition: { duration: 0.2, ease: 'easeIn' as const } }
 };
 
 const staggerContainer = {
-    visible: { transition: { staggerChildren: 0.04, delayChildren: 0.06 } }
+    visible: { transition: { staggerChildren: 0.05, delayChildren: 0.05 } }
 };
 
 const staggerItem = {
-    hidden: { opacity: 0, y: 8 },
+    hidden: { opacity: 0, x: -8 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: 'easeOut' as const } }
+};
+
+const contentVariants = {
+    hidden: { opacity: 0, x: 16 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number], staggerChildren: 0.04, delayChildren: 0.04 } },
+    exit: { opacity: 0, x: -8, transition: { duration: 0.15 } }
+};
+
+const contentItem = {
+    hidden: { opacity: 0, y: 6 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' as const } }
 };
 
@@ -275,49 +286,177 @@ const iconGradientMap: Record<string, string> = {
     cyan: 'from-cyan-500 to-cyan-600',
 };
 
-// ─── Mega Menu Item Card ──────────────────────────────
+// ─── Mega Menu Item Card (Premium) ───────────────────
 function MegaMenuItemCard({ item, onClick }: { item: MegaMenuColumn['items'][0]; onClick: () => void }) {
     const colors = iconColorMap[item.color || 'blue'];
     const gradient = iconGradientMap[item.color || 'blue'];
 
     return (
-        <Link
-            href={item.href}
-            onClick={onClick}
-            className="group/item flex items-start gap-3.5 p-3 rounded-2xl hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100/50 dark:hover:from-white/[0.04] dark:hover:to-white/[0.02] transition-all duration-300 relative"
-        >
-            {item.icon && (
-                <div className={`relative w-10 h-10 rounded-xl ${colors.bg} flex items-center justify-center shrink-0 transition-all duration-300 group-hover/item:scale-110 group-hover/item:shadow-lg overflow-hidden`}>
-                    {/* Gradient overlay on hover */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover/item:opacity-100 transition-opacity duration-300`} />
-                    <item.icon size={17} className={`relative z-10 ${colors.text} group-hover/item:text-white transition-colors duration-300`} />
-                </div>
-            )}
-            <div className="flex-1 min-w-0 py-0.5">
-                <div className="flex items-center gap-2">
-                    <span className="text-[13.5px] font-semibold text-slate-800 dark:text-slate-100 group-hover/item:text-slate-950 dark:group-hover/item:text-white transition-colors">
-                        {item.label}
-                    </span>
-                    {item.badge && (
-                        <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-500/15 dark:to-indigo-500/15 text-blue-700 dark:text-blue-400 rounded-full">
-                            {item.badge}
-                        </span>
-                    )}
-                    {item.isNew && (
-                        <span className="relative flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-500/15 dark:to-green-500/15 text-emerald-700 dark:text-emerald-400 rounded-full">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            Yeni
-                        </span>
-                    )}
-                </div>
-                {item.description && (
-                    <p className="text-[12px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed line-clamp-1 group-hover/item:text-slate-500 dark:group-hover/item:text-slate-400 transition-colors">
-                        {item.description}
-                    </p>
+        <motion.div variants={contentItem}>
+            <Link
+                href={item.href}
+                onClick={onClick}
+                className="group/item flex items-center gap-4 p-3.5 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-transparent hover:border-slate-100 dark:hover:border-white/[0.07] transition-all duration-300 cursor-pointer"
+            >
+                {item.icon && (
+                    <div className={`relative w-11 h-11 rounded-xl ${colors.bg} flex items-center justify-center shrink-0 transition-all duration-300 group-hover/item:scale-[1.08] group-hover/item:shadow-lg overflow-hidden`}>
+                        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover/item:opacity-100 transition-opacity duration-300`} />
+                        <item.icon size={18} className={`relative z-10 ${colors.text} group-hover/item:text-white transition-colors duration-300`} />
+                    </div>
                 )}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-slate-100 group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 transition-colors">
+                            {item.label}
+                        </span>
+                        {item.badge && (
+                            <span className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-gradient-to-r ${gradient} text-white rounded-full shadow-sm`}>
+                                {item.badge}
+                            </span>
+                        )}
+                        {item.isNew && (
+                            <span className="relative flex items-center gap-1 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-500/20">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                Yeni
+                            </span>
+                        )}
+                    </div>
+                    {item.description && (
+                        <p className="text-[12px] text-slate-400 dark:text-slate-500 leading-relaxed line-clamp-1">
+                            {item.description}
+                        </p>
+                    )}
+                </div>
+                <div className="w-7 h-7 rounded-lg bg-transparent group-hover/item:bg-blue-500/10 dark:group-hover/item:bg-blue-500/10 flex items-center justify-center transition-all duration-300 opacity-0 group-hover/item:opacity-100 shrink-0">
+                    <ArrowRight size={13} className="text-blue-500" />
+                </div>
+            </Link>
+        </motion.div>
+    );
+}
+
+// ─── Desktop Mega Menu Panel ──────────────────────────
+function DesktopMegaMenuPanel({
+    megaMenu,
+    onClose
+}: {
+    megaMenu: NonNullable<MegaMenuItem['megaMenu']>;
+    onClose: () => void;
+}) {
+    const [activeCol, setActiveCol] = React.useState(0);
+    const activeColumn = megaMenu.columns[activeCol];
+
+    return (
+        <div className="relative bg-white/98 dark:bg-[#0a0f1e]/98 backdrop-blur-3xl rounded-2xl overflow-hidden border border-slate-200/70 dark:border-white/[0.08] shadow-[0_32px_80px_-12px_rgba(0,0,0,0.18)] dark:shadow-[0_32px_80px_-12px_rgba(0,0,0,0.6)]">
+            {/* Top gradient accent */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 via-violet-500 to-pink-500" />
+
+            <div className="flex">
+                {/* ── Left Sidebar ── */}
+                <div className="w-[220px] shrink-0 bg-slate-50/60 dark:bg-white/[0.02] border-r border-slate-100/80 dark:border-white/[0.05] p-3 flex flex-col gap-1">
+                    {megaMenu.columns.map((col, idx) => {
+                        const isActive = activeCol === idx;
+                        return (
+                            <button
+                                key={idx}
+                                onMouseEnter={() => setActiveCol(idx)}
+                                onClick={() => setActiveCol(idx)}
+                                className={`group w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left transition-all duration-200 ${
+                                    isActive
+                                        ? 'bg-white dark:bg-white/[0.08] shadow-sm border border-slate-200/80 dark:border-white/[0.1] text-blue-600 dark:text-blue-400'
+                                        : 'text-slate-600 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white'
+                                }`}
+                            >
+                                {col.icon && (
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200 ${
+                                        isActive
+                                            ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400'
+                                            : 'bg-slate-100 dark:bg-white/[0.05] text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-white/[0.08]'
+                                    }`}>
+                                        <col.icon size={15} />
+                                    </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-[13px] font-bold leading-tight truncate">{col.title}</div>
+                                    <div className="text-[10.5px] text-slate-400 dark:text-slate-500 mt-0.5">{col.items.length} özellik</div>
+                                </div>
+                                <ChevronRight size={13} className={`shrink-0 transition-all duration-200 ${isActive ? 'opacity-100 text-blue-500' : 'opacity-0 group-hover:opacity-60'}`} />
+                            </button>
+                        );
+                    })}
+
+                    {/* Bottom CTA in sidebar */}
+                    {megaMenu.bottomCTA && (
+                        <div className="mt-auto pt-3 border-t border-slate-100/80 dark:border-white/[0.05]">
+                            <Link
+                                href={megaMenu.bottomCTA.href}
+                                onClick={onClose}
+                                className="group flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12.5px] font-bold transition-all duration-200 hover:shadow-lg hover:shadow-blue-600/30"
+                            >
+                                <Rocket size={13} className="shrink-0" />
+                                <span className="flex-1 truncate">{megaMenu.bottomCTA.label}</span>
+                                <ArrowRight size={11} className="shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                            </Link>
+                        </div>
+                    )}
+                </div>
+
+                {/* ── Right Content Panel ── */}
+                <div className="flex-1 flex flex-col min-w-0">
+                    <div className="flex-1 p-5">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={activeCol}
+                                variants={contentVariants}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                className="grid grid-cols-2 gap-1.5"
+                            >
+                                {activeColumn?.items.map((item, idx) => (
+                                    <MegaMenuItemCard key={idx} item={item} onClick={onClose} />
+                                ))}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+
+                    {/* ── Featured Card Footer ── */}
+                    {megaMenu.featured && (
+                        <div className="border-t border-slate-100/80 dark:border-white/[0.06] p-4">
+                            <Link
+                                href={megaMenu.featured.href}
+                                onClick={onClose}
+                                className={`group/feat relative flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r ${megaMenu.featured.gradient || 'from-blue-600 to-indigo-600'} overflow-hidden hover:scale-[1.01] transition-all duration-300 hover:shadow-lg`}
+                            >
+                                {/* Animated shimmer */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover/feat:translate-x-full transition-transform duration-700" />
+                                {/* Decorative circles */}
+                                <div className="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                                <div className="absolute right-8 bottom-0 w-20 h-20 bg-white/5 rounded-full translate-y-1/2" />
+
+                                <div className="relative z-10 w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                                    <Sparkles size={18} className="text-white" />
+                                </div>
+                                <div className="relative z-10 flex-1 min-w-0">
+                                    {megaMenu.featured.badge && (
+                                        <div className="flex items-center gap-1.5 mb-1">
+                                            <Star size={10} className="text-yellow-300 fill-yellow-300" />
+                                            <span className="text-[10px] font-black text-white/80 uppercase tracking-wider">{megaMenu.featured.badge}</span>
+                                        </div>
+                                    )}
+                                    <div className="text-[14px] font-bold text-white leading-snug">{megaMenu.featured.title}</div>
+                                    <div className="text-[12px] text-white/70 mt-0.5 line-clamp-1">{megaMenu.featured.description}</div>
+                                </div>
+                                <div className="relative z-10 flex items-center gap-1.5 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white text-[12.5px] font-bold transition-colors shrink-0 group-hover/feat:gap-2.5">
+                                    İncele
+                                    <ArrowRight size={12} className="group-hover/feat:translate-x-1 transition-transform" />
+                                </div>
+                            </Link>
+                        </div>
+                    )}
+                </div>
             </div>
-            <ArrowRight size={14} className="mt-3.5 opacity-0 -translate-x-2 group-hover/item:opacity-50 group-hover/item:translate-x-0 transition-all duration-300 text-slate-400 shrink-0" />
-        </Link>
+        </div>
     );
 }
 
@@ -415,7 +554,7 @@ export default function Navbar() {
                                             />
                                         </button>
 
-                                        {/* ── Mega Menu Dropdown ── */}
+                                        {/* ── Mega Menu Dropdown (Premium) ── */}
                                         <AnimatePresence>
                                             {activeDropdown === link.label && (
                                                 <motion.div
@@ -423,107 +562,18 @@ export default function Navbar() {
                                                     initial="hidden"
                                                     animate="visible"
                                                     exit="exit"
-                                                    className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-[920px] max-w-[calc(100vw-2rem)]"
+                                                    className="absolute top-full left-1/2 -translate-x-1/2 mt-3.5 w-[820px] max-w-[calc(100vw-2rem)]"
                                                 >
-                                                    {/* Top connector bridge for mouse hover */}
-                                                    <div className="absolute -top-3 left-0 right-0 h-3" />
+                                                    {/* Hover bridge */}
+                                                    <div className="absolute -top-4 left-0 right-0 h-4" />
 
-                                                    {/* Glow effect behind panel */}
-                                                    <div className="absolute -inset-1 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent rounded-3xl blur-xl pointer-events-none" />
+                                                    {/* Ambient glow */}
+                                                    <div className="absolute -inset-3 bg-gradient-to-b from-blue-500/[0.07] via-purple-500/[0.04] to-transparent rounded-3xl blur-2xl pointer-events-none" />
 
-                                                    <div className="relative bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl rounded-2xl shadow-[0_25px_60px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_25px_60px_-12px_rgba(0,0,0,0.5)] border border-slate-200/60 dark:border-white/[0.08] overflow-hidden">
-                                                        {/* Top gradient accent line */}
-                                                        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-60" />
-
-                                                        <div className="flex">
-                                                            {/* ── Columns Area ── */}
-                                                            <motion.div
-                                                                variants={staggerContainer}
-                                                                initial="hidden"
-                                                                animate="visible"
-                                                                className="flex-1 p-5 grid grid-cols-3 gap-1"
-                                                            >
-                                                                {link.megaMenu.columns.map((column, colIdx) => (
-                                                                    <motion.div key={colIdx} variants={staggerItem} className="space-y-1">
-                                                                        <div className="flex items-center gap-2.5 px-3 mb-3 pb-2 border-b border-slate-100/80 dark:border-white/[0.05]">
-                                                                            {column.icon && (
-                                                                                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-slate-100 to-slate-50 dark:from-white/[0.08] dark:to-white/[0.04] flex items-center justify-center">
-                                                                                    <column.icon size={12} className="text-slate-500 dark:text-slate-400" />
-                                                                                </div>
-                                                                            )}
-                                                                            <h4 className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-[0.12em]">
-                                                                                {column.title}
-                                                                            </h4>
-                                                                        </div>
-                                                                        <div className="space-y-0.5">
-                                                                            {column.items.map((item, itemIdx) => (
-                                                                                <MegaMenuItemCard
-                                                                                    key={itemIdx}
-                                                                                    item={item}
-                                                                                    onClick={() => setActiveDropdown(null)}
-                                                                                />
-                                                                            ))}
-                                                                        </div>
-                                                                    </motion.div>
-                                                                ))}
-                                                            </motion.div>
-
-                                                            {/* ── Featured Sidebar ── */}
-                                                            {link.megaMenu.featured && (
-                                                                <div className="w-[270px] relative">
-                                                                    {/* Sidebar background with gradient */}
-                                                                    <div className={`absolute inset-0 bg-gradient-to-br ${link.megaMenu.featured.gradient || 'from-blue-600 to-indigo-600'} opacity-[0.04] dark:opacity-[0.08]`} />
-                                                                    <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-slate-200/60 dark:via-white/[0.06] to-transparent" />
-
-                                                                    <div className="relative h-full p-6 flex flex-col justify-between">
-                                                                        <div>
-                                                                            {link.megaMenu.featured.badge && (
-                                                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold bg-gradient-to-r ${link.megaMenu.featured.gradient || 'from-blue-600 to-indigo-600'} text-white rounded-full mb-5 shadow-lg shadow-blue-500/20`}>
-                                                                                    <Star size={10} fill="currentColor" />
-                                                                                    {link.megaMenu.featured.badge}
-                                                                                </span>
-                                                                            )}
-                                                                            <h4 className="font-bold text-lg text-slate-900 dark:text-white mb-2.5 leading-snug">
-                                                                                {link.megaMenu.featured.title}
-                                                                            </h4>
-                                                                            <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                                                                                {link.megaMenu.featured.description}
-                                                                            </p>
-                                                                        </div>
-
-                                                                        <Link
-                                                                            href={link.megaMenu.featured.href}
-                                                                            onClick={() => setActiveDropdown(null)}
-                                                                            className={`group/cta mt-6 flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r ${link.megaMenu.featured.gradient || 'from-blue-600 to-indigo-600'} shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]`}
-                                                                        >
-                                                                            <span className="text-sm font-bold text-white">
-                                                                                Detayları İncele
-                                                                            </span>
-                                                                            <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center group-hover/cta:bg-white/30 transition-all duration-300">
-                                                                                <ArrowRight size={14} className="text-white" />
-                                                                            </div>
-                                                                        </Link>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        {/* ── Bottom CTA ── */}
-                                                        {link.megaMenu.bottomCTA && (
-                                                            <div className="px-6 py-3.5 bg-gradient-to-r from-slate-50/80 to-slate-100/40 dark:from-white/[0.02] dark:to-white/[0.01] border-t border-slate-100/80 dark:border-white/[0.06]">
-                                                                <Link
-                                                                    href={link.megaMenu.bottomCTA.href}
-                                                                    onClick={() => setActiveDropdown(null)}
-                                                                    className="group/bottom inline-flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200"
-                                                                >
-                                                                    {link.megaMenu.bottomCTA.label}
-                                                                    {link.megaMenu.bottomCTA.icon && (
-                                                                        <link.megaMenu.bottomCTA.icon size={14} className="group-hover/bottom:translate-x-0.5 group-hover/bottom:-translate-y-0.5 transition-transform duration-200" />
-                                                                    )}
-                                                                </Link>
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                    <DesktopMegaMenuPanel
+                                                        megaMenu={link.megaMenu}
+                                                        onClose={() => setActiveDropdown(null)}
+                                                    />
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>

@@ -1,0 +1,577 @@
+
+// ==================== EDITORIAL CALENDAR ====================
+
+enum ContentItemType {
+  BLOG_POST
+  SOCIAL_POST
+  NEWSLETTER
+  VIDEO
+  PODCAST
+  WEBINAR
+  EBOOK
+  WHITEPAPER
+  CASE_STUDY
+}
+
+enum ContentItemStatus {
+  IDEA        // Sadece fikir
+  PLANNED     // Planlandı
+  IN_PROGRESS // Yazılıyor
+  IN_REVIEW   // İncelemede
+  APPROVED    // Onaylandı
+  SCHEDULED   // Planlandı
+  PUBLISHED   // Yayınlandı
+  ARCHIVED    // Arşivlendi
+}
+
+model EditorialCalendar {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  title       String
+  description String?
+  
+  // Content Details
+  type        ContentItemType
+  status      ContentItemStatus @default(IDEA)
+  
+  // Scheduling
+  plannedDate DateTime?
+  publishDate DateTime?
+  timeSlot    String?    // "morning", "afternoon", "evening"
+  
+  // Assigned to
+  assignedTo  String?    // User ID
+  reviewer    String?    // User ID
+  
+  // Content Reference
+  blogPostId  String?
+  blogPost    BlogPost?  @relation(fields: [blogPostId], references: [id])
+  
+  // Campaign/Theme
+  campaignId  String?
+  campaign    ContentCampaign? @relation(fields: [campaignId], references: [id])
+  
+  // Tags
+  tags        String[]
+  
+  // Reminders
+  reminderDays Int[]   // [1, 3, 7] - days before
+  
+  // Notes
+  notes       String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([plannedDate])
+  @@index([status])
+  @@index([assignedTo])
+}
+
+model ContentCampaign {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  
+  // Campaign Period
+  startDate   DateTime
+  endDate     DateTime
+  
+  // Theme
+  color       String   @default("blue")
+  icon        String?
+  
+  // Goals
+  targetPosts Int      @default(0)
+  targetViews Int?
+  
+  // Content
+  calendarItems EditorialCalendar[]
+  
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([startDate])
+  @@index([isActive])
+}
+
+// ==================== CONTENT TEMPLATES ====================
+
+model ContentTemplate {
+  id          String   @id @default(uuid())
+  
+  name        String
+  slug        String   @unique
+  description String?
+  
+  // Type
+  type        ContentItemType @default(BLOG_POST)
+  
+  // Template Structure
+  structure   Json     // { sections: [{ type, title, content, required }] }
+  
+  // Default Values
+  defaultTitle     String?
+  defaultExcerpt   String?
+  defaultContent   String?  @db.Text
+  defaultCategory  String?
+  defaultTags      String[]
+  
+  // SEO Template
+  seoTemplate   Json?    // { titlePattern, descriptionPattern }
+  
+  // AI Settings
+  aiPrompts     Json?    // { title: "...", content: "..." }
+  
+  // Visual
+  featuredImageTemplate String? // Placeholder URL
+  
+  isActive      Boolean  @default(true)
+  isPublic      Boolean  @default(false) // Others can use
+  createdBy     String
+  
+  // Usage Stats
+  usageCount    Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([type])
+  @@index([isActive])
+  @@index([isPublic])
+}
+
+// ==================== MEDIA LIBRARY ====================
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  ARCHIVE
+}
+
+model MediaLibrary {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  // File Info
+  name        String
+  fileName    String
+  fileUrl     String
+  fileSize    Int      // bytes
+  mimeType    String
+  type        MediaType
+  
+  // Dimensions (for images/videos)
+  width       Int?
+  height      Int?
+  duration    Float?   // seconds for video/audio
+  
+  // AI Tags
+  aiTags      String[] // Auto-generated tags
+  aiDescription String?  // AI-generated description
+  aiColors    String[]  // Dominant colors
+  
+  // Manual Tags
+  tags        String[]
+  folders     String[]  // Folder paths ["blog/2024", "products"]
+  
+  // Metadata
+  alt         String?
+  caption     String?
+  title       String?
+  
+  // Usage
+  usedInPosts String[] // Blog post IDs
+  useCount    Int      @default(0)
+  
+  // Upload Info
+  uploadedBy  String   // User ID
+  
+  // Variants (thumbnails, etc)
+  variants    Json?    // [{ width, height, url }]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([type])
+  @@index([tags])
+  @@index([folders])
+  @@index([usedInPosts])
+}
+
+// ==================== AUTHOR MANAGEMENT ====================
+
+model AuthorProfile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Profile
+  bio         String?  @db.Text
+  shortBio    String?
+  avatar      String?
+  coverImage  String?
+  
+  // Social Links
+  website     String?
+  twitter     String?
+  linkedin    String?
+  instagram   String?
+  
+  // Expertise
+  expertise   String[] // ["E-ticaret", "SEO", "AI"]
+  
+  // Stats
+  postCount   Int      @default(0)
+  totalViews  Int      @default(0)
+  totalLikes  Int      @default(0)
+  
+  // Settings
+  isPublic    Boolean  @default(true)
+  allowComments Boolean @default(true)
+  
+  // Badges
+  badges      String[] // ["top_contributor", "expert"]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+}
+
+// Guest Authors (without user account)
+model GuestAuthor {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name        String
+  email       String
+  bio         String?
+  avatar      String?
+  
+  // Social
+  website     String?
+  twitter     String?
+  
+  // Posts
+  posts       BlogPost[]
+  
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  
+  @@index([tenantId])
+  @@index([email])
+}
+
+// ==================== CONTENT WORKFLOW ====================
+
+enum WorkflowStepType {
+  DRAFT
+  REVIEW
+  APPROVAL
+  PUBLISH
+  ARCHIVE
+}
+
+model ContentWorkflow {
+  id          String   @id @default(uuid())
+  tenantId    String   @unique
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  
+  // Workflow Steps
+  steps       Json     // [{ type, assigneeRole, required, duration }]
+  
+  // Rules
+  autoPublish Boolean  @default(false)
+  requireApproval Boolean @default(true)
+  
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WorkflowInstance {
+  id          String   @id @default(uuid())
+  workflowId  String
+  workflow    ContentWorkflow @relation(fields: [workflowId], references: [id])
+  
+  blogPostId  String
+  blogPost    BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  
+  // Current State
+  currentStep Int      @default(0)
+  status      String   @default("active") // active, completed, rejected
+  
+  // History
+  history     Json     // [{ step, action, by, at, comment }]
+  
+  // Assignees
+  assignedTo  String?  // Current assignee
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([blogPostId])
+  @@index([workflowId])
+  @@index([status])
+}
+
+// ==================== NEWSLETTER ====================
+
+model Newsletter {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  
+  // Settings
+  fromName    String
+  fromEmail   String
+  
+  // Design
+  template    String   @default("default")
+  colorScheme Json?    // { primary, secondary, background }
+  
+  // Content
+  logoUrl     String?
+  headerImage String?
+  footerText  String?
+  
+  // Subscribers
+  subscribers NewsletterSubscriber[]
+  
+  // Stats
+  subscriberCount Int @default(0)
+  
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([tenantId])
+  @@index([isActive])
+}
+
+model NewsletterSubscriber {
+  id          String   @id @default(uuid())
+  newsletterId String
+  newsletter  Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  
+  email       String
+  name        String?
+  
+  // Preferences
+  preferences Json?    // { frequency, categories }
+  
+  // Status
+  isActive    Boolean  @default(true)
+  isVerified  Boolean  @default(false)
+  
+  // Stats
+  openCount   Int      @default(0)
+  clickCount  Int      @default(0)
+  lastOpenAt  DateTime?
+  
+  subscribedAt DateTime @default(now())
+  unsubscribedAt DateTime?
+  
+  @@unique([newsletterId, email])
+  @@index([email])
+}
+
+model NewsletterCampaign {
+  id          String   @id @default(uuid())
+  newsletterId String
+  newsletter  Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  
+  subject     String
+  content     String   @db.LongText
+  
+  // Content
+  blogPostIds String[] // Featured posts
+  
+  // Scheduling
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  
+  // Stats
+  recipientCount Int   @default(0)
+  openCount   Int      @default(0)
+  clickCount  Int      @default(0)
+  bounceCount Int      @default(0)
+  
+  // Status
+  status      String   @default("draft") // draft, scheduled, sending, sent
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([newsletterId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+// ==================== SOCIAL SHARING ====================
+
+enum SocialPlatform {
+  TWITTER
+  FACEBOOK
+  LINKEDIN
+  INSTAGRAM
+  PINTEREST
+  TIKTOK
+  YOUTUBE
+}
+
+model SocialAccount {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  platform    SocialPlatform
+  accountName String
+  accountId   String?
+  
+  // Auth
+  accessToken String?  @db.Text
+  refreshToken String? @db.Text
+  tokenExpiresAt DateTime?
+  
+  // Settings
+  isActive    Boolean  @default(true)
+  autoShare   Boolean  @default(false)
+  
+  // Stats
+  followerCount Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([tenantId, platform, accountName])
+  @@index([tenantId])
+}
+
+model SocialShare {
+  id          String   @id @default(uuid())
+  blogPostId  String
+  blogPost    BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  
+  accountId   String
+  account     SocialAccount @relation(fields: [accountId], references: [id])
+  
+  // Content
+  message     String?  @db.Text
+  imageUrl    String?
+  link        String?
+  
+  // Scheduling
+  scheduledAt DateTime?
+  publishedAt DateTime?
+  
+  // Platform Post ID
+  platformPostId String?
+  
+  // Stats
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  likes       Int      @default(0)
+  shares      Int      @default(0)
+  comments    Int      @default(0)
+  
+  // Status
+  status      String   @default("draft") // draft, scheduled, published, failed
+  errorMessage String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([blogPostId])
+  @@index([accountId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+// ==================== CONTENT ANALYTICS ====================
+
+model ContentAnalytics {
+  id          String   @id @default(uuid())
+  blogPostId  String   @unique
+  blogPost    BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  
+  // Time-based Stats
+  date        DateTime @default(now())
+  
+  // Views
+  views       Int      @default(0)
+  uniqueViews Int      @default(0)
+  
+  // Engagement
+  avgReadTime Float    @default(0) // seconds
+  bounceRate  Float    @default(0)
+  scrollDepth Float    @default(0) // percentage
+  
+  // Sources
+  sources     Json?    // { direct: 10, search: 20, social: 5 }
+  
+  // Devices
+  devices     Json?    // { desktop: 50, mobile: 40, tablet: 10 }
+  
+  // Locations
+  countries   Json?    // { TR: 100, US: 20 }
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([blogPostId])
+  @@index([date])
+}
+
+// ==================== CONTENT QUALITY ====================
+
+model ContentQualityScore {
+  id          String   @id @default(uuid())
+  blogPostId  String   @unique
+  blogPost    BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  
+  // Overall Score
+  overallScore Int     @default(0) // 0-100
+  
+  // Category Scores
+  readabilityScore  Int @default(0)
+  seoScore          Int @default(0)
+  engagementScore   Int @default(0)
+  originalityScore  Int @default(0)
+  completenessScore Int @default(0)
+  
+  // Issues
+  issues      Json?    // [{ type, severity, message, suggestion }]
+  
+  // Improvements
+  suggestions Json?    // [{ category, priority, action }]
+  
+  // AI Analysis
+  aiAnalysis  String?  @db.Text
+  
+  lastChecked DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([blogPostId])
+  @@index([overallScore])
+}

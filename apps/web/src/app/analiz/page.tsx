@@ -2350,9 +2350,8 @@ www.pazaryonetimi.com
 };
 
 // --- Main Content ---
-function AnalysisContent() {
-    const searchParams = useSearchParams();
-    const url = searchParams?.get('url')?.trim() || '';
+function AnalysisContent({ initialUrl }: { initialUrl: string }) {
+    const [url] = useState<string>(initialUrl);
     const [analyzing, setAnalyzing] = useState(true);
     const [score, setScore] = useState<number | null>(null);
     const [activeTab, setActiveTab] = useState<'overview' | 'seo' | 'products' | 'keywords' | 'trends' | 'competitors' | 'comparison' | 'marketing' | 'reports' | 'tools'>('overview');
@@ -2412,7 +2411,9 @@ function AnalysisContent() {
                 if (!storeId) throw new Error('Trendyol mağaza kimliği URL içinde bulunamadı.');
                 return { platform: 'TRENDYOL', storeId };
             } else if (urlString.includes('hepsiburada.com')) {
-                return { platform: 'HEPSIBURADA', storeId: 'store' }; // Fix: Use placeholder, real ID extracted from query url
+                const match = urlString.match(/\/magaza\/([^/?]+)/);
+                const storeId = match?.[1] || 'store';
+                return { platform: 'HEPSIBURADA', storeId };
             } else if (urlString.includes('amazon')) {
                 return { platform: 'AMAZON', storeId: 'store' };
             }
@@ -2424,20 +2425,38 @@ function AnalysisContent() {
 
     useEffect(() => {
         const loadAnalysis = async () => {
+            console.log(`[DEBUG] Starting analysis, url=${url}`);
             setError(null);
             if (!url) {
+                console.log('[DEBUG] No URL provided');
                 setError('Analiz için ?url= parametresi zorunludur.');
                 setAnalyzing(false);
                 return;
             }
-            // URL'den mağaza bilgilerini çıkar
-            const storeInfo = extractStoreInfo(url);
-            setPlatform(storeInfo.platform);
-
+            console.log('[DEBUG] URL exists, proceeding...');
             try {
-                // Önce Trendyol scraper API'yi dene
+                let storeInfo;
+                try {
+                    console.log('[DEBUG] Calling extractStoreInfo...');
+                    storeInfo = extractStoreInfo(url);
+                    console.log('[DEBUG] extractStoreInfo result:', storeInfo);
+                } catch (extractError: any) {
+                    console.error('[DEBUG] extractStoreInfo failed:', extractError);
+                    // Fallback for Amazon
+                    if (url.includes('amazon')) {
+                        storeInfo = { storeName: 'Amazon Mağaza', storeSlug: 'amazon-store', storeId: 'store', platform: 'AMAZON' };
+                    } else if (url.includes('hepsiburada.com')) {
+                        storeInfo = { storeName: 'Hepsiburada Mağaza', storeSlug: 'hepsiburada-store', storeId: 'erogluoto', platform: 'HEPSIBURADA' };
+                    } else {
+                        throw extractError;
+                    }
+                }
+                console.log('[DEBUG] Setting platform...', storeInfo?.platform);
+                setPlatform(storeInfo.platform);
+                console.log('[DEBUG] Platform set, checking URL type...');
+
+                // Platform-specific API calls
                 if (url.includes('trendyol.com')) {
-                    // Use the marketplace analyze proxy route instead of direct Trendyol fetch
                     const { platform: plat, storeId } = getPlatformFromUrl(url);
                     const response = await fetch(
                         `/api/marketplace/analyze/${plat.toLowerCase()}/${storeId}?url=${encodeURIComponent(url)}`
@@ -2459,17 +2478,21 @@ function AnalysisContent() {
                         throw new Error(errorData?.error || 'Trendyol analizi başarısız oldu.');
                     }
                 } else if (url.includes('hepsiburada.com')) {
+                    console.log('[DEBUG] Hepsiburada URL detected, calling API...');
                     // Routing Hepsiburada to Backend API for more robust scraping
                     const { platform: plat, storeId } = getPlatformFromUrl(url);
+                    console.log(`[DEBUG] Hepsiburada - plat=${plat}, storeId=${storeId}`);
                     const response = await fetch(
                         `/api/marketplace/analyze/${plat.toLowerCase()}/${storeId}?url=${encodeURIComponent(url)}`
                     );
+                    console.log(`[DEBUG] Hepsiburada API response status: ${response.status}`);
 
                     if (!response.ok) {
                         throw new Error('Hepsiburada analizi şu an yapılamıyor.');
                     }
 
                     const analysisData = await response.json();
+                    console.log('[DEBUG] Hepsiburada analysis data:', analysisData);
 
                     if (analysisData && analysisData.metrics) {
                         setStoreData(analysisData);
@@ -2483,20 +2506,27 @@ function AnalysisContent() {
                 } else {
                     // Fallback for other platforms (e.g., Amazon, or if scraper fails)
                     const { platform: plat, storeId } = getPlatformFromUrl(url);
-                    const analysisResponse = await fetch(
-                        `/api/marketplace/analyze/${plat.toLowerCase()}/${storeId}?url=${encodeURIComponent(url)}`
-                    );
+                    const analysisUrl = `/api/marketplace/analyze/${plat.toLowerCase()}/${storeId}?url=${encodeURIComponent(url)}`;
+                    console.log(`[Frontend] Calling: ${analysisUrl}`);
+                    
+                    const analysisResponse = await fetch(analysisUrl);
+                    console.log(`[Frontend] Response status: ${analysisResponse.status}`);
 
                     if (analysisResponse.ok) {
                         const analysisData = await analysisResponse.json();
+                        console.log(`[Frontend] Response data:`, analysisData);
+                        
                         if (analysisData && analysisData.metrics) {
                             setStoreData(analysisData);
                             setScore(hasNumericValue(analysisData.seoScore) ? analysisData.seoScore : 0);
                             setProducts(analysisData.products || []);
                         } else {
+                            console.error('[Frontend] No metrics in response:', analysisData);
                             throw new Error('Pazaryeri analizi şu an yapılamıyor veya geçerli veri alınamadı.');
                         }
                     } else {
+                        const errorText = await analysisResponse.text();
+                        console.error('[Frontend] API error:', errorText);
                         throw new Error('Pazaryeri analizi şu an yapılamıyor.');
                     }
                 }
@@ -2548,7 +2578,7 @@ function AnalysisContent() {
                     <div className="space-y-4">
                         <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">AI Analiz Yapılıyor</h2>
                         <div className="flex items-center justify-center gap-3">
-                            <span className="text-slate-500 dark:text-slate-400 font-mono text-sm truncate max-w-xs">{url}</span>
+                            <span className="text-slate-500 dark:text-slate-400 font-mono text-sm truncate max-w-xs">Mağaza analiz ediliyor...</span>
                         </div>
                     </div>
 
@@ -3080,14 +3110,16 @@ function AnalysisContent() {
     );
 }
 
-export default function AnalysisPage() {
+export default async function AnalysisPage({ searchParams }: { searchParams: Promise<{ url?: string }> }) {
+    const params = await searchParams;
+    const url = params?.url || '';
     return (
         <Suspense fallback={
             <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#020617]">
                 <Loader2 className="animate-spin text-blue-500" size={40} />
             </div>
         }>
-            <AnalysisContent />
+            <AnalysisContent initialUrl={url} />
         </Suspense>
     );
 }

@@ -99,6 +99,18 @@ const nextConfig = {
 
   // Trailing slash tutarlılığı (SEO duplicate içerik önleme)
   trailingSlash: false,
-};
 
-module.exports = nextConfig;
+  // API Proxy to backend
+  async rewrites() {
+    return [
+      {
+        source: '/api/scraping/:path*',
+        destination: 'http://localhost:3001/api/scraping/:path*',
+      },
+      {
+        source: '/api/marketplace/:path*',
+        destination: 'http://localhost:3001/api/marketplace/:path*',
+      },
+    ];
+  },
+};

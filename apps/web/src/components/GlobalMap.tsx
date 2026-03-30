@@ -132,7 +132,6 @@ export default function GlobalMap() {
                                     >
                                         {/* Pulse */}
                                         <motion.circle
-                                            r="1.5"
                                             fill="none"
                                             stroke="#60a5fa"
                                             strokeWidth="0.1"
@@ -196,6 +195,10 @@ export default function GlobalMap() {
 }
 
 function Connection({ start, end, curvature = 0 }: any) {
+    if (!start || !end || !('cx' in start) || !('cx' in end)) {
+        return null;
+    }
+
     const midX = (start.cx + end.cx) / 2;
     const midY = (start.cy + end.cy) / 2 + curvature;
     const pathD = `M ${start.cx} ${start.cy} Q ${midX} ${midY} ${end.cx} ${end.cy}`;

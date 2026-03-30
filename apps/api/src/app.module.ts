@@ -55,6 +55,9 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
 import { ImageEditorModule } from './modules/image-editor/image-editor.module';
 import { CopilotModule } from './modules/ai/copilot/copilot.module';
 import { WorkflowBuilderModule } from './modules/workflow-builder/workflow-builder.module';
+import { ScrapingModule } from './modules/scraping/scraping.module';
+import { SearchModule } from './modules/search/search.module';
+import { EmailModule } from './modules/email/email.module';
 import { MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
 
@@ -141,6 +144,7 @@ function getBullConnection() {
     WhatsappModule,
     DemoModule,
     SmsModule,
+    EmailModule,
     AuthModule,
     MetricsModule,
     ShippingModule,
@@ -152,6 +156,8 @@ function getBullConnection() {
     ImageEditorModule,
     CopilotModule,
     WorkflowBuilderModule,
+    ScrapingModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,0 +1,140 @@
+
+// ==================== USER ONBOARDING ====================
+
+enum OnboardingStep {
+  WELCOME           // Hoş geldin modalı
+  PROFILE_SETUP     // Profil bilgileri
+  TENANT_SETUP      // Mağaza/Şirket bilgileri
+  PLATFORM_CONNECT  // Pazaryeri bağlantıları
+  PRODUCT_IMPORT    // İlk ürün importu
+  DASHBOARD_TOUR    // Dashboard turu
+  FEATURES_INTRO    // Özellik tanıtımı
+  AI_TOOLS          // AI araçları tanıtımı
+  COMPLETE          // Tamamlandı
+}
+
+model UserOnboarding {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Progress
+  currentStep     OnboardingStep @default(WELCOME)
+  completedSteps  Json     @default("[]") // ["WELCOME", "PROFILE_SETUP"]
+  skippedSteps    Json     @default("[]")
+  
+  // Step details
+  stepData        Json?    // Her adımdaki veriler
+  
+  // Status
+  isActive        Boolean  @default(true)
+  isCompleted     Boolean  @default(false)
+  completionDate  DateTime?
+  
+  // Preferences collected during onboarding
+  preferences     Json?    // { language, timezone, notifications }
+  
+  // Meta
+  startedAt       DateTime @default(now())
+  lastStepAt      DateTime @default(now())
+  totalTimeSpent  Int      @default(0) // seconds
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([isActive])
+  @@index([isCompleted])
+}
+
+// Onboarding görevleri/checklist
+model OnboardingTask {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title           String
+  description     String?
+  icon            String?  // Lucide icon name
+  
+  // Task type
+  type            String   // "required" | "optional" | "bonus"
+  step            OnboardingStep
+  
+  // Completion
+  isCompleted     Boolean  @default(false)
+  completedAt     DateTime?
+  
+  // Reward
+  rewardPoints    Int      @default(0)
+  rewardBadge     String?  // "quick_starter", "platform_master"
+  
+  // Action
+  actionUrl       String?  // Yönlendirilecek URL
+  actionType      String?  // "modal" | "page" | "tooltip"
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([step])
+  @@index([isCompleted])
+}
+
+// Onboarding içerikleri (admin tarafından yönetilen)
+model OnboardingContent {
+  id              String   @id @default(uuid())
+  
+  step            OnboardingStep
+  title           String
+  subtitle        String?
+  description     String?  @db.Text
+  
+  // Media
+  videoUrl        String?
+  imageUrl        String?
+  gifUrl          String?
+  
+  // UI
+  primaryColor    String   @default("blue")
+  bgGradient      String?  // "from-blue-600 to-purple-600"
+  
+  // Content blocks
+  tips            Json?    // [{ title, content, icon }]
+  faqs            Json?    // [{ question, answer }]
+  
+  // Interactive elements
+  hasChecklist    Boolean  @default(false)
+  checklistItems  Json?    // [{ id, label, required }]
+  
+  // CTA
+  primaryAction   String   @default("Devam Et")
+  secondaryAction String?  // "Atla"
+  
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([step])
+  @@index([isActive])
+}
+
+// Onboarding rozetleri/achievement'lar
+model UserBadge {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  badgeId         String
+  name            String
+  description     String?
+  icon            String
+  color           String   @default("gold")
+  
+  earnedAt        DateTime @default(now())
+  
+  @@unique([userId, badgeId])
+  @@index([userId])
+}

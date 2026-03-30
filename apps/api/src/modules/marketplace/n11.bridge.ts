@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MarketplaceBridge, MarketplaceReview } from './marketplace.service';
 import { ScrapingService } from '../scraping/scraping.service';
+import {
+    MarketplaceAnalysisResponse,
+    computeConfidenceFromSources,
+} from './analysis.types';
 
 interface N11Product {
     productId: string;
@@ -202,6 +206,165 @@ export class N11Bridge implements MarketplaceBridge {
         }
 
         return [];
+    }
+
+    /**
+     * N11 mağaza SEO analizi yap
+     */
+    async analyzeStoreSEO(storeId?: string): Promise<MarketplaceAnalysisResponse> {
+        try {
+            const resolvedStoreId = storeId || 'default';
+            const storeInfo = await this.getStoreInfo(resolvedStoreId);
+            const products = await this.getStoreProducts(resolvedStoreId, 20);
+
+            const seoScore = this.calculateSEOScore(storeInfo, products);
+
+            const metricSources = {
+                storeName: 'scraped',
+                rating: 'scraped',
+                followers: 'scraped',
+                totalProducts: 'scraped',
+                responseTime: 'not_available',
+                monthlyTraffic: 'not_available',
+                monthlyTurnover: 'not_available',
+                titleOptimization: 'calculated',
+                imageOptimization: 'calculated',
+                priceCompetitiveness: 'calculated',
+                stockHealth: 'calculated',
+                ratingTrend: 'scraped',
+                reviewCount: 'scraped',
+            } as const;
+
+            return {
+                platform: 'N11',
+                storeId: resolvedStoreId,
+                storeName: storeInfo.storeName,
+                seoScore,
+                dataSources: {
+                    overall: 'scraped+calculated',
+                    seoScore: 'calculated',
+                    products: 'scraped',
+                    metrics: metricSources,
+                    reasons: {
+                        responseTime: 'N11 public source yanit suresi bilgisini acik olarak saglamiyor.',
+                        monthlyTraffic: 'Aylik trafik verisi platform public endpointlerinde bulunmuyor.',
+                        monthlyTurnover: 'Aylik ciro verisi platform public endpointlerinde bulunmuyor.',
+                    },
+                    evidence: {
+                        adapter: 'n11.bridge',
+                        productSampleSize: products.length,
+                        hasCredentials: Boolean(this.apiKey && this.apiKey !== 'public'),
+                    },
+                },
+                confidence: computeConfidenceFromSources(metricSources),
+                metrics: {
+                    storeName: storeInfo.storeName,
+                    rating: storeInfo.averageRating,
+                    followers: storeInfo.followersCount,
+                    totalProducts: storeInfo.totalProducts,
+                    titleOptimization: this.analyzeTitles(products),
+                    imageOptimization: this.analyzeImages(products),
+                    priceCompetitiveness: this.analyzePrices(products),
+                    stockHealth: this.analyzeStock(products),
+                    ratingTrend: storeInfo.averageRating,
+                    reviewCount: 0,
+                },
+                products: products.map(p => ({
+                    name: p.title,
+                    price: p.salePrice,
+                    rating: p.rating,
+                    reviews: p.reviewCount,
+                    stock: p.stockCount,
+                })),
+                recommendations: this.generateRecommendations(storeInfo, products),
+                timestamp: new Date(),
+            };
+        } catch (error) {
+            this.logger.error(`N11 SEO analysis error: ${(error as Error).message}`);
+            throw error;
+        }
+    }
+
+    private calculateSEOScore(storeInfo: any, products: N11Product[]): number {
+        let score = 48; // Base score
+
+        // Rating (max +18) - N11 uses 10-scale
+        score += (storeInfo.averageRating / 10) * 18;
+
+        // Product count (max +12)
+        const productBonus = Math.min(storeInfo.totalProducts / 50, 12);
+        score += productBonus;
+
+        // Stock health (max +15)
+        const avgStock = products.length > 0
+            ? products.reduce((sum, p) => sum + (p.stockCount > 0 ? 1 : 0), 0) / products.length
+            : 0;
+        score += avgStock * 15;
+
+        // Followers (max +7)
+        const followerBonus = Math.min(storeInfo.followersCount / 1000, 7);
+        score += followerBonus;
+
+        return Math.min(Math.round(score), 100);
+    }
+
+    private analyzeTitles(products: N11Product[]): number {
+        if (!products.length) return 50;
+        let validCount = 0;
+
+        products.forEach((p) => {
+            const title = p.title || '';
+            // N11 title: 20-150 chars ideal
+            if (title.length >= 20 && title.length <= 150) validCount++;
+        });
+
+        return Math.round((validCount / products.length) * 100);
+    }
+
+    private analyzeImages(products: N11Product[]): number {
+        if (!products.length) return 50;
+        let validCount = 0;
+        products.forEach((p) => {
+            if (p.images && p.images.length >= 1) validCount++;
+        });
+        return Math.round((validCount / products.length) * 100);
+    }
+
+    private analyzePrices(products: N11Product[]): number {
+        if (!products.length) return 50;
+        const avgPrice = products.reduce((sum, p) => sum + p.salePrice, 0) / products.length;
+        const variance = products.reduce((sum, p) => sum + Math.abs(p.salePrice - avgPrice), 0) / products.length;
+        const normalizedVariance = Math.min(25, variance / Math.max(avgPrice, 1) * 100);
+        return Math.round(Math.min(100, Math.max(50, (avgPrice > 150 ? 70 : 60) + (25 - normalizedVariance))));
+    }
+
+    private analyzeStock(products: N11Product[]): number {
+        if (!products.length) return 50;
+        const stockedProducts = products.filter((p) => p.stockCount > 5).length;
+        return Math.round((stockedProducts / products.length) * 100);
+    }
+
+    private generateRecommendations(storeInfo: any, products: N11Product[]): string[] {
+        const recommendations: string[] = [];
+
+        if (storeInfo.averageRating < 8.0) {
+            recommendations.push('N11 mağaza puanını artırmak için kargolama sürelerini kısalt');
+        }
+
+        if (storeInfo.totalProducts < 20) {
+            recommendations.push('N11 kataloğunu genişlet - minimum 20+ ürün önerilir');
+        }
+
+        const lowStockProducts = products.filter((p) => p.stockCount < 10).length;
+        if (lowStockProducts > 0) {
+            recommendations.push(`${lowStockProducts} ürün kritik stok seviyesinde`);
+        }
+
+        if (storeInfo.followersCount < 100) {
+            recommendations.push('Mağaza takipçi sayısını artırmak için kampanyalar düzenle');
+        }
+
+        return recommendations;
     }
 
     // SOAP helpers

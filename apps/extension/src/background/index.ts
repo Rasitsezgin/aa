@@ -47,7 +47,7 @@ async function apiRequest(endpoint: string, options: RequestInit = {}): Promise<
 
 // ─── Message handling ───────────────────────────
 chrome.runtime.onMessage.addListener(
-    (request: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
+    (request: any, _sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
         console.log("Message received in background:", request.type);
 
         if (request.type === "LOGIN") {

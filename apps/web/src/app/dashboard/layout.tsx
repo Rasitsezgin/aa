@@ -35,6 +35,7 @@ import MobileSidebar from '@/components/dashboard/MobileSidebar';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { QuickActionsProvider, useQuickActions } from '@/providers/quick-actions-provider';
 import AICopilot from '@/components/dashboard/AICopilot';
+import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 
 interface MenuItem {
     icon: React.ComponentType<{ className?: string; size?: number }>;
@@ -531,6 +532,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
             <KeyboardShortcutsHelp />
             <AICopilot />
+            <AICopilot />
         </div>
     );
 }
@@ -542,7 +544,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <ToastProvider>
                     <QuickActionsProvider>
                         <ErrorBoundary>
-                            <DashboardLayoutContent>{children}</DashboardLayoutContent>
+                            <OnboardingProvider>
+                                <DashboardLayoutContent>{children}</DashboardLayoutContent>
+                            </OnboardingProvider>
                         </ErrorBoundary>
                     </QuickActionsProvider>
                 </ToastProvider>

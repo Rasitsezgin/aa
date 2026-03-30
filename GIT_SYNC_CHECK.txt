@@ -1,3 +1,0 @@
-This file was created at 2026-03-08 22:58 to verify Git synchronization with Coolify.
-Latest commit hash should be: d0bf056 (or newer after this file is added)
-Current local files definitely contain Prisma 7 and npx fixes.

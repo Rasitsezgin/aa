@@ -17,6 +17,22 @@ import { N11Bridge } from './n11.bridge';
 import { CicekSepetiBridge } from './ciceksepeti.bridge';
 import { Platform as PrismaPlatform, Prisma } from '@prisma/client';
 import { EncryptionService } from '../../common/encryption.service';
+import { EbayBridge } from './ebay.bridge';
+import { AlibabaBridge } from './alibaba.bridge';
+import { AliexpressBridge } from './aliexpress.bridge';
+import { WalmartBridge } from './walmart.bridge';
+import { EtsyBridge } from './etsy.bridge';
+import { ShopeeBridge } from './shopee.bridge';
+import { MercadoLibreBridge } from './mercadolibre.bridge';
+import { RakutenBridge } from './rakuten.bridge';
+import { WayfairBridge } from './wayfair.bridge';
+import { ZalandoBridge } from './zalando.bridge';
+import { LazadaBridge } from './lazada.bridge';
+import { CoupangBridge } from './coupang.bridge';
+import { OttoBridge } from './otto.bridge';
+import { AllegroBridge } from './allegro.bridge';
+import { CdiscountBridge } from './cdiscount.bridge';
+import { BolBridge } from './bol.bridge';
 import { MarketplaceAnalysisResponse, computeConfidenceFromSources } from './analysis.types';
 
 export interface MarketplaceReview {
@@ -46,7 +62,23 @@ export enum Platform {
     HEPSIBURADA = 'HEPSIBURADA',
     N11 = 'N11',
     CICEKSEPETI = 'CICEKSEPETI',
-    GENERIC = 'GENERIC', // Added for universal support
+    EBAY = 'EBAY',
+    ALIBABA = 'ALIBABA',
+    ALIEXPRESS = 'ALIEXPRESS',
+    WALMART = 'WALMART',
+    ETSY = 'ETSY',
+    SHOPEE = 'SHOPEE',
+    MERCADOLIBRE = 'MERCADOLIBRE',
+    RAKUTEN = 'RAKUTEN',
+    WAYFAIR = 'WAYFAIR',
+    ZALANDO = 'ZALANDO',
+    LAZADA = 'LAZADA',
+    COUPANG = 'COUPANG',
+    OTTO = 'OTTO',
+    ALLEGRO = 'ALLEGRO',
+    CDISCOUNT = 'CDISCOUNT',
+    BOL = 'BOL',
+    GENERIC = 'GENERIC',
 }
 
 @Injectable({ scope: Scope.REQUEST })
@@ -105,8 +137,136 @@ export class MarketplaceService {
                     apiSecret,
                     this.scrapingService
                 );
+            case Platform.EBAY:
+                const ebayExtra = integration.apiExtra as any;
+                return new EbayBridge(
+                    apiKey,
+                    apiSecret,
+                    ebayExtra?.devId || '',
+                    ebayExtra?.authToken || '',
+                    this.scrapingService,
+                    !!ebayExtra?.isSandbox
+                );
+            case Platform.ALIBABA:
+                const alibabaExtra = integration.apiExtra as any;
+                return new AlibabaBridge(
+                    apiKey,
+                    apiSecret,
+                    alibabaExtra?.accessToken || '',
+                    this.scrapingService
+                );
+            case Platform.ALIEXPRESS:
+                const aliExtra = integration.apiExtra as any;
+                return new AliexpressBridge(
+                    apiKey,
+                    apiSecret,
+                    aliExtra?.accessToken || '',
+                    this.scrapingService
+                );
+            case Platform.WALMART:
+                const walmartExtra = integration.apiExtra as any;
+                return new WalmartBridge(
+                    apiKey,
+                    apiSecret,
+                    this.scrapingService,
+                    !!walmartExtra?.isSandbox
+                );
+            case Platform.ETSY:
+                const etsyExtra = integration.apiExtra as any;
+                return new EtsyBridge(
+                    apiKey,
+                    apiSecret,
+                    etsyExtra?.accessToken || '',
+                    this.scrapingService
+                );
+            case Platform.SHOPEE:
+                const shopeeExtra = integration.apiExtra as any;
+                return new ShopeeBridge(
+                    apiKey,
+                    apiSecret,
+                    shopeeExtra?.shopId || '',
+                    shopeeExtra?.accessToken || '',
+                    this.scrapingService,
+                    !!shopeeExtra?.isSandbox
+                );
+            case Platform.MERCADOLIBRE:
+                const mlExtra = integration.apiExtra as any;
+                return new MercadoLibreBridge(
+                    apiKey,
+                    apiSecret,
+                    mlExtra?.accessToken || '',
+                    mlExtra?.siteId || 'MLM',
+                    this.scrapingService
+                );
+            case Platform.RAKUTEN:
+                const rakutenExtra = integration.apiExtra as any;
+                return new RakutenBridge(
+                    apiKey,
+                    apiSecret,
+                    rakutenExtra?.applicationId || '',
+                    this.scrapingService
+                );
+            case Platform.WAYFAIR:
+                return new WayfairBridge(
+                    apiKey,
+                    apiSecret,
+                    (integration.apiExtra as any)?.supplierId || '',
+                    this.scrapingService
+                );
+            case Platform.ZALANDO:
+                return new ZalandoBridge(
+                    apiKey,
+                    (integration.apiExtra as any)?.partnerId || '',
+                    this.scrapingService
+                );
+            case Platform.LAZADA:
+                const lazadaExtra = integration.apiExtra as any;
+                return new LazadaBridge(
+                    apiKey,
+                    apiSecret,
+                    lazadaExtra?.accessToken || '',
+                    this.scrapingService,
+                    lazadaExtra?.countryCode || 'MY'
+                );
+            case Platform.COUPANG:
+                return new CoupangBridge(
+                    apiKey,
+                    apiSecret,
+                    (integration.apiExtra as any)?.vendorId || '',
+                    this.scrapingService
+                );
+            case Platform.OTTO:
+                return new OttoBridge(
+                    apiKey,
+                    apiSecret,
+                    (integration.apiExtra as any)?.partnerId || '',
+                    this.scrapingService
+                );
+            case Platform.ALLEGRO:
+                const allegroExtra = integration.apiExtra as any;
+                return new AllegroBridge(
+                    apiKey,
+                    apiSecret,
+                    allegroExtra?.accessToken || '',
+                    this.scrapingService
+                );
+            case Platform.CDISCOUNT:
+                const cdiscountExtra = integration.apiExtra as any;
+                return new CdiscountBridge(
+                    apiKey,
+                    apiSecret,
+                    cdiscountExtra?.token || '',
+                    this.scrapingService
+                );
+            case Platform.BOL:
+                return new BolBridge(
+                    apiKey,
+                    apiSecret,
+                    this.scrapingService,
+                    (integration.apiExtra as any)?.isProduction || false
+                );
             default:
-                throw new Error(`${platform} köprüsü henüz hazır değil.`);
+                throw new Error(`Desteklenmeyen platform: ${platform}`);
         }
     }
 

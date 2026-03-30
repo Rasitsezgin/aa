@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MarketplaceBridge, MarketplaceReview } from './marketplace.service';
 import { ScrapingService } from '../scraping/scraping.service';
+import {
+    MarketplaceAnalysisResponse,
+    computeConfidenceFromSources,
+} from './analysis.types';
 
 interface CicekSepetiProduct {
     productId: string;
@@ -186,6 +190,160 @@ export class CicekSepetiBridge implements MarketplaceBridge {
         }
 
         return [];
+    }
+
+    /**
+     * ÇiçekSepeti mağaza SEO analizi yap
+     */
+    async analyzeStoreSEO(storeId?: string): Promise<MarketplaceAnalysisResponse> {
+        try {
+            const resolvedStoreId = storeId || 'default';
+            const storeInfo = await this.getStoreInfo(resolvedStoreId);
+            const products = await this.getStoreProducts(resolvedStoreId, 20);
+
+            const seoScore = this.calculateSEOScore(storeInfo, products);
+
+            const metricSources = {
+                storeName: 'scraped',
+                rating: 'scraped',
+                followers: 'scraped',
+                totalProducts: 'scraped',
+                responseTime: 'not_available',
+                monthlyTraffic: 'not_available',
+                monthlyTurnover: 'not_available',
+                titleOptimization: 'calculated',
+                imageOptimization: 'calculated',
+                priceCompetitiveness: 'calculated',
+                stockHealth: 'calculated',
+                ratingTrend: 'scraped',
+                reviewCount: 'scraped',
+            } as const;
+
+            return {
+                platform: 'CICEKSEPETI',
+                storeId: resolvedStoreId,
+                storeName: storeInfo.storeName,
+                seoScore,
+                dataSources: {
+                    overall: 'scraped+calculated',
+                    seoScore: 'calculated',
+                    products: 'scraped',
+                    metrics: metricSources,
+                    reasons: {
+                        responseTime: 'CicekSepeti public source yanit suresi bilgisini acik olarak saglamiyor.',
+                        monthlyTraffic: 'Aylik trafik verisi platform public endpointlerinde bulunmuyor.',
+                        monthlyTurnover: 'Aylik ciro verisi platform public endpointlerinde bulunmuyor.',
+                    },
+                    evidence: {
+                        adapter: 'ciceksepeti.bridge',
+                        productSampleSize: products.length,
+                        hasCredentials: Boolean(this.apiKey && this.apiKey !== 'public'),
+                    },
+                },
+                confidence: computeConfidenceFromSources(metricSources),
+                metrics: {
+                    storeName: storeInfo.storeName,
+                    rating: storeInfo.averageRating,
+                    followers: storeInfo.followersCount,
+                    totalProducts: storeInfo.totalProducts,
+                    titleOptimization: this.analyzeTitles(products),
+                    imageOptimization: this.analyzeImages(products),
+                    priceCompetitiveness: this.analyzePrices(products),
+                    stockHealth: this.analyzeStock(products),
+                    ratingTrend: storeInfo.averageRating,
+                    reviewCount: 0,
+                },
+                products: products.map(p => ({
+                    name: p.title,
+                    price: p.salePrice,
+                    rating: p.rating,
+                    reviews: p.reviewCount,
+                    stock: p.stockCount,
+                })),
+                recommendations: this.generateRecommendations(storeInfo, products),
+                timestamp: new Date(),
+            };
+        } catch (error) {
+            this.logger.error(`CicekSepeti SEO analysis error: ${(error as Error).message}`);
+            throw error;
+        }
+    }
+
+    private calculateSEOScore(storeInfo: any, products: CicekSepetiProduct[]): number {
+        let score = 50; // Base score
+
+        // Rating (max +20) - ÇiçekSepeti uses 10-scale
+        score += (storeInfo.averageRating / 10) * 20;
+
+        // Product count (max +10)
+        const productBonus = Math.min(storeInfo.totalProducts / 30, 10);
+        score += productBonus;
+
+        // Stock health (max +15)
+        const avgStock = products.length > 0
+            ? products.reduce((sum, p) => sum + (p.stockCount > 0 ? 1 : 0), 0) / products.length
+            : 0;
+        score += avgStock * 15;
+
+        // Followers (max +5)
+        const followerBonus = Math.min(storeInfo.followersCount / 500, 5);
+        score += followerBonus;
+
+        return Math.min(Math.round(score), 100);
+    }
+
+    private analyzeTitles(products: CicekSepetiProduct[]): number {
+        if (!products.length) return 50;
+        let validCount = 0;
+
+        products.forEach((p) => {
+            const title = p.title || '';
+            if (title.length >= 20 && title.length <= 120) validCount++;
+        });
+
+        return Math.round((validCount / products.length) * 100);
+    }
+
+    private analyzeImages(products: CicekSepetiProduct[]): number {
+        if (!products.length) return 50;
+        let validCount = 0;
+        products.forEach((p) => {
+            if (p.images && p.images.length >= 1) validCount++;
+        });
+        return Math.round((validCount / products.length) * 100);
+    }
+
+    private analyzePrices(products: CicekSepetiProduct[]): number {
+        if (!products.length) return 50;
+        const avgPrice = products.reduce((sum, p) => sum + p.salePrice, 0) / products.length;
+        const variance = products.reduce((sum, p) => sum + Math.abs(p.salePrice - avgPrice), 0) / products.length;
+        const normalizedVariance = Math.min(25, variance / Math.max(avgPrice, 1) * 100);
+        return Math.round(Math.min(100, Math.max(50, (avgPrice > 100 ? 70 : 60) + (25 - normalizedVariance))));
+    }
+
+    private analyzeStock(products: CicekSepetiProduct[]): number {
+        if (!products.length) return 50;
+        const stockedProducts = products.filter((p) => p.stockCount > 5).length;
+        return Math.round((stockedProducts / products.length) * 100);
+    }
+
+    private generateRecommendations(storeInfo: any, products: CicekSepetiProduct[]): string[] {
+        const recommendations: string[] = [];
+
+        if (storeInfo.averageRating < 8.5) {
+            recommendations.push('ÇiçekSepeti mağaza puanını artırmak için ürün kalitesini iyileştir');
+        }
+
+        if (storeInfo.totalProducts < 15) {
+            recommendations.push('ÇiçekSepeti kataloğunu genişlet - minimum 15+ ürün önerilir');
+        }
+
+        const lowStockProducts = products.filter((p) => p.stockCount < 10).length;
+        if (lowStockProducts > 0) {
+            recommendations.push(`${lowStockProducts} ürün kritik stok seviyesinde`);
+        }
+
+        return recommendations;
     }
 
     /**

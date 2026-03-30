@@ -17,6 +17,8 @@ function LoginForm() {
 
     useEffect(() => {
         const errorParam = searchParams?.get('error');
+        const callbackUrl = searchParams?.get('callbackUrl');
+        
         if (errorParam) {
             const errorMessages: Record<string, string> = {
                 Configuration: 'Sunucu yapılandırma hatası. Lütfen daha sonra tekrar deneyin.',
@@ -27,6 +29,11 @@ function LoginForm() {
                 true: 'Geçersiz e-posta veya şifre.',
             };
             setTimeout(() => setError(errorMessages[errorParam] || errorMessages.Default), 0);
+        }
+        
+        // Store callback URL in session storage for redirect after login
+        if (callbackUrl) {
+            sessionStorage.setItem('callbackUrl', callbackUrl);
         }
     }, [searchParams]);
 

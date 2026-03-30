@@ -1,0 +1,254 @@
+
+// ==================== BLOG SYSTEM ====================
+
+enum BlogPostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+model BlogCategory {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  
+  // SEO
+  metaTitle   String?
+  metaDescription String?
+  
+  // Visual
+  imageUrl    String?
+  color       String?  @default("blue")
+  
+  // Relations
+  posts       BlogPost[]
+  
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([slug])
+  @@index([isActive])
+}
+
+model BlogTag {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  
+  // Relations
+  posts       BlogPost[]
+  
+  // Stats
+  postCount   Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([slug])
+}
+
+model BlogPost {
+  id          String   @id @default(uuid())
+  
+  // Basic Info
+  title       String
+  slug        String   @unique
+  excerpt     String?  // AI generated or manual
+  content     String   @db.LongText
+  
+  // Status
+  status      BlogPostStatus @default(DRAFT)
+  publishedAt DateTime?
+  scheduledAt DateTime?
+  
+  // Author
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  
+  // Categories & Tags
+  categoryId  String?
+  category    BlogCategory? @relation(fields: [categoryId], references: [id])
+  tags        BlogTag[]
+  
+  // Featured Image
+  featuredImage String?
+  featuredImageAlt String?
+  
+  // Gallery
+  gallery     Json?    // [{ url, alt, caption }]
+  
+  // AI Generated Content
+  aiGeneratedContent Json?  // { title: true, excerpt: true, content: false }
+  aiPrompt    String?  @db.Text // The prompt used for generation
+  aiModel     String?  // "gpt-4", "claude", etc.
+  
+  // AI Images
+  aiImages    Json?    // [{ url, prompt, style, seed }]
+  
+  // SEO Fields
+  metaTitle   String?
+  metaDescription String?
+  metaKeywords String?
+  canonicalUrl String?
+  ogImage     String?
+  ogTitle     String?
+  ogDescription String?
+  
+  // AI SEO Suggestions
+  aiSeoScore  Int?     @default(0) // 0-100
+  aiSeoSuggestions Json? // [{ field, suggestion, priority }]
+  
+  // Reading Stats
+  readTime    Int?     // minutes
+  wordCount   Int?     @default(0)
+  
+  // Engagement
+  viewCount   Int      @default(0)
+  likeCount   Int      @default(0)
+  shareCount  Int      @default(0)
+  commentCount Int     @default(0)
+  
+  // Comments
+  comments    BlogComment[]
+  
+  // Related Posts
+  relatedPosts Json?   // ["post-id-1", "post-id-2"]
+  
+  // Series/Collections
+  seriesId    String?
+  seriesOrder Int?     // Order in series
+  
+  // Versioning
+  versions    BlogPostVersion[]
+  currentVersionId String?
+  
+  // Custom Fields
+  customFields Json?   // [{ key, value, type }]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@index([aiGeneratedContent])
+}
+
+model BlogPostVersion {
+  id          String   @id @default(uuid())
+  postId      String
+  post        BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  versionNumber Int
+  title       String
+  content     String   @db.LongText
+  excerpt     String?
+  
+  // What changed
+  changes     Json?    // [{ field, oldValue, newValue }]
+  changeSummary String? // "Başlık ve içerik güncellendi"
+  
+  createdBy   String   // User ID
+  createdAt   DateTime @default(now())
+  
+  @@unique([postId, versionNumber])
+  @@index([postId])
+}
+
+model BlogComment {
+  id          String   @id @default(uuid())
+  postId      String
+  post        BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  // Author (can be guest or user)
+  authorId    String?
+  author      User?    @relation(fields: [authorId], references: [id])
+  guestName   String?
+  guestEmail  String?
+  guestWebsite String?
+  
+  // Content
+  content     String   @db.Text
+  
+  // Status
+  status      String   @default("PENDING") // PENDING, APPROVED, SPAM, DELETED
+  
+  // Threading
+  parentId    String?
+  parent      BlogComment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies     BlogComment[] @relation("CommentReplies")
+  
+  // Moderation
+  isFlagged   Boolean  @default(false)
+  flagReason  String?
+  moderatedBy String?
+  moderatedAt DateTime?
+  
+  // AI Moderation
+  aiModerated Boolean  @default(false)
+  aiToxicityScore Float? // 0-1
+  aiSentiment String?  // POSITIVE, NEGATIVE, NEUTRAL
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([postId])
+  @@index([status])
+  @@index([parentId])
+}
+
+model BlogSeries {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  description String?
+  
+  // Visual
+  coverImage  String?
+  color       String?  @default("blue")
+  
+  // Posts
+  posts       BlogPost[] @relation("SeriesPosts")
+  
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// AI Content Generation History
+model AIGenerationLog {
+  id          String   @id @default(uuid())
+  
+  // What was generated
+  type        String   // "blog_title", "blog_excerpt", "blog_content", "blog_image"
+  prompt      String   @db.Text
+  result      String   @db.LongText
+  
+  // Model info
+  model       String   // "gpt-4", "dall-e-3", etc.
+  tokensUsed  Int?
+  cost        Float?   // USD cost
+  
+  // Context
+  postId      String?  // If generated for a specific post
+  userId      String
+  
+  // Quality
+  rating      Int?     // User rating 1-5
+  wasUsed     Boolean  @default(false) // Was this used in final content?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([type])
+  @@index([postId])
+  @@index([userId])
+  @@index([createdAt])
+}

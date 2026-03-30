@@ -1,0 +1,104 @@
+
+// ==================== SPECIAL OFFERS / PROMOTIONS ====================
+
+enum OfferType {
+  DISCOUNT_PERCENT
+  DISCOUNT_FIXED
+  FREE_SHIPPING
+  BUY_ONE_GET_ONE
+  FREE_TRIAL
+  BUNDLE_DEAL
+}
+
+enum OfferStatus {
+  DRAFT
+  ACTIVE
+  EXPIRED
+  SCHEDULED
+}
+
+model SpecialOffer {
+  id          String   @id @default(uuid())
+  
+  // Basic info
+  title       String   // "Özel Teklif! %50 İndirim"
+  subtitle    String?  // "Sınırlı süre için geçerli"
+  description String?  @db.Text
+  
+  // Offer type & value
+  type        OfferType @default(DISCOUNT_PERCENT)
+  value       Float?     // 50 (for %50), 100 (for 100 TL)
+  code        String?    // "BLACK50" - promo code
+  
+  // Visual
+  bgColor     String   @default("from-purple-600 to-blue-600")
+  textColor   String   @default("text-white")
+  imageUrl    String?
+  
+  // Urgency elements
+  showCountdown Boolean @default(true)
+  endDate     DateTime?  // Countdown target
+  
+  // CTA
+  ctaText     String   @default("Hemen Başvur")
+  ctaUrl      String   @default("#contact")
+  
+  // Email capture form
+  showEmailForm Boolean @default(true)
+  emailFormTitle String? @default("Email adresinizi bırakın, size ulaşalım")
+  emailPlaceholder String? @default("ornek@email.com")
+  
+  // Display settings
+  location    String   @default("home-hero") // home-hero, home-bottom, sidebar
+  isActive    Boolean  @default(false)
+  status      OfferStatus @default(DRAFT)
+  
+  // Scheduling
+  startDate   DateTime?
+  expiresAt   DateTime?
+  
+  // Stats
+  viewCount   Int      @default(0)
+  clickCount  Int      @default(0)
+  emailCount  Int      @default(0)
+  conversionCount Int  @default(0)
+  
+  // Email leads
+  leads       OfferLead[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([isActive])
+  @@index([status])
+  @@index([location])
+  @@index([startDate])
+  @@index([expiresAt])
+}
+
+model OfferLead {
+  id          String   @id @default(uuid())
+  offerId     String
+  offer       SpecialOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  
+  // Lead info
+  email       String
+  name        String?
+  phone       String?
+  message     String?
+  
+  // Meta
+  ipAddress   String?
+  userAgent   String?
+  referrer    String?
+  
+  // Status
+  isNotified  Boolean  @default(false) // Admin notified?
+  isContacted Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([offerId])
+  @@index([email])
+  @@index([createdAt])
+}

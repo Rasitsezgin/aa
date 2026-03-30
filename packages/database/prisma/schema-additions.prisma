@@ -1,0 +1,339 @@
+
+// ==================== CMS CONTENT BLOCKS ====================
+
+enum ContentBlockType {
+  TESTIMONIALS
+  FEATURES
+  CTA
+  STATS
+  TEAM
+  PRICING
+  FAQ
+  GALLERY
+  LOGOS
+  STEPS
+  BENEFITS
+  INTEGRATIONS
+}
+
+model ContentBlock {
+  id          String   @id @default(uuid())
+  name        String   // "Ana Sayfa Müşteri Yorumları"
+  type        ContentBlockType
+  key         String   @unique // "home-testimonials"
+  
+  // Content - JSON formatında esnek içerik
+  content     Json     // Her blok tipine göre farklı yapı
+  
+  // Styling
+  bgColor     String?  // bg-slate-900, #1a1a1a
+  textColor   String?  // text-white
+  padding     String   @default("py-16")
+  
+  // Settings
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  
+  // İlişkiler
+  pages       PageContentBlock[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([type])
+  @@index([isActive])
+  @@index([key])
+}
+
+// Sayfa-Blok ilişki tablosu (çoka çok)
+model PageContentBlock {
+  id          String   @id @default(uuid())
+  pageId      String
+  page        Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  blockId     String
+  block       ContentBlock @relation(fields: [blockId], references: [id], onDelete: Cascade)
+  
+  sortOrder   Int      @default(0)
+  customSettings Json? // Sayfa özel ayarları
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([pageId, blockId])
+  @@index([pageId])
+  @@index([blockId])
+}
+
+// ==================== THEME MANAGEMENT ====================
+
+model Theme {
+  id          String   @id @default(uuid())
+  name        String   // "Varsayılan", "Koyu Tema"
+  key         String   @unique // "default", "dark"
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  
+  // Colors
+  primaryColor    String   @default("blue")
+  secondaryColor  String   @default("slate")
+  accentColor     String   @default("emerald")
+  
+  // Typography
+  fontFamily      String   @default("Inter")
+  fontSizeBase    String   @default("16px")
+  
+  // Spacing
+  spacingBase     String   @default("1rem")
+  borderRadius    String   @default("0.5rem")
+  
+  // Dark mode
+  darkModeEnabled Boolean  @default(true)
+  
+  // Custom CSS
+  customCss       String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==================== FORM BUILDER ====================
+
+enum FormFieldType {
+  TEXT
+  TEXTAREA
+  EMAIL
+  PHONE
+  NUMBER
+  SELECT
+  RADIO
+  CHECKBOX
+  DATE
+  FILE
+  RATING
+}
+
+model Form {
+  id          String   @id @default(uuid())
+  name        String   // "İletişim Formu"
+  slug        String   @unique // "contact-form"
+  description String?
+  
+  // Settings
+  isActive    Boolean  @default(true)
+  isPublic    Boolean  @default(true) // Herkes görebilir mi
+  
+  // Submit settings
+  submitButtonText String @default("Gönder")
+  successMessage   String @default("Formunuz başarıyla gönderildi.")
+  redirectUrl      String? // Başarılı gönderim sonrası yönlendirme
+  
+  // Notifications
+  notifyEmails Json?   // ["admin@example.com"]
+  
+  // Relations
+  fields      FormField[]
+  responses   FormResponse[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([slug])
+  @@index([isActive])
+}
+
+model FormField {
+  id          String   @id @default(uuid())
+  formId      String
+  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  
+  // Field properties
+  type        FormFieldType
+  label       String
+  placeholder String?
+  helpText    String?
+  
+  // Validation
+  isRequired  Boolean  @default(false)
+  validation  Json?    // { min: 1, max: 100, pattern: "..." }
+  
+  // Options (for SELECT, RADIO, CHECKBOX)
+  options     Json?    // [{ label: "", value: "" }]
+  
+  // Display
+  sortOrder   Int      @default(0)
+  width       String   @default("full") // full, half
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([formId])
+  @@index([sortOrder])
+}
+
+model FormResponse {
+  id          String   @id @default(uuid())
+  formId      String
+  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  
+  // Response data
+  data        Json     // { fieldId: value }
+  
+  // Submitter info
+  ipAddress   String?
+  userAgent   String?
+  
+  // Status
+  isRead      Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([formId])
+  @@index([createdAt])
+}
+
+// ==================== SEO MANAGEMENT ====================
+
+model SeoSettings {
+  id          String   @id @default(uuid())
+  
+  // Site defaults
+  siteName          String?
+  siteDescription   String?
+  defaultMetaTitle  String?
+  defaultMetaDesc   String?
+  siteUrl           String?
+  
+  // Social
+  ogImageDefault    String?  // Varsayılan sosyal medya görseli
+  twitterHandle     String?
+  
+  // Verification
+  googleVerifyCode  String?
+  bingVerifyCode    String?
+  
+  // Robots
+  robotsTxt         String?  @default("User-agent: *\nDisallow:")
+  
+  // Sitemap
+  sitemapEnabled    Boolean  @default(true)
+  lastSitemapUpdate DateTime?
+  
+  // Advanced
+  canonicalEnabled  Boolean  @default(true)
+  structuredData    Json?    // JSON-LD şablonları
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==================== ANNOUNCEMENTS & POPUPS ====================
+
+enum PopupType {
+  MODAL
+  BANNER_TOP
+  BANNER_BOTTOM
+  SLIDE_IN
+  FULLSCREEN
+}
+
+enum PopupTrigger {
+  IMMEDIATE
+  DELAY
+  SCROLL
+  EXIT_INTENT
+  CLICK
+}
+
+model Popup {
+  id          String   @id @default(uuid())
+  name        String   // "Black Friday Kampanyası"
+  type        PopupType @default(MODAL)
+  
+  // Content
+  title       String?
+  content     String?  @db.Text
+  imageUrl    String?
+  
+  // CTA
+  ctaText     String?
+  ctaUrl      String?
+  ctaColor    String?
+  
+  // Display settings
+  isActive    Boolean  @default(false)
+  trigger     PopupTrigger @default(DELAY)
+  triggerDelay Int?    // Delay in seconds
+  triggerScroll Int?   // Scroll percentage
+  
+  // Targeting
+  showOnce    Boolean  @default(true) // Her ziyaretçiye bir kez mi
+  startDate   DateTime?
+  endDate     DateTime?
+  
+  // Stats
+  viewCount   Int      @default(0)
+  clickCount  Int      @default(0)
+  closeCount  Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==================== CONTENT VERSIONING ====================
+
+model PageVersion {
+  id          String   @id @default(uuid())
+  pageId      String
+  page        Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  
+  // Version data
+  versionNumber Int
+  data        Json     // Page snapshot
+  
+  // Metadata
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  notes       String?  // "Header değişikliği"
+  
+  @@unique([pageId, versionNumber])
+  @@index([pageId])
+}
+
+// ==================== INTERNATIONALIZATION (i18n) ====================
+
+model Language {
+  id          String   @id @default(uuid())
+  code        String   @unique // "tr", "en", "de"
+  name        String   // "Türkçe", "English"
+  nativeName  String   // "Türkçe", "English"
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  
+  // Display
+  flag        String?  // Emoji veya URL
+  direction   String   @default("ltr") // ltr, rtl
+  
+  sortOrder   Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([isActive])
+}
+
+model Translation {
+  id          String   @id @default(uuid())
+  languageId  String
+  language    Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  
+  // Translation key
+  namespace   String   @default("common") // "common", "pages", "forms"
+  key         String   // "home.hero.title"
+  value       String
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([languageId, namespace, key])
+  @@index([languageId])
+  @@index([namespace])
+}

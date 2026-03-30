@@ -4,6 +4,8 @@ import { Queue } from 'bullmq';
 import * as cron from 'node-cron';
 import { PrismaService } from '../../database/prisma.service';
 import { MarketIntelligenceService } from '../market-intelligence/market-intelligence.service';
+import { CompetitorAnalysisService } from '../marketplace/competitor-analysis.service';
+import { Platform } from '../marketplace/marketplace.service';
 
 @Injectable()
 export class SchedulerService implements OnModuleInit {
@@ -15,6 +17,7 @@ export class SchedulerService implements OnModuleInit {
     @InjectQueue('emails') private emailsQueue: Queue,
     private prisma: PrismaService,
     private marketIntelligenceService: MarketIntelligenceService,
+    private competitorService: CompetitorAnalysisService,
   ) {}
 
   onModuleInit() {
@@ -40,6 +43,24 @@ export class SchedulerService implements OnModuleInit {
       await this.scheduleOrderSync();
     });
 
+    // Her gün saat 03:00'de pazaryeri ürün senkronizasyonu
+    cron.schedule('0 3 * * *', async () => {
+      this.logger.log('Pazaryeri ürün senkronizasyonu başlatılıyor...');
+      await this.scheduleMarketplaceProductSync();
+    });
+
+    // Her gün saat 04:00'de SEO analizi
+    cron.schedule('0 4 * * *', async () => {
+      this.logger.log('Otomatik SEO analizi başlatılıyor...');
+      await this.scheduleSEOAnalysis();
+    });
+
+    // Her 3 saatte bir fiyat izleme
+    cron.schedule('0 */3 * * *', async () => {
+      this.logger.log('Fiyat izleme başlatılıyor...');
+      await this.schedulePriceMonitoring();
+    });
+
     // Her gün gece 02:00'de eski log temizliği
     cron.schedule('0 2 * * *', async () => {
       this.logger.log('Log temizliği başlatılıyor...');
@@ -62,6 +83,12 @@ export class SchedulerService implements OnModuleInit {
     cron.schedule('45 7 * * 1', async () => {
       this.logger.log('Haftalik rakip ozet raporu gorevi baslatiliyor...');
       await this.scheduleCompetitorSummaryReports();
+    });
+
+    // Her 30 dakikada bir entegrasyon sağlık kontrolü
+    cron.schedule('*/30 * * * *', async () => {
+      this.logger.log('Entegrasyon sağlık kontrolü başlatılıyor...');
+      await this.scheduleHealthChecks();
     });
 
     this.logger.log('Zamanlanmış görevler aktifleştirildi');
@@ -177,6 +204,91 @@ export class SchedulerService implements OnModuleInit {
   }
 
   // Manuel görev oluşturma API'leri
+  async scheduleMarketplaceProductSync() {
+    const integrations = await this.prisma.integration.findMany({
+      where: { isActive: true },
+      select: { id: true, tenantId: true, platform: true },
+    });
+
+    for (const integration of integrations) {
+      await this.syncQueue.add(
+        'marketplace-product-sync',
+        { 
+          integrationId: integration.id, 
+          tenantId: integration.tenantId, 
+          platform: integration.platform,
+          priority: 'normal'
+        },
+        { attempts: 3, backoff: { type: 'exponential', delay: 2000 } },
+      );
+    }
+
+    this.logger.log(`${integrations.length} pazaryeri için ürün senkronizasyonu planlandı`);
+  }
+
+  async scheduleSEOAnalysis() {
+    const integrations = await this.prisma.integration.findMany({
+      where: { isActive: true },
+      select: { id: true, tenantId: true, platform: true, apiExtra: true },
+    });
+
+    for (const integration of integrations) {
+      await this.syncQueue.add(
+        'seo-analysis',
+        { 
+          integrationId: integration.id, 
+          tenantId: integration.tenantId, 
+          platform: integration.platform,
+          storeId: (integration.apiExtra as any)?.supplierId || (integration.apiExtra as any)?.merchantId || null
+        },
+        { attempts: 2 },
+      );
+    }
+
+    this.logger.log(`${integrations.length} mağaza için SEO analizi planlandı`);
+  }
+
+  async schedulePriceMonitoring() {
+    const tenants = await this.prisma.tenant.findMany({
+      where: { plan: { in: ['PRO', 'ENTERPRISE'] } },
+      select: { id: true },
+    });
+
+    for (const tenant of tenants) {
+      await this.syncQueue.add(
+        'price-monitoring',
+        { tenantId: tenant.id, platforms: Object.values(Platform) },
+        { attempts: 2, removeOnComplete: 50 },
+      );
+    }
+
+    this.logger.log(`${tenants.length} tenant için fiyat izleme planlandı`);
+  }
+
+  async runManualCompetitorAnalysis(tenantId: string, competitorUrls: Array<{ url: string; platform: Platform }>) {
+    try {
+      const result = await this.competitorService.analyzeMultipleCompetitors(competitorUrls, tenantId);
+      
+      // Sonuçları kaydet
+      await this.prisma.activityLog.create({
+        data: {
+          tenantId,
+          action: 'competitor.analysis.manual',
+          resource: 'competitor',
+          details: {
+            analyzedCount: result.summary.totalCompetitors,
+            summary: result.summary,
+          } as any,
+        },
+      });
+
+      return result;
+    } catch (error) {
+      this.logger.error(`Manual competitor analysis failed: ${(error as Error).message}`);
+      throw error;
+    }
+  }
+
   async createReportJob(tenantId: string, type: string, params: any) {
     const job = await this.reportsQueue.add('custom-report', {
       tenantId,
@@ -217,5 +329,35 @@ export class SchedulerService implements OnModuleInit {
       sync: { ...sync, name: 'Senkronizasyon' },
       emails: { ...emails, name: 'E-postalar' },
     };
+  }
+
+  // ==================== HEALTH CHECK ====================
+  async scheduleHealthChecks() {
+    const integrations = await this.prisma.integration.findMany({
+      where: { isActive: true },
+      select: { 
+        id: true, 
+        tenantId: true, 
+        platform: true, 
+        apiKey: true,
+      },
+    });
+
+    for (const integration of integrations) {
+      await this.syncQueue.add(
+        'health-check',
+        { 
+          integrationId: integration.id, 
+          tenantId: integration.tenantId, 
+          platform: integration.platform 
+        },
+        { 
+          attempts: 2, 
+          backoff: { type: 'fixed', delay: 5000 },
+        },
+      );
+    }
+
+    this.logger.log(`${integrations.length} entegrasyon için sağlık kontrolü planlandı`);
   }
 }

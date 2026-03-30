@@ -17,21 +17,18 @@ import {
   CreditCard,
   Bell
 } from 'lucide-react';
-import { useRealtime, RealtimeEvent } from '@/hooks/useRealtime';
+import { useDashboardStats, useRecentOrders, useAiInsights, usePlatformPerformance, useActivityFeed } from '@/lib/hooks';
 
-export function RealtimeDashboard() {
-  const { data, events, isConnected, connect, disconnect } = useRealtime();
+export const RealtimeDashboard: React.FC = () => {
+  const { data: stats, loading: statsLoading } = useDashboardStats('30d');
+  const { data: orders, loading: ordersLoading } = useRecentOrders(5);
+  const { data: insights, loading: insightsLoading } = useAiInsights();
+  const { data: platforms, loading: platformsLoading } = usePlatformPerformance();
+  const { data: activities, loading: activitiesLoading } = useActivityFeed(10);
+
   const [showEvents, setShowEvents] = useState(true);
 
-  const stats = [
-    {
-      label: 'Aktif Ziyaretçi',
-      value: data.activeVisitors,
-      icon: Users,
-      color: 'from-blue-500 to-cyan-500',
-      suffix: ''
-    },
-    {
+  const getEventIcon = (type: string) => {
       label: 'Son 1 Saat Sipariş',
       value: data.ordersLastHour,
       icon: ShoppingCart,
