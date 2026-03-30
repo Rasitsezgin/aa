@@ -7234,4 +7234,35 @@ model OfferLead {
   @@index([email])
   @@index([createdAt])
 }
+
+// AI Content Generation History
+model AIGenerationLog {
+  id          String   @id @default(uuid())
+  
+  // What was generated
+  type        String   // "blog_title", "blog_excerpt", "blog_content", "blog_image"
+  prompt      String   @db.Text
+  result      String   @db.LongText
+  
+  // Model info
+  model       String   // "gpt-4", "dall-e-3", etc.
+  tokensUsed  Int?
+  cost        Float?   // USD cost
+  
+  // Context
+  postId      String?  // If generated for a specific post
+  userId      String
+  
+  // Quality
+  rating      Int?     // User rating 1-5
+  wasUsed     Boolean  @default(false) // Was this used in final content?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([type])
+  @@index([postId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
 // ==================== FORUM SYSTEM (vBulletin/XenForo Style) ====================
