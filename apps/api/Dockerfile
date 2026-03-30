@@ -42,6 +42,9 @@ USER nestjs
 
 COPY --from=builder --chown=nestjs:nodejs /app/ ./
 
+# Reinstall dependencies to ensure all are available at runtime
+RUN npm install --legacy-peer-deps
+
 # DATABASE_URL should be provided at runtime (docker-compose, etc)
 # ENV DATABASE_URL=file:/app/packages/database/prisma/dev.db
 
