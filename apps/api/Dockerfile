@@ -14,7 +14,6 @@ ENV PRISMA_CLIENT_ENGINE_TYPE="library"
 ENV PRISMA_CLI_QUERY_ENGINE_TYPE="library"
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 RUN npx turbo run build --filter=@pazaryonetimi/api
-RUN npm prune --omit=dev --legacy-peer-deps
 RUN df -h
 
 FROM node:20-slim AS runner
