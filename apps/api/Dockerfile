@@ -39,16 +39,12 @@ RUN useradd --system --uid 1001 nestjs
 # Create home directory for nestjs user (critical for Puppeteer/Chromium)
 RUN mkdir -p /home/nestjs/.puppeteer_data && chown -R nestjs:nodejs /home/nestjs
 
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./apps/api/dist
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/package.json ./apps/api/package.json
 COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
 COPY --from=builder --chown=nestjs:nodejs /app/package.json ./package.json
-
-# Install dependencies as root (needed for workspace monorepo to work correctly)
-RUN npm install --legacy-peer-deps
-
-# Now copy node_modules from builder (to get any native binaries built for the right platform)
-COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/package-lock.json ./package-lock.json
 
 USER nestjs
 
