@@ -44,8 +44,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/api/package.json ./apps/api/
 COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
 COPY --from=builder --chown=nestjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nestjs:nodejs /app/turbo.json ./turbo.json
+COPY --from=builder --chown=nestjs:nodejs /app/package-lock.json ./package-lock.json
 
-# Install dependencies at runtime (needed because builder node_modules has workspace symlinks)
+# Install dependencies at runtime using the lock file
 RUN npm install --legacy-peer-deps && chown -R nestjs:nodejs /app/node_modules
 
 USER nestjs
