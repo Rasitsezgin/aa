@@ -44,7 +44,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./apps/api/dist
 COPY --from=builder --chown=nestjs:nodejs /app/apps/api/package.json ./apps/api/package.json
 COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
 COPY --from=builder --chown=nestjs:nodejs /app/package.json ./package.json
-COPY --from=builder --chown=nestjs:nodejs /app/package-lock.json ./package-lock.json 2>/dev/null || true
+
+# Try to copy package-lock.json if it exists (using RUN instead of COPY for conditional)
+RUN if [ -f /app/package-lock.json ]; then cp /app/package-lock.json .; fi || true
 
 USER nestjs
 
