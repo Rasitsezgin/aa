@@ -38,12 +38,15 @@ RUN useradd --system --uid 1001 nestjs
 # Create home directory for nestjs user (critical for Puppeteer/Chromium)
 RUN mkdir -p /home/nestjs/.puppeteer_data && chown -R nestjs:nodejs /home/nestjs
 
-USER nestjs
+COPY --from=builder --chown=root:root /app/ ./
 
-COPY --from=builder --chown=nestjs:nodejs /app/ ./
-
-# Reinstall dependencies to ensure all are available at runtime
+# Reinstall dependencies as root to ensure all are available at runtime
 RUN npm install --legacy-peer-deps
+
+# Change ownership after npm install
+RUN chown -R nestjs:nodejs /app
+
+USER nestjs
 
 # DATABASE_URL should be provided at runtime (docker-compose, etc)
 # ENV DATABASE_URL=file:/app/packages/database/prisma/dev.db
