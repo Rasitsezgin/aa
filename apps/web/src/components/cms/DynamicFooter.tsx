@@ -89,7 +89,7 @@ export function DynamicFooter({ location = "main", className = "" }: DynamicFoot
     );
   }
 
-  if (!footer || !footer.isActive) {
+  if (!footer || !(footer as any).isActive) {
     return null;
   }
 
@@ -97,7 +97,7 @@ export function DynamicFooter({ location = "main", className = "" }: DynamicFoot
   const textColor = footer.textColor || "text-white";
   const borderColor = footer.borderColor || "border-slate-800";
 
-  const activeColumns = footer.columns.filter((col) => col.isActive);
+  const activeColumns = footer.columns.filter((col: any) => col.isActive);
 
   return (
     <footer className={`${bgColor} ${textColor} ${className}`}>
@@ -128,7 +128,7 @@ export function DynamicFooter({ location = "main", className = "" }: DynamicFoot
               <h4 className="font-semibold mb-4">{column.title}</h4>
               <ul className="space-y-2">
                 {column.links
-                  .filter((link) => link.isActive)
+                  .filter((link: any) => link.isActive)
                   .map((link) => (
                     <li key={link.id}>
                       <Link
