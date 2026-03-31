@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/json-schema.json",
-  "globalDependencies": ["**/.env.local", "**/.env"],
+  "globalDependencies": ["**/.env.local", "**/.env", "packages/database/prisma/schema.prisma"],
   "globalEnv": ["NODE_ENV", "DATABASE_URL"],
   "ui": "tui",
   "tasks": {
@@ -9,6 +9,7 @@
       "interactive": true
     },
     "build": {
+      "dependsOn": ["^build"],
       "outputs": [".next/**", "dist/**"],
       "cache": true
     },

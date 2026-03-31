@@ -16,6 +16,8 @@ RUN npm install -g npm@latest turbo
 RUN npm install --legacy-peer-deps
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 ENV NODE_OPTIONS="--max-old-space-size=4096"
+# Build database package first, then web app
+RUN npx turbo run build --filter=@pazaryonetimi/database
 RUN npx turbo run build --filter=@pazaryonetimi/web
 
 FROM node:20-slim AS runner

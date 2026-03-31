@@ -258,6 +258,10 @@ model User {
   
   // Forum profile relation
   forumProfile     ForumUserProfile?
+  
+  // Onboarding relations
+  onboarding       UserOnboarding?
+  badges           UserBadge[]
 }
 
 model SystemConfig {
@@ -7233,6 +7237,65 @@ model OfferLead {
   @@index([offerId])
   @@index([email])
   @@index([createdAt])
+}
+
+// ==================== USER ONBOARDING ====================
+
+enum OnboardingStep {
+  WELCOME
+  PROFILE_SETUP
+  TENANT_SETUP
+  PLATFORM_CONNECT
+  PRODUCT_IMPORT
+  DASHBOARD_TOUR
+  FEATURES_INTRO
+  AI_TOOLS
+  COMPLETE
+}
+
+model UserOnboarding {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  currentStep     OnboardingStep @default(WELCOME)
+  completedSteps  Json     @default("[]")
+  skippedSteps    Json     @default("[]")
+  stepData        Json?
+  
+  isActive        Boolean  @default(true)
+  isCompleted     Boolean  @default(false)
+  completionDate  DateTime?
+  
+  preferences     Json?
+  
+  startedAt       DateTime @default(now())
+  lastStepAt      DateTime @default(now())
+  totalTimeSpent  Int      @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([isActive])
+  @@index([isCompleted])
+}
+
+model UserBadge {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  badgeId         String
+  name            String
+  description     String?
+  icon            String
+  color           String   @default("gold")
+  
+  earnedAt        DateTime @default(now())
+  
+  @@unique([userId, badgeId])
+  @@index([userId])
 }
 
 // AI Content Generation History
