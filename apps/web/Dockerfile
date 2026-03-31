@@ -18,6 +18,8 @@ RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 # Build database package first, then web app
 RUN npx turbo run build --filter=@pazaryonetimi/database
+# Re-generate Prisma client after database build to ensure fresh types
+RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 RUN npx turbo run build --filter=@pazaryonetimi/web
 
 FROM node:20-slim AS runner
