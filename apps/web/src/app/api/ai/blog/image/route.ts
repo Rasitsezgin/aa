@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Generate a deterministic seed based on prompt
-    const seed = prompt.split("").reduce((acc: number, char) => acc + char.charCodeAt(0), 0);
+    const seed = prompt.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
     
     // Mock image URL - in production, this would be the actual generated image
     // Using placeholder service for demo
