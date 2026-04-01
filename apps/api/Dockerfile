@@ -1,59 +1,52 @@
-FROM node:20-slim AS builder
-# Build-time cache breaker
-ARG CACHE_BREAKER=6
+FROM node:20-slim AS base
 RUN apt-get update && apt-get install -y libc6 openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN npm install -g pnpm turbo
+
+FROM base AS pruner
 WORKDIR /app
 COPY . .
-RUN df -h
-RUN npm install -g npm@latest turbo
+RUN npx turbo prune --scope=@pazaryonetimi/api --docker
+
+FROM base AS builder
+WORKDIR /app
+# Copy pruned package files
+COPY --from=pruner /app/out/json/ .
+# Copy lockfile
+COPY --from=pruner /app/out/package-lock.json ./package-lock.json
+# Install dependencies
 RUN npm install --legacy-peer-deps
-RUN df -h
-# Set a dummy URL for build-time Prisma generation
-ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres"
-ENV PRISMA_CLIENT_ENGINE_TYPE="library"
-ENV PRISMA_CLI_QUERY_ENGINE_TYPE="library"
-RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
+
+# Copy pruned source code
+COPY --from=pruner /app/out/full/ .
+# Build the project
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npx turbo run build --filter=@pazaryonetimi/api
-RUN df -h
 
 FROM node:20-slim AS runner
-RUN apt-get update && apt-get install -y openssl ca-certificates wait-for-it wget gnupg \
+RUN apt-get update && apt-get install -y openssl ca-certificates wait-for-it wget gnupg chromium \
     && rm -rf /var/lib/apt/lists/*
-RUN df -h
-RUN apt-get update && apt-get install -y chromium \
-    && rm -rf /var/lib/apt/lists/*
-RUN df -h
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV PRISMA_CLIENT_ENGINE_TYPE="library"
+ENV NODE_ENV=production
 
 WORKDIR /app
 
-ENV PRISMA_CLIENT_ENGINE_TYPE="library"
-
-# Don't run production as root
-RUN groupadd --system --gid 1001 nodejs
-RUN useradd --system --uid 1001 nestjs
-
-# Create home directory for nestjs user (critical for Puppeteer/Chromium)
+# Create unprivileged user
+RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 nestjs
 RUN mkdir -p /home/nestjs/.puppeteer_data && chown -R nestjs:nodejs /home/nestjs
 
-COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./apps/api/dist
-COPY --from=builder --chown=nestjs:nodejs /app/apps/api/package.json ./apps/api/package.json
-COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
-COPY --from=builder --chown=nestjs:nodejs /app/package.json ./package.json
-COPY --from=builder --chown=nestjs:nodejs /app/turbo.json ./turbo.json
-COPY --from=builder --chown=nestjs:nodejs /app/package-lock.json ./package-lock.json
+# Copy only necessary files from builder
+COPY --from=builder /app/package.json .
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
+COPY --from=builder /app/packages ./packages
 
-# Install dependencies at runtime using the lock file
-RUN npm install --legacy-peer-deps && chown -R nestjs:nodejs /app/node_modules
+# Fix permissions
+RUN chown -R nestjs:nodejs /app
 
 USER nestjs
-
-# DATABASE_URL should be provided at runtime (docker-compose, etc)
-# ENV DATABASE_URL=file:/app/packages/database/prisma/dev.db
-
 EXPOSE 3001
-
 CMD ["node", "apps/api/dist/main"]
