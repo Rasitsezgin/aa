@@ -37,11 +37,16 @@ WORKDIR /app
 RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 nestjs
 RUN mkdir -p /home/nestjs/.puppeteer_data && chown -R nestjs:nodejs /home/nestjs
 
-# Copy only necessary files from builder
-COPY --from=builder /app/package.json .
-COPY --from=builder /app/node_modules ./node_modules
+# 1. Copy only pruned package metadata from the pruner
+COPY --from=pruner /app/out/json/ .
+COPY --from=pruner /app/out/package-lock.json ./package-lock.json
+
+# 2. Install ONLY production dependencies - this is the key fix for module resolution
+RUN npm install --omit=dev --legacy-peer-deps
+
+# 3. Copy built artifacts from the builder
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
+# Ensure database dist is also present if needed
 COPY --from=builder /app/packages ./packages
 
 # Fix permissions
