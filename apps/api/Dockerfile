@@ -37,21 +37,26 @@ WORKDIR /app
 RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 nestjs
 RUN mkdir -p /home/nestjs/.puppeteer_data && chown -R nestjs:nodejs /home/nestjs
 
-# 1. Copy only pruned package metadata from the pruner
+# 1. Copy pruned metadata and lockfile
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/package-lock.json ./package-lock.json
 
-# 2. Install ONLY production dependencies - this is the key fix for module resolution
+# 2. Production install - with root dependencies now including NestJS core
 RUN npm install --omit=dev --legacy-peer-deps
 
-# 3. Copy built artifacts from the builder
+# 3. Copy built artifacts
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
-# Ensure database dist is also present if needed
 COPY --from=builder /app/packages ./packages
 
 # Fix permissions
 RUN chown -R nestjs:nodejs /app
 
 USER nestjs
+
+# Set NODE_PATH to ensure global hoisting works regardless of script location
+ENV NODE_PATH=/app/node_modules
+
 EXPOSE 3001
-CMD ["node", "apps/api/dist/main"]
+
+# Diagnostic check before start (will exit with error if module not found)
+CMD ["sh", "-c", "node -e \"require('@nestjs/core')\" && node apps/api/dist/main"]
