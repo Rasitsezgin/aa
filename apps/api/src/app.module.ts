@@ -58,6 +58,7 @@ import { WorkflowBuilderModule } from './modules/workflow-builder/workflow-build
 import { ScrapingModule } from './modules/scraping/scraping.module';
 import { SearchModule } from './modules/search/search.module';
 import { EmailModule } from './modules/email/email.module';
+import { AIAssistantModule } from './modules/ai-assistant/ai-assistant.module';
 import { MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
 
@@ -116,6 +117,7 @@ function getBullConnection() {
     ProductModule,
     AnalyticsModule,
     AiAdvisorModule,
+    AIAssistantModule,
     IntegrationsModule,
     SystemModule,
     OrdersModule,
