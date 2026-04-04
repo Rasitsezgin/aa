@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ScheduleModule } from '@nestjs/schedule';
 import { AIAssistantController } from './ai-assistant.controller';
 import { AIAssistantService } from './ai-assistant.service';
 import { AIAssistantGateway } from './ai-assistant.gateway';
@@ -23,7 +22,7 @@ import { AITeamChatService } from './services/ai-team-chat.service';
 import { AIAssistantMarketplaceIntegrationService } from './services/ai-marketplace-integration.service';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), DatabaseModule, MarketplaceModule, AiModule],
+  imports: [DatabaseModule, MarketplaceModule, AiModule],
   controllers: [AIAssistantController],
   providers: [
     // Main services

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -108,6 +109,7 @@ function getBullConnection() {
           }),
         ]
       : []),
+    ScheduleModule.forRoot(),
     DatabaseModule,
     EncryptionModule,
     AiModule,
