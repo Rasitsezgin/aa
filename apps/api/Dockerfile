@@ -47,8 +47,8 @@ COPY --from=pruner /app/out/package-lock.json ./package-lock.json
 # 2. Production install - with root dependencies now including NestJS core
 RUN npm install --omit=dev --legacy-peer-deps
 
-# 2.5 Generate Prisma Client in runner
-RUN cd packages/database && npx prisma generate
+# 2.5 Copy Prisma Client from builder (generated in node_modules/.prisma)
+COPY --from=builder /app/packages/database/node_modules/.prisma /app/packages/database/node_modules/.prisma
 
 # 3. Copy built artifacts
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
