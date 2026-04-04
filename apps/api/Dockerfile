@@ -18,6 +18,9 @@ RUN npm install --legacy-peer-deps
 
 # Copy pruned source code
 COPY --from=pruner /app/out/full/ .
+# Generate Prisma Client
+RUN cd packages/database && npx prisma generate
+
 # Build the project
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npx turbo run build --filter=@pazaryonetimi/api
@@ -43,6 +46,9 @@ COPY --from=pruner /app/out/package-lock.json ./package-lock.json
 
 # 2. Production install - with root dependencies now including NestJS core
 RUN npm install --omit=dev --legacy-peer-deps
+
+# 2.5 Generate Prisma Client in runner
+RUN cd packages/database && npx prisma generate
 
 # 3. Copy built artifacts
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
