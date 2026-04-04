@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
@@ -86,13 +85,6 @@ function getBullConnection() {
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    // Rate Limiting - dakikada 100 istek
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000,
-        limit: 100,
-      },
-    ]),
     // Redis Cache
     CacheModule.register({
       isGlobal: true,
@@ -164,11 +156,6 @@ function getBullConnection() {
   controllers: [AppController],
   providers: [
     AppService,
-    // Global rate limiting guard
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
     // Global JWT auth guard
     {
       provide: APP_GUARD,
