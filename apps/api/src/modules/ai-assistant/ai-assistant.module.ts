@@ -12,7 +12,7 @@ import { AISmartIntentService } from './services/ai-smart-intent.service';
 import { AILearningService } from './services/ai-learning.service';
 import { AIPredictiveService } from './services/ai-predictive.service';
 import { AIAnalyticsService } from './services/ai-analytics.service';
-import { AISchedulerService } from './services/ai-scheduler.service';
+// import { AISchedulerService } from './services/ai-scheduler.service'; // Disabled - requires ScheduleModule
 import { AIWorkflowBuilderService } from './services/ai-workflow-builder.service';
 import { AII18nService } from './services/ai-i18n.service';
 import { AIIntegrationService } from './services/ai-integration.service';
@@ -38,7 +38,7 @@ import { AIAssistantMarketplaceIntegrationService } from './services/ai-marketpl
     
     // Feature services
     AIAnalyticsService,
-    AISchedulerService,
+    // AISchedulerService, // Disabled - requires ScheduleModule
     AIWorkflowBuilderService,
     AII18nService,
     AIIntegrationService,
