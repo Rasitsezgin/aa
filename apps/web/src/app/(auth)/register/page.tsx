@@ -1,395 +1,178 @@
 "use client";
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Mail, User, Lock, ArrowRight, ShieldCheck, Eye, EyeOff, Check, AlertCircle, Loader2, Sparkles, BadgeCheck, Zap } from 'lucide-react';
-import { signIn } from 'next-auth/react';
+import { Mail, Lock, ArrowRight, User, Building2, Phone, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function RegisterPage() {
-    const [showPassword, setShowPassword] = useState(false);
-    const [password, setPassword] = useState('');
-    const [focusedInput, setFocusedInput] = useState<string | null>(null);
+    const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState(false);
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-        company: '',
-    });
 
-    const getPasswordStrength = (pwd: string) => {
-        let strength = 0;
-        if (pwd.length >= 8) strength++;
-        if (pwd.length >= 12) strength++;
-        if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength++;
-        if (/\d/.test(pwd)) strength++;
-        return strength;
-    };
-
-    const passwordStrength = getPasswordStrength(password);
-    const passwordChecks = [
-        { label: 'En az 8 karakter', valid: password.length >= 8 },
-        { label: 'Buyuk ve kucuk harf', valid: /[a-z]/.test(password) && /[A-Z]/.test(password) },
-        { label: 'En az bir rakam', valid: /\d/.test(password) },
-    ];
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-        if (name === 'password') {
-            setPassword(value);
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleRegister = (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
-
-        // Validation
-        if (!formData.firstName.trim()) {
-            setError('Adınız zorunludur.');
-            return;
-        }
-        if (!formData.email.trim()) {
-            setError('E-posta adresi zorunludur.');
-            return;
-        }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            setError('Geçerli bir e-posta adresi giriniz.');
-            return;
-        }
-        if (formData.password.length < 8) {
-            setError('Şifre en az 8 karakter olmalıdır.');
-            return;
-        }
-
         setIsLoading(true);
-        try {
-            // Register user
-            const registerRes = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: formData.email,
-                    password: formData.password,
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    company: formData.company,
-                }),
-            });
-
-            if (!registerRes.ok) {
-                const data = await registerRes.json();
-                throw new Error(data.error || 'Kayıt işlemi başarısız oldu.');
-            }
-
-            setSuccess(true);
-
-            // Auto login after successful registration, then redirect to onboarding
-            setTimeout(async () => {
-                await signIn('credentials', {
-                    email: formData.email,
-                    password: formData.password,
-                    callbackUrl: '/onboarding',
-                });
-            }, 1500);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Bir hata oluştu.');
+        setError(null);
+        
+        // Simüle edilmiş kayıt süresi
+        setTimeout(() => {
             setIsLoading(false);
-        }
-    };
-
-    const containerVariants = {
-        hidden: { opacity: 0, y: 10 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                staggerChildren: 0.05,
-                delayChildren: 0.1,
-            },
-        },
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 10 },
-        visible: { opacity: 1, y: 0 },
+            router.push('/dashboard');
+        }, 2000);
     };
 
     return (
-        <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="w-full"
-        >
-            <div className="mb-8 text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 px-3 py-1 mb-4 rounded-full border border-slate-200 dark:border-white/10 bg-slate-100/80 dark:bg-white/5 text-[10px] font-black uppercase tracking-[0.22em] text-slate-500 dark:text-slate-300">
-                    <Sparkles size={12} className="text-blue-500" />
-                    Yeni Hesap
-                </div>
-                <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
-                    Hemen Başlayın
-                </h2>
-                <p className="text-slate-500 dark:text-slate-400 font-medium mt-2 text-sm leading-relaxed">
-                    14 gün ücretsiz deneme ile yapay zeka gücünü keşfedin.
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2 justify-center lg:justify-start">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[11px] font-bold">
-                        <BadgeCheck size={13} /> Kurulum 2 dk
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold">
-                        <ShieldCheck size={13} /> KVKK uyumlu
-                    </span>
-                </div>
+        <div className="w-full">
+            <div className="mb-8">
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                    className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 text-blue-500 rounded-full text-xs font-black uppercase tracking-widest mb-4"
+                >
+                    <Sparkles className="w-3 h-3" /> 14 Gün Ücretsiz Deneyin
+                </motion.div>
+                <motion.h2 
+                    initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+                    className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight"
+                >
+                    Hesabınızı Oluşturun
+                </motion.h2>
+                <motion.p 
+                    initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+                    className="text-sm font-medium text-slate-500 dark:text-slate-400"
+                >
+                    Saniyeler içinde kayıt olun ve tüm pazaryerlerini tek bir noktadan yönetmeye başlayın. Kredi kartı gerekmez.
+                </motion.p>
             </div>
 
-            <motion.form
-                variants={itemVariants}
-                className="space-y-5"
-                onSubmit={handleSubmit}
-            >
-                {/* Error Message */}
+            <AnimatePresence>
                 {error && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 flex items-start gap-3"
+                    <motion.div 
+                        initial={{ opacity: 0, height: 0 }} 
+                        animate={{ opacity: 1, height: 'auto' }} 
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mb-6 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-4 flex items-start gap-3 overflow-hidden"
                     >
-                        <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-                        <p className="text-sm font-medium text-red-700 dark:text-red-300">{error}</p>
+                        <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                        <div className="text-sm font-bold text-red-600 dark:text-red-400 text-left">
+                            Bilinmeyen bir hata oluştu.
+                        </div>
                     </motion.div>
                 )}
+            </AnimatePresence>
 
-                {/* Success Message */}
-                {success && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="p-4 rounded-xl bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 flex items-start gap-3"
-                    >
-                        <Check className="w-5 h-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
-                        <p className="text-sm font-medium text-green-700 dark:text-green-300">Kayıt başarılı! Panelinize yönlendiriliyorsunuz...</p>
-                    </motion.div>
-                )}
-                {/* Name Fields */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1">Adınız</label>
-                        <div
-                            className={`relative group bg-white dark:bg-white/5 border rounded-2xl transition-all duration-300 ${focusedInput === 'name'
-                                ? 'border-blue-500 shadow-lg shadow-blue-500/10'
-                                : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
-                                }`}
-                        >
-                            <input
-                                name="firstName"
-                                type="text"
-                                value={formData.firstName}
-                                onChange={handleInputChange}
-                                onFocus={() => setFocusedInput('name')}
-                                onBlur={() => setFocusedInput(null)}
-                                placeholder="Ahmet"
-                                className="w-full px-4 py-4 bg-transparent outline-none text-slate-900 dark:text-white font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm"
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1">Soyadınız</label>
-                        <div
-                            className={`relative group bg-white dark:bg-white/5 border rounded-2xl transition-all duration-300 ${focusedInput === 'surname'
-                                ? 'border-blue-500 shadow-lg shadow-blue-500/10'
-                                : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
-                                }`}
-                        >
-                            <input
-                                name="lastName"
-                                type="text"
-                                value={formData.lastName}
-                                onChange={handleInputChange}
-                                onFocus={() => setFocusedInput('surname')}
-                                onBlur={() => setFocusedInput(null)}
-                                placeholder="Yılmaz"
-                                className="w-full px-4 py-4 bg-transparent outline-none text-slate-900 dark:text-white font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Company Name Field */}
-                <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1">Şirket / Mağaza Adı</label>
-                    <div
-                        className={`relative group bg-white dark:bg-white/5 border rounded-2xl transition-all duration-300 ${focusedInput === 'company'
-                            ? 'border-blue-500 shadow-lg shadow-blue-500/10'
-                            : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
-                            }`}
-                    >
-                        <input
-                            name="company"
-                            type="text"
-                            value={formData.company}
-                            onChange={handleInputChange}
-                            onFocus={() => setFocusedInput('company')}
-                            onBlur={() => setFocusedInput(null)}
-                            placeholder="Mağaza adınız (opsiyonel)"
-                            className="w-full px-4 py-4 bg-transparent outline-none text-slate-900 dark:text-white font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm"
-                        />
-                    </div>
-                </div>
-
-                {/* Email Field */}
-                <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1">E-posta Adresi</label>
-                    <div
-                        className={`relative group bg-white dark:bg-white/5 border rounded-2xl transition-all duration-300 ${focusedInput === 'email'
-                            ? 'border-blue-500 shadow-lg shadow-blue-500/10'
-                            : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
-                            }`}
-                    >
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5">
-                            <Mail
-                                size={18}
-                                className={`transition-colors duration-300 ${focusedInput === 'email' ? 'text-blue-500' : 'text-slate-400'
-                                    }`}
-                            />
-                        </div>
-                        <input
-                            name="email"
-                            type="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            onFocus={() => setFocusedInput('email')}
-                            onBlur={() => setFocusedInput(null)}
-                            placeholder="ornek@sirket.com"
-                            className="w-full pl-12 pr-4 py-4 bg-transparent outline-none text-slate-900 dark:text-white font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm"
-                        />
-                    </div>
-                </div>
-
-                {/* Password Field */}
-                <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 ml-1">Şifre</label>
-                    <div
-                        className={`relative group bg-white dark:bg-white/5 border rounded-2xl transition-all duration-300 ${focusedInput === 'password'
-                            ? 'border-blue-500 shadow-lg shadow-blue-500/10'
-                            : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
-                            }`}
-                    >
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5">
-                            <Lock
-                                size={18}
-                                className={`transition-colors duration-300 ${focusedInput === 'password' ? 'text-blue-500' : 'text-slate-400'
-                                    }`}
-                            />
-                        </div>
-                        <input
-                            name="password"
-                            type={showPassword ? "text" : "password"}
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            onFocus={() => setFocusedInput('password')}
-                            onBlur={() => setFocusedInput(null)}
-                            placeholder="Min. 8 karakter"
-                            className="w-full pl-12 pr-12 py-4 bg-transparent outline-none text-slate-900 dark:text-white font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors p-1"
-                        >
-                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                        </button>
-                    </div>
-
-                    {/* Password Strength Indicator */}
-                    <div className="flex gap-1 pt-1 px-1 h-1.5 overflow-hidden">
-                        {[...Array(4)].map((_, i) => (
-                            <div
-                                key={i}
-                                className={`flex-1 rounded-full transition-all duration-500 ${i < passwordStrength
-                                    ? 'bg-blue-500'
-                                    : 'bg-slate-100 dark:bg-white/5'
-                                    }`}
-                            />
-                        ))}
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 px-1">
-                        {passwordChecks.map((rule) => (
-                            <div
-                                key={rule.label}
-                                className={`text-[11px] rounded-lg px-2 py-1.5 border font-semibold ${rule.valid
-                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300'
-                                    : 'border-slate-200 bg-slate-50 text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400'
-                                    }`}
-                            >
-                                {rule.label}
+            <form onSubmit={handleRegister} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <User className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                             </div>
-                        ))}
-                    </div>
+                            <input
+                                type="text"
+                                required
+                                className="block w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-[#111827]/50 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none"
+                                placeholder="Adınız"
+                            />
+                        </div>
+                    </motion.div>
+
+                    <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <User className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                            </div>
+                            <input
+                                type="text"
+                                required
+                                className="block w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-[#111827]/50 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none"
+                                placeholder="Soyadınız"
+                            />
+                        </div>
+                    </motion.div>
                 </div>
 
-                {/* Terms Checkbox */}
-                <div className="flex items-start gap-3 pt-2">
-                    <div className="relative flex items-center">
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <Building2 className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                        </div>
                         <input
-                            type="checkbox"
-                            id="terms"
-                            className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-slate-300 dark:border-white/10 bg-white dark:bg-white/5 checked:border-blue-500 checked:bg-blue-500 transition-all"
+                            type="text"
+                            required
+                            className="block w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-[#111827]/50 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none"
+                            placeholder="Firma / Mağaza Adı"
                         />
-                        <Check size={12} className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
                     </div>
-                    <label htmlFor="terms" className="text-xs font-medium text-slate-500 dark:text-slate-400 cursor-pointer select-none leading-relaxed">
-                        <Link href="/terms" className="text-slate-900 dark:text-white font-bold hover:underline">Kullanım Şartları</Link>&apos;nı ve <Link href="/privacy" className="text-slate-900 dark:text-white font-bold hover:underline">Gizlilik Politikası</Link>&apos;nı okudum, kabul ediyorum.
-                    </label>
-                </div>
+                </motion.div>
 
-                {/* Register Button */}
-                <button
-                    type="submit"
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }}>
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <Mail className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                        </div>
+                        <input
+                            type="email"
+                            required
+                            className="block w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-[#111827]/50 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none"
+                            placeholder="E-posta Adresiniz"
+                        />
+                    </div>
+                </motion.div>
+
+                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7 }}>
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <Lock className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                        </div>
+                        <input
+                            type="password"
+                            required
+                            className="block w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-[#111827]/50 border border-slate-200 dark:border-slate-800 rounded-xl text-sm text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none"
+                            placeholder="Güvenli Bir Şifre Belirleyin"
+                        />
+                    </div>
+                </motion.div>
+
+                <motion.button
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
                     disabled={isLoading}
-                    className="w-full group mt-2 relative py-4 bg-gradient-to-r from-slate-900 to-blue-700 dark:from-blue-600 dark:to-cyan-500 text-white rounded-2xl font-bold text-sm overflow-hidden shadow-xl shadow-slate-900/20 dark:shadow-blue-600/20 hover:shadow-slate-900/40 dark:hover:shadow-blue-600/40 transition-all hover:scale-[1.01] active:scale-[0.98] duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    type="submit"
+                    className="w-full relative group overflow-hidden bg-blue-600 hover:bg-blue-700 text-white font-black text-sm py-4 rounded-xl transition-all shadow-lg shadow-blue-600/20 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
                 >
-                    <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-[linear-gradient(120deg,transparent_0%,rgba(255,255,255,0.18)_45%,transparent_100%)] translate-x-[-120%] group-hover:translate-x-[120%] duration-700" />
                     <span className="relative z-10 flex items-center justify-center gap-2">
                         {isLoading ? (
                             <>
-                                <Loader2 size={18} className="animate-spin" />
-                                Hesap Oluşturuluyor...
+                                <RefreshCw className="w-5 h-5 animate-spin" />
+                                Hesabınız Oluşturuluyor...
                             </>
                         ) : (
                             <>
-                                Hesabımı Oluştur
-                                <Zap size={15} className="opacity-90" />
-                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                Ücretsiz Kayıt Ol <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </>
                         )}
                     </span>
-                </button>
-            </motion.form>
+                    {/* Hover Effect Layer */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-white/20 to-cyan-500/0 -translate-x-[100%] group-hover:animate-shimmer" />
+                </motion.button>
+            </form>
 
-            <motion.div variants={itemVariants} className="mt-6 text-center bg-slate-100 dark:bg-white/5 p-4 rounded-xl border border-slate-200/80 dark:border-white/10">
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                    Zaten üye misiniz?{' '}
-                    <Link href="/login" className="text-slate-900 dark:text-blue-400 font-black hover:underline transition-all">
+            <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}
+                className="mt-6 text-center"
+            >
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
+                    Kayıt olarak <Link href="#" className="text-blue-500 hover:underline">Hizmet Şartlarımızı</Link> ve <Link href="#" className="text-blue-500 hover:underline">Gizlilik Politikamızı</Link> kabul etmiş olursunuz.
+                </p>
+                <div className="h-px bg-border my-6" />
+                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                    Zaten bir hesabınız var mı?{' '}
+                    <Link href="/login" className="text-blue-600 dark:text-blue-400 hover:underline">
                         Giriş Yapın
                     </Link>
                 </p>
             </motion.div>
-
-            <motion.div variants={itemVariants} className="mt-4 flex items-center justify-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
-                <ShieldCheck size={14} className="text-emerald-500" />
-                Ucretsiz deneme suresince tum ozelliklere erisim.
-            </motion.div>
-        </motion.div>
+        </div>
     );
 }
-
