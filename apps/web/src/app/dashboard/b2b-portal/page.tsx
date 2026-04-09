@@ -1,23 +1,62 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Users, Link as LinkIcon, Building2, Store, CreditCard,
-    ArrowUpRight, Share2, Search, PlusCircle, CheckCircle2
+    ArrowUpRight, Share2, Search, PlusCircle, CheckCircle2, RefreshCw, Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getSubDealers, createSubDealer, deleteSubDealer } from '../../actions/b2b-portal';
 
-const mockDealers = [
-    { id: 1, name: 'Asya Giyim Ltd. Şti.', email: 'satis@asyagiyim.com', group: 'Gold Bayi', discount: 15, orders: 42, total: '145.000 TL' },
-    { id: 2, name: 'Kardeşler Ticaret', email: 'Ahmet@kardesler.com', group: 'Standart', discount: 5, orders: 12, total: '12.450 TL' },
-    { id: 3, name: 'ZTech Aksesuar', email: 'destek@ztech.net', group: 'Platin', discount: 20, orders: 156, total: '1.240.500 TL' }
-];
+const DEMO_TENANT_ID = 'demo-tenant-123';
 
 export default function B2BPortalPage() {
     const [subStoreLink] = useState('https://b2b.pazaryonetimi.com/m/SizinMagazaniz');
     const [isLinkCopied, setIsLinkCopied] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const [dealers, setDealers] = useState<any[]>([]);
+    const [groups, setGroups] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isPosting, setIsPosting] = useState(false);
+
+    // Form
+    const [companyName, setCompanyName] = useState('');
+    const [email, setEmail] = useState('');
+    const [selectedGroupId, setSelectedGroupId] = useState('');
+
+    useEffect(() => {
+        fetchDealers();
+    }, []);
+
+    const fetchDealers = async () => {
+        setIsLoading(true);
+        const data = await getSubDealers(DEMO_TENANT_ID);
+        setDealers(data.dealers);
+        setGroups(data.groups);
+        if (data.groups.length > 0) setSelectedGroupId(data.groups[0].id);
+        setIsLoading(false);
+    };
+
+    const handleCreateDealer = async () => {
+        if (!companyName || !email || !selectedGroupId) return;
+        setIsPosting(true);
+        const res = await createSubDealer(DEMO_TENANT_ID, companyName, email, selectedGroupId);
+        if (res.success) {
+            setCompanyName('');
+            setEmail('');
+            setIsModalOpen(false);
+            fetchDealers();
+        }
+        setIsPosting(false);
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!window.confirm("Bayiyi tamamen kaldırmak istediğinize emin misiniz?")) return;
+        await deleteSubDealer(id);
+        fetchDealers();
+    };
 
     const handleCopy = () => {
         navigator.clipboard.writeText(subStoreLink);
@@ -32,10 +71,10 @@ export default function B2BPortalPage() {
                 <div>
                     <h1 className="text-3xl font-black flex items-center gap-3">
                         <Building2 className="w-8 h-8 text-indigo-500" />
-                        B2B Bayi Portalı Yönetimi
+                        B2B Bayi Portalı (Veritabanı)
                     </h1>
                     <p className="text-slate-500 mt-2">
-                        Toptan satış ağınızı kurun. Alt bayilerinize özel indirim grupları tanımlayın ve sadece onlara özel şifreli sipariş ekranı (b2b.pazaryonetimi.com) yaratın.
+                        Toptan satış ağınızı kurun. Alt bayilerinize özel indirim grupları tanımlayın ve Prisma veritabanında yönetin.
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -60,7 +99,7 @@ export default function B2BPortalPage() {
                     </div>
                     <h2 className="text-2xl lg:text-3xl font-black mb-2">B2B Mağazanız Yayında!</h2>
                     <p className="text-indigo-100 mb-6 font-medium leading-relaxed">
-                        Bayileriniz bu link üzerinden kendi kullanıcı adı ve şifreleriyle girebilir. Sistem, onlara atadığınız iskonto oranını hesaba katarak *sadece onlara özel* toptan fiyatları gösterecektir.
+                        Bayileriniz bu link üzerinden kendi hesabı ile girdiğinde iskonto oranını hesaba katarak toptan fiyatları görürler.
                     </p>
                     
                     <div className="flex max-w-md bg-black/20 backdrop-blur-md border border-white/20 rounded-xl p-1 items-center">
@@ -91,62 +130,68 @@ export default function B2BPortalPage() {
                 <div className="p-6 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <h3 className="text-lg font-bold flex items-center gap-2">
                         <Users className="w-5 h-5 text-indigo-500" />
-                        Kayıtlı Bayileriniz <span className="px-2 py-0.5 bg-border rounded-full text-xs text-slate-500">24</span>
+                        Kayıtlı Bayileriniz (Prisma API) <span className="px-2 py-0.5 bg-border rounded-full text-xs text-slate-500">{dealers.length}</span>
                     </h3>
-                    <div className="relative w-full sm:w-64">
-                        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input 
-                            type="text" 
-                            className="w-full bg-background border border-border rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 ring-indigo-500/50"
-                            placeholder="Bayi adı veya e-posta..."
-                        />
-                    </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 text-xs font-bold uppercase tracking-widest">
-                                <th className="px-6 py-4 border-b border-border">Firma Detayı</th>
-                                <th className="px-6 py-4 border-b border-border">Bayi Grubu / İskonto</th>
-                                <th className="px-6 py-4 border-b border-border">Sipariş / Ciro</th>
-                                <th className="px-6 py-4 border-b border-border text-center">Ödeme Yöntemi</th>
-                                <th className="px-6 py-4 border-b border-border text-right">Aksiyon</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
-                            {mockDealers.map(dealer => (
-                                <tr key={dealer.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="font-bold text-slate-900 dark:text-white text-base">{dealer.name}</div>
-                                        <div className="text-sm text-slate-500 mt-0.5">{dealer.email}</div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className={\`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-1 \${
-                                            dealer.group === 'Platin' ? 'bg-purple-500/10 text-purple-600' : 
-                                            dealer.group === 'Gold Bayi' ? 'bg-amber-500/10 text-amber-600' : 
-                                            'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                                        }\`}>
-                                            {dealer.group}
-                                        </div>
-                                        <div className="text-xs font-bold text-slate-500">+% {dealer.discount} Sabit İndirim</div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="font-bold text-slate-900 dark:text-white">{dealer.total}</div>
-                                        <div className="text-xs text-slate-500">{dealer.orders} Başarılı Sipariş</div>
-                                    </td>
-                                    <td className="px-6 py-4 flex justify-center">
-                                        <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center" title="Kredi Kartı (Vpos)">
-                                            <CreditCard className="w-4 h-4" />
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button className="text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline">Düzenle</button>
-                                    </td>
+                <div className="overflow-x-auto min-h-[250px]">
+                    {isLoading ? (
+                        <div className="flex flex-col justify-center items-center h-[200px] text-slate-500">
+                            <RefreshCw className="w-6 h-6 animate-spin mb-4" />
+                            Veritabanından Çekiliyor...
+                        </div>
+                    ) : dealers.length === 0 ? (
+                        <div className="text-center py-10 opacity-60">Sisteme henüz bayi eklemediniz.</div>
+                    ) : (
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 text-xs font-bold uppercase tracking-widest">
+                                    <th className="px-6 py-4 border-b border-border">Firma Detayı</th>
+                                    <th className="px-6 py-4 border-b border-border">Bayi Grubu / İskonto</th>
+                                    <th className="px-6 py-4 border-b border-border">Sipariş / Ciro</th>
+                                    <th className="px-6 py-4 border-b border-border text-center">Ödeme Yöntemi</th>
+                                    <th className="px-6 py-4 border-b border-border text-right">Aksiyon</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                                {dealers.map(dealer => (
+                                    <tr key={dealer.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="font-bold text-slate-900 dark:text-white text-base">{dealer.name}</div>
+                                            <div className="text-sm text-slate-500 mt-0.5">{dealer.email}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className={\`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-1 \${
+                                                dealer.group.includes('Platin') ? 'bg-purple-500/10 text-purple-600' : 
+                                                dealer.group.includes('Gold') ? 'bg-amber-500/10 text-amber-600' : 
+                                                'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                                            }\`}>
+                                                {dealer.group}
+                                            </div>
+                                            <div className="text-xs font-bold text-slate-500">+% {Number(dealer.discount).toString()} Sabit İndirim</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="font-bold text-slate-900 dark:text-white">{dealer.total}</div>
+                                            <div className="text-xs text-slate-500">{dealer.orders} Başarılı Sipariş</div>
+                                        </td>
+                                        <td className="px-6 py-4 flex justify-center">
+                                            <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center" title="Kredi Kartı (Vpos)">
+                                                <CreditCard className="w-4 h-4" />
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex gap-2 justify-end">
+                                                <button className="text-xs font-bold text-indigo-600 hover:text-indigo-800 border px-3 py-1.5 rounded-lg border-indigo-200">Düzenle</button>
+                                                <button onClick={() => handleDelete(dealer.id)} className="text-xs font-bold text-red-500 hover:text-white hover:bg-red-500 border px-3 py-1.5 rounded-lg border-red-200 transition">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
 
@@ -167,32 +212,31 @@ export default function B2BPortalPage() {
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold">Firma Ünvanı</label>
-                                    <input type="text" className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                    <input value={companyName} onChange={e=>setCompanyName(e.target.value)} type="text" className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold">Giriş E-postası</label>
-                                    <input type="email" className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                    <input value={email} onChange={e=>setEmail(e.target.value)} type="email" className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-bold">Atanacak Bayi Grubu</label>
-                                    <select className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none">
-                                        <option>Standart (%5 İskonto)</option>
-                                        <option>Gold Bayi (%15 İskonto)</option>
-                                        <option>Platin (%20 İskonto)</option>
+                                    <select value={selectedGroupId} onChange={e=>setSelectedGroupId(e.target.value)} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none">
+                                        {groups.map(g => (
+                                            <option key={g.id} value={g.id}>{g.name} (%{Number(g.discountRate).toString()} İskonto)</option>
+                                        ))}
                                     </select>
                                 </div>
-                                <button className="w-full mt-4 py-3 bg-indigo-500 text-white rounded-xl font-bold hover:bg-indigo-600 transition-colors">
-                                    Davet Linki Gönder
+                                <button onClick={handleCreateDealer} disabled={isPosting} className="w-full mt-4 py-3 bg-indigo-500 text-white rounded-xl font-bold hover:bg-indigo-600 flex items-center justify-center gap-2 transition-colors">
+                                    {isPosting ? <RefreshCw className="w-4 h-4 animate-spin" /> : "Değerleri Kaydet"}
                                 </button>
                                 <button onClick={() => setIsModalOpen(false)} className="w-full py-3 bg-transparent text-slate-500 rounded-xl font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                                    Vazgeç
+                                    Vazgeç Ekleme
                                 </button>
                             </div>
                         </motion.div>
                     </div>
                 )}
             </AnimatePresence>
-
         </div>
     );
 }
