@@ -15,11 +15,40 @@ import {
     Wand2,
     FileText,
     Layers,
-    FlaskConical
+    FlaskConical,
+    Video,
+    BookOpen
 } from 'lucide-react';
 
 export default function AiTools() {
     const tools = [
+        {
+            id: 'ai-wizard',
+            title: 'AI Ürün Sihirbazı',
+            description: 'Tek görsel yükleyin, yapay zeka stüdyo fotoğrafını oluştursun, başlığı ve içerikleri yazıp ürünü satışa hazır etsin.',
+            icon: Wand2,
+            color: 'emerald',
+            href: '/dashboard/ai-wizard',
+            badges: ['Hepsi Bir Arada', 'Yeni Nesil']
+        },
+        {
+            id: 'video-studio',
+            title: 'AI Video Stüdyosu',
+            description: 'Ürün fotoğraflarınızdan yapay zeka ile otomatik Reels, TikTok ve reklam videoları oluşturun.',
+            icon: Video,
+            color: 'rose',
+            href: '/dashboard/ai-tools/video-studio',
+            badges: ['Video Generation', 'Trend']
+        },
+        {
+            id: 'blog-studio',
+            title: 'E-Ticaret Blog Jeneratörü',
+            description: 'SEO odaklı, uzun formatlı ve satışa dönüştüren ürün makaleleri/blogları yazdırın.',
+            icon: BookOpen,
+            color: 'indigo',
+            href: '/dashboard/ai-tools/blog-studio',
+            badges: ['SEO', 'Content']
+        },
         {
             id: 'image-studio',
             title: 'AI Görsel Stüdyosu',

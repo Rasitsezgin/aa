@@ -61,6 +61,9 @@ const sections: Section[] = [
             { icon: MessageSquare, label: "Değerlendirmeler", href: "/dashboard/reviews", moduleKey: "REVIEWS" },
             { icon: Package, label: "Ürünler", href: "/dashboard/products", moduleKey: "PRODUCTS" },
             { icon: Warehouse, label: "Stok Yönetimi", href: "/dashboard/inventory", badge: "!", moduleKey: "INVENTORY" },
+            { icon: ShieldAlert, label: "Eksik/Hata Kontrolü", href: "/dashboard/inventory/discrepancy", pro: true, moduleKey: "INVENTORY" },
+            { icon: Layers, label: "Ortak (Grup) Stok", href: "/dashboard/inventory/group-mapping", pro: true, moduleKey: "INVENTORY" },
+            { icon: BellRing, label: "Kritik Stok Alarmı", href: "/dashboard/inventory/alerts", pro: true, moduleKey: "INVENTORY" },
             { icon: Users, label: "Müşteriler", href: "/dashboard/customers", moduleKey: "CUSTOMERS" },
             { icon: Target, label: "Müşteri Segmentleri", href: "/dashboard/customer-segments", moduleKey: "CUSTOMERS" },
         ]
@@ -102,6 +105,14 @@ const sections: Section[] = [
         ]
     },
     {
+        title: "B2B & İleri Düzey",
+        items: [
+            { icon: Users, label: "B2B Bayi Portalı", href: "/dashboard/b2b-portal", pro: true, moduleKey: "B2B" },
+            { icon: FileCode2, label: "XML Dropshipping", href: "/dashboard/xml-supplier", pro: true, moduleKey: "B2B" },
+            { icon: Key, label: "Dijital Kasa (E-Pin)", href: "/dashboard/digital-vault", pro: true, moduleKey: "B2B" },
+        ]
+    },
+    {
         title: "Sistem",
         items: [
             { icon: Workflow, label: "Otomasyonlar", href: "/dashboard/automation", pro: true, moduleKey: "INTEGRATIONS" },
@@ -113,6 +124,7 @@ const sections: Section[] = [
             { icon: Palette, label: "Tema", href: "/dashboard/theme", moduleKey: "SETTINGS" },
             { icon: Shield, label: "Güvenlik", href: "/dashboard/security", moduleKey: "SECURITY" },
             { icon: Settings, label: "Ayarlar", href: "/dashboard/settings", moduleKey: "SETTINGS" },
+            { icon: Users, label: "Ekip Rolleri (RBAC)", href: "/dashboard/settings/team", pro: true, moduleKey: "SETTINGS" },
         ]
     }
 ];
@@ -134,6 +146,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     const prefersReducedMotion = useReducedMotion();
     const shouldReduceMotion = prefersReducedMotion || !theme.animations;
     const { openQuickSale, openAddProduct } = useQuickActions();
+    const [creditMenuOpen, setCreditMenuOpen] = useState(false);
     useKeyboardShortcuts();
 
     const currentPageTitle = useMemo(() => {
@@ -386,6 +399,53 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                             <div className="hidden xl:flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 transition-all hover:bg-emerald-500/10">
                                 <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" />
                                 <span className="text-[11px] font-black text-emerald-500 uppercase tracking-wider">Sistemler Aktif</span>
+                            </div>
+
+                            {/* AI Kredileri */}
+                            <div className="relative hidden sm:block">
+                                <button
+                                    onClick={() => setCreditMenuOpen(!creditMenuOpen)}
+                                    className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 hover:border-amber-500/40 rounded-xl transition-all group"
+                                >
+                                    <Zap size={16} className="text-amber-500 fill-amber-500/50 group-hover:scale-110 transition-transform" />
+                                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400">124 Kredi</span>
+                                </button>
+
+                                <AnimatePresence>
+                                    {creditMenuOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-[60]" onClick={() => setCreditMenuOpen(false)} />
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                className="absolute right-0 mt-2 w-72 bg-surface border border-border rounded-2xl shadow-2xl z-[61] overflow-hidden"
+                                            >
+                                                <div className="p-4 bg-gradient-to-br from-amber-500/5 to-orange-500/10 border-b border-border">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <div className="text-sm font-bold text-foreground">AI Üretim Kredisi</div>
+                                                        <Zap size={16} className="text-amber-500" />
+                                                    </div>
+                                                    <div className="flex items-end gap-1 mb-3">
+                                                        <span className="text-2xl font-black text-amber-600">124</span>
+                                                        <span className="text-xs font-medium text-slate-500 mb-1">/ 200 Aylık</span>
+                                                    </div>
+                                                    <div className="w-full bg-black/5 dark:bg-white/5 rounded-full h-1.5 mb-2">
+                                                        <div className="bg-gradient-to-r from-amber-400 to-orange-500 h-full rounded-full" style={{ width: '62%' }} />
+                                                    </div>
+                                                    <div className="text-[10px] text-slate-500">Kredileriniz <span className="font-bold text-slate-700 dark:text-slate-300">12 gün</span> içinde yenilenecek.</div>
+                                                </div>
+                                                <div className="p-3 bg-background/50">
+                                                    <Link href="/dashboard/upgrade" onClick={() => setCreditMenuOpen(false)}>
+                                                        <button className="w-full py-2.5 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+                                                            <Sparkles size={14} /> Paketi Yükselt
+                                                        </button>
+                                                    </Link>
+                                                </div>
+                                            </motion.div>
+                                        </>
+                                    )}
+                                </AnimatePresence>
                             </div>
 
                             <div className="flex items-center gap-1.5 lg:gap-2">

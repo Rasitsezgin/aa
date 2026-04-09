@@ -194,6 +194,12 @@ model Tenant {
   aiTeamConversations     AITeamConversation[]
   aiVoiceSessions         AIVoiceSession[]
 
+  // İleri Düzey Entegrasyon ve Sopyo Klon Modülleri
+  digitalVaultPools       DigitalVaultPool[]
+  xmlSuppliers            XmlSupplier[]
+  subDealerGroups         SubDealerGroup[]
+  subDealers              SubDealer[]
+
   // Marketplace
   marketplaceAttributes MarketplaceAttribute[]
   marketplaceCategories MarketplaceCategory[]
@@ -2527,6 +2533,115 @@ model BlogComment {
 // ==================== FORUM SYSTEM (vBulletin/XenForo Style) ====================
 // ==================== FORUM SYSTEM (vBulletin/XenForo Style) ====================
 
+// ==================== İLERİ DÜZEY MODÜLLER (DIGITAL, XML, B2B) ====================
+
+model DigitalVaultPool {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name        String
+  category    String?
+  delivery    String   @default("Mail") // "Mail", "SMS", "Both"
+  isActive    Boolean  @default(true)
+  
+  pins        DigitalPin[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model DigitalPin {
+  id          String   @id @default(uuid())
+  poolId      String
+  pool        DigitalVaultPool @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  
+  code        String   // Şifrelenmiş kod verisi saklanmalı
+  status      String   @default("available") // "available", "delivered", "error"
+  orderNo     String?
+  deliveredAt DateTime?
+  marketplace String?
+  
+  createdAt   DateTime @default(now())
+
+  @@index([poolId])
+  @@index([status])
+}
+
+model XmlSupplier {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name        String
+  url         String
+  status      String   @default("active") // "active", "parsing", "error"
+  productsCount Int    @default(0)
+  lastSyncAt  DateTime?
+  
+  rules       XmlRule[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model XmlRule {
+  id            String   @id @default(uuid())
+  supplierId    String
+  supplier      XmlSupplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  
+  markupPercent Decimal  @default(0)
+  fixedFee      Decimal  @default(0)
+  autoSync      Boolean  @default(true)
+  syncInterval  Int      @default(240) // Dakika cinsinden, örn 4 saat = 240
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([supplierId])
+}
+
+model SubDealerGroup {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name        String
+  discountRate Decimal @default(0)
+  isActive    Boolean  @default(true)
+  
+  dealers     SubDealer[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model SubDealer {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  groupId     String?
+  group       SubDealerGroup? @relation(fields: [groupId], references: [id])
+  
+  companyName String
+  email       String   @unique
+  password    String   // B2B giriş şifresi (Hash)
+  totalOrders Int      @default(0)
+  totalVolume Decimal  @default(0)
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([groupId])
+}
 enum ForumUserRole {
   MEMBER
   MODERATOR
