@@ -9,6 +9,9 @@ RUN npx turbo prune --scope=@pazaryonetimi/api --docker
 
 FROM base AS builder
 WORKDIR /app
+# Install build tools for native modules compilation
+RUN apt-get update && apt-get install -y build-essential python3 && rm -rf /var/lib/apt/lists/*
+
 # Copy pruned package files
 COPY --from=pruner /app/out/json/ .
 # Copy lockfile

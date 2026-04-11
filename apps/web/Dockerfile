@@ -1,5 +1,5 @@
 FROM node:20-slim AS builder
-RUN apt-get update && apt-get install -y libc6 openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y libc6 openssl ca-certificates build-essential python3 && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Build-time args needed by Next.js static optimization & Prisma
