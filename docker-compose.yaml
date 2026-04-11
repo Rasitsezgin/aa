@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
+    platform: linux/arm64,linux/amd64
     environment:
       POSTGRES_USER: pazaryonetimi
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pazaryonetimi_secret}
@@ -22,17 +23,27 @@ services:
       dockerfile: apps/api/Dockerfile
       args:
         - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
+      platforms:
+        - linux/arm64
+        - linux/amd64
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=production
     ports:
       - "3001:3001"
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     restart: always
 
   web:
@@ -44,6 +55,9 @@ services:
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://api:3001}
         - NEXTAUTH_URL=${NEXTAUTH_URL:-https://pazaryonetimi.com}
         - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      platforms:
+        - linux/arm64
+        - linux/amd64
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://api:3001}
@@ -60,15 +74,24 @@ services:
 
   redis:
     image: redis:alpine
+    platform: linux/arm64,linux/amd64
     ports:
       - "6379:6379"
     restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   worker:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    command: ["node", "dist/worker"]
+      platforms:
+        - linux/arm64
+        - linux/amd64
+    command: ["node", "apps/api/dist/worker.js"]
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
       - REDIS_HOST=${REDIS_HOST:-redis}
@@ -79,7 +102,7 @@ services:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     restart: always
 
 volumes:

@@ -1,7 +1,5 @@
 FROM node:20-slim AS builder
-ARG CACHE_BREAKER=8
 RUN apt-get update && apt-get install -y libc6 openssl ca-certificates && rm -rf /var/lib/apt/lists/*
-RUN corepack disable 2>/dev/null || true && rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg
 WORKDIR /app
 
 # Build-time args needed by Next.js static optimization & Prisma
@@ -12,10 +10,9 @@ ARG NEXTAUTH_SECRET
 ENV DATABASE_URL=$DATABASE_URL
 
 COPY . .
-RUN npm install -g npm@latest turbo
 RUN npm install --legacy-peer-deps
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV NODE_OPTIONS="--max-old-space-size=3968"
 # Build database package first, then web app
 RUN npx turbo run build --filter=@pazaryonetimi/database
 # Re-generate Prisma client after database build to ensure fresh types

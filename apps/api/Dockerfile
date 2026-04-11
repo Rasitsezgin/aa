@@ -1,6 +1,6 @@
 FROM node:20-slim AS base
 RUN apt-get update && apt-get install -y libc6 openssl ca-certificates && rm -rf /var/lib/apt/lists/*
-RUN npm install -g pnpm turbo
+RUN npm install -g turbo
 
 FROM base AS pruner
 WORKDIR /app
@@ -21,12 +21,12 @@ COPY --from=pruner /app/out/full/ .
 # Generate Prisma Client
 RUN cd packages/database && npx prisma generate
 
-# Build the project
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+# Build the project (128MB less for ARM)
+ENV NODE_OPTIONS="--max-old-space-size=3968"
 RUN npx turbo run build --filter=@pazaryonetimi/api
 
 FROM node:20-slim AS runner
-RUN apt-get update && apt-get install -y openssl ca-certificates wait-for-it wget gnupg chromium \
+RUN apt-get update && apt-get install -y openssl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
@@ -66,5 +66,5 @@ ENV NODE_PATH=/app/node_modules
 
 EXPOSE 3001
 
-# Diagnostic check before start (will exit with error if module not found)
-CMD ["sh", "-c", "node -e \"require('@nestjs/core')\" && node apps/api/dist/main"]
+# Start the main application
+CMD ["node", "apps/api/dist/main.js"]
