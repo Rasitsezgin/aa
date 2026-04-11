@@ -18,8 +18,8 @@ COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/package-lock.json ./package-lock.json
 # Install dependencies (skip postinstall scripts to avoid napi-postinstall errors)
 RUN npm install --legacy-peer-deps --ignore-scripts
-# Rebuild native modules
-RUN npm rebuild
+# Rebuild only the module that needs skipped postinstall
+RUN if [ -d node_modules/unrs-resolver ]; then npm rebuild unrs-resolver; fi
 
 # Copy pruned source code
 COPY --from=pruner /app/out/full/ .
