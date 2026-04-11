@@ -16,11 +16,14 @@ RUN npm install --legacy-peer-deps --ignore-scripts
 RUN npm install --no-save napi-postinstall && \
 	if [ -d node_modules/unrs-resolver ]; then npm rebuild unrs-resolver; fi && \
 	if [ -d node_modules/canvas ]; then npm rebuild canvas; fi
+# Some Prisma transitive deps can be missing in CI; ensure they exist before generate
+RUN if [ ! -d node_modules/graphmatch ] || [ ! -d node_modules/zeptomatch ]; then npm install --no-save graphmatch zeptomatch; fi
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 ENV NODE_OPTIONS="--max-old-space-size=3968"
 # Build database package first, then web app
 RUN npx turbo run build --filter=@pazaryonetimi/database
 # Re-generate Prisma client after database build to ensure fresh types
+RUN if [ ! -d node_modules/graphmatch ] || [ ! -d node_modules/zeptomatch ]; then npm install --no-save graphmatch zeptomatch; fi
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 RUN npx turbo run build --filter=@pazaryonetimi/web
 

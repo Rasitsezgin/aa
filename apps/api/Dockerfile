@@ -25,6 +25,7 @@ RUN npm install --no-save napi-postinstall && \
 # Copy pruned source code
 COPY --from=pruner /app/out/full/ .
 # Generate Prisma Client
+RUN if [ ! -d node_modules/graphmatch ] || [ ! -d node_modules/zeptomatch ]; then npm install --no-save graphmatch zeptomatch; fi
 RUN cd packages/database && npx prisma generate
 
 # Build the project (128MB less for ARM)
