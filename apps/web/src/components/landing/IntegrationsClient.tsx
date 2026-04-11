@@ -1,292 +1,239 @@
 "use client";
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Check, ArrowRight, Globe, Zap, Shield, RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+    Store, Search, ArrowRight, ShoppingCart, 
+    Calculator, Truck, FileText, FileCode2, Globe, Sparkles
+} from 'lucide-react';
 import Link from 'next/link';
 
-type IntegrationType = 'marketplace' | 'ecommerce' | 'cargo' | 'accounting' | 'erp';
-
-interface Integration {
-    id: string;
-    name: string;
-    logo: string;
-    type: IntegrationType;
-    description: string;
-    features: string[];
-    status: 'active' | 'coming-soon' | 'beta';
-    popular?: boolean;
-}
-
-const integrations: Integration[] = [
-    // Marketplaces
-    { id: 'trendyol', name: 'Trendyol', logo: '/images/pazaryeri/Trendyol.png', type: 'marketplace', description: "Türkiye'nin en büyük pazaryeri ile tam entegrasyon.", features: ['Ürün Senkronizasyonu', 'Sipariş Yönetimi', 'Stok Takibi', 'Fiyat Güncelleme'], status: 'active', popular: true },
-    { id: 'hepsiburada', name: 'Hepsiburada', logo: '/images/pazaryeri/Hepsiburada.png', type: 'marketplace', description: 'Hepsiburada Merchant API ile güçlü entegrasyon.', features: ['Toplu Ürün Yükleme', 'Otomatik Sipariş', 'Kargo Entegrasyonu', 'Kampanya Yönetimi'], status: 'active', popular: true },
-    { id: 'amazon', name: 'Amazon Türkiye', logo: '/images/pazaryeri/Amazon.png', type: 'marketplace', description: 'Amazon SP-API ile tam entegrasyon.', features: ['FBA Desteği', 'Çoklu Mağaza', 'Reklam Entegrasyonu', 'Prime Desteği'], status: 'active', popular: true },
-    { id: 'n11', name: 'N11', logo: '/images/pazaryeri/N11.png', type: 'marketplace', description: 'N11 Pro entegrasyonu ile hızlı satış.', features: ['Kategori Eşleştirme', 'Varyant Yönetimi', 'Sipariş Takibi', 'İade Yönetimi'], status: 'active' },
-    { id: 'ciceksepeti', name: 'Çiçeksepeti', logo: '/images/pazaryeri/ciceksepeti.png', type: 'marketplace', description: 'Çiçeksepeti pazaryeri entegrasyonu.', features: ['Ürün Yönetimi', 'Sipariş Senkronizasyonu', 'Stok Takibi'], status: 'active' },
-    { id: 'pttavm', name: 'PttAVM', logo: '/images/pazaryeri/pttavm.png', type: 'marketplace', description: 'PttAVM satıcı entegrasyonu.', features: ['Ürün Listeleme', 'Sipariş Yönetimi', 'PTT Kargo'], status: 'active' },
-    { id: 'etsy', name: 'Etsy', logo: '/images/pazaryeri/Etsy.png', type: 'marketplace', description: 'Global Etsy pazaryeri entegrasyonu.', features: ['Çoklu Dil', 'Uluslararası Satış', 'Handmade Kategori'], status: 'active' },
-    { id: 'walmart', name: 'Walmart', logo: '/images/pazaryeri/walmart.png', type: 'marketplace', description: 'Walmart ABD pazaryeri.', features: ['US Marketplace', 'Fulfillment Services', 'Price Optimization'], status: 'beta' },
-    { id: 'ebay', name: 'eBay', logo: '/images/pazaryeri/ebay.png', type: 'marketplace', description: 'Global eBay entegrasyonu.', features: ['Açık Artırma', 'Global Satış', 'Güvenli Ödeme'], status: 'coming-soon' },
-
-    // E-commerce Platforms
-    { id: 'shopify', name: 'Shopify', logo: '/images/pazaryeri/Shopify.png', type: 'ecommerce', description: 'Shopify mağazanızı bağlayın.', features: ['Ürün Senkronizasyonu', 'Sipariş Yönetimi', 'Envanter Takibi', 'Webhook Desteği'], status: 'active', popular: true },
-    { id: 'woocommerce', name: 'WooCommerce', logo: '/images/pazaryeri/WooCommerce.png', type: 'ecommerce', description: 'WordPress WooCommerce entegrasyonu.', features: ['REST API', 'Ürün Senkron', 'Sipariş Aktarımı'], status: 'active' },
-    { id: 'ikas', name: 'ikas', logo: '/images/pazaryeri/ikas.png', type: 'ecommerce', description: 'ikas e-ticaret altyapısı entegrasyonu.', features: ['Tam Senkronizasyon', 'Stok Yönetimi', 'Sipariş Akışı'], status: 'active' },
-    { id: 'ticimax', name: 'Ticimax', logo: '/images/pazaryeri/ticimax.webp', type: 'ecommerce', description: 'Ticimax altyapı entegrasyonu.', features: ['Ürün Aktarımı', 'Sipariş Yönetimi', 'Kategori Eşleme'], status: 'active' },
-    { id: 'ideasoft', name: 'IdeaSoft', logo: '/images/pazaryeri/ideasoft-logo.webp', type: 'ecommerce', description: 'IdeaSoft e-ticaret entegrasyonu.', features: ['API Entegrasyonu', 'Stok Senkron', 'Fiyat Yönetimi'], status: 'active' },
-    { id: 'magento', name: 'Magento', logo: '/images/pazaryeri/magento.png', type: 'ecommerce', description: 'Adobe Commerce / Magento entegrasyonu.', features: ['Multi-store', 'ERP Entegrasyonu', 'B2B Desteği'], status: 'beta' },
-
-    // Cargo
-    { id: 'aras', name: 'Aras Kargo', logo: '/images/cargo/aras.png', type: 'cargo', description: 'Aras Kargo otomatik etiket ve takip.', features: ['Otomatik Etiket', 'Takip Numarası', 'Teslimat Bildirimi'], status: 'active' },
-    { id: 'yurtici', name: 'Yurtiçi Kargo', logo: '/images/cargo/yurtici.png', type: 'cargo', description: 'Yurtiçi Kargo entegrasyonu.', features: ['Barkod Yazdırma', 'Şube Teslim', 'Anlık Takip'], status: 'active' },
-    { id: 'mng', name: 'MNG Kargo', logo: '/images/cargo/mng.png', type: 'cargo', description: 'MNG Kargo API entegrasyonu.', features: ['Express Teslimat', 'Kargo Takibi', 'Çoklu Şube'], status: 'active' },
-    { id: 'surat', name: 'Sürat Kargo', logo: '/images/cargo/surat.png', type: 'cargo', description: 'Sürat Kargo entegrasyonu.', features: ['Hızlı Teslimat', 'Otomatik Etiket', 'Raporlama'], status: 'active' },
-
-    // Accounting
-    { id: 'parasut', name: 'Paraşüt', logo: '/images/accounting/parasut.png', type: 'accounting', description: 'Paraşüt e-fatura ve muhasebe entegrasyonu.', features: ['E-Fatura', 'E-Arşiv', 'Cari Hesap', 'Raporlar'], status: 'active', popular: true },
-    { id: 'logo', name: 'Logo Tiger', logo: '/images/accounting/logo.png', type: 'accounting', description: 'Logo ERP entegrasyonu.', features: ['Stok Takibi', 'Fatura Aktarımı', 'Cari Hesap'], status: 'active' },
-    { id: 'mikro', name: 'Mikro', logo: '/images/accounting/mikro.png', type: 'accounting', description: 'Mikro yazılım entegrasyonu.', features: ['Muhasebe', 'Stok', 'E-Fatura'], status: 'coming-soon' },
+const categories = [
+    { id: 'all', name: 'Tümü', icon: Globe },
+    { id: 'pazaryeri', name: 'Pazaryeri', icon: Store },
+    { id: 'eticaret', name: 'E-ticaret Altyapısı', icon: ShoppingCart },
+    { id: 'muhasebe', name: 'Muhasebe', icon: Calculator },
+    { id: 'kargo', name: 'Kargo', icon: Truck },
+    { id: 'efatura', name: 'E-Fatura', icon: FileText },
+    { id: 'xml', name: 'XML Kaynakları', icon: FileCode2 },
 ];
 
-const typeLabels: Record<IntegrationType, string> = {
-    marketplace: 'Pazaryerleri',
-    ecommerce: 'E-ticaret Altyapıları',
-    cargo: 'Kargo Firmaları',
-    accounting: 'Muhasebe & ERP',
-    erp: 'ERP Sistemleri',
-};
-
-const typeColors: Record<IntegrationType, string> = {
-    marketplace: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    ecommerce: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-    cargo: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    accounting: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-    erp: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
-};
+const integrations = [
+    // Pazaryeri
+    { id: 'trendyol', name: 'Trendyol', category: 'pazaryeri', color: 'bg-orange-500', desc: 'Sipariş, stok, ürün ve fiyat otomasyonu.' },
+    { id: 'hepsiburada', name: 'Hepsiburada', category: 'pazaryeri', color: 'bg-orange-600', desc: 'Gerçek zamanlı stok eşitleme ve fatura.' },
+    { id: 'n11', name: 'N11', category: 'pazaryeri', color: 'bg-red-600', desc: 'Toplu ürün yükleme ve kategori eşleştirme.' },
+    { id: 'amazon', name: 'Amazon Türkiye', category: 'pazaryeri', color: 'bg-yellow-500', desc: 'Siparişten kargoya kadar tam entegrasyon.' },
+    { id: 'ciceksepeti', name: 'Çiçeksepeti', category: 'pazaryeri', color: 'bg-emerald-500', desc: 'Anlık sipariş ve kampanya takibi.' },
+    // Eticaret
+    { id: 'shopify', name: 'Shopify', category: 'eticaret', color: 'bg-green-600', desc: 'E-ihracat ve global satış entegrasyonu.' },
+    { id: 'ideasoft', name: 'IdeaSoft', category: 'eticaret', color: 'bg-blue-600', desc: 'Türkiye\'nin lider altyapısı ile çift yönlü anlık senkron.' },
+    { id: 'ticimax', name: 'Ticimax', category: 'eticaret', color: 'bg-indigo-600', desc: 'Stok ve siparişlerde sıfır kayıp garantisi.' },
+    { id: 'woocommerce', name: 'WooCommerce', category: 'eticaret', color: 'bg-purple-600', desc: 'WordPress sitenizdeki tüm siparişleri tek panelde toplayın.' },
+    // Muhasebe
+    { id: 'parasut', name: 'Paraşüt', category: 'muhasebe', color: 'bg-blue-500', desc: 'Siparişleri anında faturaya çevirin, tahsilatları izleyin.' },
+    { id: 'bizimhesap', name: 'Bizim Hesap', category: 'muhasebe', color: 'bg-orange-400', desc: 'Ön muhasebe süreçlerini tamamen dijitalleştirin.' },
+    { id: 'logo', name: 'Logo Go 3 & Tiger', category: 'muhasebe', color: 'bg-cyan-600', desc: 'Kurumsal ERP altyapınızla tam entegre çalışın.' },
+    { id: 'mikro', name: 'Mikro', category: 'muhasebe', color: 'bg-red-500', desc: 'Büyük ölçekli stok ve cari verilerini hatasız yönetin.' },
+    // Kargo
+    { id: 'yurtici', name: 'Yurtiçi Kargo', category: 'kargo', color: 'bg-blue-800', desc: 'Toplu barkod yazdırma ve otomatik takip no aktarımı.' },
+    { id: 'aras', name: 'Aras Kargo', category: 'kargo', color: 'bg-red-600', desc: 'Anında kargo fişi oluşturma ve durum sorgulama.' },
+    { id: 'mng', name: 'MNG Kargo', category: 'kargo', color: 'bg-blue-500', desc: 'Şube teslimat ve iade operasyonlarını takip edin.' },
+    { id: 'sendeo', name: 'Sendeo', category: 'kargo', color: 'bg-yellow-500', desc: 'Hızlı sipariş karşılama ve yeni nesil teslimat entegrasyonu.' },
+    // E-fatura
+    { id: 'gib', name: 'GİB e-Arşiv', category: 'efatura', color: 'bg-slate-700', desc: '5000/30000 TL faturaları doğrudan Gelir İdaresi\'ne iletin.' },
+    { id: 'sovos', name: 'Sovos (Fit Solutions)', category: 'efatura', color: 'bg-indigo-500', desc: 'Özel entegratör üzerinden saniyeler içinde e-fatura kesin.' },
+    { id: 'turkcell', name: 'Turkcell e-Fatura', category: 'efatura', color: 'bg-blue-600', desc: 'Güvenilir altyapı ile elektronik faturalandırma.' },
+    // XML
+    { id: 'aktifbebek', name: 'Aktif Bebek', category: 'xml', color: 'bg-pink-500', desc: 'Binlerce bebek ürününü kar marjı ile XML\'den çekin.' },
+    { id: 'zore', name: 'Zore Aksesuar', category: 'xml', color: 'bg-zinc-800', desc: 'Telefon aksesuarlarında otomatik stok güncelleme.' },
+    { id: 'egetoptan', name: 'Ege Toptan', category: 'xml', color: 'bg-emerald-600', desc: 'Günlük mutfak gereçlerini anında pazaryerlerine atın.' },
+];
 
 export default function IntegrationsClient() {
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedType, setSelectedType] = useState<IntegrationType | 'all'>('all');
+    const [activeCategory, setActiveCategory] = useState('all');
 
-    const filteredIntegrations = integrations.filter(i => {
-        const matchesSearch = i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            i.description.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesType = selectedType === 'all' || i.type === selectedType;
-        return matchesSearch && matchesType;
+    const filteredIntegrations = integrations.filter(int => {
+        const matchesSearch = int.name.toLowerCase().includes(searchQuery.toLowerCase()) || int.desc.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = activeCategory === 'all' || int.category === activeCategory;
+        return matchesSearch && matchesCategory;
     });
 
-    const groupedIntegrations = filteredIntegrations.reduce((acc, integration) => {
-        if (!acc[integration.type]) acc[integration.type] = [];
-        acc[integration.type].push(integration);
-        return acc;
-    }, {} as Record<IntegrationType, Integration[]>);
-
     return (
-        <section className="min-h-screen pt-32 pb-24 relative overflow-hidden bg-white dark:bg-[#02040a] transition-colors duration-500">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#0B1121] flex flex-col pt-24 pb-24 relative overflow-hidden transition-colors duration-500">
             {/* Background Pattern */}
             <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" style={{
+                <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" style={{
                     backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
                     backgroundSize: '24px 24px'
                 }} />
-                <div className="absolute top-0 left-0 w-[800px] h-[800px] bg-blue-500/5 dark:bg-blue-500/10 blur-[150px] rounded-full" />
-                <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-purple-500/5 dark:bg-purple-500/10 blur-[150px] rounded-full" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-primary/20 blur-[120px] rounded-full" />
             </div>
 
-            <div className="container mx-auto px-6 relative z-10">
-                {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center mb-16"
-                >
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-100/50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-full mb-6">
-                        <Globe size={14} className="text-blue-600 dark:text-blue-400" />
-                        <span className="text-xs font-bold text-blue-700 dark:text-blue-300 tracking-wide uppercase">Entegrasyonlar</span>
-                    </div>
-                    <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-6">
-                        Tüm Platformlarla <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Bağlantı</span>
-                    </h1>
-                    <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                        30+ pazaryeri, e-ticaret altyapısı, kargo ve muhasebe yazılımı entegrasyonu.
-                    </p>
-                </motion.div>
-
-                {/* Stats */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12"
-                >
-                    {[
-                        { icon: Globe, value: '30+', label: 'Entegrasyon' },
-                        { icon: Zap, value: '<200ms', label: 'Senkron Hızı' },
-                        { icon: RefreshCw, value: '7/24', label: 'Otomatik Senkron' },
-                        { icon: Shield, value: '%100', label: 'Güvenli Bağlantı' },
-                    ].map((stat, i) => (
-                        <div key={i} className="p-6 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-center">
-                            <stat.icon className="w-6 h-6 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
-                            <div className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{stat.value}</div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400">{stat.label}</div>
-                        </div>
-                    ))}
-                </motion.div>
-
-                {/* Search & Filter */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="flex flex-col md:flex-row gap-4 mb-12"
-                >
-                    <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                        <input
-                            type="text"
-                            placeholder="Entegrasyon ara..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
-                        />
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                        <button
-                            onClick={() => setSelectedType('all')}
-                            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${selectedType === 'all'
-                                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
-                                : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
-                                }`}
-                        >
-                            Tümü
-                        </button>
-                        {(Object.keys(typeLabels) as IntegrationType[]).map(type => (
-                            <button
-                                key={type}
-                                onClick={() => setSelectedType(type)}
-                                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${selectedType === type
-                                    ? typeColors[type]
-                                    : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
-                                    }`}
-                            >
-                                {typeLabels[type]}
-                            </button>
-                        ))}
-                    </div>
-                </motion.div>
-
-                {/* Integration Groups */}
-                {(Object.entries(groupedIntegrations) as [IntegrationType, Integration[]][]).map(([type, items], groupIndex) => (
-                    <motion.div
-                        key={type}
+            {/* Hero Section */}
+            <div className="relative pt-12 pb-20 lg:pt-20 lg:pb-28 overflow-hidden">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                    <motion.div 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 + groupIndex * 0.1 }}
-                        className="mb-12"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-bold mb-6"
                     >
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
-                            <span className={`px-3 py-1 rounded-lg text-xs font-bold ${typeColors[type]}`}>
-                                {typeLabels[type]}
-                            </span>
-                            <span className="text-sm text-slate-400 font-normal">({items.length})</span>
-                        </h2>
+                        <Sparkles className="w-4 h-4" /> Sürekli Büyüyen Ekosistem
+                    </motion.div>
+                    <motion.h1 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white mb-6 tracking-tight leading-tight"
+                    >
+                        İhtiyacınız Olan <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">Tüm Entegrasyonlar</span> Tek Yerde
+                    </motion.h1>
+                    <motion.p 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed"
+                    >
+                        Pazaryerleri, e-ticaret siteniz, muhasebe yazılımınız ve kargo firmalarınız. <br className="hidden md:block" />
+                        Pazaryonetimi ile tüm operasyonlarınızı otomatize edin, büyümeye odaklanın.
+                    </motion.p>
 
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {items.map((integration, i) => (
-                                <motion.div
-                                    key={integration.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.4 + i * 0.05 }}
-                                    className="group p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/30 transition-all hover:shadow-xl hover:shadow-blue-500/5"
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="max-w-2xl mx-auto relative"
+                    >
+                        <Search className="w-6 h-6 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                        <input 
+                            type="text" 
+                            name="search_integrations"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Hangi entegrasyonu arıyorsunuz? (Örn: Trendyol, Parasut, Aras)"
+                            className="w-full bg-white dark:bg-surface border-2 border-border rounded-2xl pl-14 pr-6 py-5 text-lg font-medium shadow-xl shadow-primary/5 focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all"
+                        />
+                    </motion.div>
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-32">
+                <div className="flex flex-col lg:flex-row gap-10">
+                    
+                    {/* Sidebar Categories */}
+                    <div className="w-full lg:w-72 shrink-0">
+                        <div className="sticky top-32 space-y-2 bg-white dark:bg-surface p-4 rounded-3xl border border-border shadow-sm">
+                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest pl-3 mb-4 mt-2">Kategoriler</h3>
+                            {categories.map(cat => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setActiveCategory(cat.id)}
+                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl font-bold transition-all ${
+                                        activeCategory === cat.id 
+                                        ? 'bg-primary text-white shadow-md shadow-primary/20' 
+                                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                    }`}
                                 >
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-white/10 flex items-center justify-center overflow-hidden">
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img
-                                                    src={integration.logo}
-                                                    alt={integration.name}
-                                                    className="w-8 h-8 object-contain"
-                                                    onError={(e) => {
-                                                        (e.target as HTMLImageElement).style.display = 'none';
-                                                        (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-lg font-bold text-slate-400">${integration.name[0]}</span>`;
-                                                    }}
-                                                />
-                                            </div>
-                                            <div>
-                                                <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                                    {integration.name}
-                                                    {integration.popular && (
-                                                        <span className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold rounded">
-                                                            POPÜLER
-                                                        </span>
-                                                    )}
-                                                </h3>
-                                                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${integration.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                                                    integration.status === 'beta' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
-                                                        'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400'
-                                                    }`}>
-                                                    {integration.status === 'active' ? 'Aktif' : integration.status === 'beta' ? 'Beta' : 'Yakında'}
-                                                </span>
-                                            </div>
-                                        </div>
+                                    <div className="flex items-center gap-3">
+                                        <cat.icon className="w-5 h-5" />
+                                        {cat.name}
                                     </div>
-
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                                        {integration.description}
-                                    </p>
-
-                                    <div className="flex flex-wrap gap-2">
-                                        {integration.features.slice(0, 3).map((feature, j) => (
-                                            <span key={j} className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
-                                                <Check size={12} className="text-emerald-500" />
-                                                {feature}
-                                            </span>
-                                        ))}
-                                        {integration.features.length > 3 && (
-                                            <span className="text-xs text-blue-600 dark:text-blue-400">
-                                                +{integration.features.length - 3} daha
-                                            </span>
-                                        )}
-                                    </div>
-                                </motion.div>
+                                    {activeCategory === cat.id && <ArrowRight className="w-4 h-4 opacity-50" />}
+                                </button>
                             ))}
                         </div>
-                    </motion.div>
-                ))}
-
-                {filteredIntegrations.length === 0 && (
-                    <div className="text-center py-20">
-                        <p className="text-slate-500 dark:text-slate-400 mb-4">Aramanızla eşleşen entegrasyon bulunamadı.</p>
-                        <button
-                            onClick={() => { setSearchQuery(''); setSelectedType('all'); }}
-                            className="text-blue-600 dark:text-blue-400 font-medium hover:underline"
-                        >
-                            Filtreleri temizle
-                        </button>
                     </div>
-                )}
 
-                {/* CTA */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    className="mt-16 p-8 md:p-12 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white text-center"
-                >
-                    <h2 className="text-2xl md:text-3xl font-bold mb-4">
-                        İhtiyacınız olan entegrasyon listede yok mu?
-                    </h2>
-                    <p className="text-blue-100 mb-8 max-w-xl mx-auto">
-                        Bize bildirin, öncelikli olarak geliştirme listemize alalım.
-                    </p>
-                    <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-700 rounded-2xl font-bold hover:bg-blue-50 transition-colors">
-                        Entegrasyon Talep Et <ArrowRight size={18} />
-                    </Link>
-                </motion.div>
+                    {/* Grid List */}
+                    <div className="flex-1">
+                        <div className="mb-6 flex items-center justify-between">
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+                                {categories.find(c => c.id === activeCategory)?.name} Entegrasyonları
+                            </h2>
+                            <span className="text-sm font-medium text-slate-500 bg-slate-100 dark:bg-surface px-3 py-1 rounded-full border border-border">
+                                {filteredIntegrations.length} Sonuç
+                            </span>
+                        </div>
+
+                        {filteredIntegrations.length === 0 ? (
+                            <div className="bg-white dark:bg-surface border border-border rounded-3xl p-16 text-center">
+                                <Search className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                                <h3 className="text-xl font-bold mb-2">Aradığınız entegrasyon bulunamadı</h3>
+                                <p className="text-slate-500">"{searchQuery}" araması için henüz bir entegrasyonumuz yok veya adı farklı.</p>
+                                <button 
+                                    onClick={() => setSearchQuery('')}
+                                    className="mt-6 px-6 py-2 bg-primary/10 text-primary font-bold rounded-xl hover:bg-primary/20 transition-colors"
+                                >
+                                    Filtreyi Temizle
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                <AnimatePresence mode="popLayout">
+                                    {filteredIntegrations.map((int) => (
+                                        <motion.div
+                                            layout
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.9 }}
+                                            transition={{ duration: 0.2 }}
+                                            key={int.id}
+                                        >
+                                            <div className="group relative bg-white dark:bg-surface border border-border rounded-3xl p-6 hover:shadow-xl hover:border-primary/30 transition-all cursor-pointer flex flex-col h-full overflow-hidden block">
+                                            <div className={`absolute top-0 right-0 w-32 h-32 ${int.color} opacity-5 rounded-full blur-3xl group-hover:opacity-10 transition-opacity`} />
+                                            
+                                            <div className="flex items-center gap-4 mb-4 relative z-10">
+                                                <div className={`w-14 h-14 rounded-2xl ${int.color} flex items-center justify-center text-white font-black text-xl shadow-lg`}>
+                                                    {int.name.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight mb-1 group-hover:text-primary transition-colors">{int.name}</h3>
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
+                                                        {categories.find(c => c.id === int.category)?.name}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-6 flex-1 relative z-10">
+                                                {int.desc}
+                                            </p>
+                                            
+                                            <div className="pt-4 border-t border-border mt-auto flex items-center justify-between relative z-10">
+                                                <span className="text-xs font-bold text-emerald-500">✓ Aktif Eklenti</span>
+                                                <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors text-slate-400">
+                                                    <ArrowRight className="w-4 h-4" />
+                                                </div>
+                                            </div>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
-        </section>
+
+            {/* CTA Banner */}
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-r from-slate-900 to-indigo-900 border-t border-white/10 mt-auto"
+            >
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="text-center md:text-left">
+                        <h2 className="text-3xl font-black text-white mb-2">Tüm Süreçlerinizi Otomatize Edin</h2>
+                        <p className="text-indigo-200">Kredi kartı gerekmeden 14 gün boyunca bedava test edin.</p>
+                    </div>
+                    <div className="flex gap-4">
+                        <Link href="/register" className="px-8 py-4 bg-white text-slate-900 rounded-2xl font-black hover:bg-slate-100 transition-colors shadow-xl shadow-white/10 text-lg">
+                            Ücretsiz Dene
+                        </Link>
+                    </div>
+                </div>
+            </motion.div>
+        </div>
     );
 }
