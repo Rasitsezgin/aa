@@ -21,13 +21,10 @@ RUN npm install --legacy-peer-deps --ignore-scripts
 # Ensure napi-postinstall binary exists, then rebuild only required module
 RUN npm install --no-save napi-postinstall && \
     if [ -d node_modules/unrs-resolver ]; then npm rebuild unrs-resolver; fi
-RUN npm install --no-save chokidar@3.6.0 is-number is-binary-path defaults
 
 # Copy pruned source code
 COPY --from=pruner /app/out/full/ .
 # Generate Prisma Client
-RUN if [ ! -d node_modules/graphmatch ] || [ ! -d node_modules/zeptomatch ]; then npm install --no-save graphmatch zeptomatch; fi
-RUN if [ ! -d node_modules/is-number ] || [ ! -d node_modules/defaults ]; then npm install --no-save is-number defaults; fi
 RUN cd packages/database && npx prisma generate
 
 # Build the project (128MB less for ARM)
