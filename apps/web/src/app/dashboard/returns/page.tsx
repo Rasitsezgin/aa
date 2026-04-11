@@ -83,7 +83,7 @@ export default function ReturnsManagementPage() {
                         
                         <div className="text-center mb-6">
                             <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl mx-auto flex items-center justify-center mb-4">
-                                <ScanLine className={\`w-8 h-8 text-slate-500 \${isScanning ? 'animate-pulse text-orange-500' : ''}\`} />
+                                <ScanLine className={`w-8 h-8 text-slate-500 ${isScanning ? 'animate-pulse text-orange-500' : ''}`} />
                             </div>
                             <h2 className="text-xl font-bold">Kargo Barkodu Okutun</h2>
                             <p className="text-xs text-slate-500 mt-2">Takip numarası veya Sipariş No taratın.</p>

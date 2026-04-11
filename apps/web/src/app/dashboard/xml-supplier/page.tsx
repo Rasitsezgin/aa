@@ -174,7 +174,7 @@ export default function XMLSupplierPage() {
                 ) : links.map((link) => (
                     <div key={link.id} className="flex flex-col md:flex-row md:items-center justify-between p-5 rounded-2xl border border-border bg-surface hover:shadow-lg hover:border-primary/30 transition-all gap-4">
                         <div className="flex items-center gap-4 w-full md:w-1/3">
-                            <div className={\`w-10 h-10 rounded-full flex items-center justify-center shrink-0 \${link.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : link.status === 'parsing' ? 'bg-blue-500/10 text-blue-500 animate-pulse' : 'bg-red-500/10 text-red-500'}\`}>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${link.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : link.status === 'parsing' ? 'bg-blue-500/10 text-blue-500 animate-pulse' : 'bg-red-500/10 text-red-500'}`}>
                                 <FileCode2 className="w-5 h-5" />
                             </div>
                             <div className="truncate">
@@ -188,7 +188,7 @@ export default function XMLSupplierPage() {
                         <div className="flex items-center justify-between gap-6 md:w-1/3">
                             <div className="text-center">
                                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Durum</div>
-                                <div className={\`text-sm font-bold \${link.status === 'active' ? 'text-emerald-500' : link.status === 'parsing' ? 'text-blue-500' : 'text-red-500'}\`}>
+                                <div className={`text-sm font-bold ${link.status === 'active' ? 'text-emerald-500' : link.status === 'parsing' ? 'text-blue-500' : 'text-red-500'}`}>
                                     {link.status === 'active' ? 'Senkron' : link.status === 'parsing' ? 'Derleniyor...' : 'Hatalı'}
                                 </div>
                             </div>

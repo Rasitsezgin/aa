@@ -109,8 +109,8 @@ export default function DigitalVaultPage() {
             {/* Main Tabs UI */}
             <div className="bg-surface border border-border rounded-[2rem] overflow-hidden">
                 <div className="flex border-b border-border">
-                    <button onClick={() => setActiveTab('pool')} className={\`flex-1 py-4 text-sm font-bold transition-all \${activeTab === 'pool' ? 'bg-primary/5 text-primary border-b-2 border-primary' : 'text-slate-500'}\`}>Aksiyon Havuzları (Gerçek Veri)</button>
-                    <button onClick={() => setActiveTab('logs')} className={\`flex-1 py-4 text-sm font-bold transition-all \${activeTab === 'logs' ? 'bg-primary/5 text-primary border-b-2 border-primary' : 'text-slate-500'}\`}>Teslimat Logları</button>
+                    <button onClick={() => setActiveTab('pool')} className={`flex-1 py-4 text-sm font-bold transition-all ${activeTab === 'pool' ? 'bg-primary/5 text-primary border-b-2 border-primary' : 'text-slate-500'}`}>Aksiyon Havuzları (Gerçek Veri)</button>
+                    <button onClick={() => setActiveTab('logs')} className={`flex-1 py-4 text-sm font-bold transition-all ${activeTab === 'logs' ? 'bg-primary/5 text-primary border-b-2 border-primary' : 'text-slate-500'}`}>Teslimat Logları</button>
                 </div>
 
                 <div className="p-6 min-h-[300px]">
@@ -138,7 +138,7 @@ export default function DigitalVaultPage() {
                                         <div className="flex items-center gap-8">
                                             <div className="text-center">
                                                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Mevcut Stok</div>
-                                                <div className={\`font-black text-xl \${vault.stock === 0 ? 'text-red-500' : 'text-emerald-500'}\`}>
+                                                <div className={`font-black text-xl ${vault.stock === 0 ? 'text-red-500' : 'text-emerald-500'}`}>
                                                     {vault.stock} Adet
                                                 </div>
                                             </div>

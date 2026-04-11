@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { prisma } from "@pazaryonetimi/database";
+import { prisma } from "@/lib/prisma";
 
 // POST /api/admin/menus/[id]/set-default - Menüyü varsayılan yap
 export async function POST(

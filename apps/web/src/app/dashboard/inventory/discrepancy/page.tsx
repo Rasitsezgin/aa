@@ -60,7 +60,7 @@ export default function DiscrepancyManagerPage() {
                         disabled={isScanning}
                         className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center gap-2 disabled:opacity-50"
                     >
-                        <RefreshCw className={\`w-4 h-4 \${isScanning ? 'animate-spin' : ''}\`} /> 
+                        <RefreshCw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} /> 
                         {isScanning ? 'Stoklar Taranıyor...' : 'Yeni Tarama Başlat'}
                     </button>
                 </div>
@@ -136,11 +136,11 @@ export default function DiscrepancyManagerPage() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-center">
-                                        <div className={\`inline-flex items-center gap-1.5 px-3 py-1 rounded-md font-bold \${
+                                        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md font-bold ${
                                             item.status === 'critical' ? 'bg-red-500/10 text-red-500' :
                                             item.status === 'warning' ? 'bg-amber-500/10 text-amber-500' :
                                             'bg-emerald-500/10 text-emerald-500'
-                                        }\`}>
+                                        }`}>
                                             <Store className="w-3 h-3 opacity-50" /> {item.marketStock}
                                         </div>
                                     </td>

@@ -1,5 +1,5 @@
 import NextAuth from "next-auth"
-import { prisma } from "@pazaryonetimi/database"
+import { prisma } from "@/lib/prisma"
 import Google from "next-auth/providers/google"
 import Facebook from "next-auth/providers/facebook"
 import Credentials from "next-auth/providers/credentials"

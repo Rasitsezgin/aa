@@ -1,6 +1,6 @@
 import DashboardClient from "./dashboard-client";
 import { auth } from "@/auth";
-import { prisma } from "@pazaryonetimi/database";
+import { prisma } from "@/lib/prisma";
 
 interface DashboardConfig {
     showStats: boolean;

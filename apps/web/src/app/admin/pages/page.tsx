@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { prisma } from "@pazaryonetimi/database";
+import { prisma } from "@/lib/prisma";
 import PagesAdminClient from "./PagesAdminClient";
 
 export const metadata: Metadata = {

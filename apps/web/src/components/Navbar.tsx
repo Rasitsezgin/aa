@@ -243,6 +243,7 @@ const navLinks: MegaMenuItem[] = [
         }
     },
     { href: '/pricing', label: 'Fiyatlandırma' },
+    { href: '/entegrasyonlar', label: 'Entegrasyonlar' },
 ];
 
 // ─── Animations ───────────────────────────────────────

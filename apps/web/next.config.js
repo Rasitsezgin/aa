@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
+  transpilePackages: ["@pazaryonetimi/database"],
   swcMinify: false,
   experimental: {
     workerThreads: false,
@@ -115,3 +116,5 @@ const nextConfig = {
     ];
   },
 };
+
+module.exports = nextConfig;

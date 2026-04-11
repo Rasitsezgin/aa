@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { prisma } from "@pazaryonetimi/database";
+import { prisma } from "@/lib/prisma";
 
 // GET /api/admin/footers/[id] - Tekil footer detayı
 export async function GET(

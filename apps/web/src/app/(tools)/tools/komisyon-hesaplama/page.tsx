@@ -59,11 +59,11 @@ export default function CommissionCalculatorPage() {
                                     <button
                                         key={mk.name}
                                         onClick={() => setCommissionRate(mk.rate)}
-                                        className={\`px-4 py-2 rounded-xl text-sm font-bold transition-all \${
+                                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
                                             commissionRate === mk.rate 
-                                            ? '\${mk.color} text-white shadow-lg' 
+                                            ? '${mk.color} text-white shadow-lg' 
                                             : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
-                                        }\`}
+                                        }`}
                                     >
                                         {mk.name}
                                     </button>
@@ -168,11 +168,11 @@ export default function CommissionCalculatorPage() {
                             <div className="flex items-end justify-between">
                                 <div>
                                     <div className="text-sm font-bold text-slate-500">Net Kârınız</div>
-                                    <div className={\`text-4xl lg:text-5xl font-black mt-1 \${netProfit >= 0 ? 'text-emerald-500' : 'text-red-500'}\`}>
+                                    <div className={`text-4xl lg:text-5xl font-black mt-1 ${netProfit >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                                         {netProfit.toFixed(2)} TL
                                     </div>
                                 </div>
-                                <div className={\`px-3 py-1.5 rounded-xl text-sm font-bold \${netProfit >= 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}\`}>
+                                <div className={`px-3 py-1.5 rounded-xl text-sm font-bold ${netProfit >= 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
                                     % {margin.toFixed(1)} Marj
                                 </div>
                             </div>

@@ -1,4 +1,4 @@
-FROM node:20-slim AS builder
+FROM node:22-slim AS builder
 RUN apt-get update && apt-get install -y libc6 openssl ca-certificates build-essential python3 pkg-config libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev libpng-dev librsvg2-dev && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
@@ -27,7 +27,7 @@ RUN if [ ! -d node_modules/graphmatch ] || [ ! -d node_modules/zeptomatch ]; the
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 RUN npx turbo run build --filter=@pazaryonetimi/web
 
-FROM node:20-slim AS runner
+FROM node:22-slim AS runner
 RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 

@@ -161,11 +161,11 @@ export default function B2BPortalPage() {
                                             <div className="text-sm text-slate-500 mt-0.5">{dealer.email}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className={\`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-1 \${
+                                            <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-1 ${
                                                 dealer.group.includes('Platin') ? 'bg-purple-500/10 text-purple-600' : 
                                                 dealer.group.includes('Gold') ? 'bg-amber-500/10 text-amber-600' : 
                                                 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                                            }\`}>
+                                            }`}>
                                                 {dealer.group}
                                             </div>
                                             <div className="text-xs font-bold text-slate-500">+% {Number(dealer.discount).toString()} Sabit İndirim</div>

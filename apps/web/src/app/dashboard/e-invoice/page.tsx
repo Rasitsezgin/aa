@@ -199,7 +199,7 @@ export default function EInvoicePage() {
                         </span>
                       </td>
                       <td className="px-6 py-5">
-                        <span className={\`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold \${statusCfg.color}\`}>
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold ${statusCfg.color}`}>
                           <StatusIcon size={12} />
                           {statusCfg.label}
                         </span>

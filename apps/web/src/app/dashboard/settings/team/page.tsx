@@ -59,14 +59,14 @@ export default function TeamManagementPage() {
                             <button
                                 key={role.id}
                                 onClick={() => setSelectedRole(role.id)}
-                                className={\`w-full flex items-center justify-between p-4 rounded-2xl border transition-all \${
+                                className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
                                     selectedRole === role.id 
                                     ? 'bg-primary/5 border-primary/30 text-primary' 
                                     : 'bg-surface border-border hover:border-primary/20 text-slate-700 dark:text-slate-300'
-                                }\`}
+                                }`}
                             >
                                 <span className="font-bold text-sm text-left">{role.name}</span>
-                                <span className={\`text-xs font-bold px-2 py-0.5 rounded-full \${selectedRole === role.id ? 'bg-primary/10' : 'bg-slate-100 dark:bg-slate-800'}\`}>
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${selectedRole === role.id ? 'bg-primary/10' : 'bg-slate-100 dark:bg-slate-800'}`}>
                                     {role.count} Kişi
                                 </span>
                             </button>
@@ -110,7 +110,7 @@ export default function TeamManagementPage() {
                                             <div className="text-xs text-slate-500">{perm.desc}</div>
                                         </div>
                                         
-                                        <label className={\`relative inline-flex items-center \${isAdmin ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}\`}>
+                                        <label className={`relative inline-flex items-center ${isAdmin ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                                             <input type="checkbox" className="sr-only peer" checked={hasAccess} readOnly={isAdmin} />
                                             <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500"></div>
                                         </label>

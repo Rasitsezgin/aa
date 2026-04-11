@@ -56,7 +56,7 @@ export default function BlogStudioPage() {
     };
 
     const copyToClipboard = () => {
-        navigator.clipboard.writeText(\`# \${blogTitle}\n\n\${blogContent}\`);
+        navigator.clipboard.writeText(`# ${blogTitle}\n\n${blogContent}`);
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
     };
@@ -113,7 +113,7 @@ export default function BlogStudioPage() {
                                     <button
                                         key={aud}
                                         onClick={() => setAudience(aud)}
-                                        className={\`px-3 py-1.5 text-xs font-bold rounded-lg transition-all \${audience === aud ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-background border border-border text-slate-500 hover:bg-white/5'}\`}
+                                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${audience === aud ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-background border border-border text-slate-500 hover:bg-white/5'}`}
                                     >
                                         {aud}
                                     </button>
@@ -128,7 +128,7 @@ export default function BlogStudioPage() {
                                     <button
                                         key={t}
                                         onClick={() => setTone(t)}
-                                        className={\`px-3 py-1.5 text-xs font-bold rounded-lg transition-all \${tone === t ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20' : 'bg-background border border-border text-slate-500 hover:bg-white/5'}\`}
+                                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${tone === t ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20' : 'bg-background border border-border text-slate-500 hover:bg-white/5'}`}
                                     >
                                         {t}
                                     </button>

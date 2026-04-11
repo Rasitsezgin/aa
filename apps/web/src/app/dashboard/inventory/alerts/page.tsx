@@ -73,7 +73,7 @@ export default function CriticalStockAlertsPage() {
                     {mockAlerts.map(alert => (
                         <div key={alert.id} className="flex flex-col md:flex-row md:items-center justify-between p-5 rounded-2xl border border-border bg-background hover:border-rose-500/30 transition-all gap-4">
                             <div className="flex items-center gap-4 w-full md:w-1/3">
-                                <div className={\`w-10 h-10 rounded-full flex items-center justify-center shrink-0 \${alert.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}\`}>
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${alert.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
                                     <BellRing className="w-5 h-5" />
                                 </div>
                                 <div>

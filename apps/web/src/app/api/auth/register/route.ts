@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { prisma } from '@pazaryonetimi/database';
+import { prisma } from "@/lib/prisma";
 
 function generateSlug(name: string): string {
     return name

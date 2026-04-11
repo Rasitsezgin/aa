@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { prisma } from "@pazaryonetimi/database";
+import { prisma } from "@/lib/prisma";
 
 // GET /api/admin/offers/[id]/leads - Teklif lead'lerini listele
 export async function GET(

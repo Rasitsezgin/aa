@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@pazaryonetimi/database";
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 
 // POST /api/offers/lead - Yeni lead kaydet ve admin'e bildir

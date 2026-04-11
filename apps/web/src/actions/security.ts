@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from "@pazaryonetimi/database";
+import { prisma } from "@/lib/prisma";
 // import { authenticator } from "otplib";
 import { auth } from "@/auth";
 

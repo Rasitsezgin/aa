@@ -7,8 +7,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  swcMinify: false,
   experimental: {
-    reactCompiler: true,
+    reactCompiler: false,
     workerThreads: false,
     cpus: 2,
   },

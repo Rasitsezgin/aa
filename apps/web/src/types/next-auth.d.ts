@@ -1,9 +1,9 @@
-import { UserType } from "@pazaryonetimi/database";
+import { UserType } from "@/lib/prisma";
 import NextAuth, { DefaultSession } from "next-auth";
 
 // Convert Prisma Enum to String or import Enum from prisma client
 // But prisma client is in packages/database. 
-// We can import UserType from "@pazaryonetimi/database" if it exports enums (usually does via PrismaClient export).
+// We can import UserType from "@/lib/prisma" if it exports enums (usually does via PrismaClient export).
 // But standard pattern:
 
 declare module "next-auth" {

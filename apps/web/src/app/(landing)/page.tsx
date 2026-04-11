@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { prisma } from "@pazaryonetimi/database";
+import { prisma } from "@/lib/prisma";
 import { CmsPageRenderer } from "@/components/cms/CmsPageRenderer";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -91,9 +91,9 @@ export default async function Home() {
     // Transform Prisma data to match expected types (convert null to undefined)
     const transformedPage = {
       ...page,
-      sections: page.sections.map(section => ({
+      sections: page.sections.map((section: any) => ({
         ...section,
-        blocks: section.blocks.map(block => ({
+        blocks: section.blocks.map((block: any) => ({
           ...block,
           customClass: block.customClass ?? undefined,
           name: block.name ?? undefined,

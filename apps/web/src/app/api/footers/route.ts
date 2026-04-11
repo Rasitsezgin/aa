@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@pazaryonetimi/database";
+import { prisma } from "@/lib/prisma";
 
 // GET /api/footers?location=main - Aktif footer'ı getir
 export async function GET(request: NextRequest) {

@@ -111,9 +111,9 @@ export default function VideoStudioPage() {
                                         <button 
                                             key={t.id}
                                             onClick={() => setSelectedTemplate(t.id)}
-                                            className={\`p-4 rounded-xl border text-left transition-all \${selectedTemplate === t.id ? 'border-primary bg-primary/5 ring-2 ring-primary/20' : 'border-border hover:border-primary/50'}\`}
+                                            className={`p-4 rounded-xl border text-left transition-all ${selectedTemplate === t.id ? 'border-primary bg-primary/5 ring-2 ring-primary/20' : 'border-border hover:border-primary/50'}`}
                                         >
-                                            <t.icon className={\`w-6 h-6 mb-3 \${selectedTemplate === t.id ? 'text-primary' : 'text-slate-400'}\`} />
+                                            <t.icon className={`w-6 h-6 mb-3 ${selectedTemplate === t.id ? 'text-primary' : 'text-slate-400'}`} />
                                             <h4 className="font-bold mb-1">{t.name}</h4>
                                             <p className="text-xs text-slate-500">{t.desc}</p>
                                         </button>
@@ -168,15 +168,15 @@ export default function VideoStudioPage() {
 
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-3 text-sm text-slate-500">
-                                            <CheckCircle2 className={\`w-4 h-4 \${generationProgress >= 30 ? 'text-emerald-500' : 'text-slate-300'}\`} />
+                                            <CheckCircle2 className={`w-4 h-4 ${generationProgress >= 30 ? 'text-emerald-500' : 'text-slate-300'}`} />
                                             Görseller analiz edildi
                                         </div>
                                         <div className="flex items-center gap-3 text-sm text-slate-500">
-                                            <CheckCircle2 className={\`w-4 h-4 \${generationProgress >= 60 ? 'text-emerald-500' : 'text-slate-300'}\`} />
+                                            <CheckCircle2 className={`w-4 h-4 ${generationProgress >= 60 ? 'text-emerald-500' : 'text-slate-300'}`} />
                                             Kenar efektleri ve pan-zoom uygulandı
                                         </div>
                                         <div className="flex items-center gap-3 text-sm text-slate-500">
-                                            <CheckCircle2 className={\`w-4 h-4 \${generationProgress >= 90 ? 'text-emerald-500' : 'text-slate-300'}\`} />
+                                            <CheckCircle2 className={`w-4 h-4 ${generationProgress >= 90 ? 'text-emerald-500' : 'text-slate-300'}`} />
                                             Müzik senkronizasyonu tamamlandı
                                         </div>
                                     </div>

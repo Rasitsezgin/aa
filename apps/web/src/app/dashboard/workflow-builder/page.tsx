@@ -140,12 +140,12 @@ export default function WorkflowBuilderPage() {
                                         </div>
 
                                         <div className="flex items-start gap-4">
-                                            <div className={\`w-12 h-12 \${node.color} text-white rounded-xl flex items-center justify-center shrink-0 shadow-lg\`}>
+                                            <div className={`w-12 h-12 ${node.color} text-white rounded-xl flex items-center justify-center shrink-0 shadow-lg`}>
                                                 <IconComponent className="w-6 h-6" />
                                             </div>
                                             <div className="pr-6">
                                                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
-                                                    {node.type === 'trigger' ? '1. Tetikleyici (Trigger)' : \`\${index + 1}. Aksiyon (Action)\`}
+                                                    {node.type === 'trigger' ? '1. Tetikleyici (Trigger)' : `${index + 1}. Aksiyon (Action)`}
                                                 </div>
                                                 <h3 className="font-bold text-slate-900 dark:text-white leading-tight">{node.title}</h3>
                                                 <p className="text-xs text-slate-500 mt-2 font-medium">{node.desc}</p>
@@ -204,7 +204,7 @@ export default function WorkflowBuilderPage() {
                                                     key={i} onClick={() => addNode(act, 'action')}
                                                     className="p-4 border border-border rounded-2xl hover:border-indigo-500/50 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/5 cursor-pointer transition-all flex items-start gap-4"
                                                 >
-                                                    <div className={\`w-10 h-10 \${act.color} text-white rounded-xl flex items-center justify-center shrink-0\`}>
+                                                    <div className={`w-10 h-10 ${act.color} text-white rounded-xl flex items-center justify-center shrink-0`}>
                                                         <Icon className="w-5 h-5" />
                                                     </div>
                                                     <div>

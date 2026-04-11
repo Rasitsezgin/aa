@@ -133,7 +133,7 @@ export default function AiWizardPage() {
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full" />
                     <div 
                         className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary rounded-full transition-all duration-500"
-                        style={{ width: \`\${((currentStep - 1) / (steps.length - 1)) * 100}%\` }}
+                        style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
                     />
                     
                     {steps.map((step) => {
@@ -142,15 +142,15 @@ export default function AiWizardPage() {
                         const isCurrent = currentStep === step.id;
                         return (
                             <div key={step.id} className="relative z-10 flex flex-col items-center gap-2">
-                                <div className={\`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 \${
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
                                     isActive 
                                     ? 'bg-primary text-white shadow-lg shadow-primary/30' 
                                     : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-400'
-                                }\`}>
+                                }`}>
                                     <Icon className="w-5 h-5" />
                                 </div>
                                 <div className="text-center absolute top-14 w-32 -mx-10 hidden sm:block">
-                                    <div className={\`text-xs font-bold \${isActive ? 'text-primary' : 'text-slate-500'}\`}>{step.title}</div>
+                                    <div className={`text-xs font-bold ${isActive ? 'text-primary' : 'text-slate-500'}`}>{step.title}</div>
                                     <div className="text-[10px] text-slate-400 mt-0.5">{step.description}</div>
                                 </div>
                             </div>

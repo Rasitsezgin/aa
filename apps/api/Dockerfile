@@ -1,4 +1,4 @@
-FROM node:20-slim AS base
+FROM node:22-slim AS base
 RUN apt-get update && apt-get install -y libc6 openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN npm install -g turbo
 
@@ -21,18 +21,20 @@ RUN npm install --legacy-peer-deps --ignore-scripts
 # Ensure napi-postinstall binary exists, then rebuild only required module
 RUN npm install --no-save napi-postinstall && \
     if [ -d node_modules/unrs-resolver ]; then npm rebuild unrs-resolver; fi
+RUN npm install --no-save chokidar@3.6.0 is-number is-binary-path
 
 # Copy pruned source code
 COPY --from=pruner /app/out/full/ .
 # Generate Prisma Client
 RUN if [ ! -d node_modules/graphmatch ] || [ ! -d node_modules/zeptomatch ]; then npm install --no-save graphmatch zeptomatch; fi
+RUN if [ ! -d node_modules/is-number ]; then npm install --no-save is-number; fi
 RUN cd packages/database && npx prisma generate
 
 # Build the project (128MB less for ARM)
 ENV NODE_OPTIONS="--max-old-space-size=3968"
 RUN npx turbo run build --filter=@pazaryonetimi/api
 
-FROM node:20-slim AS runner
+FROM node:22-slim AS runner
 RUN apt-get update && apt-get install -y openssl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 

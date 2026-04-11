@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { prisma } from '@pazaryonetimi/database';
+import { prisma } from "@/lib/prisma";
 
 export interface BlogPostItem {
   id: string;
