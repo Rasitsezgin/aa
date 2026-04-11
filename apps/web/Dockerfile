@@ -12,8 +12,10 @@ ENV DATABASE_URL=$DATABASE_URL
 COPY . .
 # Install dependencies (skip postinstall scripts to avoid napi-postinstall errors)
 RUN npm install --legacy-peer-deps --ignore-scripts
-# Rebuild native modules
-RUN npm rebuild
+# Ensure napi-postinstall exists, then rebuild only required native modules
+RUN npm install --no-save napi-postinstall && \
+	if [ -d node_modules/unrs-resolver ]; then npm rebuild unrs-resolver; fi && \
+	if [ -d node_modules/canvas ]; then npm rebuild canvas; fi
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 ENV NODE_OPTIONS="--max-old-space-size=3968"
 # Build database package first, then web app
