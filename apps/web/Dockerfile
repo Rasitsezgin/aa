@@ -10,7 +10,10 @@ ARG NEXTAUTH_SECRET
 ENV DATABASE_URL=$DATABASE_URL
 
 COPY . .
-RUN npm install --legacy-peer-deps
+# Install dependencies (skip postinstall scripts to avoid napi-postinstall errors)
+RUN npm install --legacy-peer-deps --ignore-scripts
+# Rebuild native modules
+RUN npm rebuild
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 ENV NODE_OPTIONS="--max-old-space-size=3968"
 # Build database package first, then web app

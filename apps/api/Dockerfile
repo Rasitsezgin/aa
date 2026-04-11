@@ -16,8 +16,10 @@ RUN apt-get update && apt-get install -y build-essential python3 && rm -rf /var/
 COPY --from=pruner /app/out/json/ .
 # Copy lockfile
 COPY --from=pruner /app/out/package-lock.json ./package-lock.json
-# Install dependencies
-RUN npm install --legacy-peer-deps
+# Install dependencies (skip postinstall scripts to avoid napi-postinstall errors)
+RUN npm install --legacy-peer-deps --ignore-scripts
+# Rebuild native modules
+RUN npm rebuild
 
 # Copy pruned source code
 COPY --from=pruner /app/out/full/ .
