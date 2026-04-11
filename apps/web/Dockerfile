@@ -1,5 +1,5 @@
 FROM node:20-slim AS builder
-RUN apt-get update && apt-get install -y libc6 openssl ca-certificates build-essential python3 pkg-config libpixman-1-dev libcairo2-dev libjpeg-dev libgif-dev libpng-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y libc6 openssl ca-certificates build-essential python3 pkg-config libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev libpng-dev librsvg2-dev && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Build-time args needed by Next.js static optimization & Prisma
