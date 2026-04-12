@@ -130,8 +130,8 @@ Authorization: Bearer <your-token>
     },
   });
 
-  // WebSocket adapter
-  app.useWebSocketAdapter(new CustomIoAdapter(app));
+  // WebSocket adapter - temporarily disabled due to engine.io compatibility issues
+  // app.useWebSocketAdapter(new CustomIoAdapter(app));
 
   // Graceful shutdown
   app.enableShutdownHooks();
@@ -140,6 +140,6 @@ Authorization: Bearer <your-token>
   await app.listen(port);
   console.log(`🚀 API running on http://localhost:${port}`);
   console.log(`📚 Swagger docs: http://localhost:${port}/api-docs`);
-  console.log(`🔌 WebSocket ready on ws://localhost:${port}/notifications`);
+  // console.log(`🔌 WebSocket ready on ws://localhost:${port}/notifications`);
 }
 void bootstrap();
