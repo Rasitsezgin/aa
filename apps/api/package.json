@@ -46,6 +46,7 @@
     "async": "^3.2.5",
     "bcryptjs": "^3.0.3",
     "bintrees": "^1.0.2",
+    "buffer-from": "^1.1.2",
     "bullmq": "^5.34.0",
     "cache-manager": "^7.2.8",
     "cache-manager-ioredis-yet": "^2.1.2",
