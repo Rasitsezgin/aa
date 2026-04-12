@@ -1,12 +1,24 @@
 import { Shield } from "lucide-react"
 import AuthSettingsForm from "./auth-settings-form"
+import { prisma } from "@/lib/prisma"
 
 // Force dynamic rendering to avoid build-time DB calls
 export const dynamic = 'force-dynamic'
 
 export default async function AuthSettingsPage() {
-    // Mock settings for now - will be fetched from DB at runtime
-    const settings: Record<string, string> = {}
+    // Fetch real settings from DB
+    const settingsData = await prisma.systemSettings.findMany({
+        where: {
+            key: {
+                in: ['google_id', 'google_secret', 'facebook_id', 'facebook_secret']
+            }
+        }
+    });
+
+    const settings = settingsData.reduce((acc, curr) => {
+        acc[curr.key] = curr.value as string;
+        return acc;
+    }, {} as Record<string, string>);
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">

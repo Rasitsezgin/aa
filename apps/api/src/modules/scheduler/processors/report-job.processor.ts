@@ -11,8 +11,12 @@ export class ReportJobProcessor extends WorkerHost {
     super();
   }
 
-  async process(job: Job<{ tenantId: string; type: string; period?: string }>): Promise<any> {
-    this.logger.log(`Rapor işleniyor: ${job.name} - Tenant: ${job.data.tenantId}`);
+  async process(
+    job: Job<{ tenantId: string; type: string; period?: string }>,
+  ): Promise<any> {
+    this.logger.log(
+      `Rapor işleniyor: ${job.name} - Tenant: ${job.data.tenantId}`,
+    );
 
     const { tenantId, type, period } = job.data;
 
@@ -71,7 +75,11 @@ export class ReportJobProcessor extends WorkerHost {
     });
 
     this.logger.log(`Günlük rapor oluşturuldu: ${report.id}`);
-    return { reportId: report.id, orders, revenue: Number(revenue._sum.totalAmount) || 0 };
+    return {
+      reportId: report.id,
+      orders,
+      revenue: Number(revenue._sum.totalAmount) || 0,
+    };
   }
 
   private async generateWeeklyReport(tenantId: string) {
@@ -100,11 +108,17 @@ export class ReportJobProcessor extends WorkerHost {
         tenantId,
         name: `Haftalık Rapor - ${weekAgo.toLocaleDateString('tr-TR')} - ${today.toLocaleDateString('tr-TR')}`,
         type: 'weekly',
-        parameters: { startDate: weekAgo.toISOString(), endDate: today.toISOString() },
+        parameters: {
+          startDate: weekAgo.toISOString(),
+          endDate: today.toISOString(),
+        },
         data: {
           totalOrders,
           totalRevenue: Number(totalRevenue._sum.totalAmount) || 0,
-          topProducts: topProducts.map(p => ({ productId: p.productId, quantity: p._sum.quantity })),
+          topProducts: topProducts.map((p) => ({
+            productId: p.productId,
+            quantity: p._sum.quantity,
+          })),
         },
         format: 'json',
         status: 'completed',
@@ -114,7 +128,11 @@ export class ReportJobProcessor extends WorkerHost {
     return { reportId: report.id };
   }
 
-  private async generateCustomReport(tenantId: string, type: string, period?: string) {
+  private async generateCustomReport(
+    tenantId: string,
+    type: string,
+    period?: string,
+  ) {
     this.logger.log(`Custom rapor: ${type}, period: ${period}`);
     // Custom rapor mantığı burada uygulanabilir
     return { type, period, status: 'completed' };

@@ -4,9 +4,9 @@ import { ReturnsController } from './returns.controller';
 import { DatabaseModule } from '../../database/database.module';
 
 @Module({
-    imports: [DatabaseModule],
-    providers: [ReturnsService],
-    controllers: [ReturnsController],
-    exports: [ReturnsService],
+  imports: [DatabaseModule],
+  providers: [ReturnsService],
+  controllers: [ReturnsController],
+  exports: [ReturnsService],
 })
-export class ReturnsModule { }
+export class ReturnsModule {}

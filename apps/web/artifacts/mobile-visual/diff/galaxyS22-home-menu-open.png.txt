@@ -1,0 +1,5 @@
+Baseline and current differ for galaxyS22-home-menu-open.png
+baseline: C:\Projeler\pazaryonetimi.com\apps\web\artifacts\mobile-visual\baseline\galaxyS22-home-menu-open.png
+current: C:\Projeler\pazaryonetimi.com\apps\web\artifacts\mobile-visual\current\galaxyS22-home-menu-open.png
+baselineHash: 463c50a28e35b3d1ef6b9a2cd21f6f899a15b01387e9c06274b867c2c5701f09
+currentHash: ea0194b45b5b965a2b95f828ce277f8c6657120b828c4a74bd2c9120cc2bd4da

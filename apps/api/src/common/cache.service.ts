@@ -1,12 +1,17 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
 import { Redis } from 'ioredis';
 import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 interface CacheOptions {
-  ttl?: number;           // Saniye cinsinde
-  tags?: string[];        // Cache tag'leri (invalidation için)
-  compress?: boolean;     // Büyük verileri sıkıştır
+  ttl?: number; // Saniye cinsinde
+  tags?: string[]; // Cache tag'leri (invalidation için)
+  compress?: boolean; // Büyük verileri sıkıştır
 }
 
 interface CacheStats {
@@ -61,13 +66,13 @@ export class CacheService {
       if (data) {
         this.stats.hits++;
         const parsed = JSON.parse(data);
-        
+
         // Local cache'e de yaz (frequently accessed)
         this.localCache.set(key, {
           value: parsed,
           expiry: Date.now() + 30000, // 30 sn local cache
         });
-        
+
         return parsed;
       }
     } catch (error) {
@@ -81,28 +86,31 @@ export class CacheService {
   /**
    * Cache'e veri yaz
    */
-  async set(key: string, value: any, options: CacheOptions = {}): Promise<void> {
+  async set(
+    key: string,
+    value: any,
+    options: CacheOptions = {},
+  ): Promise<void> {
     const ttl = options.ttl || 300; // Default 5 dakika
-    
+
     try {
       const serialized = JSON.stringify(value);
-      
+
       // Redis'e yaz
       await this.redis.setex(key, ttl, serialized);
-      
+
       // Tag ekle
       if (options.tags) {
         for (const tag of options.tags) {
           await this.redis.sadd(`tag:${tag}`, key);
         }
       }
-      
+
       // Local cache'e de yaz (kısa süreli)
       this.localCache.set(key, {
         value,
         expiry: Date.now() + Math.min(ttl * 1000, 30000),
       });
-      
     } catch (error) {
       console.error('Redis cache set error:', error);
     }
@@ -127,15 +135,15 @@ export class CacheService {
     try {
       const keys = await this.redis.smembers(`tag:${tag}`);
       if (keys.length === 0) return 0;
-      
+
       // Local cache'ten sil
-      keys.forEach(k => this.localCache.delete(k));
-      
+      keys.forEach((k) => this.localCache.delete(k));
+
       // Redis'ten sil
       const pipeline = this.redis.pipeline();
-      keys.forEach(k => pipeline.del(k));
+      keys.forEach((k) => pipeline.del(k));
       pipeline.del(`tag:${tag}`);
-      
+
       await pipeline.exec();
       return keys.length;
     } catch (error) {
@@ -151,10 +159,10 @@ export class CacheService {
     try {
       const keys = await this.redis.keys(pattern);
       if (keys.length === 0) return 0;
-      
-      keys.forEach(k => this.localCache.delete(k));
+
+      keys.forEach((k) => this.localCache.delete(k));
       await this.redis.del(...keys);
-      
+
       return keys.length;
     } catch (error) {
       console.error('Pattern invalidation error:', error);
@@ -176,9 +184,9 @@ export class CacheService {
     const total = this.stats.hits + this.stats.misses;
     const info = await this.redis.info('memory');
     const memoryMatch = info.match(/used_memory_human:(.+)/);
-    
+
     const keys = await this.redis.keys('cache:*');
-    
+
     return {
       hits: this.stats.hits,
       misses: this.stats.misses,
@@ -204,32 +212,36 @@ export class CacheService {
    */
   cacheable(options: CacheOptions = {}) {
     const service = this;
-    
-    return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+
+    return function (
+      target: any,
+      propertyKey: string,
+      descriptor: PropertyDescriptor,
+    ) {
       const originalMethod = descriptor.value;
-      
+
       descriptor.value = async function (...args: any[]) {
         // Cache key oluştur
         const keyParts = [
           target.constructor.name,
           propertyKey,
-          ...args.map(a => JSON.stringify(a)),
+          ...args.map((a) => JSON.stringify(a)),
         ];
         const cacheKey = `cache:method:${keyParts.join(':')}`;
-        
+
         // Cache kontrol
         const cached = await service.get(cacheKey);
         if (cached !== null) {
           return cached;
         }
-        
+
         // Çalıştır ve cache'e yaz
         const result = await originalMethod.apply(this, args);
         await service.set(cacheKey, result, options);
-        
+
         return result;
       };
-      
+
       return descriptor;
     };
   }
@@ -251,26 +263,29 @@ export class CacheService {
 export class CacheInterceptor implements NestInterceptor {
   constructor(private cacheService: CacheService) {}
 
-  async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
+  async intercept(
+    context: ExecutionContext,
+    next: CallHandler,
+  ): Promise<Observable<any>> {
     const request = context.switchToHttp().getRequest();
-    
+
     // Sadece GET isteklerini cache'le
     if (request.method !== 'GET') {
       return next.handle();
     }
-    
+
     // Cache bypass header'ı varsa cache'leme
     if (request.headers['x-bypass-cache']) {
       return next.handle();
     }
-    
+
     const tenantId = request.headers['x-tenant-id'] || 'default';
     const cacheKey = this.cacheService.createKey(
       tenantId as string,
       'api',
-      request.originalUrl || request.url
+      request.originalUrl || request.url,
     );
-    
+
     // Cache kontrol
     const cached = await this.cacheService.get(cacheKey);
     if (cached) {
@@ -278,26 +293,26 @@ export class CacheInterceptor implements NestInterceptor {
       request.res?.setHeader('X-Cache', 'HIT');
       return of(cached);
     }
-    
+
     // Cache miss - çalıştır ve cache'e yaz
     return next.handle().pipe(
       tap(async (response) => {
         request.res?.setHeader('X-Cache', 'MISS');
-        
+
         // Başarılı yanıtları cache'le (2xx status)
         const status = request.res?.statusCode || 200;
         if (status >= 200 && status < 300) {
           // URL bazlı TTL belirleme
           let ttl = 300; // 5 dakika default
-          
-          if (request.path.includes('/analytics')) ttl = 60;      // 1 dk
-          if (request.path.includes('/dashboard')) ttl = 120;     // 2 dk
-          if (request.path.includes('/products')) ttl = 600;       // 10 dk
+
+          if (request.path.includes('/analytics')) ttl = 60; // 1 dk
+          if (request.path.includes('/dashboard')) ttl = 120; // 2 dk
+          if (request.path.includes('/products')) ttl = 600; // 10 dk
           if (request.path.includes('/marketplaces')) ttl = 1800; // 30 dk
-          
+
           await this.cacheService.set(cacheKey, response, { ttl });
         }
-      })
+      }),
     );
   }
 }

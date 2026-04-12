@@ -13,29 +13,29 @@ import { AiStudioService } from './ai-studio.service';
 import { UserBriefingService } from './user-briefing.service';
 
 @Module({
-    imports: [ConfigModule, SystemModule],
-    controllers: [AiController],
-    providers: [
-        AiService,
-        AiImageService,
-        AiImageGenerationService,
-        ContentSyncService,
-        ContentAnalysisService,
-        ContentOptimizationService,
-        SatisPilotuService,
-        AiStudioService,
-        UserBriefingService,
-    ],
-    exports: [
-        AiService,
-        AiImageService,
-        AiImageGenerationService,
-        ContentSyncService,
-        ContentAnalysisService,
-        ContentOptimizationService,
-        SatisPilotuService,
-        AiStudioService,
-        UserBriefingService,
-    ],
+  imports: [ConfigModule, SystemModule],
+  controllers: [AiController],
+  providers: [
+    AiService,
+    AiImageService,
+    AiImageGenerationService,
+    ContentSyncService,
+    ContentAnalysisService,
+    ContentOptimizationService,
+    SatisPilotuService,
+    AiStudioService,
+    UserBriefingService,
+  ],
+  exports: [
+    AiService,
+    AiImageService,
+    AiImageGenerationService,
+    ContentSyncService,
+    ContentAnalysisService,
+    ContentOptimizationService,
+    SatisPilotuService,
+    AiStudioService,
+    UserBriefingService,
+  ],
 })
-export class AiModule { }
+export class AiModule {}

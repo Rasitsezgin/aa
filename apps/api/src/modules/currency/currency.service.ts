@@ -12,14 +12,30 @@ export class CurrencyService {
 
   constructor(private readonly prisma: PrismaService) {
     this.loadLatestRates().catch(() => {
-      this.logger.warn('Başlangıç kurları yüklenemedi, varsayılan kurlar kullanılacak');
+      this.logger.warn(
+        'Başlangıç kurları yüklenemedi, varsayılan kurlar kullanılacak',
+      );
     });
   }
 
   /** Döviz çevirme */
-  async convert(dto: ConvertCurrencyDto): Promise<{ amount: number; rate: number; from: string; to: string; result: number; date: Date }> {
+  async convert(dto: ConvertCurrencyDto): Promise<{
+    amount: number;
+    rate: number;
+    from: string;
+    to: string;
+    result: number;
+    date: Date;
+  }> {
     if (dto.from === dto.to) {
-      return { amount: dto.amount, rate: 1, from: dto.from, to: dto.to, result: dto.amount, date: new Date() };
+      return {
+        amount: dto.amount,
+        rate: 1,
+        from: dto.from,
+        to: dto.to,
+        result: dto.amount,
+        date: new Date(),
+      };
     }
 
     const rate = await this.getRate(dto.from, dto.to);
@@ -42,7 +58,8 @@ export class CurrencyService {
     // Önce cache'e bak
     const cacheKey = `${from}_${to}`;
     const cached = this.rateCache.get(cacheKey);
-    if (cached && (Date.now() - cached.updatedAt.getTime()) < 3600000) { // 1 saat
+    if (cached && Date.now() - cached.updatedAt.getTime() < 3600000) {
+      // 1 saat
       return cached.rate;
     }
 
@@ -81,14 +98,16 @@ export class CurrencyService {
 
     // Varsayılan kurlar (fallback)
     const fallbackRates: Record<string, number> = {
-      'USD_TRY': 38.50,
-      'EUR_TRY': 40.80,
-      'GBP_TRY': 48.50,
+      USD_TRY: 38.5,
+      EUR_TRY: 40.8,
+      GBP_TRY: 48.5,
     };
 
     const fallbackRate = fallbackRates[cacheKey];
     if (fallbackRate) {
-      this.logger.warn(`Kur bulunamadı: ${from}→${to}, varsayılan kullanılıyor: ${fallbackRate}`);
+      this.logger.warn(
+        `Kur bulunamadı: ${from}→${to}, varsayılan kullanılıyor: ${fallbackRate}`,
+      );
       return fallbackRate;
     }
 
@@ -127,13 +146,16 @@ export class CurrencyService {
     const cacheKey = `${dto.baseCurrency}_${dto.targetCurrency}`;
     this.rateCache.set(cacheKey, { rate: dto.rate, updatedAt: new Date() });
 
-    this.logger.log(`Kur güncellendi: ${dto.baseCurrency}/${dto.targetCurrency} = ${dto.rate}`);
+    this.logger.log(
+      `Kur güncellendi: ${dto.baseCurrency}/${dto.targetCurrency} = ${dto.rate}`,
+    );
     return rate;
   }
 
   /** Tüm güncel kurları getir */
   async getLatestRates(baseCurrency: string = 'TRY') {
-    const rates: { currency: string; rate: number; baseCurrency: string }[] = [];
+    const rates: { currency: string; rate: number; baseCurrency: string }[] =
+      [];
 
     for (const currency of SUPPORTED_CURRENCIES) {
       if (currency === baseCurrency) continue;
@@ -154,7 +176,11 @@ export class CurrencyService {
   }
 
   /** Kur geçmişi */
-  async getRateHistory(baseCurrency: string, targetCurrency: string, days: number = 30) {
+  async getRateHistory(
+    baseCurrency: string,
+    targetCurrency: string,
+    days: number = 30,
+  ) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
@@ -184,8 +210,13 @@ export class CurrencyService {
       const xml = await response.text();
 
       // Parse USD, EUR, GBP from TCMB XML
-      const currencyMap: Record<string, string> = { 'US DOLLAR': 'USD', 'EURO': 'EUR', 'POUND STERLING': 'GBP' };
-      const currencyRegex = /<Currency[^>]*CurrencyCode="(\w+)"[^>]*>[\s\S]*?<ForexBuying>([\d.]+)<\/ForexBuying>[\s\S]*?<ForexSelling>([\d.]+)<\/ForexSelling>[\s\S]*?<\/Currency>/g;
+      const currencyMap: Record<string, string> = {
+        'US DOLLAR': 'USD',
+        EURO: 'EUR',
+        'POUND STERLING': 'GBP',
+      };
+      const currencyRegex =
+        /<Currency[^>]*CurrencyCode="(\w+)"[^>]*>[\s\S]*?<ForexBuying>([\d.]+)<\/ForexBuying>[\s\S]*?<ForexSelling>([\d.]+)<\/ForexSelling>[\s\S]*?<\/Currency>/g;
 
       let match: RegExpExecArray | null;
       while ((match = currencyRegex.exec(xml)) !== null) {
@@ -232,7 +263,9 @@ export class CurrencyService {
     // Cache'i güncelle
     await this.loadLatestRates();
 
-    this.logger.log(`TCMB kurları güncellendi: ${rates.map(r => `${r.base}/${r.target}=${r.rate}`).join(', ')}`);
+    this.logger.log(
+      `TCMB kurları güncellendi: ${rates.map((r) => `${r.base}/${r.target}=${r.rate}`).join(', ')}`,
+    );
     return { success: true, rates };
   }
 

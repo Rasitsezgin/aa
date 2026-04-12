@@ -13,45 +13,86 @@ describe('Market Intelligence Smoke (e2e)', () => {
     createCompetitor: jest.fn().mockResolvedValue({ id: 'comp-1' }),
     getCompetitors: jest.fn().mockResolvedValue([]),
     addCompetitorProduct: jest.fn().mockResolvedValue({ id: 'cp-1' }),
-    mapCompetitorProduct: jest.fn().mockResolvedValue({ id: 'cp-1', productId: 'p-1' }),
+    mapCompetitorProduct: jest
+      .fn()
+      .mockResolvedValue({ id: 'cp-1', productId: 'p-1' }),
     getPriceHistory: jest.fn().mockResolvedValue([]),
     createForecast: jest.fn().mockResolvedValue({ id: 'f-1' }),
     getForecasts: jest.fn().mockResolvedValue([]),
-    getPricingAnalysis: jest.fn().mockResolvedValue({ overallScore: 80, products: [] }),
-    getCompetitorPrices: jest.fn().mockResolvedValue({ productId: 'p-1', competitors: [] }),
-    getCompetitorGap: jest.fn().mockResolvedValue({ productId: 'p-1', gap: { gapPercent: 0 } }),
-    getCompetitorRecommendations: jest.fn().mockResolvedValue({ productId: 'p-1', actions: [] }),
-    getCompetitorAlerts: jest.fn().mockResolvedValue({ alertCount: 0, alerts: [] }),
-    generateCompetitorSummaryReport: jest.fn().mockResolvedValue({ success: true, reportId: 'r-1' }),
+    getPricingAnalysis: jest
+      .fn()
+      .mockResolvedValue({ overallScore: 80, products: [] }),
+    getCompetitorPrices: jest
+      .fn()
+      .mockResolvedValue({ productId: 'p-1', competitors: [] }),
+    getCompetitorGap: jest
+      .fn()
+      .mockResolvedValue({ productId: 'p-1', gap: { gapPercent: 0 } }),
+    getCompetitorRecommendations: jest
+      .fn()
+      .mockResolvedValue({ productId: 'p-1', actions: [] }),
+    getCompetitorAlerts: jest
+      .fn()
+      .mockResolvedValue({ alertCount: 0, alerts: [] }),
+    generateCompetitorSummaryReport: jest
+      .fn()
+      .mockResolvedValue({ success: true, reportId: 'r-1' }),
     applyPriceRecommendation: jest.fn().mockResolvedValue({ success: true }),
-    runCompetitorSnapshot: jest.fn().mockResolvedValue({ scannedCompetitors: 1, scannedProducts: 3 }),
-    deleteCompetitor: jest.fn().mockResolvedValue({ success: true, deletedProducts: 2 }),
+    runCompetitorSnapshot: jest
+      .fn()
+      .mockResolvedValue({ scannedCompetitors: 1, scannedProducts: 3 }),
+    deleteCompetitor: jest
+      .fn()
+      .mockResolvedValue({ success: true, deletedProducts: 2 }),
     deleteCompetitorProduct: jest.fn().mockResolvedValue({ success: true }),
-    createExperiment: jest.fn().mockResolvedValue({ id: 'exp-1', status: 'active' }),
+    createExperiment: jest
+      .fn()
+      .mockResolvedValue({ id: 'exp-1', status: 'active' }),
     getExperiments: jest.fn().mockResolvedValue([]),
-    evaluateExperiment: jest.fn().mockResolvedValue({ experimentId: 'exp-1', winner: 'test', significance: 0.95 }),
-    stopExperiment: jest.fn().mockResolvedValue({ success: true, winner: 'test' }),
-    autoDiscoverCompetitors: jest.fn().mockResolvedValue({ discovered: 2, competitors: [] }),
+    evaluateExperiment: jest.fn().mockResolvedValue({
+      experimentId: 'exp-1',
+      winner: 'test',
+      significance: 0.95,
+    }),
+    stopExperiment: jest
+      .fn()
+      .mockResolvedValue({ success: true, winner: 'test' }),
+    autoDiscoverCompetitors: jest
+      .fn()
+      .mockResolvedValue({ discovered: 2, competitors: [] }),
   };
 
   const pricingEngineServiceMock = {
-    calculateOptimalPrice: jest.fn().mockResolvedValue({ suggestedPrice: 100, appliedRules: [], reasoning: [] }),
+    calculateOptimalPrice: jest.fn().mockResolvedValue({
+      suggestedPrice: 100,
+      appliedRules: [],
+      reasoning: [],
+    }),
     getRules: jest.fn().mockResolvedValue([]),
-    createRule: jest.fn().mockResolvedValue({ id: 'rule-1', name: 'Test Rule' }),
+    createRule: jest
+      .fn()
+      .mockResolvedValue({ id: 'rule-1', name: 'Test Rule' }),
     updateRule: jest.fn().mockResolvedValue({ id: 'rule-1' }),
     deleteRule: jest.fn().mockResolvedValue({ success: true }),
-    bulkReprice: jest.fn().mockResolvedValue({ total: 10, applied: 5, results: [] }),
+    bulkReprice: jest
+      .fn()
+      .mockResolvedValue({ total: 10, applied: 5, results: [] }),
   };
 
   const forecastingServiceMock = {
-    generateProductForecast: jest.fn().mockResolvedValue({ success: true, productId: 'p-1' }),
+    generateProductForecast: jest
+      .fn()
+      .mockResolvedValue({ success: true, productId: 'p-1' }),
   };
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [MarketIntelligenceController],
       providers: [
-        { provide: MarketIntelligenceService, useValue: marketIntelligenceServiceMock },
+        {
+          provide: MarketIntelligenceService,
+          useValue: marketIntelligenceServiceMock,
+        },
         { provide: PricingEngineService, useValue: pricingEngineServiceMock },
         { provide: ForecastingService, useValue: forecastingServiceMock },
       ],
@@ -92,13 +133,17 @@ describe('Market Intelligence Smoke (e2e)', () => {
 
   it('GET /market-intelligence/competitor-recommendations/:productId smoke', async () => {
     await request(app.getHttpServer())
-      .get('/market-intelligence/competitor-recommendations/p-1?tenantId=tenant-1')
+      .get(
+        '/market-intelligence/competitor-recommendations/p-1?tenantId=tenant-1',
+      )
       .expect(200);
   });
 
   it('GET /market-intelligence/competitor-alerts smoke', async () => {
     await request(app.getHttpServer())
-      .get('/market-intelligence/competitor-alerts?tenantId=tenant-1&priceGapPercent=5')
+      .get(
+        '/market-intelligence/competitor-alerts?tenantId=tenant-1&priceGapPercent=5',
+      )
       .expect(200);
   });
 
@@ -126,7 +171,12 @@ describe('Market Intelligence Smoke (e2e)', () => {
   it('POST /market-intelligence/pricing-rules smoke', async () => {
     await request(app.getHttpServer())
       .post('/market-intelligence/pricing-rules')
-      .send({ tenantId: 'tenant-1', name: 'Undercut', type: 'competitor', action: { type: 'undercut', value: 1 } })
+      .send({
+        tenantId: 'tenant-1',
+        name: 'Undercut',
+        type: 'competitor',
+        action: { type: 'undercut', value: 1 },
+      })
       .expect(201);
   });
 

@@ -14,4 +14,4 @@ import { AnalyticsModule } from '../analytics/analytics.module';
   providers: [AdminService, AdminGuard, AiAssistantService],
   exports: [AdminService, AiAssistantService],
 })
-export class AdminModule { }
+export class AdminModule {}

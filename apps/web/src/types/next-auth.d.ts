@@ -1,5 +1,5 @@
 import { UserType } from "@/lib/prisma";
-import NextAuth, { DefaultSession } from "next-auth";
+import { DefaultSession } from "next-auth";
 
 // Convert Prisma Enum to String or import Enum from prisma client
 // But prisma client is in packages/database. 

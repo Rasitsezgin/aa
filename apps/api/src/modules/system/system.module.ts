@@ -13,8 +13,27 @@ import { DatabaseModule } from '../../database/database.module';
 
 @Module({
   imports: [DatabaseModule],
-  controllers: [ModulesController, AnnouncementsController, DashboardSystemController, SystemController],
-  providers: [ModulesService, AnnouncementsService, DashboardSystemService, SystemService, AnomalyDetectionService, SimulationService],
-  exports: [ModulesService, AnnouncementsService, DashboardSystemService, SystemService, AnomalyDetectionService, SimulationService],
+  controllers: [
+    ModulesController,
+    AnnouncementsController,
+    DashboardSystemController,
+    SystemController,
+  ],
+  providers: [
+    ModulesService,
+    AnnouncementsService,
+    DashboardSystemService,
+    SystemService,
+    AnomalyDetectionService,
+    SimulationService,
+  ],
+  exports: [
+    ModulesService,
+    AnnouncementsService,
+    DashboardSystemService,
+    SystemService,
+    AnomalyDetectionService,
+    SimulationService,
+  ],
 })
-export class SystemModule { }
+export class SystemModule {}

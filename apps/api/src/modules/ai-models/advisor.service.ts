@@ -21,7 +21,7 @@ export class AdvisorService {
   constructor(
     private prisma: PrismaService,
     private aiModelsService: AiModelsService,
-  ) { }
+  ) {}
 
   async generateAdvisorMessage(
     data: AnalysisRequest,

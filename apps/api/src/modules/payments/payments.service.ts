@@ -48,7 +48,9 @@ export class PaymentsService {
       throw new BadRequestException('Sipariş bulunamadı');
     }
 
-    this.logger.log(`Ödeme oluşturuluyor: Sipariş ${dto.orderId}, Tutar: ${dto.amount} ${dto.currency || 'TRY'}`);
+    this.logger.log(
+      `Ödeme oluşturuluyor: Sipariş ${dto.orderId}, Tutar: ${dto.amount} ${dto.currency || 'TRY'}`,
+    );
 
     // Tenant'ın iyzico bilgilerini al
     const paymentConfig = await this.getPaymentConfig(tenantId);
@@ -56,15 +58,15 @@ export class PaymentsService {
     /**
      * NOT: iyzipay SDK entegrasyonu için `npm install iyzipay` kurulumu gerekir.
      * Kurulum sonrası aşağıdaki kod aktifleştirilebilir:
-     * 
+     *
      * import Iyzipay from 'iyzipay';
      * const iyzipay = new Iyzipay({
      *   apiKey: paymentConfig.apiKey,
      *   secretKey: paymentConfig.secretKey,
      *   uri: paymentConfig.baseUrl,
      * });
-     * 
-     * Şu an DB kaydı oluşturuluyor, gerçek ödeme işlemi 
+     *
+     * Şu an DB kaydı oluşturuluyor, gerçek ödeme işlemi
      * iyzipay SDK kurulduğunda aktif olacak.
      */
 
@@ -100,7 +102,9 @@ export class PaymentsService {
       data: { paymentStatus: 'PAID' },
     });
 
-    this.logger.log(`Ödeme başarılı: ${transactionId} - Sipariş: ${dto.orderId}`);
+    this.logger.log(
+      `Ödeme başarılı: ${transactionId} - Sipariş: ${dto.orderId}`,
+    );
 
     return {
       success: true,
@@ -129,7 +133,8 @@ export class PaymentsService {
     return {
       success: true,
       status: 'INIT_THREEDS',
-      htmlContent: '<html><body><p>3D Secure doğrulama simülasyonu</p></body></html>',
+      htmlContent:
+        '<html><body><p>3D Secure doğrulama simülasyonu</p></body></html>',
       callbackUrl: dto.callbackUrl,
     };
   }
@@ -160,7 +165,9 @@ export class PaymentsService {
       throw new BadRequestException('Bu ödeme zaten iade edilmiş');
     }
 
-    this.logger.log(`İade işlemi: ${dto.paymentTransactionId}, Tutar: ${dto.amount}`);
+    this.logger.log(
+      `İade işlemi: ${dto.paymentTransactionId}, Tutar: ${dto.amount}`,
+    );
 
     // TODO: iyzipay SDK - refund.create
     const refundTransactionId = `REF${Date.now()}${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
@@ -196,7 +203,9 @@ export class PaymentsService {
     if (payment.orderId) {
       await this.prisma.order.update({
         where: { id: payment.orderId },
-        data: { paymentStatus: refundedFull ? 'REFUNDED' : 'PARTIALLY_REFUNDED' },
+        data: {
+          paymentStatus: refundedFull ? 'REFUNDED' : 'PARTIALLY_REFUNDED',
+        },
       });
     }
 
@@ -212,18 +221,44 @@ export class PaymentsService {
 
   /** Taksit seçenekleri sorgula */
   async checkInstallments(dto: CheckInstallmentDto) {
-    this.logger.log(`Taksit sorgusu: BIN ${dto.binNumber}, Tutar: ${dto.amount}`);
+    this.logger.log(
+      `Taksit sorgusu: BIN ${dto.binNumber}, Tutar: ${dto.amount}`,
+    );
 
     // TODO: iyzipay SDK - installmentInfo.retrieve
     // Gerçek implementasyonda kart BIN'ine göre taksit seçenekleri döner
 
     const installmentOptions = [
-      { installmentNumber: 1, totalPrice: dto.amount, installmentPrice: dto.amount },
-      { installmentNumber: 2, totalPrice: dto.amount * 1.02, installmentPrice: (dto.amount * 1.02) / 2 },
-      { installmentNumber: 3, totalPrice: dto.amount * 1.035, installmentPrice: (dto.amount * 1.035) / 3 },
-      { installmentNumber: 6, totalPrice: dto.amount * 1.06, installmentPrice: (dto.amount * 1.06) / 6 },
-      { installmentNumber: 9, totalPrice: dto.amount * 1.09, installmentPrice: (dto.amount * 1.09) / 9 },
-      { installmentNumber: 12, totalPrice: dto.amount * 1.12, installmentPrice: (dto.amount * 1.12) / 12 },
+      {
+        installmentNumber: 1,
+        totalPrice: dto.amount,
+        installmentPrice: dto.amount,
+      },
+      {
+        installmentNumber: 2,
+        totalPrice: dto.amount * 1.02,
+        installmentPrice: (dto.amount * 1.02) / 2,
+      },
+      {
+        installmentNumber: 3,
+        totalPrice: dto.amount * 1.035,
+        installmentPrice: (dto.amount * 1.035) / 3,
+      },
+      {
+        installmentNumber: 6,
+        totalPrice: dto.amount * 1.06,
+        installmentPrice: (dto.amount * 1.06) / 6,
+      },
+      {
+        installmentNumber: 9,
+        totalPrice: dto.amount * 1.09,
+        installmentPrice: (dto.amount * 1.09) / 9,
+      },
+      {
+        installmentNumber: 12,
+        totalPrice: dto.amount * 1.12,
+        installmentPrice: (dto.amount * 1.12) / 12,
+      },
     ];
 
     return {
@@ -247,7 +282,10 @@ export class PaymentsService {
   }
 
   /** Tenant'ın ödemelerini listele */
-  async findAll(tenantId: string, filters?: { status?: string; type?: string; page?: number; limit?: number }) {
+  async findAll(
+    tenantId: string,
+    filters?: { status?: string; type?: string; page?: number; limit?: number },
+  ) {
     const { status, type, page = 1, limit = 20 } = filters || {};
 
     const where: any = { tenantId };

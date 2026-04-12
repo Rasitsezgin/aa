@@ -1,9 +1,20 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { DashboardSystemService } from './dashboard-system.service';
 
 @Controller('system')
 export class DashboardSystemController {
-  constructor(private readonly dashboardSystemService: DashboardSystemService) {}
+  constructor(
+    private readonly dashboardSystemService: DashboardSystemService,
+  ) {}
 
   // ==================== SECURITY ====================
   @Get('security-overview')
@@ -27,7 +38,9 @@ export class DashboardSystemController {
   }
 
   @Post('api-keys')
-  async createApiKey(@Body() data: { name: string; permissions: string[]; tenantId: string }) {
+  async createApiKey(
+    @Body() data: { name: string; permissions: string[]; tenantId: string },
+  ) {
     return this.dashboardSystemService.createApiKey(data);
   }
 
@@ -63,7 +76,10 @@ export class DashboardSystemController {
   }
 
   @Post('automations/:id/toggle')
-  async toggleAutomation(@Param('id') id: string, @Body() data: { isActive: boolean }) {
+  async toggleAutomation(
+    @Param('id') id: string,
+    @Body() data: { isActive: boolean },
+  ) {
     return this.dashboardSystemService.toggleAutomation(id, data.isActive);
   }
 
@@ -91,7 +107,10 @@ export class DashboardSystemController {
   // ==================== DASHBOARD LAYOUT ====================
   @Post('dashboard-layout')
   async saveDashboardLayout(@Body() data: { layout: any; tenantId: string }) {
-    return this.dashboardSystemService.saveDashboardLayout(data.tenantId, data.layout);
+    return this.dashboardSystemService.saveDashboardLayout(
+      data.tenantId,
+      data.layout,
+    );
   }
 
   @Get('dashboard-layout')

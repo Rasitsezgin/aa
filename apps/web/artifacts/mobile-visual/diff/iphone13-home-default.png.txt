@@ -1,0 +1,5 @@
+Baseline and current differ for iphone13-home-default.png
+baseline: C:\Projeler\pazaryonetimi.com\apps\web\artifacts\mobile-visual\baseline\iphone13-home-default.png
+current: C:\Projeler\pazaryonetimi.com\apps\web\artifacts\mobile-visual\current\iphone13-home-default.png
+baselineHash: f1d1735b84ee4a65fcec631d931aeaad516aebb3381825610df485cf9bf68a63
+currentHash: 112b3b65d90f222537d6e4dd2fbab8dc7307a0d2bc723866660073e603b46e07

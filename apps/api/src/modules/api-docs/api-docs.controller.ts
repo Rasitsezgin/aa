@@ -23,8 +23,16 @@ export class ApiDocsController {
             tags: ['Products'],
             summary: 'Ürünleri listele',
             parameters: [
-              { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
-              { name: 'limit', in: 'query', schema: { type: 'integer', default: 20 } },
+              {
+                name: 'page',
+                in: 'query',
+                schema: { type: 'integer', default: 1 },
+              },
+              {
+                name: 'limit',
+                in: 'query',
+                schema: { type: 'integer', default: 20 },
+              },
               { name: 'search', in: 'query', schema: { type: 'string' } },
               { name: 'category', in: 'query', schema: { type: 'string' } },
             ],
@@ -72,8 +80,19 @@ export class ApiDocsController {
             tags: ['Orders'],
             summary: 'Siparişleri listele',
             parameters: [
-              { name: 'status', in: 'query', schema: { type: 'string', enum: ['pending', 'confirmed', 'shipped', 'delivered'] } },
-              { name: 'startDate', in: 'query', schema: { type: 'string', format: 'date' } },
+              {
+                name: 'status',
+                in: 'query',
+                schema: {
+                  type: 'string',
+                  enum: ['pending', 'confirmed', 'shipped', 'delivered'],
+                },
+              },
+              {
+                name: 'startDate',
+                in: 'query',
+                schema: { type: 'string', format: 'date' },
+              },
             ],
             responses: { '200': { description: 'Sipariş listesi' } },
           },
@@ -93,7 +112,14 @@ export class ApiDocsController {
             tags: ['Analytics'],
             summary: 'Satış analitikleri',
             parameters: [
-              { name: 'period', in: 'query', schema: { type: 'string', enum: ['day', 'week', 'month', 'year'] } },
+              {
+                name: 'period',
+                in: 'query',
+                schema: {
+                  type: 'string',
+                  enum: ['day', 'week', 'month', 'year'],
+                },
+              },
             ],
             responses: { '200': { description: 'Satış verileri' } },
           },

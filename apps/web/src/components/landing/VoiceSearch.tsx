@@ -1,17 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Mic, 
     MicOff, 
-    Search, 
-    Volume2, 
-    VolumeX, 
     Globe, 
-    ArrowRight,
     Sparkles,
-    Zap,
     Target,
     CheckCircle,
     AlertCircle
@@ -38,7 +33,11 @@ interface VoiceCommand {
 
 export const VoiceSearch = ({ features }: VoiceSearchProps) => {
     const [isListening, setIsListening] = useState(false);
-    const [isSupported, setIsSupported] = useState(false);
+    const [isSupported] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        return Boolean(SpeechRecognition);
+    });
     const [transcript, setTranscript] = useState('');
     const [recognizedCommand, setRecognizedCommand] = useState<VoiceCommand | null>(null);
     const [showCommands, setShowCommands] = useState(false);
@@ -48,11 +47,10 @@ export const VoiceSearch = ({ features }: VoiceSearchProps) => {
     const recognitionRef = useRef<any>(null);
     const timeoutRef = useRef<NodeJS.Timeout>();
 
-    const autoListen = features?.voiceSearch?.autoListen !== false;
     const showCommandsList = features?.voiceSearch?.showCommands !== false;
     const language = features?.voiceSearch?.language || 'tr-TR';
 
-    const voiceCommands: VoiceCommand[] = [
+    const voiceCommands: VoiceCommand[] = useMemo(() => [
         {
             id: 'dashboard',
             command: ['dashboard', 'panel', 'ana sayfa'],
@@ -114,7 +112,15 @@ export const VoiceSearch = ({ features }: VoiceSearchProps) => {
             action: () => window.open('/dashboard/settings', '_blank'),
             category: 'Ayarlar'
         }
-    ];
+    ], [transcript]);
+
+    function stopListening() {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
+        setVolume(0);
+        setIsListening(false);
+    }
 
     useEffect(() => {
         if (!features?.voiceSearch?.enabled) return;
@@ -123,8 +129,6 @@ export const VoiceSearch = ({ features }: VoiceSearchProps) => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         
         if (SpeechRecognition) {
-            setIsSupported(true);
-            
             const recognition = new SpeechRecognition();
             recognition.continuous = false;
             recognition.interimResults = true;
@@ -142,7 +146,9 @@ export const VoiceSearch = ({ features }: VoiceSearchProps) => {
                 setTranscript(transcript);
 
                 // Check for voice commands
-                const command = recognizeCommand(transcript.toLowerCase());
+                const command = voiceCommands.find((item) =>
+                    item.command.some((keyword) => transcript.toLowerCase().includes(keyword)),
+                ) || null;
                 if (command) {
                     setRecognizedCommand(command);
                     setTimeout(() => {
@@ -171,9 +177,6 @@ export const VoiceSearch = ({ features }: VoiceSearchProps) => {
             };
 
             recognitionRef.current = recognition;
-        } else {
-            setIsSupported(false);
-            setError('Tarayıcınız ses tanımayı desteklemiyor.');
         }
 
         return () => {
@@ -184,18 +187,7 @@ export const VoiceSearch = ({ features }: VoiceSearchProps) => {
                 recognitionRef.current.stop();
             }
         };
-    }, [language, features?.voiceSearch?.enabled]);
-
-    const recognizeCommand = (transcript: string): VoiceCommand | null => {
-        for (const command of voiceCommands) {
-            for (const keyword of command.command) {
-                if (transcript.includes(keyword)) {
-                    return command;
-                }
-            }
-        }
-        return null;
-    };
+    }, [language, features?.voiceSearch?.enabled, voiceCommands]);
 
     const startListening = () => {
         if (!recognitionRef.current || !isSupported) return;
@@ -206,13 +198,6 @@ export const VoiceSearch = ({ features }: VoiceSearchProps) => {
             console.error('Failed to start speech recognition:', error);
             setError('Ses tanıma başlatılamadı.');
         }
-    };
-
-    const stopListening = () => {
-        if (recognitionRef.current) {
-            recognitionRef.current.stop();
-        }
-        setIsListening(false);
     };
 
     const toggleListening = () => {
@@ -226,7 +211,6 @@ export const VoiceSearch = ({ features }: VoiceSearchProps) => {
     // Monitor microphone volume
     useEffect(() => {
         if (!isListening) {
-            setVolume(0);
             return;
         }
 
@@ -369,7 +353,7 @@ export const VoiceSearch = ({ features }: VoiceSearchProps) => {
                                         animate={{ opacity: 1, y: 0 }}
                                         className="text-sm text-slate-600 dark:text-slate-400 italic"
                                     >
-                                        "{transcript}"
+                                        &quot;{transcript}&quot;
                                     </motion.div>
                                 )}
                             </div>
@@ -379,7 +363,7 @@ export const VoiceSearch = ({ features }: VoiceSearchProps) => {
                                     Mikrofona dokunun
                                 </div>
                                 <div className="text-sm text-slate-500">
-                                    "Dashboard'a git", "Ürünleri göster", "Yardım et" gibi komutlar deneyin
+                                    &quot;Dashboard&apos;a git&quot;, &quot;Ürünleri göster&quot;, &quot;Yardım et&quot; gibi komutlar deneyin
                                 </div>
                             </div>
                         )}
@@ -454,7 +438,7 @@ export const VoiceSearch = ({ features }: VoiceSearchProps) => {
                                                 <div>
                                                     <div className="text-sm font-bold text-foreground">{command.description}</div>
                                                     <div className="text-xs text-slate-500">
-                                                        "{command.command.join('", "')}"
+                                                        &quot;{command.command.join('&quot;, &quot;')}&quot;
                                                     </div>
                                                 </div>
                                                 <div className="text-xs px-2 py-1 bg-primary/10 text-primary rounded">

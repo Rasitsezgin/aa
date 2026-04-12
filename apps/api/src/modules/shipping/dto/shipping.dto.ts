@@ -1,4 +1,13 @@
-import { IsString, IsNumber, IsOptional, IsBoolean, ValidateNested, IsEnum, Min, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+  ValidateNested,
+  IsEnum,
+  Min,
+  IsArray,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class AddressDto {

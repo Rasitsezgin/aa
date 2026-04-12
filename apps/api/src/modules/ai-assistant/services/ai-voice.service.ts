@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
@@ -41,12 +41,17 @@ export class AIVoiceService {
 
   // ==================== SPEECH TO TEXT ====================
 
-  async processVoiceCommand(command: VoiceCommand): Promise<VoiceCommandResult> {
+  async processVoiceCommand(
+    command: VoiceCommand,
+  ): Promise<VoiceCommandResult> {
     try {
       this.logger.debug(`Processing voice command for user ${command.userId}`);
 
       // Step 1: Speech-to-Text
-      const transcript = await this.speechToText(command.audioData, command.language);
+      const transcript = await this.speechToText(
+        command.audioData,
+        command.language,
+      );
 
       if (!transcript) {
         return {
@@ -79,19 +84,25 @@ export class AIVoiceService {
       this.logger.error('Voice command processing failed:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Voice processing failed',
+        error:
+          error instanceof Error ? error.message : 'Voice processing failed',
       };
     }
   }
 
-  private async speechToText(audioData: string, language?: string): Promise<string | null> {
+  private async speechToText(
+    audioData: string,
+    language?: string,
+  ): Promise<string | null> {
     try {
       // Decode base64 to buffer
       const audioBuffer = Buffer.from(audioData, 'base64');
-      
+
       // Create a File object from buffer
-      const file = new File([audioBuffer], 'audio.webm', { type: 'audio/webm' });
-      
+      const file = new File([audioBuffer], 'audio.webm', {
+        type: 'audio/webm',
+      });
+
       if (!this.openai) {
         this.logger.warn('OpenAI not configured, using fallback transcription');
         return null;
@@ -161,9 +172,10 @@ export class AIVoiceService {
     };
 
     const langResponses = responses[language] || responses.en;
-    const responseText = intent.confidence > 0.6
-      ? langResponses[intent.type] || langResponses.GENERAL
-      : langResponses.ERROR;
+    const responseText =
+      intent.confidence > 0.6
+        ? langResponses[intent.type] || langResponses.GENERAL
+        : langResponses.ERROR;
 
     // Generate TTS audio
     const audioUrl = await this.textToSpeech(responseText, language);
@@ -181,23 +193,78 @@ export class AIVoiceService {
     description: string;
     example: string;
   }> {
-    const commands: Record<string, Array<{ command: string; description: string; example: string }>> = {
+    const commands: Record<
+      string,
+      Array<{ command: string; description: string; example: string }>
+    > = {
       tr: [
-        { command: 'marka eşitle', description: 'Pazaryerinden markaları eşitle', example: 'Trendyoldan markaları eşitle' },
-        { command: 'kategori eşitle', description: 'Kategorileri senkronize et', example: 'Kategorileri güncelle' },
-        { command: 'ürün yükle', description: 'Ürün yükleme işlemi', example: 'Ürünü Trendyola yükle' },
-        { command: 'stok güncelle', description: 'Stok senkronizasyonu', example: 'Stokları senkronize et' },
-        { command: 'fiyat güncelle', description: 'Fiyat senkronizasyonu', example: 'Fiyatları güncelle' },
-        { command: 'rapor göster', description: 'Rapor görüntüleme', example: 'Günlük raporu göster' },
-        { command: 'yardım', description: 'Yardım menüsü', example: 'Yardım et' },
+        {
+          command: 'marka eşitle',
+          description: 'Pazaryerinden markaları eşitle',
+          example: 'Trendyoldan markaları eşitle',
+        },
+        {
+          command: 'kategori eşitle',
+          description: 'Kategorileri senkronize et',
+          example: 'Kategorileri güncelle',
+        },
+        {
+          command: 'ürün yükle',
+          description: 'Ürün yükleme işlemi',
+          example: 'Ürünü Trendyola yükle',
+        },
+        {
+          command: 'stok güncelle',
+          description: 'Stok senkronizasyonu',
+          example: 'Stokları senkronize et',
+        },
+        {
+          command: 'fiyat güncelle',
+          description: 'Fiyat senkronizasyonu',
+          example: 'Fiyatları güncelle',
+        },
+        {
+          command: 'rapor göster',
+          description: 'Rapor görüntüleme',
+          example: 'Günlük raporu göster',
+        },
+        {
+          command: 'yardım',
+          description: 'Yardım menüsü',
+          example: 'Yardım et',
+        },
       ],
       en: [
-        { command: 'sync brands', description: 'Sync brands from marketplace', example: 'Sync brands from Amazon' },
-        { command: 'sync categories', description: 'Sync categories', example: 'Update categories' },
-        { command: 'upload product', description: 'Upload product', example: 'Upload product to Amazon' },
-        { command: 'update stock', description: 'Sync stock levels', example: 'Sync stock levels' },
-        { command: 'update prices', description: 'Sync prices', example: 'Update prices' },
-        { command: 'show report', description: 'View reports', example: 'Show daily report' },
+        {
+          command: 'sync brands',
+          description: 'Sync brands from marketplace',
+          example: 'Sync brands from Amazon',
+        },
+        {
+          command: 'sync categories',
+          description: 'Sync categories',
+          example: 'Update categories',
+        },
+        {
+          command: 'upload product',
+          description: 'Upload product',
+          example: 'Upload product to Amazon',
+        },
+        {
+          command: 'update stock',
+          description: 'Sync stock levels',
+          example: 'Sync stock levels',
+        },
+        {
+          command: 'update prices',
+          description: 'Sync prices',
+          example: 'Update prices',
+        },
+        {
+          command: 'show report',
+          description: 'View reports',
+          example: 'Show daily report',
+        },
         { command: 'help', description: 'Help menu', example: 'Help me' },
       ],
     };
@@ -210,7 +277,11 @@ export class AIVoiceService {
   /**
    * Validate audio format
    */
-  validateAudio(audioData: string): { valid: boolean; format?: string; error?: string } {
+  validateAudio(audioData: string): {
+    valid: boolean;
+    format?: string;
+    error?: string;
+  } {
     try {
       // Check if valid base64
       const buffer = Buffer.from(audioData, 'base64');
@@ -226,7 +297,10 @@ export class AIVoiceService {
       const isOgg = buffer.slice(0, 4).toString() === 'OggS';
 
       if (!isWav && !isMp3 && !isOgg) {
-        return { valid: false, error: 'Unsupported audio format. Use WAV, MP3, or OGG.' };
+        return {
+          valid: false,
+          error: 'Unsupported audio format. Use WAV, MP3, or OGG.',
+        };
       }
 
       return {
@@ -241,7 +315,10 @@ export class AIVoiceService {
   /**
    * Convert audio format
    */
-  async convertAudio(audioData: string, targetFormat: 'wav' | 'mp3' | 'ogg'): Promise<string> {
+  async convertAudio(
+    audioData: string,
+    targetFormat: 'wav' | 'mp3' | 'ogg',
+  ): Promise<string> {
     // This would use an audio conversion library
     // For now, return the original
     this.logger.log(`Converting audio to ${targetFormat}`);
@@ -258,7 +335,10 @@ export class AIVoiceService {
 
   // ==================== REAL-TIME VOICE CHAT ====================
 
-  async startVoiceSession(userId: string, tenantId: string): Promise<{ sessionId: string; wsUrl: string }> {
+  async startVoiceSession(
+    userId: string,
+    tenantId: string,
+  ): Promise<{ sessionId: string; wsUrl: string }> {
     // Create a voice session for real-time streaming
     const sessionId = `voice_${Date.now()}_${userId}`;
 

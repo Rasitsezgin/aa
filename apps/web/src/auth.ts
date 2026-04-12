@@ -1,12 +1,20 @@
 import NextAuth from "next-auth"
 import { prisma } from "@/lib/prisma"
+import { PrismaAdapter } from "@auth/prisma-adapter"
 import Google from "next-auth/providers/google"
 import Facebook from "next-auth/providers/facebook"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 
+type AuthProviderSettings = {
+    google_id: string;
+    google_secret: string;
+    facebook_id: string;
+    facebook_secret: string;
+};
+
 // Lazy loading of auth settings - only fetch when actually needed
-let cachedSettings: any = null;
+let cachedSettings: AuthProviderSettings | null = null;
 let settingsFetched = false;
 
 async function getAuthSettings() {
@@ -16,17 +24,25 @@ async function getAuthSettings() {
     }
 
     try {
-        const settings = await prisma.tenantSettings.findFirst({
-            select: {
-                config: true,
+        // Fetch all auth-related system settings
+        const settings = await prisma.systemSettings.findMany({
+            where: {
+                key: {
+                    in: ['google_id', 'google_secret', 'facebook_id', 'facebook_secret']
+                }
             }
         });
-        const config = (settings?.config as Record<string, any>) || {};
+
+        const settingsMap = settings.reduce((acc, curr) => {
+            acc[curr.key] = curr.value as string;
+            return acc;
+        }, {} as Record<string, string>);
+
         cachedSettings = {
-            google_id: config.googleClientId || process.env.GOOGLE_CLIENT_ID || "",
-            google_secret: config.googleClientSecret || process.env.GOOGLE_CLIENT_SECRET || "",
-            facebook_id: config.facebookAppId || process.env.FACEBOOK_CLIENT_ID || "",
-            facebook_secret: config.facebookAppSecret || process.env.FACEBOOK_CLIENT_SECRET || "",
+            google_id: settingsMap.google_id || process.env.GOOGLE_CLIENT_ID || "",
+            google_secret: settingsMap.google_secret || process.env.GOOGLE_CLIENT_SECRET || "",
+            facebook_id: settingsMap.facebook_id || process.env.FACEBOOK_CLIENT_ID || "",
+            facebook_secret: settingsMap.facebook_secret || process.env.FACEBOOK_CLIENT_SECRET || "",
         };
     } catch (error) {
         console.warn("[NextAuth] Failed to load auth settings from database, using env vars:", error);
@@ -42,11 +58,11 @@ async function getAuthSettings() {
     return cachedSettings;
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
+export const { handlers, signIn, signOut, auth } = NextAuth(async () => {
     const dynamicSettings = await getAuthSettings();
 
     return {
-        // JWT strategy - no adapter needed (Credentials-only + manual OAuth handling)
+        adapter: PrismaAdapter(prisma),
         providers: [
             // Google OAuth - only register if credentials exist
             ...(dynamicSettings.google_id && dynamicSettings.google_id !== ""
@@ -54,6 +70,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
                     Google({
                         clientId: dynamicSettings.google_id,
                         clientSecret: dynamicSettings.google_secret,
+                        allowDangerousEmailAccountLinking: true,
                     }),
                 ]
                 : []),
@@ -63,6 +80,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
                     Facebook({
                         clientId: dynamicSettings.facebook_id,
                         clientSecret: dynamicSettings.facebook_secret,
+                        allowDangerousEmailAccountLinking: true,
                     }),
                 ]
                 : []),
@@ -102,7 +120,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
                                         details: { method: 'backend_sync', ip: 'server' },
                                     },
                                 });
-                            } catch (e) { }
+                            } catch { }
 
                             return {
                                 id: data.user.id,
@@ -154,6 +172,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
             error: "/login",
         },
         callbacks: {
+            async signIn({ user, account, profile }) {
+                if (account?.provider !== 'credentials') {
+                    // Check if user has a tenantId, if not, assign default or create one
+                    if (user.id && !(user as any).tenantId) {
+                        const existingUser = await prisma.user.findUnique({
+                            where: { id: user.id },
+                            select: { tenantId: true }
+                        });
+
+                        if (!existingUser?.tenantId) {
+                            // Find the first available tenant or create a default one
+                            let tenant = await prisma.tenant.findFirst();
+                            if (!tenant) {
+                                tenant = await prisma.tenant.create({
+                                    data: {
+                                        name: 'Default Tenant',
+                                        plan: 'FREE'
+                                    }
+                                });
+                            }
+                            await prisma.user.update({
+                                where: { id: user.id },
+                                data: { tenantId: tenant.id }
+                            });
+                            (user as any).tenantId = tenant.id;
+                        } else {
+                            (user as any).tenantId = existingUser.tenantId;
+                        }
+                    }
+                }
+                return true;
+            },
             async session({ session, token }: { session: any; token: any }) {
                 if (session.user && token?.sub) {
                     session.user.id = token.sub;
@@ -162,9 +212,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
                     (session.user as any).isOnboarded = token.isOnboarded;
                     (session.user as any).accessToken = token.accessToken;
                 }
+                
+                // For OAuth users, if tenantId is missing in token, fetch it
+                if (session.user && !(session.user as any).tenantId) {
+                    const user = await prisma.user.findUnique({
+                        where: { id: session.user.id },
+                        select: { tenantId: true, type: true }
+                    });
+                    if (user) {
+                        (session.user as any).tenantId = user.tenantId;
+                        (session.user as any).type = user.type;
+                    }
+                }
+
                 return session;
             },
-            async jwt({ token, user }: { token: any; user: any }) {
+            async jwt({ token, user, account }: { token: any; user: any; account: any }) {
                 if (user) {
                     token.sub = user.id;
                     token.type = (user as any).type;
@@ -175,11 +238,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async (req) => {
                 return token;
             },
             async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
-                // Allows relative callback URLs
                 if (url.startsWith('/')) return `${baseUrl}${url}`;
-                // Allows callback URLs on the same origin
                 else if (new URL(url).origin === baseUrl) return url;
-                // Default to dashboard after login
                 return `${baseUrl}/dashboard`;
             },
         },

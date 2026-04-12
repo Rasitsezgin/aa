@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { AiModel, Prisma } from '@prisma/client';
-import { createCipheriv, createDecipheriv, randomBytes, createHash } from 'crypto';
+import {
+  createCipheriv,
+  createDecipheriv,
+  randomBytes,
+  createHash,
+} from 'crypto';
 
 @Injectable()
 export class AiModelsService {
@@ -84,7 +89,10 @@ export class AiModelsService {
     const iv = randomBytes(12);
     const encryptionKey = createHash('sha256').update(secret).digest();
     const cipher = createCipheriv('aes-256-gcm', encryptionKey, iv);
-    const encrypted = Buffer.concat([cipher.update(key, 'utf8'), cipher.final()]);
+    const encrypted = Buffer.concat([
+      cipher.update(key, 'utf8'),
+      cipher.final(),
+    ]);
     const tag = cipher.getAuthTag();
 
     return `${AiModelsService.ENC_PREFIX}${iv.toString('base64')}:${tag.toString('base64')}:${encrypted.toString('base64')}`;
@@ -107,7 +115,7 @@ export class AiModelsService {
       const decipher = createDecipheriv(
         'aes-256-gcm',
         encryptionKey,
-        Buffer.from(ivB64, 'base64')
+        Buffer.from(ivB64, 'base64'),
       );
       decipher.setAuthTag(Buffer.from(tagB64, 'base64'));
       const decrypted = Buffer.concat([

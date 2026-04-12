@@ -1,12 +1,4 @@
-﻿import {
-  Controller,
-  Get,
-  Post,
-  Param,
-  Body,
-  Query,
-  Req,
-} from '@nestjs/common';
+﻿import { Controller, Get, Post, Param, Body, Query, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import {

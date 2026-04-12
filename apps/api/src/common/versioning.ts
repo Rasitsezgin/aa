@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Version } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Version,
+} from '@nestjs/common';
 
 /**
  * API Versioning Strategy
@@ -29,7 +38,10 @@ export interface VersionedResponse<T> {
 /**
  * Versioned Controller Base
  */
-export function VersionedController(prefix: string, versions: string[] = ['1']) {
+export function VersionedController(
+  prefix: string,
+  versions: string[] = ['1'],
+) {
   return function <TFunction extends Function>(target: TFunction): TFunction {
     // Add version metadata
     Reflect.defineMetadata('api:versions', versions, target);
@@ -40,8 +52,16 @@ export function VersionedController(prefix: string, versions: string[] = ['1']) 
 /**
  * API Version Decorator
  */
-export function ApiVersion(version: string, deprecated = false, sunsetDate?: string) {
-  return function (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) {
+export function ApiVersion(
+  version: string,
+  deprecated = false,
+  sunsetDate?: string,
+) {
+  return function (
+    target: any,
+    propertyKey?: string,
+    descriptor?: PropertyDescriptor,
+  ) {
     if (propertyKey && descriptor) {
       // Method decorator
       Reflect.defineMetadata('api:version', version, descriptor.value);
@@ -63,7 +83,7 @@ export class VersionUtils {
   static isVersionGte(version: string, compareTo: string): boolean {
     const v1 = version.split('.').map(Number);
     const v2 = compareTo.split('.').map(Number);
-    
+
     for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
       const n1 = v1[i] || 0;
       const n2 = v2[i] || 0;
@@ -77,7 +97,7 @@ export class VersionUtils {
     return versions.sort((a, b) => {
       const v1 = a.split('.').map(Number);
       const v2 = b.split('.').map(Number);
-      
+
       for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
         const n1 = v1[i] || 0;
         const n2 = v2[i] || 0;
@@ -124,9 +144,7 @@ export const MIGRATION_GUIDES: MigrationGuide[] = [
       'Webhook signatures',
       'Rate limiting headers',
     ],
-    deprecations: [
-      'GET /v1/orders/all - Use /v2/orders instead',
-    ],
+    deprecations: ['GET /v1/orders/all - Use /v2/orders instead'],
   },
 ];
 
@@ -138,7 +156,6 @@ export const MIGRATION_GUIDES: MigrationGuide[] = [
   version: ['1', '2'],
 })
 export class VersionedProductsController {
-  
   // Default version (neutral)
   @Get()
   findAllV1() {
@@ -161,7 +178,7 @@ export class VersionedProductsController {
         page: 1,
         perPage: 20,
       },
-      links: { 
+      links: {
         self: '/v2/products',
         latest: '/v2/products',
         docs: 'https://docs.example.com/v2/products',
@@ -195,7 +212,12 @@ export class VersionedProductsController {
 /**
  * Version Interceptor - Adds version headers
  */
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
 import { Observable, map } from 'rxjs';
 
 @Injectable()
@@ -203,15 +225,17 @@ export class VersionInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
     const version = request.headers['x-api-version'] || '1';
-    
+
     return next.handle().pipe(
-      map(data => ({
+      map((data) => ({
         ...data,
         _meta: {
           apiVersion: version,
           latestVersion: '2',
-          deprecationWarning: version !== '2' ? 
-            'You are using an outdated API version. Please migrate to v2.' : undefined,
+          deprecationWarning:
+            version !== '2'
+              ? 'You are using an outdated API version. Please migrate to v2.'
+              : undefined,
         },
       })),
     );

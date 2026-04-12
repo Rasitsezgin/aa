@@ -22,7 +22,7 @@ import {
 
 @Controller('subscriptions')
 export class SubscriptionsController {
-  constructor(private readonly subscriptionsService: SubscriptionsService) { }
+  constructor(private readonly subscriptionsService: SubscriptionsService) {}
 
   /**
    * Yeni abonelik oluştur
@@ -31,12 +31,14 @@ export class SubscriptionsController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async createSubscription(@Body() dto: CreateSubscriptionDto) {
-    const subscription = await this.subscriptionsService.createSubscription(dto);
+    const subscription =
+      await this.subscriptionsService.createSubscription(dto);
     return {
       success: true,
-      message: dto.paymentMethod === 'credit_card'
-        ? 'Aboneliğiniz başarıyla oluşturuldu ve aktif edildi!'
-        : 'Abonelik talebiniz alındı. Havale onayı sonrası aktif olacaktır.',
+      message:
+        dto.paymentMethod === 'credit_card'
+          ? 'Aboneliğiniz başarıyla oluşturuldu ve aktif edildi!'
+          : 'Abonelik talebiniz alındı. Havale onayı sonrası aktif olacaktır.',
       data: subscription,
     };
   }
@@ -121,7 +123,11 @@ export class SubscriptionsController {
   ) {
     // Gerçek uygulamada adminId JWT'den alınır
     const adminId = 'admin-001';
-    const subscription = await this.subscriptionsService.approveSubscription(id, dto, adminId);
+    const subscription = await this.subscriptionsService.approveSubscription(
+      id,
+      dto,
+      adminId,
+    );
     return {
       success: true,
       message: 'Abonelik başarıyla onaylandı!',
@@ -139,7 +145,11 @@ export class SubscriptionsController {
     @Body() dto: RejectSubscriptionDto,
   ) {
     const adminId = 'admin-001';
-    const subscription = await this.subscriptionsService.rejectSubscription(id, dto, adminId);
+    const subscription = await this.subscriptionsService.rejectSubscription(
+      id,
+      dto,
+      adminId,
+    );
     return {
       success: true,
       message: 'Abonelik reddedildi.',
@@ -157,7 +167,11 @@ export class SubscriptionsController {
     @Body('reason') reason: string,
   ) {
     const adminId = 'admin-001';
-    const subscription = await this.subscriptionsService.suspendSubscription(id, reason, adminId);
+    const subscription = await this.subscriptionsService.suspendSubscription(
+      id,
+      reason,
+      adminId,
+    );
     return {
       success: true,
       message: 'Abonelik askıya alındı.',
@@ -175,7 +189,11 @@ export class SubscriptionsController {
     @Body('reason') reason: string,
   ) {
     const adminId = 'admin-001';
-    const subscription = await this.subscriptionsService.cancelSubscription(id, reason, adminId);
+    const subscription = await this.subscriptionsService.cancelSubscription(
+      id,
+      reason,
+      adminId,
+    );
     return {
       success: true,
       message: 'Abonelik iptal edildi.',

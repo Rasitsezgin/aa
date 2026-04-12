@@ -1,0 +1,5 @@
+Baseline and current differ for pixel7-pricing-default.png
+baseline: C:\Projeler\pazaryonetimi.com\apps\web\artifacts\mobile-visual\baseline\pixel7-pricing-default.png
+current: C:\Projeler\pazaryonetimi.com\apps\web\artifacts\mobile-visual\current\pixel7-pricing-default.png
+baselineHash: a1c3bb4410a57a3c14f5b5785ae53a23e361796f26ac2e7958ef2b082595225c
+currentHash: d97ef36f8904f6030c5886a84d9e51e41f06c3ff14fa7ba60cc795b8f7377811

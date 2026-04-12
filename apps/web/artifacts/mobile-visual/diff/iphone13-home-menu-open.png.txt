@@ -1,0 +1,5 @@
+Baseline and current differ for iphone13-home-menu-open.png
+baseline: C:\Projeler\pazaryonetimi.com\apps\web\artifacts\mobile-visual\baseline\iphone13-home-menu-open.png
+current: C:\Projeler\pazaryonetimi.com\apps\web\artifacts\mobile-visual\current\iphone13-home-menu-open.png
+baselineHash: f1b33c046d180dff311b86d39d5fe038841d3b611434bd00e08c4b9389801229
+currentHash: bde63e4ea47f6fc0c5f99911775cc42f7f1940239e46bb771b714a9e10d4b403

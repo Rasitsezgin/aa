@@ -1,13 +1,18 @@
-import { Injectable, UnauthorizedException, ConflictException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  Logger,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../database/prisma.service';
 import * as bcrypt from 'bcryptjs';
 
 export interface JwtPayload {
-  sub: string;       // userId
+  sub: string; // userId
   email: string;
   tenantId: string;
-  type: string;      // SUPERADMIN | ADMIN | USER
+  type: string; // SUPERADMIN | ADMIN | USER
 }
 
 export interface TokenResponse {
@@ -31,7 +36,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   async login(email: string, password: string): Promise<TokenResponse> {
     const cleanEmail = email.toLowerCase().trim();
@@ -57,7 +62,9 @@ export class AuthService {
 
     if (!user.password) {
       this.logger.warn(`Login failed: No password set for ${cleanEmail}`);
-      throw new UnauthorizedException('Bu hesap için şifre ayarlanmamış. OAuth ile giriş yapın.');
+      throw new UnauthorizedException(
+        'Bu hesap için şifre ayarlanmamış. OAuth ile giriş yapın.',
+      );
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -90,12 +97,20 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(data.password, 12);
 
     // Create a new tenant for each registered user (multi-tenant SaaS)
-    const tenantName = data.company || `${data.firstName || data.email.split('@')[0]}'in Mağazası`;
+    const tenantName =
+      data.company ||
+      `${data.firstName || data.email.split('@')[0]}'in Mağazası`;
     const baseSlug = tenantName
       .toLowerCase()
-      .replace(/[çÇ]/g, 'c').replace(/[ğĞ]/g, 'g').replace(/[ıİ]/g, 'i')
-      .replace(/[öÖ]/g, 'o').replace(/[şŞ]/g, 's').replace(/[üÜ]/g, 'u')
-      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').substring(0, 60);
+      .replace(/[çÇ]/g, 'c')
+      .replace(/[ğĞ]/g, 'g')
+      .replace(/[ıİ]/g, 'i')
+      .replace(/[öÖ]/g, 'o')
+      .replace(/[şŞ]/g, 's')
+      .replace(/[üÜ]/g, 'u')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 60);
 
     let slug = baseSlug;
     const slugExists = await this.prisma.tenant.findFirst({ where: { slug } });
@@ -157,18 +172,27 @@ export class AuthService {
         type: result.type,
         tenantId: result.tenantId,
       });
-      this.logger.log(`User registered with new tenant: ${result.email} (tenant: ${slug})`);
+      this.logger.log(
+        `User registered with new tenant: ${result.email} (tenant: ${slug})`,
+      );
       return tokens;
     } catch (error) {
-      this.logger.error(`Registration failed for ${data.email}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Registration failed for ${data.email}: ${error.message}`,
+        error.stack,
+      );
       if (error instanceof ConflictException) throw error;
-      throw new Error(`Kayıt işlemi sırasında bir hata oluştu: ${error.message}`);
+      throw new Error(
+        `Kayıt işlemi sırasında bir hata oluştu: ${error.message}`,
+      );
     }
   }
 
   async refreshToken(refreshToken: string): Promise<TokenResponse> {
     try {
-      const payload = this.jwtService.verify<JwtPayload & { tokenType: string }>(refreshToken);
+      const payload = this.jwtService.verify<
+        JwtPayload & { tokenType: string }
+      >(refreshToken);
 
       if (payload.tokenType !== 'refresh') {
         throw new UnauthorizedException('Geçersiz refresh token');
@@ -199,7 +223,9 @@ export class AuthService {
         tenantId: user.tenantId,
       });
     } catch {
-      throw new UnauthorizedException('Geçersiz veya süresi dolmuş refresh token');
+      throw new UnauthorizedException(
+        'Geçersiz veya süresi dolmuş refresh token',
+      );
     }
   }
 
@@ -223,7 +249,11 @@ export class AuthService {
     return user;
   }
 
-  async changePassword(userId: string, oldPassword: string, newPassword: string): Promise<void> {
+  async changePassword(
+    userId: string,
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<void> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { password: true },

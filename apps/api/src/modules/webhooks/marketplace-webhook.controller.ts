@@ -1,4 +1,12 @@
-import { Controller, Post, Headers, Body, Query, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Headers,
+  Body,
+  Query,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { Public } from '../auth/public.decorator';
 
@@ -64,7 +72,8 @@ export class MarketplaceWebhookController {
     const secret = process.env.HEPSIBURADA_WEBHOOK_SECRET;
     if (secret) {
       const crypto = await import('crypto');
-      const expectedSig = crypto.createHmac('sha256', secret)
+      const expectedSig = crypto
+        .createHmac('sha256', secret)
         .update(JSON.stringify(payload))
         .digest('hex');
       if (signature !== expectedSig) {
@@ -109,7 +118,7 @@ export class MarketplaceWebhookController {
 
     if (messageType === 'Notification') {
       const message = JSON.parse(payload.Message);
-      
+
       switch (message.notificationType) {
         case 'ORDER_CHANGE':
           await this.processAmazonOrder(message.payload);
@@ -118,7 +127,9 @@ export class MarketplaceWebhookController {
           // Handle fee changes
           break;
         default:
-          console.log(`Unhandled Amazon notification: ${message.notificationType}`);
+          console.log(
+            `Unhandled Amazon notification: ${message.notificationType}`,
+          );
       }
     }
 
@@ -168,7 +179,7 @@ export class MarketplaceWebhookController {
         totalAmount: payload.totalAmount,
         customer: `${payload.customerFirstName} ${payload.customerLastName}`,
       });
-      
+
       // Trigger event for async processing via BullMQ
       // await this.webhookQueue.add('process-trendyol-order', payload);
     } catch (error) {
@@ -236,24 +247,24 @@ export class MarketplaceWebhookController {
 
   private mapTrendyolStatus(status: string): string {
     const statusMap: Record<string, string> = {
-      'Created': 'PENDING',
-      'Picking': 'PROCESSING',
-      'Invoiced': 'CONFIRMED',
-      'Shipped': 'SHIPPED',
-      'Delivered': 'DELIVERED',
-      'Cancelled': 'CANCELLED',
-      'Returned': 'RETURNED',
+      Created: 'PENDING',
+      Picking: 'PROCESSING',
+      Invoiced: 'CONFIRMED',
+      Shipped: 'SHIPPED',
+      Delivered: 'DELIVERED',
+      Cancelled: 'CANCELLED',
+      Returned: 'RETURNED',
     };
     return statusMap[status] || 'PENDING';
   }
 
   private mapHepsiburadaStatus(status: string): string {
     const statusMap: Record<string, string> = {
-      'Awaiting': 'PENDING',
-      'Processing': 'PROCESSING',
-      'Shipped': 'SHIPPED',
-      'Delivered': 'DELIVERED',
-      'Cancelled': 'CANCELLED',
+      Awaiting: 'PENDING',
+      Processing: 'PROCESSING',
+      Shipped: 'SHIPPED',
+      Delivered: 'DELIVERED',
+      Cancelled: 'CANCELLED',
     };
     return statusMap[status] || 'PENDING';
   }
@@ -263,15 +274,18 @@ export class MarketplaceWebhookController {
     return `${address.fullAddress}, ${address.district}/${address.city}`;
   }
 
-  private async getTenantIdForIntegration(platform: string, externalId: string): Promise<string> {
+  private async getTenantIdForIntegration(
+    platform: string,
+    externalId: string,
+  ): Promise<string> {
     const integration = await this.prisma.integration.findFirst({
       where: {
         platform: platform as any,
         apiExtra: {
           path: ['supplierId'],
-          equals: externalId
-        }
-      }
+          equals: externalId,
+        },
+      },
     });
     return integration?.tenantId || 'default';
   }
@@ -279,8 +293,8 @@ export class MarketplaceWebhookController {
   private async getValidN11ApiKeys(): Promise<string[]> {
     const integrations = await this.prisma.integration.findMany({
       where: { platform: 'N11', isActive: true },
-      select: { apiKey: true }
+      select: { apiKey: true },
     });
-    return integrations.map(i => i.apiKey);
+    return integrations.map((i) => i.apiKey);
   }
 }

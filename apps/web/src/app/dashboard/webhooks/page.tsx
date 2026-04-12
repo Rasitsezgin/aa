@@ -7,34 +7,20 @@ import {
     Webhook,
     Plus,
     Play,
-    Pause,
-    Settings,
     Trash2,
     Clock,
     CheckCircle,
     XCircle,
-    AlertTriangle,
-    ArrowRight,
     RefreshCw,
-    Code,
     Copy,
     Eye,
     EyeOff,
-    Lock,
-    ExternalLink,
-    Filter,
     Search,
     Activity,
     Zap,
-    Globe,
     Edit,
-    MoreVertical,
-    ChevronDown,
     X,
     Key,
-    Shield,
-    Terminal,
-    FileJson
 } from 'lucide-react';
 
 // Webhook event türleri
@@ -64,7 +50,7 @@ export default function WebhooksPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
 
-    const { webhooks: apiWebhooks, loading, fetchWebhooks: refetch } = useWebhooks();
+    const { webhooks: apiWebhooks, loading } = useWebhooks();
 
     const webhooksData = (Array.isArray(apiWebhooks) && apiWebhooks.length > 0)
         ? apiWebhooks.map((w, i) => ({
@@ -505,7 +491,7 @@ export default function WebhooksPage() {
 
                                 {/* Events */}
                                 <div>
-                                    <label className="block text-sm font-medium text-foreground mb-2">Dinlenecek Event'ler</label>
+                                    <label className="block text-sm font-medium text-foreground mb-2">Dinlenecek Event&apos;ler</label>
                                     <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto p-3 bg-background/50 rounded-xl border border-border">
                                         {eventTypes.map(event => (
                                             <label key={event.id} className="flex items-center gap-2 p-2 hover:bg-white/5 rounded-lg cursor-pointer">

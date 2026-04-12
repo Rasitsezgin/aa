@@ -35,7 +35,14 @@ export interface TrackingEvent {
 
 export interface TrackingResult {
   trackingNumber: string;
-  status: 'preparing' | 'shipped' | 'in-transit' | 'out-for-delivery' | 'delivered' | 'returned' | 'exception';
+  status:
+    | 'preparing'
+    | 'shipped'
+    | 'in-transit'
+    | 'out-for-delivery'
+    | 'delivered'
+    | 'returned'
+    | 'exception';
   events: TrackingEvent[];
   estimatedDelivery?: Date;
   deliveredAt?: Date;

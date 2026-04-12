@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Param,
-  Body,
-  Query,
-  Req,
-} from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { EInvoiceService } from './e-invoice.service';
 import { CreateEInvoiceDto, CancelEInvoiceDto } from './dto/e-invoice.dto';
@@ -65,12 +57,23 @@ export class EInvoiceController {
   /** Fatura GİB durumu sorgula */
   @Post(':id/status')
   checkStatus(@Req() req: RequestWithUser, @Param('id') id: string) {
-    return this.eInvoiceService.checkInvoiceStatus(req.user?.tenantId || '', id);
+    return this.eInvoiceService.checkInvoiceStatus(
+      req.user?.tenantId || '',
+      id,
+    );
   }
 
   /** Fatura iptal et */
   @Post(':id/cancel')
-  cancelInvoice(@Req() req: RequestWithUser, @Param('id') id: string, @Body() dto: CancelEInvoiceDto) {
-    return this.eInvoiceService.cancelInvoice(req.user?.tenantId || '', id, dto);
+  cancelInvoice(
+    @Req() req: RequestWithUser,
+    @Param('id') id: string,
+    @Body() dto: CancelEInvoiceDto,
+  ) {
+    return this.eInvoiceService.cancelInvoice(
+      req.user?.tenantId || '',
+      id,
+      dto,
+    );
   }
 }

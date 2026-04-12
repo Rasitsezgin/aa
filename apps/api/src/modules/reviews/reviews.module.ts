@@ -5,9 +5,9 @@ import { DatabaseModule } from '../../database/database.module';
 import { MarketplaceModule } from '../marketplace/marketplace.module';
 
 @Module({
-    imports: [DatabaseModule, MarketplaceModule],
-    controllers: [ReviewsController],
-    providers: [ReviewsService],
-    exports: [ReviewsService],
+  imports: [DatabaseModule, MarketplaceModule],
+  controllers: [ReviewsController],
+  providers: [ReviewsService],
+  exports: [ReviewsService],
 })
 export class ReviewsModule {}

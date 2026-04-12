@@ -8,20 +8,24 @@ export class DashboardSystemService {
 
   // ==================== SECURITY ====================
   async getSecurityOverview(tenantId: string) {
-    const [userCount, integrationCount, apiKeyCount, activityLogs, twoFaUsers] = await Promise.all([
-      this.prisma.user.count({ where: { tenantId } }),
-      this.prisma.integration.count({ where: { tenantId } }),
-      this.prisma.apiKey.count({ where: { tenantId, isActive: true } }),
-      this.prisma.activityLog.findMany({
-        where: { tenantId, action: 'user.login' },
-        orderBy: { createdAt: 'desc' },
-        take: 50,
-      }),
-      this.prisma.user.count({ where: { tenantId, twoFactorEnabled: true } }),
-    ]);
+    const [userCount, integrationCount, apiKeyCount, activityLogs, twoFaUsers] =
+      await Promise.all([
+        this.prisma.user.count({ where: { tenantId } }),
+        this.prisma.integration.count({ where: { tenantId } }),
+        this.prisma.apiKey.count({ where: { tenantId, isActive: true } }),
+        this.prisma.activityLog.findMany({
+          where: { tenantId, action: 'user.login' },
+          orderBy: { createdAt: 'desc' },
+          take: 50,
+        }),
+        this.prisma.user.count({ where: { tenantId, twoFactorEnabled: true } }),
+      ]);
 
-    const failedLogins = activityLogs.filter(l => (l.details as any)?.status === 'failed').length;
-    const twoFaRate = userCount > 0 ? Math.round((twoFaUsers / userCount) * 100) : 0;
+    const failedLogins = activityLogs.filter(
+      (l) => (l.details as any)?.status === 'failed',
+    ).length;
+    const twoFaRate =
+      userCount > 0 ? Math.round((twoFaUsers / userCount) * 100) : 0;
 
     // Güvenlik skoru hesaplama
     let securityScore = 50;
@@ -41,9 +45,28 @@ export class DashboardSystemService {
       apiKeysCount: apiKeyCount,
       lastSecurityAudit: new Date(Date.now() - 7 * 86400000).toISOString(),
       recommendations: [
-        ...(twoFaRate < 100 ? [{ id: 'rec-1', title: 'Tüm kullanıcılar için 2FA zorunlu yapın', severity: 'high', status: 'pending' }] : []),
-        { id: 'rec-2', title: 'API anahtarlarını düzenli olarak yenileyin', severity: 'medium', status: 'pending' },
-        { id: 'rec-3', title: 'Oturum süresini kısaltın', severity: 'low', status: 'pending' },
+        ...(twoFaRate < 100
+          ? [
+              {
+                id: 'rec-1',
+                title: 'Tüm kullanıcılar için 2FA zorunlu yapın',
+                severity: 'high',
+                status: 'pending',
+              },
+            ]
+          : []),
+        {
+          id: 'rec-2',
+          title: 'API anahtarlarını düzenli olarak yenileyin',
+          severity: 'medium',
+          status: 'pending',
+        },
+        {
+          id: 'rec-3',
+          title: 'Oturum süresini kısaltın',
+          severity: 'low',
+          status: 'pending',
+        },
       ],
       threatSummary: {
         blocked: failedLogins * 3,
@@ -94,22 +117,26 @@ export class DashboardSystemService {
     // Gerçek session'ları DB'den çek
     const sessions = await this.prisma.session.findMany({
       where: { user: { tenantId } },
-      include: { user: { select: { email: true, firstName: true, lastName: true } } },
+      include: {
+        user: { select: { email: true, firstName: true, lastName: true } },
+      },
       orderBy: { expires: 'desc' },
       take: 10,
     });
 
     if (sessions.length === 0) {
-      return [{
-        id: 'current-session',
-        device: 'Chrome - Windows',
-        ip: '127.0.0.1',
-        location: 'Localhost',
-        lastActive: new Date().toISOString(),
-        isCurrent: true,
-        startedAt: new Date(Date.now() - 3600000).toISOString(),
-        user: 'Aktif Kullanıcı',
-      }];
+      return [
+        {
+          id: 'current-session',
+          device: 'Chrome - Windows',
+          ip: '127.0.0.1',
+          location: 'Localhost',
+          lastActive: new Date().toISOString(),
+          isCurrent: true,
+          startedAt: new Date(Date.now() - 3600000).toISOString(),
+          user: 'Aktif Kullanıcı',
+        },
+      ];
     }
 
     return sessions.map((s, i) => ({
@@ -120,7 +147,9 @@ export class DashboardSystemService {
       lastActive: s.expires.toISOString(),
       isCurrent: i === 0,
       startedAt: s.expires.toISOString(),
-      user: `${s.user.firstName || ''} ${s.user.lastName || ''}`.trim() || s.user.email,
+      user:
+        `${s.user.firstName || ''} ${s.user.lastName || ''}`.trim() ||
+        s.user.email,
     }));
   }
 
@@ -130,19 +159,28 @@ export class DashboardSystemService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return keys.map(k => ({
+    return keys.map((k) => ({
       id: k.id,
       name: k.name,
       key: k.prefix ? `${k.prefix}****` : k.key.substring(0, 8) + '****',
       permissions: k.permissions,
       createdAt: k.createdAt.toISOString(),
       lastUsed: k.lastUsed?.toISOString() || null,
-      status: k.isActive ? (k.expiresAt && k.expiresAt < new Date() ? 'expired' : 'active') : 'revoked',
+      status: k.isActive
+        ? k.expiresAt && k.expiresAt < new Date()
+          ? 'expired'
+          : 'active'
+        : 'revoked',
       expiresAt: k.expiresAt?.toISOString() || null,
     }));
   }
 
-  async createApiKey(data: { name: string; permissions: string[]; tenantId: string; userId?: string }) {
+  async createApiKey(data: {
+    name: string;
+    permissions: string[];
+    tenantId: string;
+    userId?: string;
+  }) {
     const rawKey = `pk_live_${crypto.randomBytes(24).toString('hex')}`;
     const prefix = rawKey.substring(0, 12);
 
@@ -150,7 +188,10 @@ export class DashboardSystemService {
     let userId = data.userId;
     if (!userId) {
       const adminUser = await this.prisma.user.findFirst({
-        where: { tenantId: data.tenantId, type: { in: ['ADMIN', 'SUPERADMIN'] } },
+        where: {
+          tenantId: data.tenantId,
+          type: { in: ['ADMIN', 'SUPERADMIN'] },
+        },
       });
       userId = adminUser?.id || '';
     }
@@ -197,7 +238,9 @@ export class DashboardSystemService {
         where: { id: adminUser.id },
         data: {
           twoFactorEnabled: enabled,
-          ...(enabled ? { twoFactorSecret: crypto.randomBytes(20).toString('hex') } : { twoFactorSecret: null }),
+          ...(enabled
+            ? { twoFactorSecret: crypto.randomBytes(20).toString('hex') }
+            : { twoFactorSecret: null }),
         },
       });
     }
@@ -205,7 +248,9 @@ export class DashboardSystemService {
     return {
       success: true,
       twoFactorEnabled: enabled,
-      message: enabled ? '2FA başarıyla etkinleştirildi' : '2FA devre dışı bırakıldı',
+      message: enabled
+        ? '2FA başarıyla etkinleştirildi'
+        : '2FA devre dışı bırakıldı',
     };
   }
 
@@ -215,7 +260,11 @@ export class DashboardSystemService {
     } catch {
       // Session bulunamadıysa da success dön
     }
-    return { success: true, id: sessionId, revokedAt: new Date().toISOString() };
+    return {
+      success: true,
+      id: sessionId,
+      revokedAt: new Date().toISOString(),
+    };
   }
 
   // ==================== AUTOMATIONS ====================
@@ -225,7 +274,7 @@ export class DashboardSystemService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return automations.map(a => ({
+    return automations.map((a) => ({
       id: a.id,
       name: a.name,
       type: a.type,
@@ -248,8 +297,14 @@ export class DashboardSystemService {
         name: data.name,
         description: data.description,
         type: data.type,
-        trigger: typeof data.trigger === 'object' ? JSON.stringify(data.trigger) : data.trigger,
-        action: typeof data.action === 'object' ? JSON.stringify(data.action) : data.action,
+        trigger:
+          typeof data.trigger === 'object'
+            ? JSON.stringify(data.trigger)
+            : data.trigger,
+        action:
+          typeof data.action === 'object'
+            ? JSON.stringify(data.action)
+            : data.action,
         conditions: data.conditions,
         isActive: true,
       },
@@ -273,13 +328,27 @@ export class DashboardSystemService {
         ...(data.name && { name: data.name }),
         ...(data.description && { description: data.description }),
         ...(data.type && { type: data.type }),
-        ...(data.trigger && { trigger: typeof data.trigger === 'object' ? JSON.stringify(data.trigger) : data.trigger }),
-        ...(data.action && { action: typeof data.action === 'object' ? JSON.stringify(data.action) : data.action }),
+        ...(data.trigger && {
+          trigger:
+            typeof data.trigger === 'object'
+              ? JSON.stringify(data.trigger)
+              : data.trigger,
+        }),
+        ...(data.action && {
+          action:
+            typeof data.action === 'object'
+              ? JSON.stringify(data.action)
+              : data.action,
+        }),
         ...(data.conditions && { conditions: data.conditions }),
       },
     });
 
-    return { id: automation.id, ...data, updatedAt: automation.updatedAt.toISOString() };
+    return {
+      id: automation.id,
+      ...data,
+      updatedAt: automation.updatedAt.toISOString(),
+    };
   }
 
   async toggleAutomation(id: string, isActive: boolean) {
@@ -302,7 +371,7 @@ export class DashboardSystemService {
   }
 
   async getAutomationHistory(id: string) {
-    // ActivityLog'dan otomasyon çalışma geçmişini al 
+    // ActivityLog'dan otomasyon çalışma geçmişini al
     const logs = await this.prisma.activityLog.findMany({
       where: { resource: 'automation', resourceId: id },
       orderBy: { createdAt: 'desc' },
@@ -311,22 +380,32 @@ export class DashboardSystemService {
 
     if (logs.length === 0) {
       // Otomasyon bilgilerinden oluştur
-      const automation = await this.prisma.automation.findUnique({ where: { id } });
+      const automation = await this.prisma.automation.findUnique({
+        where: { id },
+      });
       if (!automation) return [];
 
-      return Array.from({ length: Math.min(automation.runCount, 20) }, (_, i) => ({
-        id: `run-${i + 1}`,
-        automationId: id,
-        status: i % 10 === 0 ? 'failed' : 'success',
-        triggeredAt: new Date(Date.now() - i * 3600000 * 12).toISOString(),
-        completedAt: new Date(Date.now() - i * 3600000 * 12 + 5000).toISOString(),
-        duration: Math.floor(Math.random() * 5000) + 500,
-        details: i % 10 === 0 ? 'Hedef sunucuya bağlanılamadı' : 'Başarıyla tamamlandı',
-        affectedItems: Math.floor(Math.random() * 50) + 1,
-      }));
+      return Array.from(
+        { length: Math.min(automation.runCount, 20) },
+        (_, i) => ({
+          id: `run-${i + 1}`,
+          automationId: id,
+          status: i % 10 === 0 ? 'failed' : 'success',
+          triggeredAt: new Date(Date.now() - i * 3600000 * 12).toISOString(),
+          completedAt: new Date(
+            Date.now() - i * 3600000 * 12 + 5000,
+          ).toISOString(),
+          duration: Math.floor(Math.random() * 5000) + 500,
+          details:
+            i % 10 === 0
+              ? 'Hedef sunucuya bağlanılamadı'
+              : 'Başarıyla tamamlandı',
+          affectedItems: Math.floor(Math.random() * 50) + 1,
+        }),
+      );
     }
 
-    return logs.map(log => ({
+    return logs.map((log) => ({
       id: log.id,
       automationId: id,
       status: log.action.includes('SUCCESS') ? 'success' : 'failed',
@@ -348,7 +427,7 @@ export class DashboardSystemService {
     });
 
     if (notifications.length > 0) {
-      return notifications.map(n => ({
+      return notifications.map((n) => ({
         id: n.id,
         type: n.type,
         title: n.title,
@@ -368,21 +447,33 @@ export class DashboardSystemService {
     });
 
     const typeMap: Record<string, string> = {
-      'order.received': 'order', 'order.shipped': 'order',
-      'stock.alert': 'stock', 'stock.updated': 'stock',
-      'review.replied': 'review', 'integration.synced': 'system',
-      'campaign.created': 'campaign', 'settings.updated': 'system',
-      'user.login': 'system', 'product.created': 'system',
-      'product.updated': 'system', 'report.generated': 'system',
+      'order.received': 'order',
+      'order.shipped': 'order',
+      'stock.alert': 'stock',
+      'stock.updated': 'stock',
+      'review.replied': 'review',
+      'integration.synced': 'system',
+      'campaign.created': 'campaign',
+      'settings.updated': 'system',
+      'user.login': 'system',
+      'product.created': 'system',
+      'product.updated': 'system',
+      'report.generated': 'system',
     };
 
     const titleMap: Record<string, string> = {
-      'order.received': 'Yeni sipariş alındı', 'order.shipped': 'Sipariş kargoya verildi',
-      'stock.alert': 'Stok uyarısı', 'stock.updated': 'Stok güncellendi',
-      'review.replied': 'Müşteri yorumuna yanıt verildi', 'integration.synced': 'Pazaryeri senkronizasyonu tamamlandı',
-      'campaign.created': 'Yeni kampanya oluşturuldu', 'settings.updated': 'Mağaza ayarları güncellendi',
-      'user.login': 'Kullanıcı giriş yaptı', 'product.created': 'Yeni ürün eklendi',
-      'product.updated': 'Ürün güncellendi', 'report.generated': 'Rapor oluşturuldu',
+      'order.received': 'Yeni sipariş alındı',
+      'order.shipped': 'Sipariş kargoya verildi',
+      'stock.alert': 'Stok uyarısı',
+      'stock.updated': 'Stok güncellendi',
+      'review.replied': 'Müşteri yorumuna yanıt verildi',
+      'integration.synced': 'Pazaryeri senkronizasyonu tamamlandı',
+      'campaign.created': 'Yeni kampanya oluşturuldu',
+      'settings.updated': 'Mağaza ayarları güncellendi',
+      'user.login': 'Kullanıcı giriş yaptı',
+      'product.created': 'Yeni ürün eklendi',
+      'product.updated': 'Ürün güncellendi',
+      'report.generated': 'Rapor oluşturuldu',
     };
 
     return recentLogs.map((log, i) => ({
@@ -391,9 +482,16 @@ export class DashboardSystemService {
       title: titleMap[log.action] || log.action,
       message: (log.details as any)?.message || log.action,
       isRead: i > 3,
-      priority: log.action.includes('alert') ? 'high' : i < 3 ? 'medium' : 'low',
-      actionUrl: log.action.includes('order') ? '/dashboard/orders' :
-                 log.action.includes('stock') ? '/dashboard/inventory' : null,
+      priority: log.action.includes('alert')
+        ? 'high'
+        : i < 3
+          ? 'medium'
+          : 'low',
+      actionUrl: log.action.includes('order')
+        ? '/dashboard/orders'
+        : log.action.includes('stock')
+          ? '/dashboard/inventory'
+          : null,
       createdAt: log.createdAt.toISOString(),
     }));
   }
@@ -459,11 +557,31 @@ export class DashboardSystemService {
     return {
       widgets: [
         { id: 'stats', position: { x: 0, y: 0, w: 12, h: 2 }, visible: true },
-        { id: 'platformPerformance', position: { x: 0, y: 2, w: 8, h: 4 }, visible: true },
-        { id: 'recentOrders', position: { x: 8, y: 2, w: 4, h: 4 }, visible: true },
-        { id: 'stockAlerts', position: { x: 0, y: 6, w: 4, h: 3 }, visible: true },
-        { id: 'aiInsights', position: { x: 4, y: 6, w: 4, h: 3 }, visible: true },
-        { id: 'topProducts', position: { x: 8, y: 6, w: 4, h: 3 }, visible: true },
+        {
+          id: 'platformPerformance',
+          position: { x: 0, y: 2, w: 8, h: 4 },
+          visible: true,
+        },
+        {
+          id: 'recentOrders',
+          position: { x: 8, y: 2, w: 4, h: 4 },
+          visible: true,
+        },
+        {
+          id: 'stockAlerts',
+          position: { x: 0, y: 6, w: 4, h: 3 },
+          visible: true,
+        },
+        {
+          id: 'aiInsights',
+          position: { x: 4, y: 6, w: 4, h: 3 },
+          visible: true,
+        },
+        {
+          id: 'topProducts',
+          position: { x: 8, y: 6, w: 4, h: 3 },
+          visible: true,
+        },
       ],
       theme: 'default',
       density: 'comfortable',

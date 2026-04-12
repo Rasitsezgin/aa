@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Patch, Param, Query, Body, Headers } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Query,
+  Body,
+  Headers,
+} from '@nestjs/common';
 import { InventoryService, StockUpdateDto } from './inventory.service';
 
 @Controller('inventory')
@@ -81,7 +90,8 @@ export class InventoryController {
   @Post('bulk-update')
   async bulkUpdate(
     @Headers('x-tenant-id') tenantId: string,
-    @Body() body: { tenantId?: string; updates: { id: string; stock: number }[] },
+    @Body()
+    body: { tenantId?: string; updates: { id: string; stock: number }[] },
   ) {
     const finalTenantId = body.tenantId || tenantId || 'demo-tenant';
     return this.inventoryService.bulkUpdate(finalTenantId, body.updates);

@@ -22,7 +22,9 @@ export class MngKargoBridge implements CarrierBridge {
   }
 
   async createShipment(request: ShipmentRequest): Promise<ShipmentResponse> {
-    this.logger.log(`MNG Kargo gönderi oluşturuluyor: ${request.receiverAddress.city}`);
+    this.logger.log(
+      `MNG Kargo gönderi oluşturuluyor: ${request.receiverAddress.city}`,
+    );
 
     const trackingNumber = `MNG${Date.now()}${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
@@ -51,11 +53,15 @@ export class MngKargoBridge implements CarrierBridge {
 
   async calculateRate(request: ShipmentRequest): Promise<ShippingRate> {
     const baseCost = 30;
-    const weightCost = Math.max(0, (request.weight - 1)) * 4;
+    const weightCost = Math.max(0, request.weight - 1) * 4;
     let desiCost = 0;
     if (request.dimensions) {
-      const desi = (request.dimensions.length * request.dimensions.width * request.dimensions.height) / 3000;
-      desiCost = Math.max(0, (desi - 1)) * 4;
+      const desi =
+        (request.dimensions.length *
+          request.dimensions.width *
+          request.dimensions.height) /
+        3000;
+      desiCost = Math.max(0, desi - 1) * 4;
     }
 
     return {

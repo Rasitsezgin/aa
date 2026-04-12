@@ -35,7 +35,10 @@ export class TwoFactorController {
   @ApiOperation({ summary: '2FA token doğrula' })
   @ApiResponse({ status: 200, description: 'Doğrulama sonucu' })
   async verify(@Body() dto: Verify2FADto) {
-    const isValid = await this.twoFactorService.verifyToken(dto.userId, dto.token);
+    const isValid = await this.twoFactorService.verifyToken(
+      dto.userId,
+      dto.token,
+    );
     return { valid: isValid };
   }
 

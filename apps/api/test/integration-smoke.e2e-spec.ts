@@ -12,7 +12,9 @@ describe('Integration Smoke (e2e)', () => {
   let app: INestApplication;
 
   const marketplaceServiceMock = {
-    syncAllPlatformsForTenant: jest.fn().mockResolvedValue([{ platform: 'TRENDYOL', success: true }]),
+    syncAllPlatformsForTenant: jest
+      .fn()
+      .mockResolvedValue([{ platform: 'TRENDYOL', success: true }]),
     getBridgeForTenant: jest.fn().mockResolvedValue({
       syncProducts: jest.fn().mockResolvedValue({ success: true, count: 0 }),
     }),
@@ -59,10 +61,14 @@ describe('Integration Smoke (e2e)', () => {
     getIntegrations: jest.fn().mockResolvedValue([]),
     connectStore: jest.fn().mockResolvedValue({ success: true }),
     disconnectStore: jest.fn().mockResolvedValue({ success: true }),
-    syncPlatformOrdersForTenant: jest.fn().mockResolvedValue({ success: true, created: 0, updated: 0, failed: 0 }),
+    syncPlatformOrdersForTenant: jest
+      .fn()
+      .mockResolvedValue({ success: true, created: 0, updated: 0, failed: 0 }),
     updateMarketplaceStock: jest.fn().mockResolvedValue({ success: true }),
     updateMarketplacePrice: jest.fn().mockResolvedValue({ success: true }),
-    probeIntegrationContract: jest.fn().mockResolvedValue({ success: true, score: 100, checks: [] }),
+    probeIntegrationContract: jest
+      .fn()
+      .mockResolvedValue({ success: true, score: 100, checks: [] }),
   };
 
   const reportsServiceMock = {
@@ -110,7 +116,9 @@ describe('Integration Smoke (e2e)', () => {
   };
 
   const emailReportServiceMock = {
-    sendReportEmail: jest.fn().mockResolvedValue({ success: true, messageId: 'msg-1' }),
+    sendReportEmail: jest
+      .fn()
+      .mockResolvedValue({ success: true, messageId: 'msg-1' }),
     generateEmailTemplate: jest.fn().mockReturnValue('<html></html>'),
   };
 
@@ -152,7 +160,11 @@ describe('Integration Smoke (e2e)', () => {
   it('POST /marketplace/connect smoke', async () => {
     await request(app.getHttpServer())
       .post('/marketplace/connect')
-      .send({ tenantId: 'tenant-1', platform: 'TRENDYOL', credentials: { apiKey: 'k', apiSecret: 's' } })
+      .send({
+        tenantId: 'tenant-1',
+        platform: 'TRENDYOL',
+        credentials: { apiKey: 'k', apiSecret: 's' },
+      })
       .expect(201);
   });
 
@@ -236,7 +248,9 @@ describe('Integration Smoke (e2e)', () => {
 
   it('GET /marketplace/contract-probe/:platform smoke', async () => {
     await request(app.getHttpServer())
-      .get('/marketplace/contract-probe/trendyol?includeOrders=true&productLimit=3')
+      .get(
+        '/marketplace/contract-probe/trendyol?includeOrders=true&productLimit=3',
+      )
       .set('x-tenant-id', 'tenant-1')
       .expect(200);
   });

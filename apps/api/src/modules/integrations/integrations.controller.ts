@@ -8,7 +8,10 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { IntegrationsService, IntegrationCredentials } from './integrations.service';
+import {
+  IntegrationsService,
+  IntegrationCredentials,
+} from './integrations.service';
 import type { PlatformRegion, SubscriptionPlan } from './marketplace-registry';
 
 @Controller('integrations')
@@ -38,7 +41,10 @@ export class IntegrationsController {
     @Param('marketplaceId') marketplaceId: string,
     @Query('tenantId') tenantId?: string,
   ) {
-    return this.integrationsService.getMarketplaceDetails(marketplaceId, tenantId);
+    return this.integrationsService.getMarketplaceDetails(
+      marketplaceId,
+      tenantId,
+    );
   }
 
   // Kullanıcının entegrasyonlarını listele
@@ -85,7 +91,10 @@ export class IntegrationsController {
     @Param('marketplaceId') marketplaceId: string,
     @Query('tenantId') tenantId: string,
   ) {
-    return this.integrationsService.disconnectMarketplace(tenantId, marketplaceId);
+    return this.integrationsService.disconnectMarketplace(
+      tenantId,
+      marketplaceId,
+    );
   }
 
   // Entegrasyonu sil
@@ -114,12 +123,16 @@ export class IntegrationsController {
   // Bölgeye göre pazaryerleri
   @Get('by-region/:region')
   async getMarketplacesByRegion(@Param('region') region: string) {
-    return this.integrationsService.getMarketplacesByRegion(region as PlatformRegion);
+    return this.integrationsService.getMarketplacesByRegion(
+      region as PlatformRegion,
+    );
   }
 
   // Plana göre erişilebilir pazaryerleri
   @Get('by-plan/:plan')
   async getAccessibleMarketplaces(@Param('plan') plan: string) {
-    return this.integrationsService.getAccessibleMarketplaces(plan as SubscriptionPlan);
+    return this.integrationsService.getAccessibleMarketplaces(
+      plan as SubscriptionPlan,
+    );
   }
 }

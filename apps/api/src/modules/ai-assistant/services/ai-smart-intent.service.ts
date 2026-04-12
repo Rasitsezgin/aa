@@ -1,12 +1,20 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import { AiService } from '../../ai/ai.service';
 import { AIContextMemoryService } from './ai-context-memory.service';
 
 export interface IntentResult {
-  type: 'BRAND_SYNC' | 'CATEGORY_SYNC' | 'ATTRIBUTE_SYNC' | 'PRODUCT_UPLOAD' | 
-        'VARIANT_MANAGE' | 'BULK_UPLOAD' | 'REPORT' | 'ANALYSIS' | 'GENERAL';
+  type:
+    | 'BRAND_SYNC'
+    | 'CATEGORY_SYNC'
+    | 'ATTRIBUTE_SYNC'
+    | 'PRODUCT_UPLOAD'
+    | 'VARIANT_MANAGE'
+    | 'BULK_UPLOAD'
+    | 'REPORT'
+    | 'ANALYSIS'
+    | 'GENERAL';
   confidence: number;
   platform?: string;
   payload: any;
@@ -26,16 +34,25 @@ export class AISmartIntentService {
   private readonly logger = new Logger(AISmartIntentService.name);
 
   // Enhanced intent patterns with confidence scoring
-  private readonly intentPatterns: Record<string, {
-    patterns: string[];
-    confidenceBoost: number;
-    keywords: string[];
-    negativeKeywords: string[];
-  }> = {
+  private readonly intentPatterns: Record<
+    string,
+    {
+      patterns: string[];
+      confidenceBoost: number;
+      keywords: string[];
+      negativeKeywords: string[];
+    }
+  > = {
     BRAND_SYNC: {
       patterns: [
-        'marka eşitle', 'marka senkronize', 'markaları güncelle', 'marka çek',
-        'brand sync', 'senkronize marka', 'marka listesi', 'marka al',
+        'marka eşitle',
+        'marka senkronize',
+        'markaları güncelle',
+        'marka çek',
+        'brand sync',
+        'senkronize marka',
+        'marka listesi',
+        'marka al',
       ],
       confidenceBoost: 0.9,
       keywords: ['marka', 'brand', 'senkronize', 'eşitle', 'güncelle', 'çek'],
@@ -43,8 +60,14 @@ export class AISmartIntentService {
     },
     CATEGORY_SYNC: {
       patterns: [
-        'kategori eşitle', 'kategori senkronize', 'kategorileri güncelle', 'kategori çek',
-        'category sync', 'senkronize kategori', 'kategori hiyerarşi', 'kategori al',
+        'kategori eşitle',
+        'kategori senkronize',
+        'kategorileri güncelle',
+        'kategori çek',
+        'category sync',
+        'senkronize kategori',
+        'kategori hiyerarşi',
+        'kategori al',
       ],
       confidenceBoost: 0.9,
       keywords: ['kategori', 'category', 'hiyerarşi', 'senkronize', 'eşitle'],
@@ -52,27 +75,63 @@ export class AISmartIntentService {
     },
     ATTRIBUTE_SYNC: {
       patterns: [
-        'özellik eşitle', 'attribute sync', 'özellikleri çek', 'varyant özellik',
-        'nitelik eşitle', 'özellik al', 'parametre eşitle',
+        'özellik eşitle',
+        'attribute sync',
+        'özellikleri çek',
+        'varyant özellik',
+        'nitelik eşitle',
+        'özellik al',
+        'parametre eşitle',
       ],
       confidenceBoost: 0.85,
-      keywords: ['özellik', 'attribute', 'nitelik', 'parametre', 'varyant özellik'],
+      keywords: [
+        'özellik',
+        'attribute',
+        'nitelik',
+        'parametre',
+        'varyant özellik',
+      ],
       negativeKeywords: [],
     },
     PRODUCT_UPLOAD: {
       patterns: [
-        'ürün yükle', 'ürün gönder', 'ürün ekle', 'product upload',
-        'yeni ürün', 'ürün oluştur', 'upload product', 'ürün yayınla',
-        'liste ürün', 'aktif et', 'pazaryerine gönder',
+        'ürün yükle',
+        'ürün gönder',
+        'ürün ekle',
+        'product upload',
+        'yeni ürün',
+        'ürün oluştur',
+        'upload product',
+        'ürün yayınla',
+        'liste ürün',
+        'aktif et',
+        'pazaryerine gönder',
       ],
       confidenceBoost: 0.9,
-      keywords: ['ürün', 'product', 'yükle', 'gönder', 'ekle', 'upload', 'yayınla'],
+      keywords: [
+        'ürün',
+        'product',
+        'yükle',
+        'gönder',
+        'ekle',
+        'upload',
+        'yayınla',
+      ],
       negativeKeywords: ['marka', 'kategori'],
     },
     VARIANT_MANAGE: {
       patterns: [
-        'varyant', 'varyantları', 'variant', 'beden', 'renk', 'boyut',
-        'seçenek', 'seçenekleri', 'options', 'alternatif', 'versiyon',
+        'varyant',
+        'varyantları',
+        'variant',
+        'beden',
+        'renk',
+        'boyut',
+        'seçenek',
+        'seçenekleri',
+        'options',
+        'alternatif',
+        'versiyon',
       ],
       confidenceBoost: 0.85,
       keywords: ['varyant', 'variant', 'beden', 'renk', 'boyut', 'seçenek'],
@@ -80,8 +139,15 @@ export class AISmartIntentService {
     },
     BULK_UPLOAD: {
       patterns: [
-        'toplu yükle', 'bulk upload', 'toplu ürün', 'excel yükle',
-        'csv yükle', 'import', 'toplu import', 'topluca', 'seri yükle',
+        'toplu yükle',
+        'bulk upload',
+        'toplu ürün',
+        'excel yükle',
+        'csv yükle',
+        'import',
+        'toplu import',
+        'topluca',
+        'seri yükle',
       ],
       confidenceBoost: 0.9,
       keywords: ['toplu', 'bulk', 'excel', 'csv', 'import', 'topluca', 'seri'],
@@ -89,17 +155,38 @@ export class AISmartIntentService {
     },
     REPORT: {
       patterns: [
-        'rapor', 'raporla', 'report', 'analiz et', 'analiz yap', 'istatistik',
-        'metrik', 'performans', 'satış raporu', 'stok raporu',
+        'rapor',
+        'raporla',
+        'report',
+        'analiz et',
+        'analiz yap',
+        'istatistik',
+        'metrik',
+        'performans',
+        'satış raporu',
+        'stok raporu',
       ],
       confidenceBoost: 0.8,
-      keywords: ['rapor', 'report', 'analiz', 'istatistik', 'metrik', 'performans'],
+      keywords: [
+        'rapor',
+        'report',
+        'analiz',
+        'istatistik',
+        'metrik',
+        'performans',
+      ],
       negativeKeywords: [],
     },
     ANALYSIS: {
       patterns: [
-        'analiz', 'değerlendir', 'incele', 'karşılaştır', 'benchmark',
-        'rakip analiz', 'fiyat analiz', 'trend analiz',
+        'analiz',
+        'değerlendir',
+        'incele',
+        'karşılaştır',
+        'benchmark',
+        'rakip analiz',
+        'fiyat analiz',
+        'trend analiz',
       ],
       confidenceBoost: 0.8,
       keywords: ['analiz', 'değerlendir', 'incele', 'karşılaştır', 'benchmark'],
@@ -109,22 +196,22 @@ export class AISmartIntentService {
 
   // Platform detection patterns
   private readonly platformPatterns: Record<string, string[]> = {
-    'TRENDYOL': ['trendyol', 'trend', 'ty'],
-    'AMAZON': ['amazon', 'amazonda', 'amz'],
-    'HEPSIBURADA': ['hepsiburada', 'hb', 'hepsi'],
-    'N11': ['n11', 'n 11', 'n11.com'],
-    'CICEKSEPETI': ['çiçek sepeti', 'ciceksepeti', 'çiçek'],
-    'PTTAVM': ['ptt', 'pttavm'],
-    'GITTIGIDIYOR': ['gittigidiyor', 'gg', 'gitti'],
-    'MORHIPO': ['morhipo', 'mor'],
-    'ALIBABA': ['alibaba', '1688'],
-    'ALIEXPRESS': ['aliexpress', 'ali express', 'aliexp'],
-    'SHOPEE': ['shopee', 'shope'],
-    'EBAY': ['ebay', 'e-bay'],
-    'ETSY': ['etsy'],
-    'WALMART': ['walmart'],
-    'LAZADA': ['lazada'],
-    'ALL': ['tümü', 'tüm', 'hepsi', 'all', 'tüm pazaryerleri'],
+    TRENDYOL: ['trendyol', 'trend', 'ty'],
+    AMAZON: ['amazon', 'amazonda', 'amz'],
+    HEPSIBURADA: ['hepsiburada', 'hb', 'hepsi'],
+    N11: ['n11', 'n 11', 'n11.com'],
+    CICEKSEPETI: ['çiçek sepeti', 'ciceksepeti', 'çiçek'],
+    PTTAVM: ['ptt', 'pttavm'],
+    GITTIGIDIYOR: ['gittigidiyor', 'gg', 'gitti'],
+    MORHIPO: ['morhipo', 'mor'],
+    ALIBABA: ['alibaba', '1688'],
+    ALIEXPRESS: ['aliexpress', 'ali express', 'aliexp'],
+    SHOPEE: ['shopee', 'shope'],
+    EBAY: ['ebay', 'e-bay'],
+    ETSY: ['etsy'],
+    WALMART: ['walmart'],
+    LAZADA: ['lazada'],
+    ALL: ['tümü', 'tüm', 'hepsi', 'all', 'tüm pazaryerleri'],
   };
 
   constructor(
@@ -142,27 +229,35 @@ export class AISmartIntentService {
     conversationContext?: ConversationContext,
   ): Promise<IntentResult> {
     const lowerMessage = message.toLowerCase();
-    
+
     // Step 1: Pattern-based detection
     let bestMatch = this.findBestPatternMatch(lowerMessage);
-    
+
     // Step 2: Context-based refinement
     if (conversationContext) {
-      bestMatch = await this.refineWithContext(bestMatch, conversationContext, lowerMessage);
+      bestMatch = await this.refineWithContext(
+        bestMatch,
+        conversationContext,
+        lowerMessage,
+      );
     }
-    
+
     // Step 3: Extract platform
     const platform = this.extractPlatform(lowerMessage);
-    
+
     // Step 4: Extract additional payload
     const payload = this.extractPayload(lowerMessage, bestMatch.type);
-    
+
     // Step 5: Learn from this interaction
     await this.learnFromInteraction(tenantId, userId, message, bestMatch);
-    
+
     // Step 6: Generate follow-up suggestions
-    const suggestedFollowUp = this.generateFollowUpSuggestions(bestMatch.type, platform, payload);
-    
+    const suggestedFollowUp = this.generateFollowUpSuggestions(
+      bestMatch.type,
+      platform,
+      payload,
+    );
+
     return {
       type: bestMatch.type as IntentResult['type'],
       confidence: bestMatch.confidence,
@@ -178,7 +273,11 @@ export class AISmartIntentService {
     confidence: number;
     contextHints: string[];
   } {
-    let bestMatch = { type: 'GENERAL', confidence: 0.3, contextHints: [] as string[] };
+    let bestMatch = {
+      type: 'GENERAL',
+      confidence: 0.3,
+      contextHints: [] as string[],
+    };
 
     for (const [intentType, config] of Object.entries(this.intentPatterns)) {
       let score = 0;
@@ -212,7 +311,11 @@ export class AISmartIntentService {
       score = Math.min(score, 1.0);
 
       if (score > bestMatch.confidence) {
-        bestMatch = { type: intentType, confidence: score, contextHints: hints };
+        bestMatch = {
+          type: intentType,
+          confidence: score,
+          contextHints: hints,
+        };
       }
     }
 
@@ -224,17 +327,19 @@ export class AISmartIntentService {
     context: ConversationContext,
     message: string,
   ): Promise<{ type: string; confidence: number; contextHints: string[] }> {
-    let refined = { ...currentMatch };
+    const refined = { ...currentMatch };
 
     // If confidence is low, use context to boost
     if (currentMatch.confidence < 0.6 && context.previousMessages.length > 0) {
       const lastUserMessage = context.previousMessages
         .reverse()
-        .find(m => m.role === 'user');
-      
+        .find((m) => m.role === 'user');
+
       if (lastUserMessage) {
-        const lastIntent = this.findBestPatternMatch(lastUserMessage.content.toLowerCase());
-        
+        const lastIntent = this.findBestPatternMatch(
+          lastUserMessage.content.toLowerCase(),
+        );
+
         // If current message is short/ambiguous, likely a follow-up
         if (message.length < 20 && lastIntent.confidence > 0.7) {
           refined.type = lastIntent.type;
@@ -273,7 +378,7 @@ export class AISmartIntentService {
 
   private extractPlatform(message: string): string | undefined {
     const platforms: string[] = [];
-    
+
     for (const [platform, keywords] of Object.entries(this.platformPatterns)) {
       for (const keyword of keywords) {
         if (message.includes(keyword)) {
@@ -287,7 +392,7 @@ export class AISmartIntentService {
     if (platforms.includes('ALL')) {
       return 'ALL';
     }
-    
+
     return platforms.length > 0 ? platforms[0] : undefined;
   }
 
@@ -323,7 +428,11 @@ export class AISmartIntentService {
 
     // Extract file types for bulk uploads
     if (intentType === 'BULK_UPLOAD') {
-      if (message.includes('excel') || message.includes('xlsx') || message.includes('xls')) {
+      if (
+        message.includes('excel') ||
+        message.includes('xlsx') ||
+        message.includes('xls')
+      ) {
         payload.fileType = 'excel';
       } else if (message.includes('csv')) {
         payload.fileType = 'csv';
@@ -333,7 +442,14 @@ export class AISmartIntentService {
     }
 
     // Extract date/time references
-    const dateWords = ['bugün', 'yarın', 'bu hafta', 'gelecek hafta', 'today', 'tomorrow'];
+    const dateWords = [
+      'bugün',
+      'yarın',
+      'bu hafta',
+      'gelecek hafta',
+      'today',
+      'tomorrow',
+    ];
     for (const word of dateWords) {
       if (message.includes(word)) {
         payload.timeReference = word;
@@ -343,7 +459,9 @@ export class AISmartIntentService {
 
     // Extract optimization preferences
     if (message.includes('optimizasyon') || message.includes('optimize')) {
-      payload.optimize = !message.includes('optimizasyon yok') && !message.includes('optimize etme');
+      payload.optimize =
+        !message.includes('optimizasyon yok') &&
+        !message.includes('optimize etme');
     }
 
     return payload;
@@ -359,7 +477,9 @@ export class AISmartIntentService {
     switch (intentType) {
       case 'BRAND_SYNC':
         suggestions.push('Hangi kategorilerde marka eşitlemek istersiniz?');
-        suggestions.push('Tüm markaları mı yoksa yeni eklenenleri mi eşitleyelim?');
+        suggestions.push(
+          'Tüm markaları mı yoksa yeni eklenenleri mi eşitleyelim?',
+        );
         break;
       case 'CATEGORY_SYNC':
         suggestions.push('Özellikleri de eşitlemek ister misiniz?');
@@ -452,7 +572,9 @@ export class AISmartIntentService {
       take: limit,
     });
 
-    return logs.map(log => (log.eventData as any)?.detectedIntent).filter(Boolean);
+    return logs
+      .map((log) => (log.eventData as any)?.detectedIntent)
+      .filter(Boolean);
   }
 
   async suggestIntentBasedOnHistory(
@@ -461,7 +583,7 @@ export class AISmartIntentService {
     partialMessage: string,
   ): Promise<string[]> {
     const history = await this.getIntentHistory(tenantId, userId, 20);
-    
+
     // Count frequency
     const frequency: Record<string, number> = {};
     for (const intent of history) {

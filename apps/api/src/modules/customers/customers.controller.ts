@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Delete, Param, Query, Body, Headers } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Query,
+  Body,
+  Headers,
+} from '@nestjs/common';
 import { CustomersService } from './customers.service';
 
 @Controller('customers')
@@ -8,7 +17,8 @@ export class CustomersController {
   @Get()
   async findAll(
     @Headers('x-tenant-id') tenantId: string,
-    @Query('status') status?: 'vip' | 'regular' | 'new' | 'at-risk' | 'inactive',
+    @Query('status')
+    status?: 'vip' | 'regular' | 'new' | 'at-risk' | 'inactive',
     @Query('search') search?: string,
     @Query('sortBy') sortBy?: string,
     @Query('page') page?: string,
@@ -48,7 +58,11 @@ export class CustomersController {
     @Headers('x-tenant-id') tenantId: string,
     @Body() body: { tag: string },
   ) {
-    return this.customersService.addTag(id, tenantId || 'demo-tenant', body.tag);
+    return this.customersService.addTag(
+      id,
+      tenantId || 'demo-tenant',
+      body.tag,
+    );
   }
 
   @Delete(':id/tags/:tag')
@@ -66,6 +80,10 @@ export class CustomersController {
     @Headers('x-tenant-id') tenantId: string,
     @Body() body: { note: string },
   ) {
-    return this.customersService.addNote(id, tenantId || 'demo-tenant', body.note);
+    return this.customersService.addNote(
+      id,
+      tenantId || 'demo-tenant',
+      body.note,
+    );
   }
 }

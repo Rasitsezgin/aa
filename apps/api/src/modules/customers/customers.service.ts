@@ -15,18 +15,27 @@ export class CustomersService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(filters: CustomerFilters) {
-    const { tenantId, status, search, sortBy = 'totalSpent', page = 1, limit = 20 } = filters;
+    const {
+      tenantId,
+      status,
+      search,
+      sortBy = 'totalSpent',
+      page = 1,
+      limit = 20,
+    } = filters;
 
     // Fetch orders to aggregate customer data
     const orders = await this.prisma.order.findMany({
       where: {
         tenantId,
-        ...(search ? {
-          OR: [
-            { customerName: { contains: search, mode: 'insensitive' } },
-            { customerEmail: { contains: search, mode: 'insensitive' } },
-          ]
-        } : {})
+        ...(search
+          ? {
+              OR: [
+                { customerName: { contains: search, mode: 'insensitive' } },
+                { customerEmail: { contains: search, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
       },
       select: {
         customerEmail: true,
@@ -56,12 +65,12 @@ export class CustomersService {
           joinDate: order.orderDate,
         });
       }
-      
+
       const c = customerMap.get(email);
       c.totalOrders += 1;
       c.totalSpent += Number(order.totalAmount);
       c.platforms.add(order.platform);
-      
+
       const orderDate = new Date(order.orderDate);
       if (orderDate > new Date(c.lastOrderDate)) {
         c.lastOrderDate = order.orderDate;
@@ -72,12 +81,15 @@ export class CustomersService {
     }
 
     const now = new Date();
-    let customersList = Array.from(customerMap.values()).map(c => {
-      const recency = Math.floor((now.getTime() - new Date(c.lastOrderDate).getTime()) / 86400000);
+    let customersList = Array.from(customerMap.values()).map((c) => {
+      const recency = Math.floor(
+        (now.getTime() - new Date(c.lastOrderDate).getTime()) / 86400000,
+      );
       const avgOrderValue = c.totalSpent / c.totalOrders;
-      
+
       // Basic RFM mapping for status
-      let segment: 'vip' | 'regular' | 'new' | 'at-risk' | 'inactive' = 'regular';
+      let segment: 'vip' | 'regular' | 'new' | 'at-risk' | 'inactive' =
+        'regular';
       if (c.totalSpent > 10000 || c.totalOrders > 10) segment = 'vip';
       else if (recency < 30 && c.totalOrders === 1) segment = 'new';
       else if (recency > 90) segment = 'at-risk';
@@ -89,20 +101,30 @@ export class CustomersService {
         totalSpent: Math.round(c.totalSpent * 100) / 100,
         status: segment,
         platforms: Array.from(c.platforms),
-        loyaltyScore: Math.round(((this.calculateRecencyScore(recency) + this.calculateFrequencyScore(c.totalOrders) + this.calculateMonetaryScore(c.totalSpent)) / 15) * 100),
+        loyaltyScore: Math.round(
+          ((this.calculateRecencyScore(recency) +
+            this.calculateFrequencyScore(c.totalOrders) +
+            this.calculateMonetaryScore(c.totalSpent)) /
+            15) *
+            100,
+        ),
       };
     });
 
     // Filter by status if requested
     if (status) {
-      customersList = customersList.filter(c => c.status === status);
+      customersList = customersList.filter((c) => c.status === status);
     }
 
     // Sort
     customersList.sort((a, b) => {
       if (sortBy === 'totalSpent') return b.totalSpent - a.totalSpent;
       if (sortBy === 'totalOrders') return b.totalOrders - a.totalOrders;
-      if (sortBy === 'lastOrder') return new Date(b.lastOrderDate).getTime() - new Date(a.lastOrderDate).getTime();
+      if (sortBy === 'lastOrder')
+        return (
+          new Date(b.lastOrderDate).getTime() -
+          new Date(a.lastOrderDate).getTime()
+        );
       return 0;
     });
 
@@ -116,8 +138,8 @@ export class CustomersService {
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / limit),
+      },
     };
   }
 
@@ -136,13 +158,13 @@ export class CustomersService {
         orderDate: true,
         platform: true,
         id: true,
-        status: true
+        status: true,
       },
-      orderBy: { orderDate: 'desc' }
+      orderBy: { orderDate: 'desc' },
     });
 
     // Find the customer that matches the ID
-    const customerOrders = orders.filter(o => {
+    const customerOrders = orders.filter((o) => {
       const email = o.customerEmail || 'unknown@customer.com';
       return email.replace(/[^a-zA-Z0-9]/g, '') === id;
     });
@@ -150,10 +172,15 @@ export class CustomersService {
     if (customerOrders.length === 0) return null;
 
     const latestOrder = customerOrders[0];
-    const totalSpent = customerOrders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
+    const totalSpent = customerOrders.reduce(
+      (sum, o) => sum + Number(o.totalAmount),
+      0,
+    );
     const avgOrderValue = totalSpent / customerOrders.length;
     const now = new Date();
-    const recency = Math.floor((now.getTime() - new Date(latestOrder.orderDate).getTime()) / 86400000);
+    const recency = Math.floor(
+      (now.getTime() - new Date(latestOrder.orderDate).getTime()) / 86400000,
+    );
 
     return {
       id,
@@ -165,15 +192,21 @@ export class CustomersService {
       totalSpent: Math.round(totalSpent * 100) / 100,
       averageOrder: Math.round(avgOrderValue * 100) / 100,
       lastOrderDate: latestOrder.orderDate,
-      loyaltyScore: Math.round(((this.calculateRecencyScore(recency) + this.calculateFrequencyScore(customerOrders.length) + this.calculateMonetaryScore(totalSpent)) / 15) * 100),
-      platforms: Array.from(new Set(customerOrders.map(o => o.platform))),
-      recentOrders: customerOrders.slice(0, 5).map(o => ({
+      loyaltyScore: Math.round(
+        ((this.calculateRecencyScore(recency) +
+          this.calculateFrequencyScore(customerOrders.length) +
+          this.calculateMonetaryScore(totalSpent)) /
+          15) *
+          100,
+      ),
+      platforms: Array.from(new Set(customerOrders.map((o) => o.platform))),
+      recentOrders: customerOrders.slice(0, 5).map((o) => ({
         id: o.id,
         date: o.orderDate,
         amount: Number(o.totalAmount),
-        status: o.status
+        status: o.status,
       })),
-      notes: [] // These would need a separate model
+      notes: [], // These would need a separate model
     };
   }
 
@@ -183,8 +216,8 @@ export class CustomersService {
       select: {
         customerEmail: true,
         totalAmount: true,
-        orderDate: true
-      }
+        orderDate: true,
+      },
     });
 
     if (orders.length === 0) {
@@ -200,7 +233,7 @@ export class CustomersService {
         averageOrderValue: 0,
         retentionRate: 0,
         growth: { thisMonth: 0, lastMonth: 0 },
-        topCities: []
+        topCities: [],
       };
     }
 
@@ -211,25 +244,36 @@ export class CustomersService {
       const email = order.customerEmail || 'unknown';
       totalRevenue += Number(order.totalAmount);
       if (!customerMap.has(email)) {
-        customerMap.set(email, { orders: 0, spent: 0, firstDate: order.orderDate, lastDate: order.orderDate });
+        customerMap.set(email, {
+          orders: 0,
+          spent: 0,
+          firstDate: order.orderDate,
+          lastDate: order.orderDate,
+        });
       }
       const c = customerMap.get(email);
       c.orders += 1;
       c.spent += Number(order.totalAmount);
-      
+
       const orderDate = new Date(order.orderDate);
       if (orderDate > new Date(c.lastDate)) c.lastDate = order.orderDate;
       if (orderDate < new Date(c.firstDate)) c.firstDate = order.orderDate;
     }
 
     const total = customerMap.size;
-    let vip = 0, regular = 0, newCust = 0, atRisk = 0, inactive = 0;
+    let vip = 0,
+      regular = 0,
+      newCust = 0,
+      atRisk = 0,
+      inactive = 0;
     const now = new Date();
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     for (const c of customerMap.values()) {
-      const recency = Math.floor((now.getTime() - new Date(c.lastDate).getTime()) / 86400000);
-      
+      const recency = Math.floor(
+        (now.getTime() - new Date(c.lastDate).getTime()) / 86400000,
+      );
+
       if (new Date(c.firstDate) >= firstOfMonth) newCust++;
 
       if (c.spent > 10000 || c.orders > 10) vip++;
@@ -253,9 +297,9 @@ export class CustomersService {
       customerGrowth: 0,
       growth: {
         thisMonth: 0,
-        lastMonth: 0
+        lastMonth: 0,
       },
-      topCities: []
+      topCities: [],
     };
   }
 
@@ -272,7 +316,7 @@ export class CustomersService {
       id: Date.now(),
       customerId,
       text: note,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
   }
 
@@ -284,22 +328,22 @@ export class CustomersService {
         name: 'VIP Müşteriler',
         description: 'En değerli müşterileriniz',
         count: stats.vipCustomers,
-        criteria: { totalSpent: { gte: 10000 } }
+        criteria: { totalSpent: { gte: 10000 } },
       },
       {
         id: 'seg-2',
         name: 'Sadık Müşteriler',
         description: 'Düzenli alışveriş yapanlar',
         count: stats.regularCustomers,
-        criteria: { totalOrders: { gte: 5 } }
+        criteria: { totalOrders: { gte: 5 } },
       },
       {
         id: 'seg-3',
         name: 'Risk Grubu',
         description: 'Uzaklaşmaya başlayanlar',
         count: stats.atRiskCustomers,
-        criteria: { lastOrderDaysAgo: { gte: 90 } }
-      }
+        criteria: { lastOrderDaysAgo: { gte: 90 } },
+      },
     ];
   }
   private calculateRecencyScore(days: number): number {

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../database/prisma.service';
@@ -62,7 +62,11 @@ export class AIIntegrationService {
     // Get user's integration preferences
     const config = await this.getIntegrationConfig(tenantId, userId);
 
-    const results: Array<{ success: boolean; channel: string; error?: string }> = [];
+    const results: Array<{
+      success: boolean;
+      channel: string;
+      error?: string;
+    }> = [];
 
     // Send to all configured channels
     if (config.slack) {
@@ -86,10 +90,16 @@ export class AIIntegrationService {
     }
 
     // Return first successful or first failed
-    const success = results.find(r => r.success);
+    const success = results.find((r) => r.success);
     if (success) return success;
 
-    return results[0] || { success: false, channel: 'none', error: 'No channels configured' };
+    return (
+      results[0] || {
+        success: false,
+        channel: 'none',
+        error: 'No channels configured',
+      }
+    );
   }
 
   // ==================== SLACK INTEGRATION ====================
@@ -100,7 +110,11 @@ export class AIIntegrationService {
   ): Promise<{ success: boolean; channel: string; error?: string }> {
     try {
       if (!config?.webhookUrl) {
-        return { success: false, channel: 'slack', error: 'No webhook URL configured' };
+        return {
+          success: false,
+          channel: 'slack',
+          error: 'No webhook URL configured',
+        };
       }
 
       const payload = {
@@ -120,18 +134,22 @@ export class AIIntegrationService {
               text: message.message,
             },
           },
-          ...(message.buttons ? [{
-            type: 'actions',
-            elements: message.buttons.map(btn => ({
-              type: 'button',
-              text: {
-                type: 'plain_text',
-                text: btn.text,
-              },
-              url: btn.url,
-              style: btn.style,
-            })),
-          }] : []),
+          ...(message.buttons
+            ? [
+                {
+                  type: 'actions',
+                  elements: message.buttons.map((btn) => ({
+                    type: 'button',
+                    text: {
+                      type: 'plain_text',
+                      text: btn.text,
+                    },
+                    url: btn.url,
+                    style: btn.style,
+                  })),
+                },
+              ]
+            : []),
         ],
       };
 
@@ -144,10 +162,18 @@ export class AIIntegrationService {
       if (response.ok) {
         return { success: true, channel: 'slack' };
       } else {
-        return { success: false, channel: 'slack', error: `HTTP ${response.status}` };
+        return {
+          success: false,
+          channel: 'slack',
+          error: `HTTP ${response.status}`,
+        };
       }
     } catch (error) {
-      return { success: false, channel: 'slack', error: error instanceof Error ? error.message : 'Unknown error' };
+      return {
+        success: false,
+        channel: 'slack',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 
@@ -159,7 +185,11 @@ export class AIIntegrationService {
   ): Promise<{ success: boolean; channel: string; error?: string }> {
     try {
       if (!config?.webhookUrl) {
-        return { success: false, channel: 'teams', error: 'No webhook URL configured' };
+        return {
+          success: false,
+          channel: 'teams',
+          error: 'No webhook URL configured',
+        };
       }
 
       const payload = {
@@ -169,7 +199,7 @@ export class AIIntegrationService {
         themeColor: '0078D7',
         title: message.title,
         text: message.message,
-        potentialAction: message.buttons?.map(btn => ({
+        potentialAction: message.buttons?.map((btn) => ({
           '@type': 'OpenUri',
           name: btn.text,
           targets: [{ os: 'default', uri: btn.url || '#' }],
@@ -185,10 +215,18 @@ export class AIIntegrationService {
       if (response.ok) {
         return { success: true, channel: 'teams' };
       } else {
-        return { success: false, channel: 'teams', error: `HTTP ${response.status}` };
+        return {
+          success: false,
+          channel: 'teams',
+          error: `HTTP ${response.status}`,
+        };
       }
     } catch (error) {
-      return { success: false, channel: 'teams', error: error instanceof Error ? error.message : 'Unknown error' };
+      return {
+        success: false,
+        channel: 'teams',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 
@@ -200,7 +238,11 @@ export class AIIntegrationService {
   ): Promise<{ success: boolean; channel: string; error?: string }> {
     try {
       if (!config?.apiKey || !config?.phoneNumberId) {
-        return { success: false, channel: 'whatsapp', error: 'WhatsApp not configured' };
+        return {
+          success: false,
+          channel: 'whatsapp',
+          error: 'WhatsApp not configured',
+        };
       }
 
       const payload = {
@@ -213,14 +255,17 @@ export class AIIntegrationService {
         },
       };
 
-      const response = await fetch(`https://graph.facebook.com/v18.0/${config.phoneNumberId}/messages`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${config.apiKey}`,
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `https://graph.facebook.com/v18.0/${config.phoneNumberId}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${config.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      });
+      );
 
       if (response.ok) {
         return { success: true, channel: 'whatsapp' };
@@ -229,7 +274,11 @@ export class AIIntegrationService {
         return { success: false, channel: 'whatsapp', error };
       }
     } catch (error) {
-      return { success: false, channel: 'whatsapp', error: error instanceof Error ? error.message : 'Unknown error' };
+      return {
+        success: false,
+        channel: 'whatsapp',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 
@@ -241,13 +290,19 @@ export class AIIntegrationService {
   ): Promise<{ success: boolean; channel: string; error?: string }> {
     try {
       if (!config?.smtpHost) {
-        return { success: false, channel: 'email', error: 'Email not configured' };
+        return {
+          success: false,
+          channel: 'email',
+          error: 'Email not configured',
+        };
       }
 
       // Use nodemailer or similar for real email sending
       // For now, return success if config exists
-      this.logger.log(`Sending email to ${message.recipient} via ${config.smtpHost}`);
-      
+      this.logger.log(
+        `Sending email to ${message.recipient} via ${config.smtpHost}`,
+      );
+
       // Real implementation would use:
       // const nodemailer = require('nodemailer');
       // const transporter = nodemailer.createTransport({...});
@@ -255,7 +310,11 @@ export class AIIntegrationService {
 
       return { success: true, channel: 'email' };
     } catch (error) {
-      return { success: false, channel: 'email', error: error instanceof Error ? error.message : 'Unknown error' };
+      return {
+        success: false,
+        channel: 'email',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 
@@ -267,7 +326,11 @@ export class AIIntegrationService {
   ): Promise<{ success: boolean; channel: string; error?: string }> {
     try {
       if (!config?.url) {
-        return { success: false, channel: 'webhook', error: 'Webhook URL not configured' };
+        return {
+          success: false,
+          channel: 'webhook',
+          error: 'Webhook URL not configured',
+        };
       }
 
       const response = await fetch(config.url, {
@@ -285,16 +348,27 @@ export class AIIntegrationService {
       if (response.ok) {
         return { success: true, channel: 'webhook' };
       } else {
-        return { success: false, channel: 'webhook', error: `HTTP ${response.status}` };
+        return {
+          success: false,
+          channel: 'webhook',
+          error: `HTTP ${response.status}`,
+        };
       }
     } catch (error) {
-      return { success: false, channel: 'webhook', error: error instanceof Error ? error.message : 'Unknown error' };
+      return {
+        success: false,
+        channel: 'webhook',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 
   // ==================== CONFIGURATION MANAGEMENT ====================
 
-  async getIntegrationConfig(tenantId: string, userId: string): Promise<IntegrationConfig> {
+  async getIntegrationConfig(
+    tenantId: string,
+    userId: string,
+  ): Promise<IntegrationConfig> {
     const config = await this.prisma.aIUserPreference.findFirst({
       where: {
         tenantId,
@@ -339,7 +413,11 @@ export class AIIntegrationService {
 
   // ==================== TEMPLATE MESSAGES ====================
 
-  getSyncCompleteMessage(platform: string, stats: any, language = 'tr'): IntegrationMessage {
+  getSyncCompleteMessage(
+    platform: string,
+    stats: any,
+    language = 'tr',
+  ): IntegrationMessage {
     const messages: Record<string, { title: string; message: string }> = {
       tr: {
         title: `✅ ${platform} Eşitleme Tamamlandı`,
@@ -368,7 +446,11 @@ export class AIIntegrationService {
     };
   }
 
-  getErrorMessage(error: string, platform: string, language = 'tr'): IntegrationMessage {
+  getErrorMessage(
+    error: string,
+    platform: string,
+    language = 'tr',
+  ): IntegrationMessage {
     const messages: Record<string, { title: string; message: string }> = {
       tr: {
         title: `❌ ${platform} Hatası`,

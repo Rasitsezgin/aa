@@ -19,6 +19,9 @@ export class CustomerSegmentationController {
     @Param('name') name: string,
     @Headers('x-tenant-id') tenantId: string,
   ) {
-    return this.segmentationService.getSegmentDetail(tenantId || 'demo-tenant', name);
+    return this.segmentationService.getSegmentDetail(
+      tenantId || 'demo-tenant',
+      name,
+    );
   }
 }

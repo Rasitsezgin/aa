@@ -16,7 +16,9 @@ export class SyncJobProcessor extends WorkerHost {
   }
 
   async process(job: Job): Promise<any> {
-    this.logger.log(`Senkronizasyon işleniyor: ${job.name} - Platform: ${job.data.platform}`);
+    this.logger.log(
+      `Senkronizasyon işleniyor: ${job.name} - Platform: ${job.data.platform}`,
+    );
 
     const { tenantId, platform, integrationId } = job.data;
 
@@ -29,11 +31,24 @@ export class SyncJobProcessor extends WorkerHost {
         case 'products-sync':
           return await this.syncProducts(tenantId, platform, integrationId);
         case 'marketplace-product-sync':
-          return await this.syncMarketplaceProducts(tenantId, platform, integrationId);
+          return await this.syncMarketplaceProducts(
+            tenantId,
+            platform,
+            integrationId,
+          );
         case 'seo-analysis':
-          return await this.runSeoAnalysis(tenantId, platform, integrationId, job.data.storeId);
+          return await this.runSeoAnalysis(
+            tenantId,
+            platform,
+            integrationId,
+            job.data.storeId,
+          );
         case 'price-monitoring':
-          return await this.runPriceMonitoring(tenantId, platform, integrationId);
+          return await this.runPriceMonitoring(
+            tenantId,
+            platform,
+            integrationId,
+          );
         case 'health-check':
           return await this.runHealthCheck(tenantId, platform, integrationId);
         default:
@@ -56,17 +71,21 @@ export class SyncJobProcessor extends WorkerHost {
     }
   }
 
-  private async syncInventory(tenantId: string, platform: string, integrationId: string) {
+  private async syncInventory(
+    tenantId: string,
+    platform: string,
+    integrationId: string,
+  ) {
     this.logger.log(`Stok senkronizasyonu: ${platform}`);
-    
+
     try {
       const bridge = await this.marketplaceService.getBridgeForTenant(
-        tenantId, 
-        platform.toUpperCase() as any
+        tenantId,
+        platform.toUpperCase() as any,
       );
-      
+
       const result = await bridge.syncProducts();
-      
+
       await this.prisma.activityLog.create({
         data: {
           tenantId,
@@ -84,17 +103,21 @@ export class SyncJobProcessor extends WorkerHost {
     }
   }
 
-  private async syncOrders(tenantId: string, platform: string, integrationId: string) {
+  private async syncOrders(
+    tenantId: string,
+    platform: string,
+    integrationId: string,
+  ) {
     this.logger.log(`Sipariş senkronizasyonu: ${platform}`);
-    
+
     try {
       const bridge = await this.marketplaceService.getBridgeForTenant(
         tenantId,
-        platform.toUpperCase() as any
+        platform.toUpperCase() as any,
       );
-      
+
       const result = await bridge.syncOrders();
-      
+
       await this.prisma.activityLog.create({
         data: {
           tenantId,
@@ -112,23 +135,36 @@ export class SyncJobProcessor extends WorkerHost {
     }
   }
 
-  private async syncProducts(tenantId: string, platform: string, integrationId: string) {
+  private async syncProducts(
+    tenantId: string,
+    platform: string,
+    integrationId: string,
+  ) {
     this.logger.log(`Ürün senkronizasyonu: ${platform}`);
     return this.syncInventory(tenantId, platform, integrationId);
   }
 
-  private async syncMarketplaceProducts(tenantId: string, platform: string, integrationId: string) {
+  private async syncMarketplaceProducts(
+    tenantId: string,
+    platform: string,
+    integrationId: string,
+  ) {
     this.logger.log(`Pazaryeri ürün senkronizasyonu: ${platform}`);
     return this.syncInventory(tenantId, platform, integrationId);
   }
 
-  private async runSeoAnalysis(tenantId: string, platform: string, integrationId: string, storeId: string) {
+  private async runSeoAnalysis(
+    tenantId: string,
+    platform: string,
+    integrationId: string,
+    storeId: string,
+  ) {
     this.logger.log(`SEO analizi: ${platform} - ${storeId}`);
-    
+
     try {
       const analysis = await this.marketplaceService.analyzeStore(
         platform.toUpperCase() as any,
-        storeId
+        storeId,
       );
 
       await this.prisma.activityLog.create({
@@ -148,9 +184,13 @@ export class SyncJobProcessor extends WorkerHost {
     }
   }
 
-  private async runPriceMonitoring(tenantId: string, platform: string, integrationId: string) {
+  private async runPriceMonitoring(
+    tenantId: string,
+    platform: string,
+    integrationId: string,
+  ) {
     this.logger.log(`Fiyat izleme: ${platform}`);
-    
+
     // Price monitoring implementation
     await this.prisma.activityLog.create({
       data: {
@@ -166,19 +206,23 @@ export class SyncJobProcessor extends WorkerHost {
   }
 
   // ==================== HEALTH CHECK ====================
-  private async runHealthCheck(tenantId: string, platform: string, integrationId: string) {
+  private async runHealthCheck(
+    tenantId: string,
+    platform: string,
+    integrationId: string,
+  ) {
     this.logger.log(`Sağlık kontrolü: ${platform}`);
-    
+
     try {
       const bridge = await this.marketplaceService.getBridgeForTenant(
         tenantId,
-        platform.toUpperCase() as any
+        platform.toUpperCase() as any,
       );
-      
+
       // Try to get products (lightweight operation)
       let isHealthy = false;
       let errorMessage = null;
-      
+
       try {
         // Just try to sync a small amount to test connection
         const testResult = await bridge.syncProducts();
@@ -186,7 +230,9 @@ export class SyncJobProcessor extends WorkerHost {
       } catch (error) {
         isHealthy = false;
         errorMessage = error.message;
-        this.logger.warn(`Sağlık kontrolü başarısız: ${platform} - ${error.message}`);
+        this.logger.warn(
+          `Sağlık kontrolü başarısız: ${platform} - ${error.message}`,
+        );
       }
 
       // Update integration status
@@ -204,20 +250,20 @@ export class SyncJobProcessor extends WorkerHost {
           action: isHealthy ? 'health.check.success' : 'health.check.failed',
           resource: 'integration',
           resourceId: integrationId,
-          details: { 
-            platform, 
-            isHealthy, 
+          details: {
+            platform,
+            isHealthy,
             error: errorMessage,
-            checkedAt: new Date().toISOString()
+            checkedAt: new Date().toISOString(),
           } as any,
         },
       });
 
-      return { 
-        platform, 
-        isHealthy, 
+      return {
+        platform,
+        isHealthy,
         error: errorMessage,
-        checkedAt: new Date().toISOString()
+        checkedAt: new Date().toISOString(),
       };
     } catch (error) {
       this.logger.error(`Sağlık kontrolü hatası: ${error.message}`);

@@ -7,7 +7,7 @@ export enum Permission {
   PRODUCT_CREATE = 'product:create',
   PRODUCT_EDIT = 'product:edit',
   PRODUCT_DELETE = 'product:delete',
-  
+
   // Orders
   ORDER_VIEW = 'order:view',
   ORDER_CREATE = 'order:create',
@@ -15,27 +15,27 @@ export enum Permission {
   ORDER_DELETE = 'order:delete',
   ORDER_SHIP = 'order:ship',
   ORDER_REFUND = 'order:refund',
-  
+
   // Customers
   CUSTOMER_VIEW = 'customer:view',
   CUSTOMER_CREATE = 'customer:create',
   CUSTOMER_EDIT = 'customer:edit',
   CUSTOMER_DELETE = 'customer:delete',
-  
+
   // Analytics
   ANALYTICS_VIEW = 'analytics:view',
   ANALYTICS_EXPORT = 'analytics:export',
-  
+
   // Settings
   SETTINGS_VIEW = 'settings:view',
   SETTINGS_EDIT = 'settings:edit',
   USER_MANAGE = 'user:manage',
   ROLE_MANAGE = 'role:manage',
-  
+
   // Financial
   FINANCIAL_VIEW = 'financial:view',
   FINANCIAL_REFUND = 'financial:refund',
-  
+
   // Admin
   ADMIN_ACCESS = 'admin:access',
   AUDIT_VIEW = 'audit:view',
@@ -136,7 +136,7 @@ export class RBACService {
   async createRole(
     name: string,
     description: string,
-    permissions: Permission[]
+    permissions: Permission[],
   ): Promise<Role> {
     return {
       id: `role_${Date.now()}`,
@@ -152,7 +152,7 @@ export class RBACService {
   // Update role permissions
   async updateRolePermissions(
     roleId: string,
-    permissions: Permission[]
+    permissions: Permission[],
   ): Promise<{ success: boolean; message: string }> {
     return {
       success: true,
@@ -161,7 +161,9 @@ export class RBACService {
   }
 
   // Delete custom role
-  async deleteRole(roleId: string): Promise<{ success: boolean; message: string }> {
+  async deleteRole(
+    roleId: string,
+  ): Promise<{ success: boolean; message: string }> {
     if (DEFAULT_ROLES[roleId]?.isSystem) {
       return { success: false, message: 'Sistem rolleri silinemez' };
     }
@@ -172,7 +174,7 @@ export class RBACService {
   async assignRoleToUser(
     userId: string,
     roleId: string,
-    grantedBy: string
+    grantedBy: string,
   ): Promise<UserRole> {
     const role = DEFAULT_ROLES[roleId];
     return {
@@ -186,7 +188,10 @@ export class RBACService {
   }
 
   // Check permission
-  async hasPermission(userId: string, permission: Permission): Promise<boolean> {
+  async hasPermission(
+    userId: string,
+    permission: Permission,
+  ): Promise<boolean> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { role: { include: { permissions: true } } },
@@ -194,7 +199,7 @@ export class RBACService {
     if (!user?.role) return false;
     // Admin role has all permissions
     if (user.role.name === 'Yönetici' || user.type === 'ADMIN') return true;
-    return user.role.permissions.some(p => p.action === permission);
+    return user.role.permissions.some((p) => p.action === permission);
   }
 
   // Get user permissions
@@ -208,7 +213,7 @@ export class RBACService {
     if (user.role.name === 'Yönetici' || user.type === 'ADMIN') {
       return Object.values(Permission);
     }
-    return user.role.permissions.map(p => p.action as Permission);
+    return user.role.permissions.map((p) => p.action as Permission);
   }
 
   // Get role audit trail
@@ -265,24 +270,15 @@ export class RBACService {
         Permission.CUSTOMER_EDIT,
         Permission.CUSTOMER_DELETE,
       ],
-      analytics: [
-        Permission.ANALYTICS_VIEW,
-        Permission.ANALYTICS_EXPORT,
-      ],
+      analytics: [Permission.ANALYTICS_VIEW, Permission.ANALYTICS_EXPORT],
       settings: [
         Permission.SETTINGS_VIEW,
         Permission.SETTINGS_EDIT,
         Permission.USER_MANAGE,
         Permission.ROLE_MANAGE,
       ],
-      financial: [
-        Permission.FINANCIAL_VIEW,
-        Permission.FINANCIAL_REFUND,
-      ],
-      admin: [
-        Permission.ADMIN_ACCESS,
-        Permission.AUDIT_VIEW,
-      ],
+      financial: [Permission.FINANCIAL_VIEW, Permission.FINANCIAL_REFUND],
+      admin: [Permission.ADMIN_ACCESS, Permission.AUDIT_VIEW],
     };
   }
 
@@ -292,13 +288,13 @@ export class RBACService {
     issues: string[];
   }> {
     const issues: string[] = [];
-    
+
     for (const [roleId, role] of Object.entries(DEFAULT_ROLES)) {
       if (!role.name || role.permissions.length === 0) {
         issues.push(`Rol ${roleId} eksik konfigürasyon`);
       }
     }
-    
+
     return {
       valid: issues.length === 0,
       issues,

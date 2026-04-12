@@ -73,26 +73,35 @@ const STORAGE_KEY = 'pazar-theme-settings';
 
 // ─── Provider ─────────────────────────────────────────
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setTheme] = useState<ThemeSettings>(defaultThemeSettings);
-    const [mounted, setMounted] = useState(false);
-    const [systemPrefersDark, setSystemPrefersDark] = useState(true);
+    const [theme, setTheme] = useState<ThemeSettings>(() => {
+        if (typeof window === 'undefined') {
+            return defaultThemeSettings;
+        }
 
-    // Load saved theme on mount
-    useEffect(() => {
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                const parsed = JSON.parse(saved) as Partial<ThemeSettings>;
-                setTheme(prev => ({ ...prev, ...parsed }));
+            if (!saved) {
+                return defaultThemeSettings;
             }
-        } catch { /* ignore */ }
 
-        // Listen for system color scheme changes
+            const parsed = JSON.parse(saved) as Partial<ThemeSettings>;
+            return { ...defaultThemeSettings, ...parsed };
+        } catch {
+            return defaultThemeSettings;
+        }
+    });
+    const [systemPrefersDark, setSystemPrefersDark] = useState(() => {
+        if (typeof window === 'undefined') {
+            return true;
+        }
+        return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    });
+
+    // Listen for system color scheme changes
+    useEffect(() => {
         const mq = window.matchMedia('(prefers-color-scheme: dark)');
-        setSystemPrefersDark(mq.matches);
         const handler = (e: MediaQueryListEvent) => setSystemPrefersDark(e.matches);
         mq.addEventListener('change', handler);
-        setMounted(true);
         return () => mq.removeEventListener('change', handler);
     }, []);
 
@@ -103,7 +112,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     // Apply theme to DOM
     useEffect(() => {
-        if (!mounted) return;
         const root = document.documentElement;
 
         // Mode
@@ -139,7 +147,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
         // Backward compat
         localStorage.setItem('theme', resolvedMode);
-    }, [theme, resolvedMode, mounted]);
+    }, [theme, resolvedMode]);
 
     const setThemeSettings = useCallback((partial: Partial<ThemeSettings>) => {
         setTheme(prev => ({ ...prev, ...partial }));

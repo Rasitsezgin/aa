@@ -1,7 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { MarketplaceService, Platform } from '../marketplace/marketplace.service';
+import {
+  MarketplaceService,
+  Platform,
+} from '../marketplace/marketplace.service';
 import { AIAssistantGateway } from './ai-assistant.gateway';
 import { AiService } from '../ai/ai.service';
 import { AIContextMemoryService } from './services/ai-context-memory.service';
@@ -43,7 +46,14 @@ export interface AIAssistantConversation {
 }
 
 export interface AssistantAction {
-  type: 'BRAND_SYNC' | 'CATEGORY_SYNC' | 'ATTRIBUTE_SYNC' | 'PRODUCT_UPLOAD' | 'VARIANT_MANAGE' | 'BULK_UPLOAD' | 'GENERAL';
+  type:
+    | 'BRAND_SYNC'
+    | 'CATEGORY_SYNC'
+    | 'ATTRIBUTE_SYNC'
+    | 'PRODUCT_UPLOAD'
+    | 'VARIANT_MANAGE'
+    | 'BULK_UPLOAD'
+    | 'GENERAL';
   payload: any;
   platform?: string;
 }
@@ -114,7 +124,7 @@ export class AIAssistantService {
       tenantId: conversation.tenantId,
       userId: conversation.userId,
       title: conversation.title || undefined,
-      messages: conversation.messages.map(m => ({
+      messages: conversation.messages.map((m) => ({
         role: m.role as 'user' | 'assistant' | 'system',
         content: m.content,
         timestamp: m.createdAt,
@@ -138,7 +148,7 @@ export class AIAssistantService {
       include: { messages: { take: 1, orderBy: { createdAt: 'desc' } } },
     });
 
-    return conversations.map(c => ({
+    return conversations.map((c) => ({
       id: c.id,
       tenantId: c.tenantId,
       userId: c.userId,
@@ -176,7 +186,10 @@ export class AIAssistantService {
 
     // Build conversation context for smart intent detection
     const conversationContext = {
-      previousMessages: history.map(h => ({ role: h.role, content: h.content })),
+      previousMessages: history.map((h) => ({
+        role: h.role,
+        content: h.content,
+      })),
       activeWorkflow: undefined, // Could be retrieved from context memory
       userGoals: [], // Could be populated from context memory
       recentErrors: [], // Could be populated from error history
@@ -191,21 +204,20 @@ export class AIAssistantService {
     );
 
     // Get predictive suggestions
-    const predictiveSuggestions = await this.predictiveService.predictNextActions(
-      tenantId,
-      userId,
-    );
+    const predictiveSuggestions =
+      await this.predictiveService.predictNextActions(tenantId, userId);
 
     // Get personalized recommendations
-    const personalizedRecs = await this.predictiveService.getPersonalizedRecommendations(
-      tenantId,
-      userId,
-      { platform: intentResult.platform },
-    );
+    const personalizedRecs =
+      await this.predictiveService.getPersonalizedRecommendations(
+        tenantId,
+        userId,
+        { platform: intentResult.platform },
+      );
 
     // Process action
     let response: AIAssistantMessage;
-    
+
     if (intentResult.confidence > 0.6 && intentResult.type !== 'GENERAL') {
       // High confidence intent - execute action
       response = await this.executeSmartAction(intentResult, {
@@ -230,15 +242,18 @@ export class AIAssistantService {
       const aiResponse = await this.aiService.generateAssistantResponse(
         systemPrompt,
         content,
-        history.map(h => ({ role: h.role, content: h.content })),
+        history.map((h) => ({ role: h.role, content: h.content })),
       );
-      
+
       response = {
         role: 'assistant',
         content: aiResponse.text,
         timestamp: new Date(),
         metadata: {
-          suggestions: [...predictiveSuggestions.slice(0, 3), ...personalizedRecs.slice(0, 2)].map(s => ({
+          suggestions: [
+            ...predictiveSuggestions.slice(0, 3),
+            ...personalizedRecs.slice(0, 2),
+          ].map((s) => ({
             title: s.title,
             type: s.type,
           })),
@@ -300,10 +315,17 @@ export class AIAssistantService {
     );
 
     // Add context hints to the action execution
-    let response = await this.executeAction(action.type, action.payload, context);
+    const response = await this.executeAction(
+      action.type,
+      action.payload,
+      context,
+    );
 
     // Enhance response with smart insights
-    if (intentResult.suggestedFollowUp && intentResult.suggestedFollowUp.length > 0) {
+    if (
+      intentResult.suggestedFollowUp &&
+      intentResult.suggestedFollowUp.length > 0
+    ) {
       response.metadata = {
         ...response.metadata,
         followUpSuggestions: intentResult.suggestedFollowUp,
@@ -320,7 +342,10 @@ export class AIAssistantService {
     return response;
   }
 
-  private async getEnhancedSystemPrompt(tenantId: string, userId: string): Promise<string> {
+  private async getEnhancedSystemPrompt(
+    tenantId: string,
+    userId: string,
+  ): Promise<string> {
     // Get user preferences
     const platformPref = await this.learningService.getPreference(
       tenantId,
@@ -330,18 +355,21 @@ export class AIAssistantService {
     );
 
     // Get user patterns
-    const patterns = await this.learningService.detectPatterns(tenantId, userId);
+    const patterns = await this.learningService.detectPatterns(
+      tenantId,
+      userId,
+    );
 
     // Build personalized prompt
     let personalizedContext = '';
-    
+
     if (platformPref) {
       personalizedContext += `\nKullanıcının tercih ettiği platform: ${platformPref.value}\n`;
     }
 
     if (patterns.length > 0) {
       const topPatterns = patterns.slice(0, 3);
-      personalizedContext += `\nKullanıcının sık yaptığı işlemler: ${topPatterns.map(p => p.patternName).join(', ')}\n`;
+      personalizedContext += `\nKullanıcının sık yaptığı işlemler: ${topPatterns.map((p) => p.patternName).join(', ')}\n`;
     }
 
     return `Sen Sopyo AI Hub - Pazaryonetimi AI Asistanısın. E-ticaret ve pazaryeri yönetimi konusunda uzman bir dijital asistansın.
@@ -377,58 +405,100 @@ YANIT FORMATI:
 
   private async parseIntent(message: string): Promise<AssistantAction> {
     const lowerMessage = message.toLowerCase();
-    
+
     // Brand sync patterns
-    if (this.matchesAny(lowerMessage, [
-      'marka eşitle', 'marka senkronize', 'markaları güncelle',
-      'marka güncelle', 'brand sync', 'senkronize marka',
-    ])) {
+    if (
+      this.matchesAny(lowerMessage, [
+        'marka eşitle',
+        'marka senkronize',
+        'markaları güncelle',
+        'marka güncelle',
+        'brand sync',
+        'senkronize marka',
+      ])
+    ) {
       const platform = this.extractPlatform(lowerMessage);
       return { type: 'BRAND_SYNC', payload: {}, platform };
     }
 
     // Category sync patterns
-    if (this.matchesAny(lowerMessage, [
-      'kategori eşitle', 'kategori senkronize', 'kategorileri güncelle',
-      'kategori güncelle', 'category sync', 'senkronize kategori',
-      'kategori çek', 'kategorileri çek',
-    ])) {
+    if (
+      this.matchesAny(lowerMessage, [
+        'kategori eşitle',
+        'kategori senkronize',
+        'kategorileri güncelle',
+        'kategori güncelle',
+        'category sync',
+        'senkronize kategori',
+        'kategori çek',
+        'kategorileri çek',
+      ])
+    ) {
       const platform = this.extractPlatform(lowerMessage);
       return { type: 'CATEGORY_SYNC', payload: {}, platform };
     }
 
     // Attribute sync patterns
-    if (this.matchesAny(lowerMessage, [
-      'özellik eşitle', 'özellik senkronize', 'özellikleri güncelle',
-      'attribute sync', 'özellik çek', 'varyant özellik',
-    ])) {
+    if (
+      this.matchesAny(lowerMessage, [
+        'özellik eşitle',
+        'özellik senkronize',
+        'özellikleri güncelle',
+        'attribute sync',
+        'özellik çek',
+        'varyant özellik',
+      ])
+    ) {
       const platform = this.extractPlatform(lowerMessage);
       return { type: 'ATTRIBUTE_SYNC', payload: {}, platform };
     }
 
     // Product upload patterns
-    if (this.matchesAny(lowerMessage, [
-      'ürün yükle', 'ürün gönder', 'ürün ekle', 'product upload',
-      'yeni ürün', 'ürün oluştur', 'upload product',
-    ])) {
+    if (
+      this.matchesAny(lowerMessage, [
+        'ürün yükle',
+        'ürün gönder',
+        'ürün ekle',
+        'product upload',
+        'yeni ürün',
+        'ürün oluştur',
+        'upload product',
+      ])
+    ) {
       const platform = this.extractPlatform(lowerMessage);
       return { type: 'PRODUCT_UPLOAD', payload: {}, platform };
     }
 
     // Variant management patterns
-    if (this.matchesAny(lowerMessage, [
-      'varyant', 'varyantları', 'variant', 'beden', 'renk',
-      'boyut', 'seçenek', 'seçenekleri', 'options',
-    ])) {
+    if (
+      this.matchesAny(lowerMessage, [
+        'varyant',
+        'varyantları',
+        'variant',
+        'beden',
+        'renk',
+        'boyut',
+        'seçenek',
+        'seçenekleri',
+        'options',
+      ])
+    ) {
       const platform = this.extractPlatform(lowerMessage);
       return { type: 'VARIANT_MANAGE', payload: {}, platform };
     }
 
     // Bulk upload patterns
-    if (this.matchesAny(lowerMessage, [
-      'toplu yükle', 'bulk upload', 'toplu ürün', 'excel yükle',
-      'csv yükle', 'import', 'toplu import',
-    ])) {
+    if (
+      this.matchesAny(lowerMessage, [
+        'toplu yükle',
+        'bulk upload',
+        'toplu ürün',
+        'excel yükle',
+        'csv yükle',
+        'import',
+        'toplu import',
+      ])
+    ) {
       return { type: 'BULK_UPLOAD', payload: {} };
     }
 
@@ -436,30 +506,30 @@ YANIT FORMATI:
   }
 
   private matchesAny(message: string, patterns: string[]): boolean {
-    return patterns.some(pattern => message.includes(pattern));
+    return patterns.some((pattern) => message.includes(pattern));
   }
 
   private extractPlatform(message: string): string | undefined {
     const platforms: Record<string, string[]> = {
-      'TRENDYOL': ['trendyol', 'trend'],
-      'AMAZON': ['amazon', 'amazonda'],
-      'HEPSIBURADA': ['hepsiburada', 'hb', 'hepsi'],
-      'N11': ['n11', 'n 11'],
-      'CICEKSEPETI': ['çiçek sepeti', 'ciceksepeti', 'çiçek'],
-      'PTTAVM': ['ptt', 'pttavm'],
-      'GITTIGIDIYOR': ['gittigidiyor', 'gg', 'gitti'],
-      'MORHIPO': ['morhipo'],
-      'ALIBABA': ['alibaba', '1688'],
-      'ALIEXPRESS': ['aliexpress', 'ali express'],
-      'SHOPEE': ['shopee', 'shope'],
-      'EBAY': ['ebay', 'e-bay'],
-      'ETSY': ['etsy'],
-      'WALMART': ['walmart'],
-      'LAZADA': ['lazada'],
+      TRENDYOL: ['trendyol', 'trend'],
+      AMAZON: ['amazon', 'amazonda'],
+      HEPSIBURADA: ['hepsiburada', 'hb', 'hepsi'],
+      N11: ['n11', 'n 11'],
+      CICEKSEPETI: ['çiçek sepeti', 'ciceksepeti', 'çiçek'],
+      PTTAVM: ['ptt', 'pttavm'],
+      GITTIGIDIYOR: ['gittigidiyor', 'gg', 'gitti'],
+      MORHIPO: ['morhipo'],
+      ALIBABA: ['alibaba', '1688'],
+      ALIEXPRESS: ['aliexpress', 'ali express'],
+      SHOPEE: ['shopee', 'shope'],
+      EBAY: ['ebay', 'e-bay'],
+      ETSY: ['etsy'],
+      WALMART: ['walmart'],
+      LAZADA: ['lazada'],
     };
 
     for (const [platform, keywords] of Object.entries(platforms)) {
-      if (keywords.some(kw => message.includes(kw))) {
+      if (keywords.some((kw) => message.includes(kw))) {
         return platform;
       }
     }
@@ -491,7 +561,8 @@ YANIT FORMATI:
         default:
           return {
             role: 'assistant',
-            content: 'Bu işlemi şu anda gerçekleştiremiyorum. Lütfen daha spesifik bir istekte bulunun.',
+            content:
+              'Bu işlemi şu anda gerçekleştiremiyorum. Lütfen daha spesifik bir istekte bulunun.',
             timestamp: new Date(),
           };
       }
@@ -513,11 +584,12 @@ YANIT FORMATI:
     payload: any,
   ): Promise<AIAssistantMessage> {
     const platform = context.platform || payload.platform;
-    
+
     if (!platform) {
       return {
         role: 'assistant',
-        content: 'Hangi pazaryerinden marka eşitlemek istediğinizi belirtin. Örneğin: "Trendyol\'dan markaları eşitle"',
+        content:
+          'Hangi pazaryerinden marka eşitlemek istediğinizi belirtin. Örneğin: "Trendyol\'dan markaları eşitle"',
         timestamp: new Date(),
       };
     }
@@ -548,11 +620,12 @@ YANIT FORMATI:
     payload: any,
   ): Promise<AIAssistantMessage> {
     const platform = context.platform || payload.platform;
-    
+
     if (!platform) {
       return {
         role: 'assistant',
-        content: 'Hangi pazaryerinden kategori eşitlemek istediğinizi belirtin.',
+        content:
+          'Hangi pazaryerinden kategori eşitlemek istediğinizi belirtin.',
         timestamp: new Date(),
       };
     }
@@ -583,11 +656,12 @@ YANIT FORMATI:
     payload: any,
   ): Promise<AIAssistantMessage> {
     const platform = context.platform || payload.platform;
-    
+
     if (!platform) {
       return {
         role: 'assistant',
-        content: 'Hangi pazaryerinden özellik eşitlemek istediğinizi belirtin. Ayrıca belirli bir kategori için özellik çekmek istiyorsanız kategori ID\'sini de belirtebilirsiniz.',
+        content:
+          "Hangi pazaryerinden özellik eşitlemek istediğinizi belirtin. Ayrıca belirli bir kategori için özellik çekmek istiyorsanız kategori ID'sini de belirtebilirsiniz.",
         timestamp: new Date(),
       };
     }
@@ -617,7 +691,7 @@ YANIT FORMATI:
     payload: any,
   ): Promise<AIAssistantMessage> {
     const platform = context.platform || payload.platform;
-    
+
     if (!platform) {
       return {
         role: 'assistant',
@@ -652,7 +726,13 @@ YANIT FORMATI:
       timestamp: new Date(),
       metadata: {
         action: 'PRODUCT_UPLOAD',
-        data: { platform, productId: payload.productId, sku: payload.sku, jobId: job.id, status: job.status },
+        data: {
+          platform,
+          productId: payload.productId,
+          sku: payload.sku,
+          jobId: job.id,
+          status: job.status,
+        },
         status: 'pending',
       },
     };
@@ -665,7 +745,7 @@ YANIT FORMATI:
     payload: any,
   ): Promise<AIAssistantMessage> {
     const platform = context.platform || payload.platform;
-    
+
     return {
       role: 'assistant',
       content: `Varyant yönetimi için size yardımcı olabilirim. Yapabileceklerim:\n\n**Varyant Senkronizasyonu:**\n- Tüm varyantları listele\n- Eksik varyantları tespit et ve ekle\n- Varyant stoklarını senkronize et\n- Varyant fiyatlarını güncelle\n\n**Varyant Oluşturma:**\n- Yeni varyant seti oluştur\n- Mevcut varyantları kopyala\n- Varyant grupları oluştur (Renk, Beden, Boyut vb.)\n\n${platform ? `**${platform}** platformu için:` : 'Hangi platform için işlem yapmak istediğinizi belirtin:'}\n- Varyant eşleştirmelerini yapılandır\n- Platform varyant kurallarını uygula\n\nLütfen yapmak istediğiniz spesifik işlemi belirtin.`,
@@ -724,13 +804,19 @@ YANIT FORMATI:
 
   // ==================== UTILITY METHODS ====================
 
-  async deleteConversation(conversationId: string, tenantId: string): Promise<void> {
+  async deleteConversation(
+    conversationId: string,
+    tenantId: string,
+  ): Promise<void> {
     await this.prisma.aIAssistantConversation.deleteMany({
       where: { id: conversationId, tenantId },
     });
   }
 
-  async archiveConversation(conversationId: string, tenantId: string): Promise<void> {
+  async archiveConversation(
+    conversationId: string,
+    tenantId: string,
+  ): Promise<void> {
     await this.prisma.aIAssistantConversation.updateMany({
       where: { id: conversationId, tenantId },
       data: { status: 'archived' },

@@ -61,7 +61,7 @@ export class UpdateDRSettingsDto {
 @ApiTags('Backup & Disaster Recovery')
 @Controller('api/backup')
 export class BackupController {
-  constructor(private backupService: BackupService) { }
+  constructor(private backupService: BackupService) {}
 
   /**
    * Create backup schedule
@@ -76,7 +76,7 @@ export class BackupController {
     return this.backupService.createSchedule(
       dto.name,
       dto.type as BackupType,
-      dto.frequency as BackupSchedule['frequency'],
+      dto.frequency,
       dto.databases,
       dto.retentionDays || 30,
     );
@@ -121,8 +121,14 @@ export class BackupController {
     status: 200,
     description: 'Schedule updated',
   })
-  async updateSchedule(@Param('id') id: string, @Body() dto: UpdateScheduleDto) {
-    return this.backupService.updateSchedule(id, dto as Partial<BackupSchedule>);
+  async updateSchedule(
+    @Param('id') id: string,
+    @Body() dto: UpdateScheduleDto,
+  ) {
+    return this.backupService.updateSchedule(
+      id,
+      dto as Partial<BackupSchedule>,
+    );
   }
 
   /**
@@ -171,7 +177,11 @@ export class BackupController {
     @Query('offset') offset: string = '0',
     @Query('status') status?: BackupStatus,
   ) {
-    return this.backupService.getBackups(parseInt(limit), parseInt(offset), status);
+    return this.backupService.getBackups(
+      parseInt(limit),
+      parseInt(offset),
+      status,
+    );
   }
 
   /**

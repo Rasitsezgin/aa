@@ -1,5 +1,10 @@
 import { Controller, Get, Query, Param, UseGuards } from '@nestjs/common';
-import { AuditService, AuditQuery, AuditAction, AuditSeverity } from './audit.service';
+import {
+  AuditService,
+  AuditQuery,
+  AuditAction,
+  AuditSeverity,
+} from './audit.service';
 
 // Placeholder for auth guard
 // import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -72,7 +77,7 @@ export class AuditController {
   ) {
     return this.auditService.getActivityTimeline(
       tenantId,
-      hours ? parseInt(hours) : 24
+      hours ? parseInt(hours) : 24,
     );
   }
 

@@ -40,7 +40,11 @@ export class CurrencyController {
     @Query('target') target: string,
     @Query('days') days?: string,
   ) {
-    return this.currencyService.getRateHistory(base, target, days ? parseInt(days, 10) : 30);
+    return this.currencyService.getRateHistory(
+      base,
+      target,
+      days ? parseInt(days, 10) : 30,
+    );
   }
 
   /** Manuel kur girişi (admin) */

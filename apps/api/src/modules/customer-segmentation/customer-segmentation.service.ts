@@ -55,11 +55,14 @@ export class CustomerSegmentationService {
     });
 
     // Müşteri bazlı gruplama
-    const customerMap = new Map<string, {
-      name: string;
-      email: string;
-      orders: { amount: number; date: Date }[];
-    }>();
+    const customerMap = new Map<
+      string,
+      {
+        name: string;
+        email: string;
+        orders: { amount: number; date: Date }[];
+      }
+    >();
 
     for (const order of orders) {
       const email = order.customerEmail || 'unknown@customer.com';
@@ -82,7 +85,9 @@ export class CustomerSegmentationService {
     // RFM hesaplama
     for (const [email, data] of customerMap) {
       const lastOrderDate = data.orders[0]?.date || now;
-      const recency = Math.floor((now.getTime() - lastOrderDate.getTime()) / 86400000);
+      const recency = Math.floor(
+        (now.getTime() - lastOrderDate.getTime()) / 86400000,
+      );
       const frequency = data.orders.length;
       const monetary = data.orders.reduce((sum, o) => sum + o.amount, 0);
 
@@ -92,7 +97,11 @@ export class CustomerSegmentationService {
       const monetaryScore = this.calculateMonetaryScore(monetary);
 
       const rfmScore = `${recencyScore}${frequencyScore}${monetaryScore}`;
-      const segment = this.determineSegment(recencyScore, frequencyScore, monetaryScore);
+      const segment = this.determineSegment(
+        recencyScore,
+        frequencyScore,
+        monetaryScore,
+      );
 
       customers.push({
         customerId: email.replace(/[^a-zA-Z0-9]/g, ''),
@@ -116,16 +125,28 @@ export class CustomerSegmentationService {
     // Genel özet
     const summary = {
       totalCustomers: customers.length,
-      avgRecency: Math.round(customers.reduce((s, c) => s + c.recency, 0) / customers.length || 0),
-      avgFrequency: Math.round(customers.reduce((s, c) => s + c.frequency, 0) / customers.length * 10) / 10 || 0,
-      avgMonetary: Math.round(customers.reduce((s, c) => s + c.monetary, 0) / customers.length || 0),
+      avgRecency: Math.round(
+        customers.reduce((s, c) => s + c.recency, 0) / customers.length || 0,
+      ),
+      avgFrequency:
+        Math.round(
+          (customers.reduce((s, c) => s + c.frequency, 0) / customers.length) *
+            10,
+        ) / 10 || 0,
+      avgMonetary: Math.round(
+        customers.reduce((s, c) => s + c.monetary, 0) / customers.length || 0,
+      ),
       topSegment: segments[0]?.name || 'N/A',
-      atRiskCount: customers.filter(c => c.segment === 'At Risk' || c.segment === 'Hibernating').length,
-      championsCount: customers.filter(c => c.segment === 'Champions').length,
+      atRiskCount: customers.filter(
+        (c) => c.segment === 'At Risk' || c.segment === 'Hibernating',
+      ).length,
+      championsCount: customers.filter((c) => c.segment === 'Champions').length,
     };
 
     return {
-      customers: customers.sort((a, b) => b.monetary - a.monetary).slice(0, 100),
+      customers: customers
+        .sort((a, b) => b.monetary - a.monetary)
+        .slice(0, 100),
       segments,
       summary,
     };
@@ -136,14 +157,22 @@ export class CustomerSegmentationService {
    */
   async getSegmentDetail(tenantId: string, segmentName: string) {
     const { customers } = await this.getRFMAnalysis(tenantId);
-    const segmentCustomers = customers.filter(c => c.segment === segmentName);
+    const segmentCustomers = customers.filter((c) => c.segment === segmentName);
 
     return {
       segment: segmentName,
       customers: segmentCustomers,
       count: segmentCustomers.length,
-      avgMonetary: Math.round(segmentCustomers.reduce((s, c) => s + c.monetary, 0) / segmentCustomers.length || 0),
-      avgFrequency: Math.round(segmentCustomers.reduce((s, c) => s + c.frequency, 0) / segmentCustomers.length * 10) / 10 || 0,
+      avgMonetary: Math.round(
+        segmentCustomers.reduce((s, c) => s + c.monetary, 0) /
+          segmentCustomers.length || 0,
+      ),
+      avgFrequency:
+        Math.round(
+          (segmentCustomers.reduce((s, c) => s + c.frequency, 0) /
+            segmentCustomers.length) *
+            10,
+        ) / 10 || 0,
       recommendedActions: this.getRecommendedActions(segmentName),
     };
   }
@@ -172,34 +201,65 @@ export class CustomerSegmentationService {
     return 1;
   }
 
-  private determineSegment(r: number, f: number, m: number): { name: string; description: string } {
+  private determineSegment(
+    r: number,
+    f: number,
+    m: number,
+  ): { name: string; description: string } {
     const avg = (r + f + m) / 3;
 
     if (r >= 4 && f >= 4 && m >= 4) {
-      return { name: 'Champions', description: 'En değerli müşteriler, sık ve yüksek tutarlı alışveriş' };
+      return {
+        name: 'Champions',
+        description: 'En değerli müşteriler, sık ve yüksek tutarlı alışveriş',
+      };
     }
     if (r >= 4 && f >= 2 && m >= 2) {
-      return { name: 'Loyal Customers', description: 'Sadık müşteriler, düzenli alışveriş yapıyor' };
+      return {
+        name: 'Loyal Customers',
+        description: 'Sadık müşteriler, düzenli alışveriş yapıyor',
+      };
     }
     if (r >= 4 && f <= 2) {
-      return { name: 'New Customers', description: 'Yeni müşteriler, henüz alışkanlık oluşmamış' };
+      return {
+        name: 'New Customers',
+        description: 'Yeni müşteriler, henüz alışkanlık oluşmamış',
+      };
     }
     if (r >= 3 && f >= 3 && m >= 3) {
-      return { name: 'Potential Loyalists', description: 'Potansiyel sadık müşteriler, teşvik edilebilir' };
+      return {
+        name: 'Potential Loyalists',
+        description: 'Potansiyel sadık müşteriler, teşvik edilebilir',
+      };
     }
     if (r <= 2 && f >= 3 && m >= 3) {
-      return { name: 'At Risk', description: 'Risk altında, eskiden aktifti ama uzaklaştı' };
+      return {
+        name: 'At Risk',
+        description: 'Risk altında, eskiden aktifti ama uzaklaştı',
+      };
     }
     if (r <= 2 && f <= 2 && m >= 3) {
-      return { name: 'Cant Lose Them', description: 'Kaybetmemeli, yüksek değerli ama kaybedilme riski' };
+      return {
+        name: 'Cant Lose Them',
+        description: 'Kaybetmemeli, yüksek değerli ama kaybedilme riski',
+      };
     }
     if (r <= 2 && f <= 2 && m <= 2) {
-      return { name: 'Hibernating', description: 'Uykuda, uzun süredir aktif değil' };
+      return {
+        name: 'Hibernating',
+        description: 'Uykuda, uzun süredir aktif değil',
+      };
     }
     if (avg >= 3) {
-      return { name: 'Promising', description: 'Umut vaat eden, gelişme potansiyeli var' };
+      return {
+        name: 'Promising',
+        description: 'Umut vaat eden, gelişme potansiyeli var',
+      };
     }
-    return { name: 'Need Attention', description: 'İlgi gerektiren, özel kampanyalarla yeniden kazanılabilir' };
+    return {
+      name: 'Need Attention',
+      description: 'İlgi gerektiren, özel kampanyalarla yeniden kazanılabilir',
+    };
   }
 
   private calculateSegmentSummary(customers: RFMScore[]): CustomerSegment[] {
@@ -214,26 +274,26 @@ export class CustomerSegmentationService {
 
     const total = customers.length || 1;
     const colors: Record<string, string> = {
-      'Champions': '#22c55e',
+      Champions: '#22c55e',
       'Loyal Customers': '#3b82f6',
       'New Customers': '#8b5cf6',
       'Potential Loyalists': '#06b6d4',
       'At Risk': '#f97316',
       'Cant Lose Them': '#ef4444',
-      'Hibernating': '#6b7280',
-      'Promising': '#eab308',
+      Hibernating: '#6b7280',
+      Promising: '#eab308',
       'Need Attention': '#ec4899',
     };
 
     const actions: Record<string, string> = {
-      'Champions': 'Ödüllendirin ve referans programına dahil edin',
+      Champions: 'Ödüllendirin ve referans programına dahil edin',
       'Loyal Customers': 'VIP ayrıcalıklar sunun',
       'New Customers': 'Karşılama e-postaları ve onboarding',
       'Potential Loyalists': 'Üyelik avantajları sunun',
       'At Risk': 'Yeniden etkinleştirme kampanyası başlatın',
       'Cant Lose Them': 'Özel indirim ve kişiselleştirilmiş iletişim',
-      'Hibernating': 'Geri dönüş kuponu gönderin',
-      'Promising': 'Kategori bazlı öneriler sunun',
+      Hibernating: 'Geri dönüş kuponu gönderin',
+      Promising: 'Kategori bazlı öneriler sunun',
       'Need Attention': 'Anket gönderin, geri bildirim alın',
     };
 
@@ -244,8 +304,14 @@ export class CustomerSegmentationService {
         description: members[0]?.segmentDescription || '',
         count: members.length,
         percentage: Math.round((members.length / total) * 100),
-        avgMonetary: Math.round(members.reduce((s, c) => s + c.monetary, 0) / members.length),
-        avgFrequency: Math.round(members.reduce((s, c) => s + c.frequency, 0) / members.length * 10) / 10,
+        avgMonetary: Math.round(
+          members.reduce((s, c) => s + c.monetary, 0) / members.length,
+        ),
+        avgFrequency:
+          Math.round(
+            (members.reduce((s, c) => s + c.frequency, 0) / members.length) *
+              10,
+          ) / 10,
         color: colors[name] || '#6b7280',
         action: actions[name] || 'Analiz edin',
       }))
@@ -254,7 +320,7 @@ export class CustomerSegmentationService {
 
   private getRecommendedActions(segment: string): string[] {
     const actions: Record<string, string[]> = {
-      'Champions': [
+      Champions: [
         'Referans programına dahil edin',
         'Yeni ürün lansmanlarını öncelikli sunun',
         'Özel etkinliklere davet edin',
@@ -272,7 +338,7 @@ export class CustomerSegmentationService {
         'Ürün kullanım rehberi paylaşın',
         'Sosyal medyada takip etmeye teşvik edin',
       ],
-      'Hibernating': [
+      Hibernating: [
         '"Sizi özledik" kampanyası başlatın',
         'Agresif indirim kuponu gönderin',
         'Yeni koleksiyon duyurusu yapın',
@@ -280,6 +346,11 @@ export class CustomerSegmentationService {
       ],
     };
 
-    return actions[segment] || ['Genel pazarlama kampanyalarına dahil edin', 'Düzenli bülten gönderin'];
+    return (
+      actions[segment] || [
+        'Genel pazarlama kampanyalarına dahil edin',
+        'Düzenli bülten gönderin',
+      ]
+    );
   }
 }

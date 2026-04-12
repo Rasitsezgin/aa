@@ -13,7 +13,14 @@ import { Server, Socket } from 'socket.io';
 
 export interface RealtimeNotification {
   id: string;
-  type: 'order' | 'stock' | 'price' | 'review' | 'system' | 'integration' | 'campaign';
+  type:
+    | 'order'
+    | 'stock'
+    | 'price'
+    | 'review'
+    | 'system'
+    | 'integration'
+    | 'campaign';
   title: string;
   message: string;
   severity: 'info' | 'warning' | 'error' | 'success';
@@ -24,7 +31,11 @@ export interface RealtimeNotification {
 
 @WebSocketGateway({
   cors: {
-    origin: ['http://localhost:3000', 'https://pazaryonetimi.com', 'https://*.pazaryonetimi.com'],
+    origin: [
+      'http://localhost:3000',
+      'https://pazaryonetimi.com',
+      'https://*.pazaryonetimi.com',
+    ],
     credentials: true,
   },
   namespace: '/notifications',
@@ -36,7 +47,10 @@ export class NotificationsGateway
   server: Server;
 
   private readonly logger = new Logger(NotificationsGateway.name);
-  private connectedClients = new Map<string, { socket: Socket; tenantId?: string; userId?: string }>();
+  private connectedClients = new Map<
+    string,
+    { socket: Socket; tenantId?: string; userId?: string }
+  >();
 
   afterInit() {
     this.logger.log('WebSocket Gateway initialized');
@@ -55,7 +69,9 @@ export class NotificationsGateway
       client.join(`user:${userId}`);
     }
 
-    this.logger.log(`Client connected: ${client.id} (tenant: ${tenantId}, user: ${userId})`);
+    this.logger.log(
+      `Client connected: ${client.id} (tenant: ${tenantId}, user: ${userId})`,
+    );
     this.logger.log(`Total connections: ${this.connectedClients.size}`);
 
     // Send connection confirmation
@@ -68,7 +84,9 @@ export class NotificationsGateway
 
   handleDisconnect(client: Socket) {
     this.connectedClients.delete(client.id);
-    this.logger.log(`Client disconnected: ${client.id}. Total: ${this.connectedClients.size}`);
+    this.logger.log(
+      `Client disconnected: ${client.id}. Total: ${this.connectedClients.size}`,
+    );
   }
 
   // ─── Subscribe to specific channels ─────────────
@@ -96,7 +114,7 @@ export class NotificationsGateway
   }
 
   // ─── Broadcast methods (called from other services) ─────────
-  
+
   /** Send notification to all connected clients */
   broadcastToAll(notification: RealtimeNotification) {
     this.server.emit('notification', notification);
@@ -114,7 +132,15 @@ export class NotificationsGateway
 
   // ─── Typed event emitters ─────────────────────────
 
-  emitNewOrder(tenantId: string, order: { id: string; platform: string; total: number; customerName: string }) {
+  emitNewOrder(
+    tenantId: string,
+    order: {
+      id: string;
+      platform: string;
+      total: number;
+      customerName: string;
+    },
+  ) {
     const notification: RealtimeNotification = {
       id: `order-${Date.now()}`,
       type: 'order',
@@ -129,7 +155,15 @@ export class NotificationsGateway
     this.server.to(`tenant:${tenantId}`).emit('order:new', order);
   }
 
-  emitStockAlert(tenantId: string, product: { id: string; name: string; currentStock: number; threshold: number }) {
+  emitStockAlert(
+    tenantId: string,
+    product: {
+      id: string;
+      name: string;
+      currentStock: number;
+      threshold: number;
+    },
+  ) {
     const notification: RealtimeNotification = {
       id: `stock-${Date.now()}`,
       type: 'stock',
@@ -144,7 +178,16 @@ export class NotificationsGateway
     this.server.to(`tenant:${tenantId}`).emit('stock:alert', product);
   }
 
-  emitPriceChange(tenantId: string, data: { productName: string; oldPrice: number; newPrice: number; platform: string; competitor: string }) {
+  emitPriceChange(
+    tenantId: string,
+    data: {
+      productName: string;
+      oldPrice: number;
+      newPrice: number;
+      platform: string;
+      competitor: string;
+    },
+  ) {
     const direction = data.newPrice > data.oldPrice ? 'arttı' : 'düştü';
     const notification: RealtimeNotification = {
       id: `price-${Date.now()}`,
@@ -160,11 +203,20 @@ export class NotificationsGateway
     this.server.to(`tenant:${tenantId}`).emit('price:change', data);
   }
 
-  emitReviewAlert(tenantId: string, review: { productName: string; rating: number; comment: string; platform: string }) {
+  emitReviewAlert(
+    tenantId: string,
+    review: {
+      productName: string;
+      rating: number;
+      comment: string;
+      platform: string;
+    },
+  ) {
     const notification: RealtimeNotification = {
       id: `review-${Date.now()}`,
       type: 'review',
-      title: review.rating >= 4 ? 'Yeni Olumlu Yorum!' : 'Olumsuz Yorum Uyarısı!',
+      title:
+        review.rating >= 4 ? 'Yeni Olumlu Yorum!' : 'Olumsuz Yorum Uyarısı!',
       message: `${review.productName} - ${review.rating}⭐ ${review.platform}`,
       severity: review.rating >= 4 ? 'success' : 'warning',
       timestamp: new Date().toISOString(),
@@ -175,13 +227,25 @@ export class NotificationsGateway
     this.server.to(`tenant:${tenantId}`).emit('review:new', review);
   }
 
-  emitIntegrationStatus(tenantId: string, integration: { platform: string; status: 'connected' | 'disconnected' | 'error'; message: string }) {
+  emitIntegrationStatus(
+    tenantId: string,
+    integration: {
+      platform: string;
+      status: 'connected' | 'disconnected' | 'error';
+      message: string;
+    },
+  ) {
     const notification: RealtimeNotification = {
       id: `integration-${Date.now()}`,
       type: 'integration',
       title: `Entegrasyon: ${integration.platform}`,
       message: integration.message,
-      severity: integration.status === 'connected' ? 'success' : integration.status === 'error' ? 'error' : 'warning',
+      severity:
+        integration.status === 'connected'
+          ? 'success'
+          : integration.status === 'error'
+            ? 'error'
+            : 'warning',
       timestamp: new Date().toISOString(),
       data: integration,
       tenantId,
@@ -189,7 +253,10 @@ export class NotificationsGateway
     this.broadcastToTenant(tenantId, notification);
   }
 
-  emitCampaignUpdate(tenantId: string, campaign: { name: string; status: string; revenue: number }) {
+  emitCampaignUpdate(
+    tenantId: string,
+    campaign: { name: string; status: string; revenue: number },
+  ) {
     const notification: RealtimeNotification = {
       id: `campaign-${Date.now()}`,
       type: 'campaign',

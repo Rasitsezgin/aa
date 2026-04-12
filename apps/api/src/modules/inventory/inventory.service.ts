@@ -20,10 +20,19 @@ export class StockUpdateDto {
 
 @Injectable()
 export class InventoryService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async findAll(filters: InventoryFilters) {
-    const { tenantId, status, category, search, sortBy = 'stock', sortOrder = 'asc', page = 1, limit = 20 } = filters;
+    const {
+      tenantId,
+      status,
+      category,
+      search,
+      sortBy = 'stock',
+      sortOrder = 'asc',
+      page = 1,
+      limit = 20,
+    } = filters;
 
     const where: any = { tenantId };
 
@@ -59,20 +68,23 @@ export class InventoryService {
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / limit),
+      },
     };
   }
 
   async getStats(tenantId: string) {
     const products = await this.prisma.product.findMany({
       where: { tenantId },
-      include: { inventoryLogs: { take: 10, orderBy: { createdAt: 'desc' } } }
+      include: { inventoryLogs: { take: 10, orderBy: { createdAt: 'desc' } } },
     });
 
-    const totalValue = products.reduce((sum, p) => sum + (Number(p.price) * p.stock), 0);
-    const critical = products.filter(p => p.stock < 5).length;
-    const low = products.filter(p => p.stock < 20 && p.stock >= 5).length;
+    const totalValue = products.reduce(
+      (sum, p) => sum + Number(p.price) * p.stock,
+      0,
+    );
+    const critical = products.filter((p) => p.stock < 5).length;
+    const low = products.filter((p) => p.stock < 20 && p.stock >= 5).length;
 
     return {
       totalProducts: products.length,
@@ -81,30 +93,39 @@ export class InventoryService {
       low,
       ok: products.length - critical - low,
       alerts: products
-        .filter(p => p.stock < 10)
-        .map(p => ({
+        .filter((p) => p.stock < 10)
+        .map((p) => ({
           id: p.id,
           sku: p.sku,
           name: p.title,
           stock: p.stock,
           minStock: 10,
-          status: p.stock < 5 ? 'critical' : 'low'
+          status: p.stock < 5 ? 'critical' : 'low',
         }))
-        .slice(0, 5)
+        .slice(0, 5),
     };
   }
 
   async updateStock(id: string, tenantId: string, dto: StockUpdateDto) {
-    const product = await this.prisma.product.findFirst({ where: { id, tenantId } });
+    const product = await this.prisma.product.findFirst({
+      where: { id, tenantId },
+    });
     if (!product) throw new Error('Ürün bulunamadı');
 
     const previousStock = product.stock;
     let newStock: number;
     switch (dto.type) {
-      case 'add': newStock = previousStock + dto.quantity; break;
-      case 'remove': newStock = Math.max(0, previousStock - dto.quantity); break;
-      case 'set': newStock = dto.quantity; break;
-      default: newStock = dto.quantity;
+      case 'add':
+        newStock = previousStock + dto.quantity;
+        break;
+      case 'remove':
+        newStock = Math.max(0, previousStock - dto.quantity);
+        break;
+      case 'set':
+        newStock = dto.quantity;
+        break;
+      default:
+        newStock = dto.quantity;
     }
 
     await this.prisma.product.update({
@@ -115,11 +136,18 @@ export class InventoryService {
     await this.prisma.inventoryLog.create({
       data: {
         productId: id,
-        type: dto.type === 'add' ? 'PURCHASE' : dto.type === 'remove' ? 'ADJUSTMENT' : 'ADJUSTMENT',
+        type:
+          dto.type === 'add'
+            ? 'PURCHASE'
+            : dto.type === 'remove'
+              ? 'ADJUSTMENT'
+              : 'ADJUSTMENT',
         change: dto.type === 'remove' ? -dto.quantity : dto.quantity,
         previousStock,
         newStock,
-        note: dto.reason || `Stok ${dto.type === 'add' ? 'eklendi' : dto.type === 'remove' ? 'çıkarıldı' : 'ayarlandı'}`,
+        note:
+          dto.reason ||
+          `Stok ${dto.type === 'add' ? 'eklendi' : dto.type === 'remove' ? 'çıkarıldı' : 'ayarlandı'}`,
       },
     });
 
@@ -130,7 +158,7 @@ export class InventoryService {
       type: dto.type,
       quantity: dto.quantity,
       reason: dto.reason,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
   }
 
@@ -144,7 +172,7 @@ export class InventoryService {
           predictedDemand: 25,
           daysUntilStockout: 2,
           recommendedOrder: 50,
-          confidence: 0.92
+          confidence: 0.92,
         },
         {
           sku: 'SKU-002',
@@ -153,7 +181,7 @@ export class InventoryService {
           predictedDemand: 15,
           daysUntilStockout: 5,
           recommendedOrder: 30,
-          confidence: 0.87
+          confidence: 0.87,
         },
         {
           sku: 'SKU-003',
@@ -162,14 +190,20 @@ export class InventoryService {
           predictedDemand: 20,
           daysUntilStockout: 6,
           recommendedOrder: 40,
-          confidence: 0.85
-        }
+          confidence: 0.85,
+        },
       ],
       insights: [
         { type: 'warning', message: '3 ürün önümüzdeki hafta tükenebilir' },
-        { type: 'info', message: 'Aksesuar kategorisinde satışlar %15 artış gösteriyor' },
-        { type: 'success', message: 'Stok devir hızınız sektör ortalamasının %12 üzerinde' }
-      ]
+        {
+          type: 'info',
+          message: 'Aksesuar kategorisinde satışlar %15 artış gösteriyor',
+        },
+        {
+          type: 'success',
+          message: 'Stok devir hızınız sektör ortalamasının %12 üzerinde',
+        },
+      ],
     };
   }
 
@@ -178,16 +212,19 @@ export class InventoryService {
     let failed = 0;
 
     // Pre-fetch all products in a single query
-    const allIds = updates.map(u => u.id);
+    const allIds = updates.map((u) => u.id);
     const existingProducts = await this.prisma.product.findMany({
       where: { id: { in: allIds }, tenantId },
     });
-    const productMap = new Map(existingProducts.map(p => [p.id, p]));
+    const productMap = new Map(existingProducts.map((p) => [p.id, p]));
 
     for (const u of updates) {
       try {
         const product = productMap.get(u.id);
-        if (!product) { failed++; continue; }
+        if (!product) {
+          failed++;
+          continue;
+        }
 
         await this.prisma.product.update({
           where: { id: u.id },
@@ -229,7 +266,7 @@ export class InventoryService {
     return {
       sku: product?.sku || 'N/A',
       name: product?.title || 'Bilinmeyen Ürün',
-      history: logs.map(log => ({
+      history: logs.map((log) => ({
         date: log.createdAt,
         type: (log.change ?? 0) > 0 ? 'in' : 'out',
         quantity: Math.abs(log.change ?? 0),

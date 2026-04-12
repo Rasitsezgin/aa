@@ -145,7 +145,10 @@ export class AIWorkflowBuilderService {
     });
   }
 
-  async getWorkflow(workflowId: string, tenantId: string): Promise<AIWorkflow | null> {
+  async getWorkflow(
+    workflowId: string,
+    tenantId: string,
+  ): Promise<AIWorkflow | null> {
     const workflow = await this.prisma.aIAssistantWorkflow.findFirst({
       where: { id: workflowId, tenantId },
     });
@@ -168,7 +171,7 @@ export class AIWorkflowBuilderService {
       take: options?.limit || 50,
     });
 
-    return workflows.map(w => this.mapWorkflowFromDb(w));
+    return workflows.map((w) => this.mapWorkflowFromDb(w));
   }
 
   // ==================== WORKFLOW EXECUTION ====================
@@ -185,16 +188,17 @@ export class AIWorkflowBuilderService {
     }
 
     // Create execution record
-    const executionRecord = await this.prisma.aIAssistantWorkflowExecution.create({
-      data: {
-        workflowId,
-        tenantId,
-        userId,
-        status: 'running',
-        context: context as any,
-        startedAt: new Date(),
-      },
-    });
+    const executionRecord =
+      await this.prisma.aIAssistantWorkflowExecution.create({
+        data: {
+          workflowId,
+          tenantId,
+          userId,
+          status: 'running',
+          context: context,
+          startedAt: new Date(),
+        },
+      });
 
     const execution: WorkflowExecution = {
       id: executionRecord.id,
@@ -208,16 +212,18 @@ export class AIWorkflowBuilderService {
     this.runningExecutions.set(execution.id, execution);
 
     // Start execution
-    this.runWorkflowExecution(execution, workflow, tenantId, userId).catch(error => {
-      this.logger.error(`Workflow execution failed: ${workflowId}`, error);
-      execution.status = 'failed';
-      execution.logs.push({
-        nodeId: 'system',
-        timestamp: new Date(),
-        status: 'error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      });
-    });
+    this.runWorkflowExecution(execution, workflow, tenantId, userId).catch(
+      (error) => {
+        this.logger.error(`Workflow execution failed: ${workflowId}`, error);
+        execution.status = 'failed';
+        execution.logs.push({
+          nodeId: 'system',
+          timestamp: new Date(),
+          status: 'error',
+          message: error instanceof Error ? error.message : 'Unknown error',
+        });
+      },
+    );
 
     return execution;
   }
@@ -230,7 +236,7 @@ export class AIWorkflowBuilderService {
   ): Promise<void> {
     try {
       // Find start node (trigger)
-      const startNode = workflow.nodes.find(n => n.type === 'trigger');
+      const startNode = workflow.nodes.find((n) => n.type === 'trigger');
       if (!startNode) {
         throw new Error('No trigger node found');
       }
@@ -239,15 +245,20 @@ export class AIWorkflowBuilderService {
 
       while (currentNodeId) {
         execution.currentNodeId = currentNodeId;
-        const currentNode = workflow.nodes.find(n => n.id === currentNodeId);
-        
+        const currentNode = workflow.nodes.find((n) => n.id === currentNodeId);
+
         if (!currentNode) {
           break;
         }
 
         // Execute node
-        const result = await this.executeNode(currentNode, execution.context, tenantId, userId);
-        
+        const result = await this.executeNode(
+          currentNode,
+          execution.context,
+          tenantId,
+          userId,
+        );
+
         execution.logs.push({
           nodeId: currentNode.id,
           timestamp: new Date(),
@@ -262,8 +273,10 @@ export class AIWorkflowBuilderService {
         }
 
         // Find next node
-        const outgoingEdges = workflow.edges.filter(e => e.source === currentNodeId);
-        
+        const outgoingEdges = workflow.edges.filter(
+          (e) => e.source === currentNodeId,
+        );
+
         if (outgoingEdges.length === 0) {
           // End of workflow
           break;
@@ -271,12 +284,12 @@ export class AIWorkflowBuilderService {
           currentNodeId = outgoingEdges[0].target;
         } else {
           // Multiple paths - evaluate conditions
-          const matchingEdge = outgoingEdges.find(e => {
+          const matchingEdge = outgoingEdges.find((e) => {
             if (!e.condition) return true;
             // Simple condition evaluation
             return this.evaluateCondition(e.condition, execution.context);
           });
-          
+
           currentNodeId = matchingEdge?.target ?? undefined;
         }
       }
@@ -301,11 +314,12 @@ export class AIWorkflowBuilderService {
         data: {
           lastRunAt: new Date(),
           runCount: { increment: 1 },
-          successCount: execution.status === 'completed' ? { increment: 1 } : undefined,
-          failureCount: execution.status === 'failed' ? { increment: 1 } : undefined,
+          successCount:
+            execution.status === 'completed' ? { increment: 1 } : undefined,
+          failureCount:
+            execution.status === 'failed' ? { increment: 1 } : undefined,
         },
       });
-
     } finally {
       this.runningExecutions.delete(execution.id);
     }
@@ -322,7 +336,11 @@ export class AIWorkflowBuilderService {
     try {
       switch (node.type) {
         case 'trigger':
-          return { success: true, message: 'Trigger activated', data: { trigger: node.data.config } };
+          return {
+            success: true,
+            message: 'Trigger activated',
+            data: { trigger: node.data.config },
+          };
 
         case 'action':
           return await this.executeActionNode(node, context, tenantId, userId);
@@ -332,10 +350,18 @@ export class AIWorkflowBuilderService {
 
         case 'delay':
           await this.executeDelayNode(node);
-          return { success: true, message: `Delayed for ${node.data.config.duration}ms` };
+          return {
+            success: true,
+            message: `Delayed for ${node.data.config.duration}ms`,
+          };
 
         case 'notification':
-          return await this.executeNotificationNode(node, context, tenantId, userId);
+          return await this.executeNotificationNode(
+            node,
+            context,
+            tenantId,
+            userId,
+          );
 
         case 'end':
           return { success: true, message: 'Workflow completed' };
@@ -346,7 +372,8 @@ export class AIWorkflowBuilderService {
     } catch (error) {
       return {
         success: false,
-        message: error instanceof Error ? error.message : 'Node execution failed',
+        message:
+          error instanceof Error ? error.message : 'Node execution failed',
       };
     }
   }
@@ -392,7 +419,10 @@ export class AIWorkflowBuilderService {
         };
 
       default:
-        return { success: false, message: `Unknown action type: ${actionType}` };
+        return {
+          success: false,
+          message: `Unknown action type: ${actionType}`,
+        };
     }
   }
 
@@ -401,7 +431,7 @@ export class AIWorkflowBuilderService {
     context: any,
   ): Promise<{ success: boolean; message: string; data?: any }> {
     const { condition, operator = 'and' } = node.data.config;
-    
+
     // Evaluate condition
     const result = this.evaluateCondition(condition, context);
 
@@ -414,15 +444,21 @@ export class AIWorkflowBuilderService {
 
   private async executeDelayNode(node: WorkflowNode): Promise<void> {
     const { duration, unit = 'seconds' } = node.data.config;
-    
+
     let ms = duration;
     switch (unit) {
-      case 'seconds': ms = duration * 1000; break;
-      case 'minutes': ms = duration * 60 * 1000; break;
-      case 'hours': ms = duration * 60 * 60 * 1000; break;
+      case 'seconds':
+        ms = duration * 1000;
+        break;
+      case 'minutes':
+        ms = duration * 60 * 1000;
+        break;
+      case 'hours':
+        ms = duration * 60 * 60 * 1000;
+        break;
     }
 
-    await new Promise(resolve => setTimeout(resolve, ms));
+    await new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private async executeNotificationNode(
@@ -447,7 +483,9 @@ export class AIWorkflowBuilderService {
     try {
       // Replace context variables
       const evalString = condition.replace(/\$\{(\w+)\}/g, (match, key) => {
-        return context[key] !== undefined ? JSON.stringify(context[key]) : 'undefined';
+        return context[key] !== undefined
+          ? JSON.stringify(context[key])
+          : 'undefined';
       });
 
       // For security, only allow simple comparisons
@@ -455,7 +493,6 @@ export class AIWorkflowBuilderService {
         return false;
       }
 
-      // eslint-disable-next-line no-eval
       return eval(evalString);
     } catch {
       return false;
@@ -520,7 +557,10 @@ export class AIWorkflowBuilderService {
             position: { x: 700, y: 100 },
             data: {
               label: 'Bildirim Gönder',
-              config: { channel: 'email', message: 'Günlük eşitleme tamamlandı' },
+              config: {
+                channel: 'email',
+                message: 'Günlük eşitleme tamamlandı',
+              },
               icon: 'Bell',
               color: '#FF9800',
             },
@@ -608,9 +648,24 @@ export class AIWorkflowBuilderService {
           },
         ],
         edges: [
-          { id: 'e1', source: 'trigger-1', target: 'condition-1', animated: true },
-          { id: 'e2', source: 'condition-1', target: 'notification-1', label: 'Evet (< 5)' },
-          { id: 'e3', source: 'condition-1', target: 'notification-2', label: 'Hayır' },
+          {
+            id: 'e1',
+            source: 'trigger-1',
+            target: 'condition-1',
+            animated: true,
+          },
+          {
+            id: 'e2',
+            source: 'condition-1',
+            target: 'notification-1',
+            label: 'Evet (< 5)',
+          },
+          {
+            id: 'e3',
+            source: 'condition-1',
+            target: 'notification-2',
+            label: 'Hayır',
+          },
           { id: 'e4', source: 'notification-1', target: 'end-1' },
           { id: 'e5', source: 'notification-2', target: 'end-1' },
         ],
@@ -640,9 +695,10 @@ export class AIWorkflowBuilderService {
   }
 
   async pauseWorkflow(workflowId: string, tenantId: string): Promise<void> {
-    const execution = Array.from(this.runningExecutions.values())
-      .find(e => e.workflowId === workflowId);
-    
+    const execution = Array.from(this.runningExecutions.values()).find(
+      (e) => e.workflowId === workflowId,
+    );
+
     if (execution) {
       execution.status = 'paused';
     }

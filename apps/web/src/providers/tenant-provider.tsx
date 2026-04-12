@@ -3,6 +3,14 @@
 import { createContext, useContext, ReactNode, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 
+type SessionUser = {
+  tenantId?: string;
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+  type?: string;
+};
+
 interface TenantContextType {
   tenantId: string;
   userId: string;
@@ -25,7 +33,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
 
   const value = useMemo<TenantContextType>(() => {
-    const user = session?.user as any;
+    const user = session?.user as SessionUser | undefined;
     return {
       tenantId: user?.tenantId || '',
       userId: user?.id || '',

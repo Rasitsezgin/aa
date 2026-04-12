@@ -6,8 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test": "jest",
+    "test:auth:smoke": "node scripts/auth-panels-smoke.mjs",
+    "test:mobile:smoke": "node scripts/mobile-smoke.mjs",
+    "test:mobile:qa": "node scripts/mobile-device-qa.mjs",
+    "test:mobile:visual": "node scripts/mobile-visual-regression.mjs",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },

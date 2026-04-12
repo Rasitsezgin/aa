@@ -4,9 +4,9 @@ import { ImageEditorService } from './image-editor.service';
 import { DatabaseModule } from '../../database/database.module';
 
 @Module({
-    imports: [DatabaseModule],
-    controllers: [ImageEditorController],
-    providers: [ImageEditorService],
-    exports: [ImageEditorService],
+  imports: [DatabaseModule],
+  controllers: [ImageEditorController],
+  providers: [ImageEditorService],
+  exports: [ImageEditorService],
 })
 export class ImageEditorModule {}

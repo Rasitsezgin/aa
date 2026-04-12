@@ -11,7 +11,7 @@ export interface RealtimeNotification {
   message: string;
   severity: 'info' | 'warning' | 'error' | 'success';
   timestamp: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
@@ -24,7 +24,7 @@ interface WebSocketContextType {
   unsubscribe: (channels: string[]) => void;
   clearNotifications: () => void;
   markAllRead: () => void;
-  onEvent: (event: string, callback: (data: any) => void) => () => void;
+  onEvent: (event: string, callback: (data: unknown) => void) => () => void;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -46,7 +46,7 @@ export function WebSocketProvider({
   const [status, setStatus] = useState<ConnectionStatus>('disconnected');
   const [notifications, setNotifications] = useState<RealtimeNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const eventListeners = useRef<Map<string, Set<(data: any) => void>>>(new Map());
+  const eventListeners = useRef<Map<string, Set<(data: unknown) => void>>>(new Map());
 
   useEffect(() => {
     // Don't attempt connection if no tenantId (avoids undefined in query string)
@@ -76,7 +76,7 @@ export function WebSocketProvider({
         setStatus('disconnected');
       });
 
-      socket.on('connect_error', (error?: any) => {
+      socket.on('connect_error', () => {
         setStatus('error');
         // Suppress logging of connection errors
       });
@@ -103,7 +103,7 @@ export function WebSocketProvider({
       // Forward specific events to listeners
       const events = ['order:new', 'stock:alert', 'price:change', 'review:new', 'dashboard:update'];
       events.forEach((event) => {
-        socket.on(event, (data: any) => {
+        socket.on(event, (data: unknown) => {
           const listeners = eventListeners.current.get(event);
           listeners?.forEach((cb) => cb(data));
         });
@@ -113,7 +113,7 @@ export function WebSocketProvider({
         socket.disconnect();
         socketRef.current = null;
       };
-    } catch (error) {
+    } catch {
       // Silently fail if WebSocket connection fails (mock API doesn't support it)
       setStatus('error');
       return () => { };
@@ -137,7 +137,7 @@ export function WebSocketProvider({
     setUnreadCount(0);
   }, []);
 
-  const onEvent = useCallback((event: string, callback: (data: any) => void) => {
+  const onEvent = useCallback((event: string, callback: (data: unknown) => void) => {
     if (!eventListeners.current.has(event)) {
       eventListeners.current.set(event, new Set());
     }

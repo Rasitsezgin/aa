@@ -1,11 +1,30 @@
-import { Controller, Get, Post, Put, Patch, Param, Query, Body, Headers, HttpCode, HttpStatus, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Patch,
+  Param,
+  Query,
+  Body,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  UseInterceptors,
+} from '@nestjs/common';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
-import { OrdersService, UpdateOrderDto, CreateOrderDto, ApprovePaymentDto, RejectPaymentDto } from './orders.service';
+import {
+  OrdersService,
+  UpdateOrderDto,
+  CreateOrderDto,
+  ApprovePaymentDto,
+  RejectPaymentDto,
+} from './orders.service';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) { }
+  constructor(private readonly ordersService: OrdersService) {}
 
   /**
    * Sipariş listesi
@@ -51,7 +70,9 @@ export class OrdersController {
    */
   @Get('pending-approvals')
   async getPendingApprovals(@Headers('x-tenant-id') tenantId: string) {
-    const orders = await this.ordersService.getPendingApprovals(tenantId || 'demo-tenant');
+    const orders = await this.ordersService.getPendingApprovals(
+      tenantId || 'demo-tenant',
+    );
     return {
       success: true,
       data: orders,
@@ -86,9 +107,10 @@ export class OrdersController {
 
     return {
       success: true,
-      message: dto.paymentMethod === 'credit_card'
-        ? 'Siparişiniz oluşturuldu ve ödeme onaylandı!'
-        : 'Siparişiniz oluşturuldu. Havale onayı bekleniyor.',
+      message:
+        dto.paymentMethod === 'credit_card'
+          ? 'Siparişiniz oluşturuldu ve ödeme onaylandı!'
+          : 'Siparişiniz oluşturuldu. Havale onayı bekleniyor.',
       data: order,
     };
   }

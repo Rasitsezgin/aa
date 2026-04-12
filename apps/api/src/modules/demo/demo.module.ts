@@ -5,8 +5,8 @@ import { EmailModule } from '../email/email.module';
 import { SmsModule } from '../sms/sms.module';
 
 @Module({
-    imports: [EmailModule, SmsModule],
-    controllers: [DemoController],
-    providers: [DemoService],
+  imports: [EmailModule, SmsModule],
+  controllers: [DemoController],
+  providers: [DemoService],
 })
-export class DemoModule { }
+export class DemoModule {}

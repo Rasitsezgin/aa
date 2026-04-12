@@ -296,10 +296,22 @@ export class SearchController {
         brand: ['Samsung', 'Apple', 'Sony', 'LG'],
       },
       orders: {
-        status: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Refunded'],
+        status: [
+          'Pending',
+          'Processing',
+          'Shipped',
+          'Delivered',
+          'Cancelled',
+          'Refunded',
+        ],
         paymentStatus: ['Unpaid', 'Paid', 'Failed', 'Refunded'],
         dateRange: { min: '2025-01-01', max: '2025-12-31' },
-        paymentMethod: ['Credit Card', 'Debit Card', 'Bank Transfer', 'E-Wallet'],
+        paymentMethod: [
+          'Credit Card',
+          'Debit Card',
+          'Bank Transfer',
+          'E-Wallet',
+        ],
       },
       customers: {
         tier: ['Bronze', 'Silver', 'Gold', 'Platinum', 'VIP'],

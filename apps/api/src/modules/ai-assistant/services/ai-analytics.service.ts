@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 
@@ -101,14 +101,19 @@ export class AIAnalyticsService {
 
   // ==================== MAIN DASHBOARD ====================
 
-  async getDashboard(tenantId: string, period: 'day' | 'week' | 'month' = 'week'): Promise<AIAnalyticsDashboard> {
-    const [usage, performance, insights, trends, platforms] = await Promise.all([
-      this.getUsageStats(tenantId, period),
-      this.getPerformanceStats(tenantId, period),
-      this.getUserInsights(tenantId, period),
-      this.getTrendData(tenantId, period),
-      this.getPlatformStats(tenantId, period),
-    ]);
+  async getDashboard(
+    tenantId: string,
+    period: 'day' | 'week' | 'month' = 'week',
+  ): Promise<AIAnalyticsDashboard> {
+    const [usage, performance, insights, trends, platforms] = await Promise.all(
+      [
+        this.getUsageStats(tenantId, period),
+        this.getPerformanceStats(tenantId, period),
+        this.getUserInsights(tenantId, period),
+        this.getTrendData(tenantId, period),
+        this.getPlatformStats(tenantId, period),
+      ],
+    );
 
     return {
       usage,
@@ -140,9 +145,18 @@ export class AIAnalyticsService {
         where: { tenantId, createdAt: { gte: startDate } },
       }),
       this.getUniqueUserCount(tenantId, startDate),
-      this.getUniqueUserCount(tenantId, new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)),
-      this.getUniqueUserCount(tenantId, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)),
-      this.getUniqueUserCount(tenantId, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)),
+      this.getUniqueUserCount(
+        tenantId,
+        new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      ),
+      this.getUniqueUserCount(
+        tenantId,
+        new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      ),
+      this.getUniqueUserCount(
+        tenantId,
+        new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      ),
     ]);
 
     // Calculate session duration
@@ -151,31 +165,45 @@ export class AIAnalyticsService {
       select: { createdAt: true, updatedAt: true },
     });
 
-    const sessionDurations = sessions.map(s => 
-      new Date(s.updatedAt).getTime() - new Date(s.createdAt).getTime()
+    const sessionDurations = sessions.map(
+      (s) => new Date(s.updatedAt).getTime() - new Date(s.createdAt).getTime(),
     );
 
-    const avgDuration = sessionDurations.length > 0
-      ? sessionDurations.reduce((a, b) => a + b, 0) / sessionDurations.length / 1000 / 60 // minutes
-      : 0;
+    const avgDuration =
+      sessionDurations.length > 0
+        ? sessionDurations.reduce((a, b) => a + b, 0) /
+          sessionDurations.length /
+          1000 /
+          60 // minutes
+        : 0;
 
     return {
       totalConversations,
       totalMessages,
-      avgMessagesPerConversation: totalConversations > 0 ? totalMessages / totalConversations : 0,
+      avgMessagesPerConversation:
+        totalConversations > 0 ? totalMessages / totalConversations : 0,
       activeUsers,
       dailyActiveUsers: dailyUsers,
       weeklyActiveUsers: weeklyUsers,
       monthlyActiveUsers: monthlyUsers,
       sessionDuration: {
         avg: avgDuration,
-        min: sessionDurations.length > 0 ? Math.min(...sessionDurations) / 1000 / 60 : 0,
-        max: sessionDurations.length > 0 ? Math.max(...sessionDurations) / 1000 / 60 : 0,
+        min:
+          sessionDurations.length > 0
+            ? Math.min(...sessionDurations) / 1000 / 60
+            : 0,
+        max:
+          sessionDurations.length > 0
+            ? Math.max(...sessionDurations) / 1000 / 60
+            : 0,
       },
     };
   }
 
-  private async getUniqueUserCount(tenantId: string, since: Date): Promise<number> {
+  private async getUniqueUserCount(
+    tenantId: string,
+    since: Date,
+  ): Promise<number> {
     const result = await this.prisma.aIAssistantConversation.groupBy({
       by: ['userId'],
       where: {
@@ -189,7 +217,10 @@ export class AIAnalyticsService {
 
   // ==================== PERFORMANCE STATISTICS ====================
 
-  async getPerformanceStats(tenantId: string, period: string): Promise<PerformanceStats> {
+  async getPerformanceStats(
+    tenantId: string,
+    period: string,
+  ): Promise<PerformanceStats> {
     const periodDays = period === 'day' ? 1 : period === 'week' ? 7 : 30;
     const startDate = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000);
 
@@ -198,8 +229,8 @@ export class AIAnalyticsService {
       where: { tenantId, createdAt: { gte: startDate } },
     });
 
-    const successJobs = syncJobs.filter(j => j.status === 'COMPLETED');
-    const failedJobs = syncJobs.filter(j => j.status === 'FAILED');
+    const successJobs = syncJobs.filter((j) => j.status === 'COMPLETED');
+    const failedJobs = syncJobs.filter((j) => j.status === 'FAILED');
 
     // Get intent accuracy from learning logs
     const intentLogs = await this.prisma.aILearningLog.findMany({
@@ -211,7 +242,7 @@ export class AIAnalyticsService {
     });
 
     const highConfidenceIntents = intentLogs.filter(
-      l => (l.eventData as any)?.confidence > 0.7
+      (l) => (l.eventData as any)?.confidence > 0.7,
     );
 
     // Get feedback for satisfaction
@@ -222,26 +253,36 @@ export class AIAnalyticsService {
       },
     });
 
-    const positiveFeedback = feedback.filter(f => f.wasHelpful === true);
+    const positiveFeedback = feedback.filter((f) => f.wasHelpful === true);
 
     return {
-      intentAccuracy: intentLogs.length > 0 ? highConfidenceIntents.length / intentLogs.length : 0,
-      actionSuccessRate: syncJobs.length > 0 ? successJobs.length / syncJobs.length : 0,
+      intentAccuracy:
+        intentLogs.length > 0
+          ? highConfidenceIntents.length / intentLogs.length
+          : 0,
+      actionSuccessRate:
+        syncJobs.length > 0 ? successJobs.length / syncJobs.length : 0,
       avgResponseTime: await this.calculateAvgResponseTime(tenantId, startDate),
-      userSatisfaction: feedback.length > 0 ? positiveFeedback.length / feedback.length : 0,
+      userSatisfaction:
+        feedback.length > 0 ? positiveFeedback.length / feedback.length : 0,
       errorRate: syncJobs.length > 0 ? failedJobs.length / syncJobs.length : 0,
       aiConfidence: {
-        high: intentLogs.filter(l => (l.eventData as any)?.confidence > 0.8).length,
-        medium: intentLogs.filter(l => {
+        high: intentLogs.filter((l) => (l.eventData as any)?.confidence > 0.8)
+          .length,
+        medium: intentLogs.filter((l) => {
           const c = (l.eventData as any)?.confidence;
           return c > 0.5 && c <= 0.8;
         }).length,
-        low: intentLogs.filter(l => (l.eventData as any)?.confidence <= 0.5).length,
+        low: intentLogs.filter((l) => (l.eventData as any)?.confidence <= 0.5)
+          .length,
       },
     };
   }
 
-  private async calculateAvgResponseTime(tenantId: string, since: Date): Promise<number> {
+  private async calculateAvgResponseTime(
+    tenantId: string,
+    since: Date,
+  ): Promise<number> {
     const conversations = await this.prisma.aIAssistantConversation.findMany({
       where: { tenantId, createdAt: { gte: since } },
       include: { messages: true },
@@ -254,9 +295,11 @@ export class AIAnalyticsService {
       for (let i = 1; i < conv.messages.length; i++) {
         const prev = conv.messages[i - 1];
         const curr = conv.messages[i];
-        
+
         if (prev.role === 'user' && curr.role === 'assistant') {
-          const responseTime = new Date(curr.createdAt).getTime() - new Date(prev.createdAt).getTime();
+          const responseTime =
+            new Date(curr.createdAt).getTime() -
+            new Date(prev.createdAt).getTime();
           totalResponseTime += responseTime;
           responseCount++;
         }
@@ -268,16 +311,20 @@ export class AIAnalyticsService {
 
   // ==================== USER INSIGHTS ====================
 
-  async getUserInsights(tenantId: string, period: string): Promise<UserInsights> {
+  async getUserInsights(
+    tenantId: string,
+    period: string,
+  ): Promise<UserInsights> {
     const periodDays = period === 'day' ? 1 : period === 'week' ? 7 : 30;
     const startDate = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000);
 
-    const [topCommands, preferredPlatforms, peakHours, commonPatterns] = await Promise.all([
-      this.getTopCommands(tenantId, startDate),
-      this.getPreferredPlatforms(tenantId, startDate),
-      this.getPeakHours(tenantId, startDate),
-      this.getCommonPatterns(tenantId, startDate),
-    ]);
+    const [topCommands, preferredPlatforms, peakHours, commonPatterns] =
+      await Promise.all([
+        this.getTopCommands(tenantId, startDate),
+        this.getPreferredPlatforms(tenantId, startDate),
+        this.getPeakHours(tenantId, startDate),
+        this.getCommonPatterns(tenantId, startDate),
+      ]);
 
     return {
       topCommands,
@@ -371,7 +418,7 @@ export class AIAnalyticsService {
       take: 10,
     });
 
-    return patterns.map(p => ({
+    return patterns.map((p) => ({
       pattern: p.patternName,
       occurrences: p.occurrenceCount,
       confidence: p.confidence,
@@ -403,7 +450,10 @@ export class AIAnalyticsService {
       include: { messages: true },
     });
 
-    const dailyStats: Record<string, { conversations: number; messages: number; actions: number }> = {};
+    const dailyStats: Record<
+      string,
+      { conversations: number; messages: number; actions: number }
+    > = {};
 
     for (let i = 0; i < days; i++) {
       const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
@@ -443,8 +493,10 @@ export class AIAnalyticsService {
       hourlyStats[hour]++;
     }
 
-    return Object.entries(hourlyStats)
-      .map(([hour, activity]) => ({ hour: parseInt(hour), activity }));
+    return Object.entries(hourlyStats).map(([hour, activity]) => ({
+      hour: parseInt(hour),
+      activity,
+    }));
   }
 
   private async getWeeklyTrends(tenantId: string) {
@@ -468,7 +520,9 @@ export class AIAnalyticsService {
   }
 
   private getWeekNumber(date: Date): number {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const d = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+    );
     const dayNum = d.getUTCDay() || 7;
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
@@ -477,7 +531,10 @@ export class AIAnalyticsService {
 
   // ==================== PLATFORM STATISTICS ====================
 
-  async getPlatformStats(tenantId: string, period: string): Promise<PlatformStats> {
+  async getPlatformStats(
+    tenantId: string,
+    period: string,
+  ): Promise<PlatformStats> {
     const periodDays = period === 'day' ? 1 : period === 'week' ? 7 : 30;
     const startDate = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000);
 
@@ -509,24 +566,40 @@ export class AIAnalyticsService {
     }
 
     return Object.entries(platformGroups).map(([platform, platformJobs]) => {
-      const successJobs = platformJobs.filter(j => j.status === 'COMPLETED');
-      const avgDuration = platformJobs.length > 0
-        ? platformJobs.reduce((sum, j) => {
-            if (j.completedAt && j.startedAt) {
-              return sum + (new Date(j.completedAt).getTime() - new Date(j.startedAt).getTime());
-            }
-            return sum;
-          }, 0) / platformJobs.length / 1000 / 60 // minutes
-        : 0;
+      const successJobs = platformJobs.filter((j) => j.status === 'COMPLETED');
+      const avgDuration =
+        platformJobs.length > 0
+          ? platformJobs.reduce((sum, j) => {
+              if (j.completedAt && j.startedAt) {
+                return (
+                  sum +
+                  (new Date(j.completedAt).getTime() -
+                    new Date(j.startedAt).getTime())
+                );
+              }
+              return sum;
+            }, 0) /
+            platformJobs.length /
+            1000 /
+            60 // minutes
+          : 0;
 
       return {
         platform,
         totalJobs: platformJobs.length,
-        successRate: platformJobs.length > 0 ? successJobs.length / platformJobs.length : 0,
+        successRate:
+          platformJobs.length > 0
+            ? successJobs.length / platformJobs.length
+            : 0,
         avgDuration,
-        lastSync: platformJobs.length > 0
-          ? new Date(Math.max(...platformJobs.map(j => new Date(j.createdAt).getTime())))
-          : new Date(),
+        lastSync:
+          platformJobs.length > 0
+            ? new Date(
+                Math.max(
+                  ...platformJobs.map((j) => new Date(j.createdAt).getTime()),
+                ),
+              )
+            : new Date(),
       };
     });
   }
@@ -549,21 +622,31 @@ export class AIAnalyticsService {
     }
 
     return Object.entries(platformGroups).map(([platform, platformJobs]) => {
-      const successJobs = platformJobs.filter(j => j.status === 'COMPLETED');
-      const avgProcessingTime = platformJobs.length > 0
-        ? platformJobs.reduce((sum, j) => {
-            if (j.completedAt && j.startedAt) {
-              return sum + (new Date(j.completedAt).getTime() - new Date(j.startedAt).getTime());
-            }
-            return sum;
-          }, 0) / platformJobs.length / 1000
-        : 0;
+      const successJobs = platformJobs.filter((j) => j.status === 'COMPLETED');
+      const avgProcessingTime =
+        platformJobs.length > 0
+          ? platformJobs.reduce((sum, j) => {
+              if (j.completedAt && j.startedAt) {
+                return (
+                  sum +
+                  (new Date(j.completedAt).getTime() -
+                    new Date(j.startedAt).getTime())
+                );
+              }
+              return sum;
+            }, 0) /
+            platformJobs.length /
+            1000
+          : 0;
 
       return {
         platform,
         totalUploads: platformJobs.length,
         avgProcessingTime,
-        successRate: platformJobs.length > 0 ? successJobs.length / platformJobs.length : 0,
+        successRate:
+          platformJobs.length > 0
+            ? successJobs.length / platformJobs.length
+            : 0,
       };
     });
   }
@@ -571,12 +654,7 @@ export class AIAnalyticsService {
   // ==================== USER-SPECIFIC ANALYTICS ====================
 
   async getUserAnalytics(tenantId: string, userId: string): Promise<any> {
-    const [
-      conversations,
-      messages,
-      actions,
-      patterns,
-    ] = await Promise.all([
+    const [conversations, messages, actions, patterns] = await Promise.all([
       this.prisma.aIAssistantConversation.count({
         where: { tenantId, userId },
       }),
@@ -595,22 +673,24 @@ export class AIAnalyticsService {
       }),
     ]);
 
-    const recentConversations = await this.prisma.aIAssistantConversation.findMany({
-      where: { tenantId, userId },
-      orderBy: { updatedAt: 'desc' },
-      take: 5,
-      include: { messages: { take: 1, orderBy: { createdAt: 'desc' } } },
-    });
+    const recentConversations =
+      await this.prisma.aIAssistantConversation.findMany({
+        where: { tenantId, userId },
+        orderBy: { updatedAt: 'desc' },
+        take: 5,
+        include: { messages: { take: 1, orderBy: { createdAt: 'desc' } } },
+      });
 
     return {
       overview: {
         totalConversations: conversations,
         totalMessages: messages,
         totalActions: actions,
-        avgMessagesPerConversation: conversations > 0 ? messages / conversations : 0,
+        avgMessagesPerConversation:
+          conversations > 0 ? messages / conversations : 0,
       },
       recentActivity: recentConversations,
-      patterns: patterns.map(p => ({
+      patterns: patterns.map((p) => ({
         name: p.patternName,
         confidence: p.confidence,
         occurrences: p.occurrenceCount,
@@ -620,7 +700,10 @@ export class AIAnalyticsService {
 
   // ==================== EXPORT DATA ====================
 
-  async exportAnalytics(tenantId: string, format: 'json' | 'csv' = 'json'): Promise<any> {
+  async exportAnalytics(
+    tenantId: string,
+    format: 'json' | 'csv' = 'json',
+  ): Promise<any> {
     const dashboard = await this.getDashboard(tenantId, 'month');
 
     if (format === 'csv') {
@@ -638,10 +721,16 @@ export class AIAnalyticsService {
       ['Total Conversations', dashboard.usage.totalConversations.toString()],
       ['Total Messages', dashboard.usage.totalMessages.toString()],
       ['Active Users', dashboard.usage.activeUsers.toString()],
-      ['Intent Accuracy', `${(dashboard.performance.intentAccuracy * 100).toFixed(2)}%`],
-      ['Success Rate', `${(dashboard.performance.actionSuccessRate * 100).toFixed(2)}%`],
+      [
+        'Intent Accuracy',
+        `${(dashboard.performance.intentAccuracy * 100).toFixed(2)}%`,
+      ],
+      [
+        'Success Rate',
+        `${(dashboard.performance.actionSuccessRate * 100).toFixed(2)}%`,
+      ],
     ];
 
-    return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    return [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
   }
 }

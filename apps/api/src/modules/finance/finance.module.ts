@@ -4,8 +4,8 @@ import { FinanceController } from './finance.controller';
 import { InvoicingService } from './invoicing.service';
 
 @Module({
-    providers: [FinanceService, InvoicingService],
-    controllers: [FinanceController],
-    exports: [FinanceService, InvoicingService],
+  providers: [FinanceService, InvoicingService],
+  controllers: [FinanceController],
+  exports: [FinanceService, InvoicingService],
 })
-export class FinanceModule { }
+export class FinanceModule {}

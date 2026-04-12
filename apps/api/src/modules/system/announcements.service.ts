@@ -36,12 +36,16 @@ export class UpdateAnnouncementDto {
 
 @Injectable()
 export class AnnouncementsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   // Find all announcements (admin)
   async findAll() {
     return this.prisma.announcement.findMany({
-      orderBy: [{ isPinned: 'desc' }, { priority: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [
+        { isPinned: 'desc' },
+        { priority: 'desc' },
+        { createdAt: 'desc' },
+      ],
     });
   }
 
@@ -52,12 +56,13 @@ export class AnnouncementsService {
       where: {
         isActive: true,
         startsAt: { lte: now },
-        OR: [
-          { endsAt: null },
-          { endsAt: { gt: now } },
-        ],
+        OR: [{ endsAt: null }, { endsAt: { gt: now } }],
       },
-      orderBy: [{ isPinned: 'desc' }, { priority: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [
+        { isPinned: 'desc' },
+        { priority: 'desc' },
+        { createdAt: 'desc' },
+      ],
     });
   }
 
@@ -82,25 +87,26 @@ export class AnnouncementsService {
         isActive: true,
         target: { in: targetAudiences as any },
         startsAt: { lte: now },
-        OR: [
-          { endsAt: null },
-          { endsAt: { gt: now } },
-        ],
+        OR: [{ endsAt: null }, { endsAt: { gt: now } }],
       },
-      orderBy: [{ isPinned: 'desc' }, { priority: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [
+        { isPinned: 'desc' },
+        { priority: 'desc' },
+        { createdAt: 'desc' },
+      ],
     });
 
     // Get read status
     const reads = await this.prisma.announcementRead.findMany({
       where: {
         tenantId,
-        announcementId: { in: announcements.map(a => a.id) },
+        announcementId: { in: announcements.map((a) => a.id) },
       },
     });
 
-    const readMap = new Map(reads.map(r => [r.announcementId, r]));
+    const readMap = new Map(reads.map((r) => [r.announcementId, r]));
 
-    return announcements.map(a => ({
+    return announcements.map((a) => ({
       ...a,
       isRead: readMap.has(a.id),
       isDismissed: readMap.get(a.id)?.isDismissed === true,
@@ -232,7 +238,9 @@ export class AnnouncementsService {
           OR: [{ endsAt: null }, { endsAt: { gt: now } }],
         },
       }),
-      this.prisma.announcement.count({ where: { isPinned: true, isActive: true } }),
+      this.prisma.announcement.count({
+        where: { isPinned: true, isActive: true },
+      }),
       this.prisma.announcement.groupBy({
         by: ['type'],
         _count: { type: true },
@@ -253,10 +261,13 @@ export class AnnouncementsService {
       pinned,
       totalViews: totalViews._sum.viewCount || 0,
       totalDismisses: totalDismisses._sum.dismissCount || 0,
-      byType: byType.reduce((acc, item) => {
-        acc[item.type] = item._count.type;
-        return acc;
-      }, {} as Record<string, number>),
+      byType: byType.reduce(
+        (acc, item) => {
+          acc[item.type] = item._count.type;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
     };
   }
 }

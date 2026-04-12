@@ -1,5 +1,19 @@
-import { Controller, Post, Get, Delete, Put, Body, Param, Query, Headers, UseGuards } from '@nestjs/common';
-import { AIAssistantService, AIAssistantConversation } from './ai-assistant.service';
+import {
+  Controller,
+  Post,
+  Get,
+  Delete,
+  Put,
+  Body,
+  Param,
+  Query,
+  Headers,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  AIAssistantService,
+  AIAssistantConversation,
+} from './ai-assistant.service';
 import { CanAccessModuleGuard } from '../../common/guards/module-access.guard';
 import { RequireModule } from '../../common/decorators/require-module.decorator';
 import { AILearningService } from './services/ai-learning.service';
@@ -36,7 +50,11 @@ export class AIAssistantController {
     @Headers('x-user-id') userId: string,
     @Body() dto: CreateConversationDto,
   ): Promise<AIAssistantConversation> {
-    return this.assistantService.createConversation(tenantId, userId, dto.title);
+    return this.assistantService.createConversation(
+      tenantId,
+      userId,
+      dto.title,
+    );
   }
 
   @Get('conversations')
@@ -69,7 +87,11 @@ export class AIAssistantController {
     @Param('id') conversationId: string,
     @Body() dto: { title: string },
   ): Promise<void> {
-    await this.assistantService.updateConversationTitle(conversationId, tenantId, dto.title);
+    await this.assistantService.updateConversationTitle(
+      conversationId,
+      tenantId,
+      dto.title,
+    );
   }
 
   @Put('conversations/:id/archive')
@@ -249,12 +271,24 @@ export class AIAssistantController {
     @Query('category') category?: string,
   ) {
     if (category) {
-      return this.learningService.getPreferencesByCategory(tenantId, userId, category);
+      return this.learningService.getPreferencesByCategory(
+        tenantId,
+        userId,
+        category,
+      );
     }
-    
+
     const [platforms, actions] = await Promise.all([
-      this.learningService.getPreferencesByCategory(tenantId, userId, 'platforms'),
-      this.learningService.getPreferencesByCategory(tenantId, userId, 'actions'),
+      this.learningService.getPreferencesByCategory(
+        tenantId,
+        userId,
+        'platforms',
+      ),
+      this.learningService.getPreferencesByCategory(
+        tenantId,
+        userId,
+        'actions',
+      ),
     ]);
 
     return {
@@ -268,7 +302,8 @@ export class AIAssistantController {
   async submitFeedback(
     @Headers('x-tenant-id') tenantId: string,
     @Headers('x-user-id') userId: string,
-    @Body() dto: {
+    @Body()
+    dto: {
       actionType: string;
       actionData: any;
       feedbackType: 'positive' | 'negative' | 'correction' | 'ignore';
@@ -309,7 +344,8 @@ export class AIAssistantController {
   async setUserPreference(
     @Headers('x-tenant-id') tenantId: string,
     @Headers('x-user-id') userId: string,
-    @Body() dto: {
+    @Body()
+    dto: {
       category: string;
       key: string;
       value: any;

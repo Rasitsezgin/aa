@@ -1,0 +1,5 @@
+Baseline and current differ for iphone13-pricing-default.png
+baseline: C:\Projeler\pazaryonetimi.com\apps\web\artifacts\mobile-visual\baseline\iphone13-pricing-default.png
+current: C:\Projeler\pazaryonetimi.com\apps\web\artifacts\mobile-visual\current\iphone13-pricing-default.png
+baselineHash: 1e32510d73f965cefa3c52db5387ab3ceba69b5c69dd75cd807539653f3c17e4
+currentHash: 84b6e183385a58b5f04197f87bf6430aed883826a1b8f9718f2b24a3eca7ac1d

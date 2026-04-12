@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { PrismaService } from '../../../database/prisma.service';
@@ -84,16 +84,17 @@ export class AISchedulerService {
       });
 
       // Clean old suggestions
-      const deletedSuggestions = await this.prisma.aIPredictiveSuggestion.deleteMany({
-        where: {
-          validUntil: {
-            lt: new Date(),
+      const deletedSuggestions =
+        await this.prisma.aIPredictiveSuggestion.deleteMany({
+          where: {
+            validUntil: {
+              lt: new Date(),
+            },
           },
-        },
-      });
+        });
 
       this.logger.log(
-        `Cleanup completed: ${deletedMemories.count} memories, ${deletedLowRelevance.count} low-relevance, ${deletedFeedback.count} feedback, ${deletedSuggestions.count} suggestions`
+        `Cleanup completed: ${deletedMemories.count} memories, ${deletedLowRelevance.count} low-relevance, ${deletedFeedback.count} feedback, ${deletedSuggestions.count} suggestions`,
       );
     } catch (error) {
       this.logger.error('Cleanup failed:', error);
@@ -144,11 +145,20 @@ export class AISchedulerService {
           );
 
           // Store important alerts
-          for (const alert of alerts.filter(a => a.priority === 'high' || a.priority === 'urgent')) {
-            await this.predictiveService.storeSuggestion(user.tenantId, user.userId, alert);
+          for (const alert of alerts.filter(
+            (a) => a.priority === 'high' || a.priority === 'urgent',
+          )) {
+            await this.predictiveService.storeSuggestion(
+              user.tenantId,
+              user.userId,
+              alert,
+            );
           }
         } catch (error) {
-          this.logger.error(`Failed to generate suggestions for user ${user.userId}:`, error);
+          this.logger.error(
+            `Failed to generate suggestions for user ${user.userId}:`,
+            error,
+          );
         }
       }
 
@@ -261,10 +271,19 @@ export class AISchedulerService {
     }
 
     // If cron expression changed, update the job
-    if (updates.cronExpression && updates.cronExpression !== existing.cronExpression) {
+    if (
+      updates.cronExpression &&
+      updates.cronExpression !== existing.cronExpression
+    ) {
       this.deleteCronJob(taskId);
       this.addCronJob(taskId, updates.cronExpression, async () => {
-        await this.executeTask(taskId, tenantId, existing.userId, existing.type as any, existing.config);
+        await this.executeTask(
+          taskId,
+          tenantId,
+          existing.userId,
+          existing.type as any,
+          existing.config,
+        );
       });
     }
 
@@ -276,7 +295,13 @@ export class AISchedulerService {
     // If activated, add the job
     if (updates.isActive === true && !existing.isActive) {
       this.addCronJob(taskId, existing.cronExpression, async () => {
-        await this.executeTask(taskId, tenantId, existing.userId, existing.type as any, existing.config);
+        await this.executeTask(
+          taskId,
+          tenantId,
+          existing.userId,
+          existing.type as any,
+          existing.config,
+        );
       });
     }
 
@@ -310,7 +335,10 @@ export class AISchedulerService {
     });
   }
 
-  async getScheduledTasks(tenantId: string, userId?: string): Promise<ScheduledTask[]> {
+  async getScheduledTasks(
+    tenantId: string,
+    userId?: string,
+  ): Promise<ScheduledTask[]> {
     const tasks = await this.prisma.aIAssistantScheduledTask.findMany({
       where: {
         tenantId,
@@ -319,7 +347,7 @@ export class AISchedulerService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return tasks.map(task => ({
+    return tasks.map((task) => ({
       id: task.id,
       name: task.name,
       description: task.description || undefined,
@@ -336,7 +364,10 @@ export class AISchedulerService {
     }));
   }
 
-  async executeTaskNow(taskId: string, tenantId: string): Promise<TaskExecutionResult> {
+  async executeTaskNow(
+    taskId: string,
+    tenantId: string,
+  ): Promise<TaskExecutionResult> {
     const task = await this.prisma.aIAssistantScheduledTask.findFirst({
       where: { id: taskId, tenantId },
     });
@@ -345,7 +376,13 @@ export class AISchedulerService {
       throw new Error('Task not found');
     }
 
-    return this.executeTask(taskId, tenantId, task.userId, task.type as any, task.config);
+    return this.executeTask(
+      taskId,
+      tenantId,
+      task.userId,
+      task.type as any,
+      task.config,
+    );
   }
 
   // ==================== TASK EXECUTION ====================
@@ -459,9 +496,14 @@ export class AISchedulerService {
   private async executeSyncTask(
     tenantId: string,
     userId: string,
-    config: { platform: string; syncType: 'brand' | 'category' | 'attribute' | 'all' },
+    config: {
+      platform: string;
+      syncType: 'brand' | 'category' | 'attribute' | 'all';
+    },
   ): Promise<TaskExecutionResult> {
-    this.logger.log(`Executing sync task: ${config.syncType} for ${config.platform}`);
+    this.logger.log(
+      `Executing sync task: ${config.syncType} for ${config.platform}`,
+    );
 
     // Create sync job
     const job = await this.prisma.aIAssistantSyncJob.create({
@@ -542,20 +584,25 @@ export class AISchedulerService {
     userId: string,
     config: { olderThanDays: number },
   ): Promise<TaskExecutionResult> {
-    this.logger.log(`Executing cleanup task for data older than ${config.olderThanDays} days`);
+    this.logger.log(
+      `Executing cleanup task for data older than ${config.olderThanDays} days`,
+    );
 
-    const cutoffDate = new Date(Date.now() - config.olderThanDays * 24 * 60 * 60 * 1000);
+    const cutoffDate = new Date(
+      Date.now() - config.olderThanDays * 24 * 60 * 60 * 1000,
+    );
 
     // Clean old conversations
-    const deletedConversations = await this.prisma.aIAssistantConversation.deleteMany({
-      where: {
-        tenantId,
-        userId,
-        updatedAt: {
-          lt: cutoffDate,
+    const deletedConversations =
+      await this.prisma.aIAssistantConversation.deleteMany({
+        where: {
+          tenantId,
+          userId,
+          updatedAt: {
+            lt: cutoffDate,
+          },
         },
-      },
-    });
+      });
 
     return {
       success: true,
@@ -591,10 +638,16 @@ export class AISchedulerService {
     return parts.length === 5 || parts.length === 6;
   }
 
-  private addCronJob(name: string, cronExpression: string, callback: () => Promise<void>): void {
+  private addCronJob(
+    name: string,
+    cronExpression: string,
+    callback: () => Promise<void>,
+  ): void {
     // This is a simplified implementation
     // In production, you might want to use node-cron or similar
-    this.logger.log(`Added cron job: ${name} with expression: ${cronExpression}`);
+    this.logger.log(
+      `Added cron job: ${name} with expression: ${cronExpression}`,
+    );
   }
 
   private deleteCronJob(name: string): void {
@@ -640,7 +693,7 @@ export class AISchedulerService {
     return [
       {
         name: 'Daily Morning Sync',
-        description: 'Her sabah 9\'da tüm pazaryerlerini eşitle',
+        description: "Her sabah 9'da tüm pazaryerlerini eşitle",
         cronExpression: '0 9 * * *',
         type: 'sync',
       },

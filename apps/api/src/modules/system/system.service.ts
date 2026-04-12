@@ -63,8 +63,11 @@ export class SystemService {
       },
       uptime: process.uptime(),
       activeConnections: await this.getActiveConnections(),
-      requestsPerMinute: this.lastMinuteRequests.reduce((a, b) => a + b, 0) / Math.max(this.lastMinuteRequests.length, 1),
-      errorRate: this.requestCount > 0 ? (this.errorCount / this.requestCount) * 100 : 0,
+      requestsPerMinute:
+        this.lastMinuteRequests.reduce((a, b) => a + b, 0) /
+        Math.max(this.lastMinuteRequests.length, 1),
+      errorRate:
+        this.requestCount > 0 ? (this.errorCount / this.requestCount) * 100 : 0,
       responseTime: await this.getAverageResponseTime(),
     };
   }
@@ -139,7 +142,9 @@ export class SystemService {
       this.prisma.user.count(),
       this.prisma.order.count(),
       this.prisma.order.count({
-        where: { orderDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } },
+        where: {
+          orderDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
+        },
       }),
       this.prisma.product.count(),
       this.prisma.order.aggregate({ _sum: { totalAmount: true } }),

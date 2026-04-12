@@ -1,5 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ScrapingService, ScrapedProductData } from '../scraping/scraping.service';
+import {
+  ScrapingService,
+  ScrapedProductData,
+} from '../scraping/scraping.service';
 import { MarketplaceService, Platform } from './marketplace.service';
 
 export interface CompetitorProduct {
@@ -82,7 +85,10 @@ export class CompetitorAnalysisService {
     this.logger.log(`Analyzing competitor: ${competitorUrl} on ${platform}`);
 
     // Rakip mağaza bilgilerini çek
-    const storeData = await this.scrapingService.scrapeStore(competitorUrl, platform);
+    const storeData = await this.scrapingService.scrapeStore(
+      competitorUrl,
+      platform,
+    );
     if (!storeData) {
       throw new Error('Rakip mağaza verisi alınamadı');
     }
@@ -98,15 +104,20 @@ export class CompetitorAnalysisService {
     const ourProducts = await this.getOurProducts(ourTenantId);
 
     // Ortak ürünleri bul ve karşılaştır
-    const commonProducts = this.findCommonProducts(ourProducts, products, platform);
+    const commonProducts = this.findCommonProducts(
+      ourProducts,
+      products,
+      platform,
+    );
 
     // SWOT analizi yap
-    const { strengths, weaknesses, opportunities, threats } = this.performSwotAnalysis(
-      storeData,
-      products,
-      ourProducts,
-      commonProducts,
-    );
+    const { strengths, weaknesses, opportunities, threats } =
+      this.performSwotAnalysis(
+        storeData,
+        products,
+        ourProducts,
+        commonProducts,
+      );
 
     return {
       competitorStoreUrl: competitorUrl,
@@ -164,7 +175,9 @@ export class CompetitorAnalysisService {
           if (price > 0) {
             competitorPrices.push({
               platform,
-              storeName: String(result.storeName || result.sellerName || platform),
+              storeName: String(
+                result.storeName || result.sellerName || platform,
+              ),
               price,
               difference: ourProductPrice ? price - ourProductPrice : 0,
               differencePercent: ourProductPrice
@@ -175,21 +188,32 @@ export class CompetitorAnalysisService {
           }
         }
       } catch (error) {
-        this.logger.warn(`Price search failed for ${platform}: ${(error as Error).message}`);
+        this.logger.warn(
+          `Price search failed for ${platform}: ${(error as Error).message}`,
+        );
       }
     }
 
     // Fiyat istatistikleri
     const prices = competitorPrices.map((p) => p.price);
-    const cheapest = prices.length > 0
-      ? { platform: competitorPrices[prices.indexOf(Math.min(...prices))].platform, price: Math.min(...prices) }
-      : null;
-    const mostExpensive = prices.length > 0
-      ? { platform: competitorPrices[prices.indexOf(Math.max(...prices))].platform, price: Math.max(...prices) }
-      : null;
-    const averageMarketPrice = prices.length > 0
-      ? prices.reduce((a, b) => a + b, 0) / prices.length
-      : 0;
+    const cheapest =
+      prices.length > 0
+        ? {
+            platform:
+              competitorPrices[prices.indexOf(Math.min(...prices))].platform,
+            price: Math.min(...prices),
+          }
+        : null;
+    const mostExpensive =
+      prices.length > 0
+        ? {
+            platform:
+              competitorPrices[prices.indexOf(Math.max(...prices))].platform,
+            price: Math.max(...prices),
+          }
+        : null;
+    const averageMarketPrice =
+      prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
 
     // Öneri oluştur
     let recommendation = 'Pazar fiyatları analiz ediliyor';
@@ -197,7 +221,8 @@ export class CompetitorAnalysisService {
       if (ourProductPrice <= cheapest.price * 1.05) {
         recommendation = 'Fiyatınız pazarda rekabetçi düzeyde';
       } else if (ourProductPrice > cheapest.price * 1.2) {
-        recommendation = 'Fiyatınız pazar ortalamasının üzerinde - indirim düşünün';
+        recommendation =
+          'Fiyatınız pazar ortalamasının üzerinde - indirim düşünün';
       } else {
         recommendation = 'Fiyatınız pazar ortalamasında';
       }
@@ -233,10 +258,16 @@ export class CompetitorAnalysisService {
 
     for (const { url, platform } of competitorUrls) {
       try {
-        const analysis = await this.analyzeCompetitor(url, platform, ourTenantId);
+        const analysis = await this.analyzeCompetitor(
+          url,
+          platform,
+          ourTenantId,
+        );
         analyses.push(analysis);
       } catch (error) {
-        this.logger.error(`Failed to analyze ${url}: ${(error as Error).message}`);
+        this.logger.error(
+          `Failed to analyze ${url}: ${(error as Error).message}`,
+        );
       }
     }
 
@@ -244,22 +275,27 @@ export class CompetitorAnalysisService {
       (sum, a) => sum + a.storeInfo.productCount,
       0,
     );
-    const averageCompetitorRating = analyses.length > 0
-      ? analyses.reduce((sum, a) => sum + a.storeInfo.rating, 0) / analyses.length
-      : 0;
+    const averageCompetitorRating =
+      analyses.length > 0
+        ? analyses.reduce((sum, a) => sum + a.storeInfo.rating, 0) /
+          analyses.length
+        : 0;
 
     return {
       analyses,
       summary: {
         totalCompetitors: analyses.length,
         totalCompetitorProducts,
-        averageCompetitorRating: Math.round(averageCompetitorRating * 100) / 100,
+        averageCompetitorRating:
+          Math.round(averageCompetitorRating * 100) / 100,
         priceGapAnalysis: this.generatePriceGapSummary(analyses),
       },
     };
   }
 
-  private async getOurProducts(tenantId: string): Promise<Array<{ title: string; price: number; sku: string }>> {
+  private async getOurProducts(
+    tenantId: string,
+  ): Promise<Array<{ title: string; price: number; sku: string }>> {
     // Prisma'dan ürünleri çek
     // Şimdilik basit bir implementasyon - gerçek implementasyonda PrismaService kullanılmalı
     return [];
@@ -316,7 +352,12 @@ export class CompetitorAnalysisService {
     products: ScrapedProductData[],
     ourProducts: Array<{ title: string; price: number }>,
     commonProducts: CompetitorAnalysis['commonProducts'],
-  ): { strengths: string[]; weaknesses: string[]; opportunities: string[]; threats: string[] } {
+  ): {
+    strengths: string[];
+    weaknesses: string[];
+    opportunities: string[];
+    threats: string[];
+  } {
     const strengths: string[] = [];
     const weaknesses: string[] = [];
     const opportunities: string[] = [];
@@ -343,7 +384,9 @@ export class CompetitorAnalysisService {
     }
 
     // Fırsatlar
-    const ourCheaperProducts = commonProducts.filter((cp) => cp.priceDifference < 0);
+    const ourCheaperProducts = commonProducts.filter(
+      (cp) => cp.priceDifference < 0,
+    );
     if (ourCheaperProducts.length > 0) {
       opportunities.push(
         `${ourCheaperProducts.length} üründe fiyat avantajına sahibiz`,
@@ -354,11 +397,11 @@ export class CompetitorAnalysisService {
     }
 
     // Tehditler
-    const theirCheaperProducts = commonProducts.filter((cp) => cp.priceDifference > 0);
+    const theirCheaperProducts = commonProducts.filter(
+      (cp) => cp.priceDifference > 0,
+    );
     if (theirCheaperProducts.length > 0) {
-      threats.push(
-        `${theirCheaperProducts.length} üründe rakip daha ucuz`,
-      );
+      threats.push(`${theirCheaperProducts.length} üründe rakip daha ucuz`);
     }
     if (storeData.followerCount > 10000) {
       threats.push('Rakip güçlü marka bilinirliğine sahip');
@@ -376,7 +419,8 @@ export class CompetitorAnalysisService {
       return 'Ortak ürün bulunamadı';
     }
 
-    const avgGap = allPriceGaps.reduce((a, b) => a + b, 0) / allPriceGaps.length;
+    const avgGap =
+      allPriceGaps.reduce((a, b) => a + b, 0) / allPriceGaps.length;
 
     if (avgGap < -10) {
       return 'Genel olarak rakiplerden daha ucuzsunuz (%10+ avantaj)';

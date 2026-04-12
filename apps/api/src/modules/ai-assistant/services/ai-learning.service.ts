@@ -1,10 +1,15 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 
 export interface LearningEvent {
-  type: 'action_completed' | 'action_rejected' | 'preference_explicit' | 
-        'pattern_detected' | 'error_occurred' | 'success_achieved';
+  type:
+    | 'action_completed'
+    | 'action_rejected'
+    | 'preference_explicit'
+    | 'pattern_detected'
+    | 'error_occurred'
+    | 'success_achieved';
   data: any;
   context?: any;
 }
@@ -53,7 +58,8 @@ export class AILearningService {
     if (existing) {
       // Reinforce existing preference
       const newConfidence = Math.min(
-        (existing.confidence * existing.learnCount + preference.confidence) / (existing.learnCount + 1),
+        (existing.confidence * existing.learnCount + preference.confidence) /
+          (existing.learnCount + 1),
         1.0,
       );
 
@@ -82,7 +88,9 @@ export class AILearningService {
       });
     }
 
-    this.logger.debug(`Learned preference: ${preference.category}.${preference.key} for user ${userId}`);
+    this.logger.debug(
+      `Learned preference: ${preference.category}.${preference.key} for user ${userId}`,
+    );
   }
 
   async getPreference(
@@ -127,7 +135,7 @@ export class AILearningService {
       orderBy: { confidence: 'desc' },
     });
 
-    return prefs.map(p => ({
+    return prefs.map((p) => ({
       category: p.category,
       key: p.key,
       value: p.value,
@@ -227,7 +235,12 @@ export class AILearningService {
     }
 
     // Decrease confidence for the rejected action
-    const existingPref = await this.getPreference(tenantId, userId, 'actions', `freq_${suggestedAction}`);
+    const existingPref = await this.getPreference(
+      tenantId,
+      userId,
+      'actions',
+      `freq_${suggestedAction}`,
+    );
     if (existingPref) {
       await this.learnPreference(tenantId, userId, {
         category: 'actions',
@@ -366,7 +379,8 @@ export class AILearningService {
     // Detect sequence patterns (Action A usually followed by Action B)
     const actionSequences = this.findSequences(logs, 'action_completed');
     for (const seq of actionSequences) {
-      if (seq.count >= 3) { // Minimum 3 occurrences
+      if (seq.count >= 3) {
+        // Minimum 3 occurrences
         patterns.push({
           patternType: 'sequence',
           patternName: `Sequence: ${seq.from} → ${seq.to}`,
@@ -403,9 +417,12 @@ export class AILearningService {
     const sequences: Record<string, { count: number; successes: number }> = {};
 
     for (let i = 0; i < logs.length - 1; i++) {
-      if (logs[i].eventType === eventType && logs[i + 1].eventType === eventType) {
-        const from = (logs[i].eventData as any)?.actionType;
-        const to = (logs[i + 1].eventData as any)?.actionType;
+      if (
+        logs[i].eventType === eventType &&
+        logs[i + 1].eventType === eventType
+      ) {
+        const from = logs[i].eventData?.actionType;
+        const to = logs[i + 1].eventData?.actionType;
 
         if (from && to) {
           const key = `${from}→${to}`;
@@ -413,7 +430,7 @@ export class AILearningService {
             sequences[key] = { count: 0, successes: 0 };
           }
           sequences[key].count++;
-          if ((logs[i + 1].eventData as any)?.success) {
+          if (logs[i + 1].eventData?.success) {
             sequences[key].successes++;
           }
         }
@@ -438,7 +455,7 @@ export class AILearningService {
 
     for (const log of logs) {
       if (log.eventType === 'action_completed') {
-        const action = (log.eventData as any)?.actionType;
+        const action = log.eventData?.actionType;
         const hour = new Date(log.createdAt).getHours();
         const timeWindow = `${hour}:00-${hour + 1}:00`;
         const key = `${action}@${timeWindow}`;
@@ -520,7 +537,10 @@ export class AILearningService {
     });
 
     // Process negative feedback
-    if (feedback.feedbackType === 'negative' || feedback.feedbackType === 'correction') {
+    if (
+      feedback.feedbackType === 'negative' ||
+      feedback.feedbackType === 'correction'
+    ) {
       await this.processEvent(tenantId, userId, {
         type: 'action_rejected',
         data: {
@@ -557,7 +577,10 @@ export class AILearningService {
     for (const feedback of unprocessed) {
       // Learn from feedback
       await this.processEvent(feedback.tenantId, feedback.userId, {
-        type: feedback.feedbackType === 'positive' ? 'action_completed' : 'action_rejected',
+        type:
+          feedback.feedbackType === 'positive'
+            ? 'action_completed'
+            : 'action_rejected',
         data: {
           actionType: feedback.actionType,
           success: feedback.feedbackType === 'positive',

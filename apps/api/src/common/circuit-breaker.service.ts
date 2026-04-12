@@ -7,10 +7,10 @@ interface CircuitBreakerState {
 }
 
 interface CircuitBreakerConfig {
-  failureThreshold: number;      // Kaç hata sonrası açılır
-  resetTimeoutMs: number;        // Açıkken ne kadar beklenir
-  halfOpenMaxCalls: number;      // Yarı açıkken kaç çağrı izin verilir
-  successThreshold: number;      // Yarı açıkten kapanmak için başarı sayısı
+  failureThreshold: number; // Kaç hata sonrası açılır
+  resetTimeoutMs: number; // Açıkken ne kadar beklenir
+  halfOpenMaxCalls: number; // Yarı açıkken kaç çağrı izin verilir
+  successThreshold: number; // Yarı açıkten kapanmak için başarı sayısı
 }
 
 /**
@@ -21,26 +21,26 @@ interface CircuitBreakerConfig {
 @Injectable()
 export class CircuitBreakerService {
   private states: Map<string, CircuitBreakerState> = new Map();
-  
+
   private configs: Map<string, CircuitBreakerConfig> = new Map();
-  
+
   // Default config per service type
   private defaultConfigs: Record<string, CircuitBreakerConfig> = {
     'marketplace-api': {
       failureThreshold: 5,
-      resetTimeoutMs: 30000,      // 30 saniye bekle
+      resetTimeoutMs: 30000, // 30 saniye bekle
       halfOpenMaxCalls: 3,
       successThreshold: 2,
     },
     'payment-gateway': {
       failureThreshold: 3,
-      resetTimeoutMs: 60000,      // 1 dakika bekle
+      resetTimeoutMs: 60000, // 1 dakika bekle
       halfOpenMaxCalls: 2,
       successThreshold: 1,
     },
     'email-service': {
       failureThreshold: 10,
-      resetTimeoutMs: 120000,     // 2 dakika bekle
+      resetTimeoutMs: 120000, // 2 dakika bekle
       halfOpenMaxCalls: 5,
       successThreshold: 3,
     },
@@ -71,16 +71,18 @@ export class CircuitBreakerService {
     // OPEN durumundayız - hata fırlat veya fallback dön
     if (state.state === 'OPEN') {
       const timeSinceLastFailure = Date.now() - (state.lastFailureTime || 0);
-      
+
       if (timeSinceLastFailure < config.resetTimeoutMs) {
         // Hala açık, fallback veya hata
         if (fallback) {
-          console.log(`[CircuitBreaker] ${serviceName} is OPEN, using fallback`);
+          console.log(
+            `[CircuitBreaker] ${serviceName} is OPEN, using fallback`,
+          );
           return fallback();
         }
         throw new Error(`Service ${serviceName} is unavailable (Circuit Open)`);
       }
-      
+
       // Zaman doldu, yarı açık geç
       state.state = 'HALF_OPEN';
       state.failures = 0;
@@ -91,28 +93,30 @@ export class CircuitBreakerService {
     if (state.state === 'HALF_OPEN') {
       state.failures++; // Geçici olarak sayacı kullan
       if (state.failures > config.halfOpenMaxCalls) {
-        throw new Error(`Service ${serviceName} is in HALF_OPEN state, call limit reached`);
+        throw new Error(
+          `Service ${serviceName} is in HALF_OPEN state, call limit reached`,
+        );
       }
     }
 
     try {
       // Operasyonu çalıştır
       const result = await operation();
-      
+
       // Başarılı - durumu güncelle
       this.onSuccess(serviceName, config);
-      
+
       return result;
     } catch (error) {
       // Başarısız - durumu güncelle
       this.onFailure(serviceName, config);
-      
+
       // Fallback varsa dene
       if (fallback) {
         console.log(`[CircuitBreaker] ${serviceName} failed, using fallback`);
         return fallback();
       }
-      
+
       throw error;
     }
   }
@@ -120,7 +124,11 @@ export class CircuitBreakerService {
   /**
    * Servis durumunu kontrol et
    */
-  getStatus(serviceName: string): { state: string; healthy: boolean; failures: number } {
+  getStatus(serviceName: string): {
+    state: string;
+    healthy: boolean;
+    failures: number;
+  } {
     const state = this.getState(serviceName);
     return {
       state: state.state,
@@ -132,7 +140,10 @@ export class CircuitBreakerService {
   /**
    * Tüm servis durumları
    */
-  getAllStatuses(): Record<string, { state: string; healthy: boolean; failures: number }> {
+  getAllStatuses(): Record<
+    string,
+    { state: string; healthy: boolean; failures: number }
+  > {
     const result: any = {};
     for (const [name, state] of this.states) {
       result[name] = {
@@ -169,19 +180,26 @@ export class CircuitBreakerService {
 
   private getConfig(serviceName: string): CircuitBreakerConfig {
     // Service type'ı bul (örn: trendyol-api → marketplace-api)
-    const serviceType = Object.keys(this.defaultConfigs).find(type => 
-      serviceName.includes(type) || serviceName.toLowerCase().includes(type)
-    ) || 'marketplace-api';
-    
-    return this.configs.get(serviceName) || this.defaultConfigs[serviceType] || this.defaultConfigs['marketplace-api'];
+    const serviceType =
+      Object.keys(this.defaultConfigs).find(
+        (type) =>
+          serviceName.includes(type) ||
+          serviceName.toLowerCase().includes(type),
+      ) || 'marketplace-api';
+
+    return (
+      this.configs.get(serviceName) ||
+      this.defaultConfigs[serviceType] ||
+      this.defaultConfigs['marketplace-api']
+    );
   }
 
   private onSuccess(serviceName: string, config: CircuitBreakerConfig): void {
     const state = this.getState(serviceName);
-    
+
     if (state.state === 'HALF_OPEN') {
       state.failures = Math.max(0, state.failures - 1); // Başarı sayısını artır mantığı
-      
+
       // Yeterli başarı varsa kapat
       if (state.failures <= config.halfOpenMaxCalls - config.successThreshold) {
         state.state = 'CLOSED';
@@ -199,18 +217,25 @@ export class CircuitBreakerService {
 
   private onFailure(serviceName: string, config: CircuitBreakerConfig): void {
     const state = this.getState(serviceName);
-    
+
     state.failures++;
     state.lastFailureTime = Date.now();
-    
+
     if (state.state === 'HALF_OPEN') {
       // Yarı açıkken hata - tekrar aç
       state.state = 'OPEN';
-      console.log(`[CircuitBreaker] ${serviceName} is now OPEN (half-open failure)`);
-    } else if (state.state === 'CLOSED' && state.failures >= config.failureThreshold) {
+      console.log(
+        `[CircuitBreaker] ${serviceName} is now OPEN (half-open failure)`,
+      );
+    } else if (
+      state.state === 'CLOSED' &&
+      state.failures >= config.failureThreshold
+    ) {
       // Threshold aşıldı, aç
       state.state = 'OPEN';
-      console.log(`[CircuitBreaker] ${serviceName} is now OPEN (${state.failures} failures)`);
+      console.log(
+        `[CircuitBreaker] ${serviceName} is now OPEN (${state.failures} failures)`,
+      );
     }
   }
 
@@ -224,7 +249,9 @@ export class CircuitBreakerService {
           // Çok uzun süre açık kaldı, otomatik kapatmayı dene
           state.state = 'HALF_OPEN';
           state.failures = 0;
-          console.log(`[CircuitBreaker] ${name} auto-transitioning to HALF_OPEN after long OPEN`);
+          console.log(
+            `[CircuitBreaker] ${name} auto-transitioning to HALF_OPEN after long OPEN`,
+          );
         }
       }
     }
@@ -234,10 +261,7 @@ export class CircuitBreakerService {
 /**
  * Decorator for automatic circuit breaker
  */
-export function WithCircuitBreaker(
-  serviceName: string,
-  fallback?: () => any,
-) {
+export function WithCircuitBreaker(serviceName: string, fallback?: () => any) {
   return function (
     target: any,
     propertyKey: string,

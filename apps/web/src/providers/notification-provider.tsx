@@ -3,8 +3,13 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useSession } from 'next-auth/react';
-import { Bell, X, Info, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, Info, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+
+type SessionUser = {
+    id?: string;
+    tenantId?: string;
+};
 
 export interface RealtimeNotification {
     id: string;
@@ -13,7 +18,7 @@ export interface RealtimeNotification {
     message: string;
     severity: 'info' | 'warning' | 'error' | 'success';
     timestamp: string;
-    data?: Record<string, any>;
+    data?: Record<string, unknown>;
     read?: boolean;
 }
 
@@ -36,14 +41,22 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 
     const unreadCount = notifications.filter(n => !n.read).length;
 
+    const showToast = useCallback((notification: RealtimeNotification) => {
+        setToasts(prev => [...prev, notification]);
+        setTimeout(() => {
+            setToasts(prev => prev.filter(t => t.id !== notification.id));
+        }, 5000);
+    }, []);
+
     useEffect(() => {
         if (!session?.user) return;
+        const user = session.user as SessionUser;
 
         const socketUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
         const newSocket = io(`${socketUrl}/notifications`, {
             query: {
-                tenantId: (session.user as any).tenantId || 'default-tenant',
-                userId: session.user.id
+                tenantId: user.tenantId || 'default-tenant',
+                userId: user.id || 'anonymous'
             },
             transports: ['websocket']
         });
@@ -66,14 +79,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         return () => {
             newSocket.disconnect();
         };
-    }, [session]);
-
-    const showToast = useCallback((notification: RealtimeNotification) => {
-        setToasts(prev => [...prev, notification]);
-        setTimeout(() => {
-            setToasts(prev => prev.filter(t => t.id !== notification.id));
-        }, 5000);
-    }, []);
+    }, [session, showToast]);
 
     const markAsRead = (id: string) => {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));

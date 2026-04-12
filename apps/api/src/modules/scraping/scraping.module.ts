@@ -3,8 +3,8 @@ import { ScrapingController } from './scraping.controller';
 import { ScrapingService } from './scraping.service';
 
 @Module({
-    controllers: [ScrapingController],
-    providers: [ScrapingService],
-    exports: [ScrapingService],
+  controllers: [ScrapingController],
+  providers: [ScrapingService],
+  exports: [ScrapingService],
 })
-export class ScrapingModule { }
+export class ScrapingModule {}

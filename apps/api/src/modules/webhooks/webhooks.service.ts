@@ -26,15 +26,23 @@ export interface WebhookFilters {
 
 @Injectable()
 export class WebhooksService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   getEventTypes() {
     return [
       { id: 'order.created', label: 'Yeni Sipariş', category: 'Sipariş' },
-      { id: 'order.updated', label: 'Sipariş Güncellendi', category: 'Sipariş' },
+      {
+        id: 'order.updated',
+        label: 'Sipariş Güncellendi',
+        category: 'Sipariş',
+      },
       { id: 'order.cancelled', label: 'Sipariş İptal', category: 'Sipariş' },
       { id: 'order.shipped', label: 'Sipariş Kargoda', category: 'Sipariş' },
-      { id: 'order.delivered', label: 'Sipariş Teslim Edildi', category: 'Sipariş' },
+      {
+        id: 'order.delivered',
+        label: 'Sipariş Teslim Edildi',
+        category: 'Sipariş',
+      },
       { id: 'product.created', label: 'Yeni Ürün', category: 'Ürün' },
       { id: 'product.updated', label: 'Ürün Güncellendi', category: 'Ürün' },
       { id: 'product.deleted', label: 'Ürün Silindi', category: 'Ürün' },
@@ -66,11 +74,14 @@ export class WebhooksService {
     });
 
     return {
-      webhooks: webhooks.map(w => ({
+      webhooks: webhooks.map((w) => ({
         ...w,
-        successRate: w.successCount + w.failCount > 0
-          ? Math.round((w.successCount / (w.successCount + w.failCount)) * 1000) / 10
-          : 100,
+        successRate:
+          w.successCount + w.failCount > 0
+            ? Math.round(
+                (w.successCount / (w.successCount + w.failCount)) * 1000,
+              ) / 10
+            : 100,
         totalCalls: w.successCount + w.failCount,
       })),
     };
@@ -84,9 +95,14 @@ export class WebhooksService {
 
     return {
       ...webhook,
-      successRate: webhook.successCount + webhook.failCount > 0
-        ? Math.round((webhook.successCount / (webhook.successCount + webhook.failCount)) * 1000) / 10
-        : 100,
+      successRate:
+        webhook.successCount + webhook.failCount > 0
+          ? Math.round(
+              (webhook.successCount /
+                (webhook.successCount + webhook.failCount)) *
+                1000,
+            ) / 10
+          : 100,
       totalCalls: webhook.successCount + webhook.failCount,
     };
   }
@@ -108,7 +124,9 @@ export class WebhooksService {
   }
 
   async update(id: string, tenantId: string, dto: UpdateWebhookDto) {
-    const webhook = await this.prisma.webhook.findFirst({ where: { id, tenantId } });
+    const webhook = await this.prisma.webhook.findFirst({
+      where: { id, tenantId },
+    });
     if (!webhook) throw new NotFoundException('Webhook bulunamadı');
 
     return this.prisma.webhook.update({
@@ -124,7 +142,9 @@ export class WebhooksService {
   }
 
   async delete(id: string, tenantId: string) {
-    const webhook = await this.prisma.webhook.findFirst({ where: { id, tenantId } });
+    const webhook = await this.prisma.webhook.findFirst({
+      where: { id, tenantId },
+    });
     if (!webhook) throw new NotFoundException('Webhook bulunamadı');
 
     await this.prisma.webhook.delete({ where: { id } });
@@ -132,7 +152,9 @@ export class WebhooksService {
   }
 
   async regenerateSecret(id: string, tenantId: string) {
-    const webhook = await this.prisma.webhook.findFirst({ where: { id, tenantId } });
+    const webhook = await this.prisma.webhook.findFirst({
+      where: { id, tenantId },
+    });
     if (!webhook) throw new NotFoundException('Webhook bulunamadı');
 
     const newSecret = 'whsec_' + crypto.randomBytes(24).toString('hex');
@@ -145,7 +167,9 @@ export class WebhooksService {
   }
 
   async test(id: string, tenantId: string) {
-    const webhook = await this.prisma.webhook.findFirst({ where: { id, tenantId } });
+    const webhook = await this.prisma.webhook.findFirst({
+      where: { id, tenantId },
+    });
     if (!webhook) throw new NotFoundException('Webhook bulunamadı');
 
     const startTime = Date.now();
@@ -162,16 +186,26 @@ export class WebhooksService {
           'X-Webhook-Event': 'test',
           ...((webhook.headers as Record<string, string>) || {}),
         },
-        body: JSON.stringify({ event: 'test', timestamp: new Date().toISOString(), data: { test: true } }),
+        body: JSON.stringify({
+          event: 'test',
+          timestamp: new Date().toISOString(),
+          data: { test: true },
+        }),
         signal: AbortSignal.timeout(10000),
       });
       statusCode = response.status;
       success = response.ok;
-      try { responseBody = await response.json(); } catch { responseBody = await response.text(); }
+      try {
+        responseBody = await response.json();
+      } catch {
+        responseBody = await response.text();
+      }
     } catch (err) {
       statusCode = 0;
       success = false;
-      responseBody = { error: err instanceof Error ? err.message : 'Connection failed' };
+      responseBody = {
+        error: err instanceof Error ? err.message : 'Connection failed',
+      };
     }
 
     const duration = Date.now() - startTime;
@@ -183,16 +217,25 @@ export class WebhooksService {
         lastTriggered: new Date(),
         lastStatus: success ? 'success' : 'failed',
         lastResponse: JSON.stringify(responseBody).substring(0, 500),
-        ...(success ? { successCount: { increment: 1 } } : { failCount: { increment: 1 } }),
+        ...(success
+          ? { successCount: { increment: 1 } }
+          : { failCount: { increment: 1 } }),
       },
     });
 
-    return { success, statusCode, responseTime: duration, response: responseBody };
+    return {
+      success,
+      statusCode,
+      responseTime: duration,
+      response: responseBody,
+    };
   }
 
   async getLogs(id: string, tenantId: string, page = 1, limit = 20) {
     // ActivityLog'dan webhook ile ilişkili logları çek
-    const webhook = await this.prisma.webhook.findFirst({ where: { id, tenantId } });
+    const webhook = await this.prisma.webhook.findFirst({
+      where: { id, tenantId },
+    });
     if (!webhook) throw new NotFoundException('Webhook bulunamadı');
 
     const logs = await this.prisma.activityLog.findMany({
@@ -211,7 +254,7 @@ export class WebhooksService {
     });
 
     return {
-      logs: logs.map(log => ({
+      logs: logs.map((log) => ({
         id: log.id,
         webhookId: id,
         event: log.action,
@@ -226,14 +269,19 @@ export class WebhooksService {
   }
 
   async getStats(tenantId: string) {
-    const webhooks = await this.prisma.webhook.findMany({ where: { tenantId } });
+    const webhooks = await this.prisma.webhook.findMany({
+      where: { tenantId },
+    });
 
     const total = webhooks.length;
-    const active = webhooks.filter(w => w.isActive).length;
+    const active = webhooks.filter((w) => w.isActive).length;
     const totalSuccess = webhooks.reduce((s, w) => s + w.successCount, 0);
     const totalFail = webhooks.reduce((s, w) => s + w.failCount, 0);
     const totalCalls = totalSuccess + totalFail;
-    const successRate = totalCalls > 0 ? Math.round((totalSuccess / totalCalls) * 1000) / 10 : 100;
+    const successRate =
+      totalCalls > 0
+        ? Math.round((totalSuccess / totalCalls) * 1000) / 10
+        : 100;
 
     return {
       total,
@@ -242,11 +290,13 @@ export class WebhooksService {
       successRate,
       todayCalls: Math.min(totalCalls, Math.floor(totalCalls * 0.05)),
       failedToday: Math.min(totalFail, Math.floor(totalFail * 0.1)),
-      eventBreakdown: this.getEventTypes().slice(0, 4).map(e => ({
-        event: e.id,
-        count: Math.floor(totalCalls / 4),
-        successRate: successRate,
-      })),
+      eventBreakdown: this.getEventTypes()
+        .slice(0, 4)
+        .map((e) => ({
+          event: e.id,
+          count: Math.floor(totalCalls / 4),
+          successRate: successRate,
+        })),
     };
   }
 
@@ -266,7 +316,11 @@ export class WebhooksService {
             'X-Webhook-Event': event,
             ...((webhook.headers as Record<string, string>) || {}),
           },
-          body: JSON.stringify({ event, timestamp: new Date().toISOString(), data: payload }),
+          body: JSON.stringify({
+            event,
+            timestamp: new Date().toISOString(),
+            data: payload,
+          }),
           signal: AbortSignal.timeout(10000),
         });
 
@@ -275,7 +329,9 @@ export class WebhooksService {
           data: {
             lastTriggered: new Date(),
             lastStatus: response.ok ? 'success' : 'failed',
-            ...(response.ok ? { successCount: { increment: 1 } } : { failCount: { increment: 1 } }),
+            ...(response.ok
+              ? { successCount: { increment: 1 } }
+              : { failCount: { increment: 1 } }),
           },
         });
 

@@ -72,7 +72,7 @@ export function useDashboardStats(period: string = '30d') {
 export function usePlatformPerformance(_period?: string) {
   const fetcher = useCallback(
     (tenantId: string) => apiClient.getPlatformPerformance(tenantId) as Promise<PlatformPerformance[]>,
-    [_period]
+    []
   );
   return useApiData(fetcher);
 }
@@ -1114,6 +1114,8 @@ export function useSupport() {
 // CUSTOMER HOOKS
 // ==========================================
 export function useCustomers(params: Record<string, any> = {}) {
+  const paramsKey = JSON.stringify(params);
+
   const fetcher = useCallback(
     (tenantId: string) => {
       apiClient.setTenantId(tenantId);
@@ -1122,7 +1124,7 @@ export function useCustomers(params: Record<string, any> = {}) {
         pagination: { total: number; page: number; limit: number; totalPages: number };
       }>;
     },
-    [JSON.stringify(params)]
+    [paramsKey]
   );
 
   const { data, loading, error, refetch } = useApiData<{

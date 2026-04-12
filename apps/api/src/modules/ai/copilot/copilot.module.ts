@@ -5,9 +5,9 @@ import { AiModule } from '../ai.module';
 import { DatabaseModule } from '../../../database/database.module';
 
 @Module({
-    imports: [AiModule, DatabaseModule],
-    controllers: [CopilotController],
-    providers: [CopilotService],
-    exports: [CopilotService],
+  imports: [AiModule, DatabaseModule],
+  controllers: [CopilotController],
+  providers: [CopilotService],
+  exports: [CopilotService],
 })
 export class CopilotModule {}

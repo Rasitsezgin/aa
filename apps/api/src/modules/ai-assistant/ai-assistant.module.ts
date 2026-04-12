@@ -29,13 +29,13 @@ import { AIAssistantMarketplaceIntegrationService } from './services/ai-marketpl
     AIAssistantService,
     AIAssistantGateway,
     AIAssistantMarketplaceIntegrationService,
-    
+
     // Core AI services
     AIContextMemoryService,
     AISmartIntentService,
     AILearningService,
     AIPredictiveService,
-    
+
     // Feature services
     AIAnalyticsService,
     // AISchedulerService, // Disabled - requires ScheduleModule

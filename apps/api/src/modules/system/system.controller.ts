@@ -8,7 +8,7 @@ export class SystemController {
   constructor(
     private readonly systemService: SystemService,
     private readonly simulationService: SimulationService,
-  ) { }
+  ) {}
 
   @Get('metrics')
   async getMetrics() {
@@ -33,8 +33,11 @@ export class SystemController {
   @Post('simulate')
   async runSimulation(
     @Headers('x-tenant-id') tenantId: string,
-    @Body() scenario: SimulationScenario
+    @Body() scenario: SimulationScenario,
   ) {
-    return this.simulationService.runSimulation(tenantId || 'default', scenario);
+    return this.simulationService.runSimulation(
+      tenantId || 'default',
+      scenario,
+    );
   }
 }

@@ -5,9 +5,9 @@ import { ConfigModule } from '@nestjs/config';
 
 @Global()
 @Module({
-    imports: [ConfigModule],
-    controllers: [SmsController],
-    providers: [SmsService],
-    exports: [SmsService],
+  imports: [ConfigModule],
+  controllers: [SmsController],
+  providers: [SmsService],
+  exports: [SmsService],
 })
-export class SmsModule { }
+export class SmsModule {}

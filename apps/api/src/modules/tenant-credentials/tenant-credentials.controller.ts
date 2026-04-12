@@ -78,6 +78,9 @@ export class TenantCredentialsController {
   rotateWebhookSecret(@Req() req: any) {
     return this.service
       .rotateWebhookSecret(req.user?.tenantId)
-      .then((secret) => ({ secret, message: 'Webhook secret başarıyla yenilendi' }));
+      .then((secret) => ({
+        secret,
+        message: 'Webhook secret başarıyla yenilendi',
+      }));
   }
 }

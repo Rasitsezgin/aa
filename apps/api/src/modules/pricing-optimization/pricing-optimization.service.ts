@@ -37,7 +37,9 @@ export class PricingOptimizationService {
         },
         orderItems: {
           include: { order: true },
-          where: { order: { orderDate: { gte: new Date(Date.now() - 30 * 86400000) } } },
+          where: {
+            order: { orderDate: { gte: new Date(Date.now() - 30 * 86400000) } },
+          },
         },
       },
       take: 50,
@@ -47,22 +49,28 @@ export class PricingOptimizationService {
 
     for (const product of products) {
       const currentPrice = Number(product.price);
-      const competitorPrices = product.competitorProducts.map(cp => ({
+      const competitorPrices = product.competitorProducts.map((cp) => ({
         platform: cp.competitor.platform,
         price: Number(cp.price),
         seller: cp.competitor.name,
       }));
 
       // Rakip fiyat analizi
-      const avgCompetitorPrice = competitorPrices.length > 0
-        ? competitorPrices.reduce((sum, cp) => sum + cp.price, 0) / competitorPrices.length
-        : currentPrice;
-      const minCompetitorPrice = competitorPrices.length > 0
-        ? Math.min(...competitorPrices.map(cp => cp.price))
-        : currentPrice;
+      const avgCompetitorPrice =
+        competitorPrices.length > 0
+          ? competitorPrices.reduce((sum, cp) => sum + cp.price, 0) /
+            competitorPrices.length
+          : currentPrice;
+      const minCompetitorPrice =
+        competitorPrices.length > 0
+          ? Math.min(...competitorPrices.map((cp) => cp.price))
+          : currentPrice;
 
       // Talep skoru (son 30 gün satış bazlı)
-      const salesCount = product.orderItems.reduce((sum, item) => sum + item.quantity, 0);
+      const salesCount = product.orderItems.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      );
       const demandScore = Math.min(100, salesCount * 5);
 
       // Stok durumu
@@ -94,11 +102,11 @@ export class PricingOptimizationService {
         // Az stok, yüksek talep
         recommendedPrice = currentPrice * 1.12;
         reason = 'Kıtlık fiyatlaması, stok azaldı';
-        confidence = 0.80;
+        confidence = 0.8;
       } else {
         recommendedPrice = currentPrice;
         reason = 'Fiyat optimum seviyede';
-        confidence = 0.90;
+        confidence = 0.9;
       }
 
       const priceChange = recommendedPrice - currentPrice;
@@ -126,23 +134,38 @@ export class PricingOptimizationService {
     }
 
     // Özet istatistikler
-    const priceIncreases = recommendations.filter(r => r.priceChange > 0);
-    const priceDecreases = recommendations.filter(r => r.priceChange < 0);
-    const totalProfitImpact = recommendations.reduce((sum, r) => sum + r.profitImpact, 0);
+    const priceIncreases = recommendations.filter((r) => r.priceChange > 0);
+    const priceDecreases = recommendations.filter((r) => r.priceChange < 0);
+    const totalProfitImpact = recommendations.reduce(
+      (sum, r) => sum + r.profitImpact,
+      0,
+    );
 
     return {
-      recommendations: recommendations.sort((a, b) => Math.abs(b.profitImpact) - Math.abs(a.profitImpact)),
+      recommendations: recommendations.sort(
+        (a, b) => Math.abs(b.profitImpact) - Math.abs(a.profitImpact),
+      ),
       summary: {
         totalRecommendations: recommendations.length,
         priceIncreases: priceIncreases.length,
         priceDecreases: priceDecreases.length,
-        avgConfidence: recommendations.length > 0
-          ? Math.round(recommendations.reduce((sum, r) => sum + r.confidence, 0) / recommendations.length * 100)
-          : 0,
+        avgConfidence:
+          recommendations.length > 0
+            ? Math.round(
+                (recommendations.reduce((sum, r) => sum + r.confidence, 0) /
+                  recommendations.length) *
+                  100,
+              )
+            : 0,
         potentialProfitImpact: totalProfitImpact,
-        avgPriceChange: recommendations.length > 0
-          ? Math.round(recommendations.reduce((sum, r) => sum + r.changePercent, 0) / recommendations.length * 100) / 100
-          : 0,
+        avgPriceChange:
+          recommendations.length > 0
+            ? Math.round(
+                (recommendations.reduce((sum, r) => sum + r.changePercent, 0) /
+                  recommendations.length) *
+                  100,
+              ) / 100
+            : 0,
       },
     };
   }
@@ -150,7 +173,11 @@ export class PricingOptimizationService {
   /**
    * Fiyat değişikliği uygula
    */
-  async applyPriceChange(productId: string, newPrice: number, tenantId: string) {
+  async applyPriceChange(
+    productId: string,
+    newPrice: number,
+    tenantId: string,
+  ) {
     const product = await this.prisma.product.findFirst({
       where: { id: productId, tenantId },
     });
@@ -177,7 +204,7 @@ export class PricingOptimizationService {
           sku: product.sku,
           oldPrice,
           newPrice,
-          changePercent: ((newPrice - oldPrice) / oldPrice * 100).toFixed(2),
+          changePercent: (((newPrice - oldPrice) / oldPrice) * 100).toFixed(2),
           source: 'ai_optimization',
         },
       },
@@ -199,17 +226,33 @@ export class PricingOptimizationService {
     changes: { productId: string; newPrice: number }[],
     tenantId: string,
   ) {
-    const results: Array<{ productId: string; status: string; sku?: string; oldPrice?: number; newPrice?: number; appliedAt?: string; error?: string }> = [];
+    const results: Array<{
+      productId: string;
+      status: string;
+      sku?: string;
+      oldPrice?: number;
+      newPrice?: number;
+      appliedAt?: string;
+      error?: string;
+    }> = [];
     let success = 0;
     let failed = 0;
 
     for (const change of changes) {
       try {
-        const result = await this.applyPriceChange(change.productId, change.newPrice, tenantId);
+        const result = await this.applyPriceChange(
+          change.productId,
+          change.newPrice,
+          tenantId,
+        );
         results.push({ ...result, status: 'success' });
         success++;
       } catch (error: any) {
-        results.push({ productId: change.productId, status: 'failed', error: error.message });
+        results.push({
+          productId: change.productId,
+          status: 'failed',
+          error: error.message,
+        });
         failed++;
       }
     }
@@ -232,7 +275,7 @@ export class PricingOptimizationService {
       take: 30,
     });
 
-    return logs.map(log => ({
+    return logs.map((log) => ({
       date: log.createdAt,
       oldPrice: (log.details as any)?.oldPrice,
       newPrice: (log.details as any)?.newPrice,
@@ -254,15 +297,16 @@ export class PricingOptimizationService {
       },
     });
 
-    return competitors.map(comp => {
+    return competitors.map((comp) => {
       const products = comp.products;
-      const avgPriceDiff = products.length > 0
-        ? products.reduce((sum, cp) => {
-            const ourPrice = Number(cp.product?.price || 0);
-            const theirPrice = Number(cp.price);
-            return sum + ((theirPrice - ourPrice) / ourPrice * 100);
-          }, 0) / products.length
-        : 0;
+      const avgPriceDiff =
+        products.length > 0
+          ? products.reduce((sum, cp) => {
+              const ourPrice = Number(cp.product?.price || 0);
+              const theirPrice = Number(cp.price);
+              return sum + ((theirPrice - ourPrice) / ourPrice) * 100;
+            }, 0) / products.length
+          : 0;
 
       return {
         competitorId: comp.id,
@@ -270,7 +314,12 @@ export class PricingOptimizationService {
         platform: comp.platform,
         productCount: products.length,
         avgPriceDifference: Math.round(avgPriceDiff * 100) / 100,
-        position: avgPriceDiff > 5 ? 'cheaper' : avgPriceDiff < -5 ? 'expensive' : 'similar',
+        position:
+          avgPriceDiff > 5
+            ? 'cheaper'
+            : avgPriceDiff < -5
+              ? 'expensive'
+              : 'similar',
         lastUpdated: comp.updatedAt,
       };
     });

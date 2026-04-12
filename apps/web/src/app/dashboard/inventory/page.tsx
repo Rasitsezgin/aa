@@ -1,30 +1,21 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import {
-    Package,
     Search,
-    Filter,
     Download,
     Plus,
     AlertTriangle,
-    CheckCircle,
     TrendingUp,
-    TrendingDown,
     Edit,
     Trash2,
     RefreshCw,
     BarChart3,
     Box,
-    Layers,
     ArrowUpDown,
-    ChevronDown,
-    Eye,
     History,
-    Settings,
-    Upload
 } from 'lucide-react';
 import { useInventory, useInventoryStats } from '@/lib/hooks';
 
@@ -50,13 +41,22 @@ interface InventoryStats {
     totalValue: number;
 }
 
+interface InventoryApiResponse {
+    items?: InventoryItem[];
+    pagination?: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    };
+}
+
 const categories = ["Tümü", "Aksesuar", "Kulaklık", "Laptop", "Tablet", "Akıllı Saat"];
-const statusFilters = ["Tümü", "Kritik", "Düşük", "Normal"];
 
 export default function InventoryPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('Tümü');
-    const [selectedStatus, setSelectedStatus] = useState('Tümü');
+    const [selectedStatus] = useState('Tümü');
     const [sortBy, setSortBy] = useState<'stock' | 'name' | 'trend'>('stock');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -75,10 +75,11 @@ export default function InventoryPage() {
     const { data: inventoryData, loading: inventoryLoading, refetch: loadData } = useInventory(filters);
     const { data: statsData, loading: statsLoading } = useInventoryStats();
 
-    const items = useMemo(() => (inventoryData as any)?.items || [], [inventoryData]);
-    const stats = statsData as any;
+    const inventoryPayload = (inventoryData as InventoryApiResponse | undefined) || undefined;
+    const items = useMemo(() => inventoryPayload?.items || [], [inventoryPayload]);
+    const stats = statsData as InventoryStats | undefined;
     const loading = inventoryLoading || statsLoading;
-    const pagination = (inventoryData as any)?.pagination || { total: 0, page: 1, limit: 50, totalPages: 1 };
+    const pagination = inventoryPayload?.pagination || { total: 0, page: 1, limit: 50, totalPages: 1 };
 
     const toggleSelectAll = () => {
         if (selectedItems.length === items.length) {
@@ -271,7 +272,7 @@ export default function InventoryPage() {
                                     </td>
                                     <td className="p-4">
                                         <div className="flex items-center justify-center gap-1">
-                                            {item.marketplaceProducts?.map((mp: any) => (
+                                            {item.marketplaceProducts?.map((mp) => (
                                                 <div key={mp.id} className="w-6 h-6 rounded-lg bg-background border border-border flex items-center justify-center" title={mp.platform}>
                                                     <span className="text-[8px] font-black">{mp.platform[0]}</span>
                                                 </div>

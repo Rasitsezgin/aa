@@ -1,5 +1,18 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
-import { ModulesService, CreateModuleDto, UpdateModuleDto } from './modules.service';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+} from '@nestjs/common';
+import {
+  ModulesService,
+  CreateModuleDto,
+  UpdateModuleDto,
+} from './modules.service';
 
 @Controller('modules')
 export class ModulesController {
@@ -88,7 +101,11 @@ export class ModulesController {
     @Param('moduleKey') moduleKey: string,
     @Body('isEnabled') isEnabled: boolean,
   ) {
-    return this.modulesService.toggleTenantModule(tenantId, moduleKey, isEnabled);
+    return this.modulesService.toggleTenantModule(
+      tenantId,
+      moduleKey,
+      isEnabled,
+    );
   }
 
   @Put('tenant/:tenantId/:moduleKey/config')
@@ -97,7 +114,11 @@ export class ModulesController {
     @Param('moduleKey') moduleKey: string,
     @Body() config: Record<string, any>,
   ) {
-    return this.modulesService.updateTenantModuleConfig(tenantId, moduleKey, config);
+    return this.modulesService.updateTenantModuleConfig(
+      tenantId,
+      moduleKey,
+      config,
+    );
   }
 
   // Access Check
@@ -106,7 +127,10 @@ export class ModulesController {
     @Param('tenantId') tenantId: string,
     @Param('moduleKey') moduleKey: string,
   ) {
-    const hasAccess = await this.modulesService.hasModuleAccess(tenantId, moduleKey);
+    const hasAccess = await this.modulesService.hasModuleAccess(
+      tenantId,
+      moduleKey,
+    );
     return { hasAccess };
   }
 }

@@ -12,8 +12,7 @@ import {
   Package,
   TrendingUp,
   Star,
-  Zap,
-  Bell,
+  LucideIcon,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────
@@ -43,7 +42,7 @@ interface ToastContextType {
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 // ─── Icon & Color Maps ────────────────────────────────
-const toastConfig: Record<ToastType, { icon: any; bg: string; border: string; iconColor: string; titleColor: string }> = {
+const toastConfig: Record<ToastType, { icon: LucideIcon; bg: string; border: string; iconColor: string; titleColor: string }> = {
   success: {
     icon: CheckCircle2,
     bg: 'bg-emerald-500/10',

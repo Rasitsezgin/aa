@@ -4,9 +4,9 @@ import { SupportController } from './support.controller';
 import { DatabaseModule } from '../../database/database.module';
 
 @Module({
-    imports: [DatabaseModule],
-    controllers: [SupportController],
-    providers: [SupportService],
-    exports: [SupportService],
+  imports: [DatabaseModule],
+  controllers: [SupportController],
+  providers: [SupportService],
+  exports: [SupportService],
 })
-export class SupportModule { }
+export class SupportModule {}

@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { ReportsService, ReportData, ReportPeriod, PlanType } from './reports.service';
+import {
+  ReportsService,
+  ReportData,
+  ReportPeriod,
+  PlanType,
+} from './reports.service';
 
 @Injectable()
 export class EmailReportService {
@@ -12,15 +17,19 @@ export class EmailReportService {
     email: string,
     storeId: string,
     period: ReportPeriod,
-    planType: PlanType
+    planType: PlanType,
   ): Promise<{ success: boolean; messageId?: string }> {
-    const report = await this.reportsService.generateReport(storeId, period, planType);
+    const report = await this.reportsService.generateReport(
+      storeId,
+      period,
+      planType,
+    );
     const htmlContent = this.generateEmailTemplate(report);
-    
+
     // Gerçek uygulamada e-posta servisi kullanılacak (SendGrid, AWS SES, vb.)
     console.log(`📧 Rapor e-postası gönderiliyor: ${email}`);
     console.log(`📊 Periyot: ${this.reportsService.getPeriodName(period)}`);
-    
+
     // Simüle edilmiş gönderim
     return {
       success: true,
@@ -33,15 +42,19 @@ export class EmailReportService {
    */
   generateEmailTemplate(report: ReportData): string {
     const periodName = this.reportsService.getPeriodName(report.period);
-    const formatDate = (date: Date) => date.toLocaleDateString('tr-TR', { 
-      day: 'numeric', 
-      month: 'long', 
-      year: 'numeric' 
-    });
-    const formatCurrency = (value: number) => `₺${value.toLocaleString('tr-TR')}`;
-    const formatPercent = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
-    const getChangeColor = (value: number) => value >= 0 ? '#10B981' : '#EF4444';
-    const getChangeIcon = (value: number) => value >= 0 ? '↑' : '↓';
+    const formatDate = (date: Date) =>
+      date.toLocaleDateString('tr-TR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+    const formatCurrency = (value: number) =>
+      `₺${value.toLocaleString('tr-TR')}`;
+    const formatPercent = (value: number) =>
+      `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+    const getChangeColor = (value: number) =>
+      value >= 0 ? '#10B981' : '#EF4444';
+    const getChangeIcon = (value: number) => (value >= 0 ? '↑' : '↓');
 
     return `
 <!DOCTYPE html>
@@ -161,7 +174,9 @@ export class EmailReportService {
       <!-- Pazaryeri Performansı -->
       <div class="section">
         <h2 class="section-title">🏪 Pazaryeri Performansı</h2>
-        ${report.marketplaces.map(mp => `
+        ${report.marketplaces
+          .map(
+            (mp) => `
           <div class="marketplace-card">
             <div class="marketplace-header">
               <div class="marketplace-name">${mp.name}</div>
@@ -176,7 +191,9 @@ export class EmailReportService {
               <span>⭐ ${mp.rating}</span>
             </div>
           </div>
-        `).join('')}
+        `,
+          )
+          .join('')}
       </div>
 
       <div class="divider"></div>
@@ -184,7 +201,9 @@ export class EmailReportService {
       <!-- En Çok Satan Ürünler -->
       <div class="section">
         <h2 class="section-title">🏆 En Çok Satan 10 Ürün</h2>
-        ${report.topProducts.map(product => `
+        ${report.topProducts
+          .map(
+            (product) => `
           <div class="product-row">
             <div class="product-rank">${product.rank}</div>
             <div class="product-info">
@@ -196,7 +215,9 @@ export class EmailReportService {
               <div class="product-sales">${product.totalSales} adet satış</div>
             </div>
           </div>
-        `).join('')}
+        `,
+          )
+          .join('')}
       </div>
 
       <div class="divider"></div>
@@ -204,9 +225,10 @@ export class EmailReportService {
       <!-- Kategori Performansı -->
       <div class="section">
         <h2 class="section-title">📂 Kategori Performansı</h2>
-        ${report.categories.map((cat, i) => {
-          const colors = ['#6366F1', '#8B5CF6', '#A855F7', '#D946EF'];
-          return `
+        ${report.categories
+          .map((cat, i) => {
+            const colors = ['#6366F1', '#8B5CF6', '#A855F7', '#D946EF'];
+            return `
             <div style="margin-bottom: 16px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-weight: 600;">${cat.name}</span>
@@ -220,16 +242,21 @@ export class EmailReportService {
               </div>
             </div>
           `;
-        }).join('')}
+          })
+          .join('')}
       </div>
 
       <div class="divider"></div>
 
       <!-- Stok Uyarıları -->
-      ${report.inventory.alerts.length > 0 ? `
+      ${
+        report.inventory.alerts.length > 0
+          ? `
         <div class="section">
           <h2 class="section-title">⚠️ Stok Uyarıları</h2>
-          ${report.inventory.alerts.map(alert => `
+          ${report.inventory.alerts
+            .map(
+              (alert) => `
             <div class="alert-card">
               <div class="alert-title">🚨 ${alert.product}</div>
               <div class="alert-desc">
@@ -237,7 +264,9 @@ export class EmailReportService {
                 <strong>${alert.daysUntilStockout} gün içinde tükenecek!</strong>
               </div>
             </div>
-          `).join('')}
+          `,
+            )
+            .join('')}
           <div style="margin-top: 16px; padding: 12px; background: #F9FAFB; border-radius: 8px; font-size: 13px;">
             📦 Toplam Stok Değeri: <strong>${formatCurrency(report.inventory.totalValue)}</strong> •
             Düşük Stok: <strong style="color: #F59E0B;">${report.inventory.lowStockCount}</strong> •
@@ -245,18 +274,24 @@ export class EmailReportService {
           </div>
         </div>
         <div class="divider"></div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <!-- AI Önerileri -->
       <div class="section">
         <h2 class="section-title">🤖 AI Önerileri</h2>
-        ${report.aiRecommendations.map(rec => `
+        ${report.aiRecommendations
+          .map(
+            (rec) => `
           <div class="recommendation-card ${rec.priority}">
             <div class="rec-title">${rec.priority === 'high' ? '🔴' : rec.priority === 'medium' ? '🟡' : '🔵'} ${rec.title}</div>
             <div class="rec-description">${rec.description}</div>
             <div class="rec-impact">💡 ${rec.potentialImpact}</div>
           </div>
-        `).join('')}
+        `,
+          )
+          .join('')}
       </div>
 
       <div class="divider"></div>
@@ -264,14 +299,19 @@ export class EmailReportService {
       <!-- Hedefler -->
       <div class="section">
         <h2 class="section-title">🎯 Hedefler ve İlerleme</h2>
-        ${report.goals.map(goal => `
+        ${report.goals
+          .map(
+            (goal) => `
           <div class="goal-card">
             <div class="goal-info">
               <div class="goal-name">${goal.name}</div>
               <div class="goal-progress">
-                ${typeof goal.current === 'number' && goal.current > 100 
-                  ? formatCurrency(goal.current) + ' / ' + formatCurrency(goal.target)
-                  : goal.current + ' / ' + goal.target
+                ${
+                  typeof goal.current === 'number' && goal.current > 100
+                    ? formatCurrency(goal.current) +
+                      ' / ' +
+                      formatCurrency(goal.target)
+                    : goal.current + ' / ' + goal.target
                 } (%${goal.percentage.toFixed(1)})
               </div>
             </div>
@@ -279,10 +319,14 @@ export class EmailReportService {
               ${goal.status === 'on_track' ? '✅ Yolunda' : goal.status === 'at_risk' ? '⚠️ Risk' : '❌ Geride'}
             </div>
           </div>
-        `).join('')}
+        `,
+          )
+          .join('')}
       </div>
 
-      ${report.customers ? `
+      ${
+        report.customers
+          ? `
         <div class="divider"></div>
         <!-- Müşteri Analizi (Kurumsal) -->
         <div class="section">
@@ -306,7 +350,9 @@ export class EmailReportService {
             </div>
           </div>
           <h3 style="margin-top: 20px; font-size: 14px; font-weight: 600;">🏅 En Değerli Müşteriler</h3>
-          ${report.customers.topCustomers.map((c, i) => `
+          ${report.customers.topCustomers
+            .map(
+              (c, i) => `
             <div class="product-row">
               <div class="product-rank">${i + 1}</div>
               <div class="product-info">
@@ -317,11 +363,17 @@ export class EmailReportService {
                 <div class="product-revenue">${formatCurrency(c.totalSpent)}</div>
               </div>
             </div>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
-      ${report.competitors ? `
+      ${
+        report.competitors
+          ? `
         <div class="divider"></div>
         <!-- Rakip Analizi (Kurumsal) -->
         <div class="section">
@@ -331,7 +383,9 @@ export class EmailReportService {
             <div style="font-size: 13px; color: #065F46;">Pazar Payı</div>
           </div>
           <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">📊 Fiyat Karşılaştırması</h3>
-          ${report.competitors.priceComparison.map(p => `
+          ${report.competitors.priceComparison
+            .map(
+              (p) => `
             <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #E5E7EB;">
               <span>${p.category}</span>
               <span>
@@ -341,9 +395,13 @@ export class EmailReportService {
                 </span>
               </span>
             </div>
-          `).join('')}
+          `,
+            )
+            .join('')}
           <h3 style="font-size: 14px; font-weight: 600; margin: 20px 0 12px;">🔍 Arama Sıralaması Değişimleri</h3>
-          ${report.competitors.rankingChanges.map(r => `
+          ${report.competitors.rankingChanges
+            .map(
+              (r) => `
             <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #E5E7EB;">
               <span>"${r.keyword}"</span>
               <span>
@@ -354,9 +412,13 @@ export class EmailReportService {
                 • Lider: ${r.topCompetitor}
               </span>
             </div>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <!-- CTA -->
       <div style="text-align: center; margin-top: 32px;">
@@ -391,8 +453,11 @@ export class EmailReportService {
   generateSubject(storeName: string, period: ReportPeriod): string {
     const periodName = this.reportsService.getPeriodName(period);
     const now = new Date();
-    const dateStr = now.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
-    
+    const dateStr = now.toLocaleDateString('tr-TR', {
+      day: 'numeric',
+      month: 'long',
+    });
+
     return `📊 ${storeName} - ${periodName} Rapor (${dateStr})`;
   }
 }

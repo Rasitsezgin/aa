@@ -4,9 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Bell, Send, Users, AlertTriangle, Info, CheckCircle, Plus, Edit3,
-    Trash2, Eye, EyeOff, Clock, Calendar, Target, Gift, Wrench, RefreshCw,
-    ChevronDown, X, Image, Link, Star, TrendingUp, MessageSquare, Zap,
-    Crown, Gem, Package, Pin, Archive, BarChart3, Filter, Search
+    Trash2, Eye, Clock, Gift, Wrench, RefreshCw,
+    X, MessageSquare,
+    Crown, Gem, Package, Pin, Search
 } from 'lucide-react';
 
 const ANNOUNCEMENT_TYPES = {
@@ -236,7 +236,7 @@ export default function NotificationsPage() {
                 <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setShowCreateModal(true)}
+                    onClick={() => setShowCreateModal(true)}
                     className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-600/20"
                 >
                     <Plus size={18} /> Yeni Duyuru
@@ -301,7 +301,7 @@ export default function NotificationsPage() {
                     </select>
                     <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/50 rounded-xl p-1 border border-slate-200 dark:border-slate-700">
                         {(['all', 'active', 'inactive'] as const).map((status) => (
-                            <button key={status} onClick={(e: React.MouseEvent<HTMLButtonElement>) => setFilterStatus(status)}
+                            <button key={status} onClick={() => setFilterStatus(status)}
                                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${filterStatus === status ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
                                 {status === 'all' ? 'Tümü' : status === 'active' ? 'Aktif' : 'Pasif'}
                             </button>
@@ -362,19 +362,19 @@ export default function NotificationsPage() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => togglePin(announcement.id)}
+                                        <button onClick={() => togglePin(announcement.id)}
                                             className={`p-2 rounded-lg transition-colors ${announcement.isPinned ? 'bg-yellow-500/20 text-yellow-400' : 'text-slate-500 hover:text-white hover:bg-slate-800'}`}>
                                             <Pin size={16} />
                                         </button>
-                                        <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => openEditModal(announcement)}
+                                        <button onClick={() => openEditModal(announcement)}
                                             className="p-2 text-slate-500 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
                                             <Edit3 size={16} />
                                         </button>
-                                        <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => toggleStatus(announcement.id)}
+                                        <button onClick={() => toggleStatus(announcement.id)}
                                             className={`relative w-12 h-6 rounded-full transition-colors ${announcement.isActive ? 'bg-green-600' : 'bg-slate-700 hover:bg-slate-600'}`}>
                                             <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${announcement.isActive ? 'translate-x-7' : 'translate-x-1'}`} />
                                         </button>
-                                        <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => deleteAnnouncement(announcement.id)}
+                                        <button onClick={() => deleteAnnouncement(announcement.id)}
                                             className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
                                             <Trash2 size={16} />
                                         </button>
@@ -402,7 +402,7 @@ export default function NotificationsPage() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                        onClick={(e: React.MouseEvent<HTMLDivElement>) => { setShowCreateModal(false); setEditingAnnouncement(null); }}
+                        onClick={() => { setShowCreateModal(false); setEditingAnnouncement(null); }}
                     >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
@@ -416,7 +416,7 @@ export default function NotificationsPage() {
                                     <h2 className="text-xl font-bold text-foreground">
                                         {editingAnnouncement ? 'Duyuru Düzenle' : 'Yeni Duyuru Oluştur'}
                                     </h2>
-                                    <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => { setShowCreateModal(false); setEditingAnnouncement(null); }}
+                                    <button onClick={() => { setShowCreateModal(false); setEditingAnnouncement(null); }}
                                         className="p-2 text-slate-500 hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
                                         <X size={20} />
                                     </button>
@@ -485,11 +485,11 @@ export default function NotificationsPage() {
                             </div>
 
                             <div className="p-6 border-t border-slate-200 dark:border-white/10 flex justify-end gap-3">
-                                <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => { setShowCreateModal(false); setEditingAnnouncement(null); }}
+                                <button onClick={() => { setShowCreateModal(false); setEditingAnnouncement(null); }}
                                     className="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300">
                                     İptal
                                 </button>
-                                <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleSubmit()} disabled={!formData.title || !formData.content}
+                                <button onClick={() => handleSubmit()} disabled={!formData.title || !formData.content}
                                     className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-sm font-bold text-white disabled:opacity-50 flex items-center gap-2">
                                     <Send size={16} />
                                     {editingAnnouncement ? 'Güncelle' : 'Yayınla'}

@@ -97,7 +97,9 @@ export class EInvoiceService {
     // GIB UUID oluştur
     const gibInvoiceId = crypto.randomUUID();
 
-    this.logger.log(`E-fatura oluşturuluyor: ${invoiceNumber}, Sipariş: ${dto.orderId}`);
+    this.logger.log(
+      `E-fatura oluşturuluyor: ${invoiceNumber}, Sipariş: ${dto.orderId}`,
+    );
 
     /**
      * Entegratör API entegrasyonu için (Foriba/Logo/Paraşüt):
@@ -136,7 +138,9 @@ export class EInvoiceService {
       },
     });
 
-    this.logger.log(`E-fatura gönderildi: ${invoiceNumber} (GIB ID: ${gibInvoiceId})`);
+    this.logger.log(
+      `E-fatura gönderildi: ${invoiceNumber} (GIB ID: ${gibInvoiceId})`,
+    );
 
     return {
       success: true,
@@ -171,7 +175,11 @@ export class EInvoiceService {
   }
 
   /** E-fatura iptal et */
-  async cancelInvoice(tenantId: string, invoiceId: string, dto: CancelEInvoiceDto) {
+  async cancelInvoice(
+    tenantId: string,
+    invoiceId: string,
+    dto: CancelEInvoiceDto,
+  ) {
     const invoice = await this.prisma.invoice.findFirst({
       where: { id: invoiceId, tenantId },
     });
@@ -182,7 +190,9 @@ export class EInvoiceService {
       throw new BadRequestException('Bu fatura zaten iptal edilmiş');
     }
 
-    this.logger.log(`E-fatura iptal: ${invoice.invoiceNumber}, Neden: ${dto.reason}`);
+    this.logger.log(
+      `E-fatura iptal: ${invoice.invoiceNumber}, Neden: ${dto.reason}`,
+    );
 
     // Entegratör API üzerinden GIB'de iptal işlemi yapılacak
     // Entegratör SDK kurulmadan önce DB üzerinden iptal kaydı tutulur
@@ -201,8 +211,25 @@ export class EInvoiceService {
   }
 
   /** Fatura listele */
-  async findAll(tenantId: string, filters?: { status?: string; type?: string; startDate?: string; endDate?: string; page?: number; limit?: number }) {
-    const { status, type, startDate, endDate, page = 1, limit = 20 } = filters || {};
+  async findAll(
+    tenantId: string,
+    filters?: {
+      status?: string;
+      type?: string;
+      startDate?: string;
+      endDate?: string;
+      page?: number;
+      limit?: number;
+    },
+  ) {
+    const {
+      status,
+      type,
+      startDate,
+      endDate,
+      page = 1,
+      limit = 20,
+    } = filters || {};
 
     const where: any = { tenantId };
     if (status) where.status = status;
@@ -216,7 +243,11 @@ export class EInvoiceService {
     const [invoices, total] = await Promise.all([
       this.prisma.invoice.findMany({
         where,
-        include: { order: { select: { id: true, customerName: true, marketplaceOrderId: true } } },
+        include: {
+          order: {
+            select: { id: true, customerName: true, marketplaceOrderId: true },
+          },
+        },
         orderBy: { invoiceDate: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
@@ -279,7 +310,10 @@ export class EInvoiceService {
 
     let sequence = 1;
     if (lastInvoice) {
-      const lastSeq = parseInt(lastInvoice.invoiceNumber.replace(prefix, ''), 10);
+      const lastSeq = parseInt(
+        lastInvoice.invoiceNumber.replace(prefix, ''),
+        10,
+      );
       if (!isNaN(lastSeq)) sequence = lastSeq + 1;
     }
 

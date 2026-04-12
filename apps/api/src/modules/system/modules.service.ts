@@ -38,7 +38,7 @@ export interface TenantModuleDto {
 
 @Injectable()
 export class ModulesService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   // System Modules
   async findAllModules() {
@@ -163,7 +163,11 @@ export class ModulesService {
     });
   }
 
-  async toggleTenantModule(tenantId: string, moduleKey: string, isEnabled: boolean) {
+  async toggleTenantModule(
+    tenantId: string,
+    moduleKey: string,
+    isEnabled: boolean,
+  ) {
     const systemModule = await this.prisma.systemModule.findUnique({
       where: { key: moduleKey },
     });
@@ -185,7 +189,11 @@ export class ModulesService {
     });
   }
 
-  async updateTenantModuleConfig(tenantId: string, moduleKey: string, config: Record<string, any>) {
+  async updateTenantModuleConfig(
+    tenantId: string,
+    moduleKey: string,
+    config: Record<string, any>,
+  ) {
     const systemModule = await this.prisma.systemModule.findUnique({
       where: { key: moduleKey },
     });
@@ -255,14 +263,20 @@ export class ModulesService {
       total,
       active,
       inactive: total - active,
-      byCategory: byCategory.reduce((acc, item) => {
-        acc[item.category] = item._count.category;
-        return acc;
-      }, {} as Record<string, number>),
-      byPlan: byPlan.reduce((acc, item) => {
-        acc[item.requiredPlan] = item._count.requiredPlan;
-        return acc;
-      }, {} as Record<string, number>),
+      byCategory: byCategory.reduce(
+        (acc, item) => {
+          acc[item.category] = item._count.category;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
+      byPlan: byPlan.reduce(
+        (acc, item) => {
+          acc[item.requiredPlan] = item._count.requiredPlan;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
     };
   }
 }

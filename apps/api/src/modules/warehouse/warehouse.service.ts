@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 
 interface CreateWarehouseDto {
@@ -39,10 +43,12 @@ export class WarehouseService {
       orderBy: { createdAt: 'asc' },
     });
 
-    const warehousesWithStats = warehouses.map(wh => {
+    const warehousesWithStats = warehouses.map((wh) => {
       const totalStock = wh.stocks.reduce((sum, s) => sum + s.quantity, 0);
-      const totalProducts = wh.stocks.filter(s => s.quantity > 0).length;
-      const lowStockProducts = wh.stocks.filter(s => s.quantity > 0 && s.quantity < 10).length;
+      const totalProducts = wh.stocks.filter((s) => s.quantity > 0).length;
+      const lowStockProducts = wh.stocks.filter(
+        (s) => s.quantity > 0 && s.quantity < 10,
+      ).length;
       return {
         ...wh,
         stocks: undefined,
@@ -54,10 +60,16 @@ export class WarehouseService {
 
     const stats = {
       totalWarehouses: warehousesWithStats.length,
-      activeWarehouses: warehousesWithStats.filter(w => w.isActive).length,
-      totalProducts: warehousesWithStats.reduce((sum, w) => sum + w.totalProducts, 0),
+      activeWarehouses: warehousesWithStats.filter((w) => w.isActive).length,
+      totalProducts: warehousesWithStats.reduce(
+        (sum, w) => sum + w.totalProducts,
+        0,
+      ),
       totalStock: warehousesWithStats.reduce((sum, w) => sum + w.totalStock, 0),
-      lowStockAlerts: warehousesWithStats.reduce((sum, w) => sum + w.lowStockProducts, 0),
+      lowStockAlerts: warehousesWithStats.reduce(
+        (sum, w) => sum + w.lowStockProducts,
+        0,
+      ),
     };
 
     return { warehouses: warehousesWithStats, stats };
@@ -81,19 +93,26 @@ export class WarehouseService {
       take: 50,
     });
 
-    const productIds = stocks.map(s => s.productId);
-    const products = productIds.length > 0
-      ? await this.prisma.product.findMany({
-          where: { id: { in: productIds }, tenantId },
-          select: { id: true, sku: true, title: true, stock: true, price: true },
-        })
-      : [];
+    const productIds = stocks.map((s) => s.productId);
+    const products =
+      productIds.length > 0
+        ? await this.prisma.product.findMany({
+            where: { id: { in: productIds }, tenantId },
+            select: {
+              id: true,
+              sku: true,
+              title: true,
+              stock: true,
+              price: true,
+            },
+          })
+        : [];
 
-    const productMap = new Map(products.map(p => [p.id, p]));
+    const productMap = new Map(products.map((p) => [p.id, p]));
 
     return {
       ...warehouse,
-      products: stocks.map(s => {
+      products: stocks.map((s) => {
         const product = productMap.get(s.productId);
         return {
           id: s.productId,
@@ -157,7 +176,7 @@ export class WarehouseService {
     const { productId, quantity, fromWarehouseId, toWarehouseId, reason } = dto;
 
     if (quantity <= 0) {
-      throw new BadRequestException('Miktar 0\'dan büyük olmalı');
+      throw new BadRequestException("Miktar 0'dan büyük olmalı");
     }
 
     if (fromWarehouseId === toWarehouseId) {
@@ -174,24 +193,33 @@ export class WarehouseService {
 
     // Kaynak depodaki stok kontrolü
     const sourceStock = await this.prisma.warehouseStock.findUnique({
-      where: { warehouseId_productId: { warehouseId: fromWarehouseId, productId } },
+      where: {
+        warehouseId_productId: { warehouseId: fromWarehouseId, productId },
+      },
     });
-    const availableQty = (sourceStock?.quantity || 0) - (sourceStock?.reserved || 0);
+    const availableQty =
+      (sourceStock?.quantity || 0) - (sourceStock?.reserved || 0);
     if (availableQty < quantity) {
-      throw new BadRequestException(`Kaynak depoda yeterli stok yok (mevcut: ${availableQty})`);
+      throw new BadRequestException(
+        `Kaynak depoda yeterli stok yok (mevcut: ${availableQty})`,
+      );
     }
 
     // Transaction ile transfer yap
     const transfer = await this.prisma.$transaction(async (tx) => {
       // Kaynak depodan düş
       await tx.warehouseStock.update({
-        where: { warehouseId_productId: { warehouseId: fromWarehouseId, productId } },
+        where: {
+          warehouseId_productId: { warehouseId: fromWarehouseId, productId },
+        },
         data: { quantity: { decrement: quantity } },
       });
 
       // Hedef depoya ekle
       await tx.warehouseStock.upsert({
-        where: { warehouseId_productId: { warehouseId: toWarehouseId, productId } },
+        where: {
+          warehouseId_productId: { warehouseId: toWarehouseId, productId },
+        },
         update: { quantity: { increment: quantity } },
         create: { warehouseId: toWarehouseId, productId, quantity },
       });
@@ -218,7 +246,12 @@ export class WarehouseService {
         action: 'warehouse.transfer',
         resource: 'warehouse',
         resourceId: transfer.id,
-        details: { productId, quantity, from: fromWarehouseId, to: toWarehouseId },
+        details: {
+          productId,
+          quantity,
+          from: fromWarehouseId,
+          to: toWarehouseId,
+        },
       },
     });
 
@@ -242,10 +275,17 @@ export class WarehouseService {
 
     const products = await this.prisma.product.findMany({
       where: { tenantId },
-      select: { id: true, sku: true, title: true, stock: true, category: true, price: true },
+      select: {
+        id: true,
+        sku: true,
+        title: true,
+        stock: true,
+        category: true,
+        price: true,
+      },
     });
 
-    const productMap = new Map(products.map(p => [p.id, p]));
+    const productMap = new Map(products.map((p) => [p.id, p]));
 
     // Depo bazlı stok dağılımı
     const totalUnits = warehouses.reduce(
@@ -253,7 +293,7 @@ export class WarehouseService {
       0,
     );
 
-    const distribution = warehouses.map(wh => {
+    const distribution = warehouses.map((wh) => {
       const units = wh.stocks.reduce((s, st) => s + st.quantity, 0);
       const value = wh.stocks.reduce((s, st) => {
         const p = productMap.get(st.productId);
@@ -264,7 +304,7 @@ export class WarehouseService {
         warehouseName: wh.name,
         warehouseCode: wh.code,
         percentage: totalUnits > 0 ? Math.round((units / totalUnits) * 100) : 0,
-        products: wh.stocks.filter(s => s.quantity > 0).length,
+        products: wh.stocks.filter((s) => s.quantity > 0).length,
         units,
         value: Math.round(value),
       };
@@ -272,8 +312,8 @@ export class WarehouseService {
 
     // Kritik stok uyarıları
     const lowStockAlerts = products
-      .filter(p => p.stock < 10)
-      .map(p => ({
+      .filter((p) => p.stock < 10)
+      .map((p) => ({
         productId: p.id,
         sku: p.sku,
         title: p.title,
@@ -314,17 +354,18 @@ export class WarehouseService {
     });
 
     // Ürün bilgilerini getir
-    const productIds = [...new Set(transfers.map(t => t.productId))];
-    const products = productIds.length > 0
-      ? await this.prisma.product.findMany({
-          where: { id: { in: productIds } },
-          select: { id: true, sku: true, title: true },
-        })
-      : [];
-    const productMap = new Map(products.map(p => [p.id, p]));
+    const productIds = [...new Set(transfers.map((t) => t.productId))];
+    const products =
+      productIds.length > 0
+        ? await this.prisma.product.findMany({
+            where: { id: { in: productIds } },
+            select: { id: true, sku: true, title: true },
+          })
+        : [];
+    const productMap = new Map(products.map((p) => [p.id, p]));
 
     return {
-      transfers: transfers.map(t => ({
+      transfers: transfers.map((t) => ({
         id: t.id,
         productSku: productMap.get(t.productId)?.sku || '',
         productTitle: productMap.get(t.productId)?.title || '',

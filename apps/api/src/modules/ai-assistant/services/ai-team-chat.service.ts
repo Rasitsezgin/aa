@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 
@@ -76,7 +76,7 @@ export class AITeamChatService {
         joinedAt: new Date(),
         permissions: ['read', 'write', 'manage', 'delete'],
       },
-      ...(data.members || []).map(memberId => ({
+      ...(data.members || []).map((memberId) => ({
         userId: memberId,
         role: 'member' as const,
         joinedAt: new Date(),
@@ -129,7 +129,7 @@ export class AITeamChatService {
       orderBy: { updatedAt: 'desc' },
     });
 
-    return conversations.map(c => this.mapTeamConversationFromDb(c));
+    return conversations.map((c) => this.mapTeamConversationFromDb(c));
   }
 
   async updateTeamConversation(
@@ -217,13 +217,16 @@ export class AITeamChatService {
       throw new Error('Insufficient permissions to add members');
     }
 
-    const conversation = await this.getTeamConversation(conversationId, tenantId);
+    const conversation = await this.getTeamConversation(
+      conversationId,
+      tenantId,
+    );
     if (!conversation) {
       throw new Error('Conversation not found');
     }
 
     // Check if already a member
-    if (conversation.members.some(m => m.userId === newMemberId)) {
+    if (conversation.members.some((m) => m.userId === newMemberId)) {
       throw new Error('User is already a member');
     }
 
@@ -252,7 +255,10 @@ export class AITeamChatService {
     // Notify new member
     await this.createMention(conversationId, newMemberId, invitedBy, 'system');
 
-    return this.getTeamConversation(conversationId, tenantId) as Promise<TeamConversation>;
+    return this.getTeamConversation(
+      conversationId,
+      tenantId,
+    ) as Promise<TeamConversation>;
   }
 
   async removeMember(
@@ -261,13 +267,16 @@ export class AITeamChatService {
     removedBy: string,
     memberId: string,
   ): Promise<TeamConversation> {
-    const conversation = await this.getTeamConversation(conversationId, tenantId);
+    const conversation = await this.getTeamConversation(
+      conversationId,
+      tenantId,
+    );
     if (!conversation) {
       throw new Error('Conversation not found');
     }
 
     // Can't remove owner
-    const member = conversation.members.find(m => m.userId === memberId);
+    const member = conversation.members.find((m) => m.userId === memberId);
     if (member?.role === 'owner') {
       throw new Error('Cannot remove owner');
     }
@@ -284,7 +293,9 @@ export class AITeamChatService {
       throw new Error('Insufficient permissions');
     }
 
-    const updatedMembers = conversation.members.filter(m => m.userId !== memberId);
+    const updatedMembers = conversation.members.filter(
+      (m) => m.userId !== memberId,
+    );
 
     await this.prisma.aITeamConversation.update({
       where: { id: conversationId },
@@ -294,7 +305,10 @@ export class AITeamChatService {
       },
     });
 
-    return this.getTeamConversation(conversationId, tenantId) as Promise<TeamConversation>;
+    return this.getTeamConversation(
+      conversationId,
+      tenantId,
+    ) as Promise<TeamConversation>;
   }
 
   async updateMemberRole(
@@ -316,12 +330,15 @@ export class AITeamChatService {
       throw new Error('Only owner can change roles');
     }
 
-    const conversation = await this.getTeamConversation(conversationId, tenantId);
+    const conversation = await this.getTeamConversation(
+      conversationId,
+      tenantId,
+    );
     if (!conversation) {
       throw new Error('Conversation not found');
     }
 
-    const updatedMembers = conversation.members.map(m => {
+    const updatedMembers = conversation.members.map((m) => {
       if (m.userId === memberId) {
         return {
           ...m,
@@ -340,7 +357,10 @@ export class AITeamChatService {
       },
     });
 
-    return this.getTeamConversation(conversationId, tenantId) as Promise<TeamConversation>;
+    return this.getTeamConversation(
+      conversationId,
+      tenantId,
+    ) as Promise<TeamConversation>;
   }
 
   // ==================== MESSAGE HANDLING ====================
@@ -387,7 +407,12 @@ export class AITeamChatService {
     // Create mentions
     if (options?.mentions) {
       for (const mentionedUserId of options.mentions) {
-        await this.createMention(conversationId, mentionedUserId, userId, message.id);
+        await this.createMention(
+          conversationId,
+          mentionedUserId,
+          userId,
+          message.id,
+        );
       }
     }
 
@@ -426,7 +451,7 @@ export class AITeamChatService {
       take: options?.limit || 50,
     });
 
-    return messages.map(m => this.mapTeamMessageFromDb(m)).reverse();
+    return messages.map((m) => this.mapTeamMessageFromDb(m)).reverse();
   }
 
   async addReaction(
@@ -458,7 +483,7 @@ export class AITeamChatService {
 
     const reactions = (message.reactions as any[]) || [];
     const existingIndex = reactions.findIndex(
-      r => r.userId === userId && r.emoji === emoji,
+      (r) => r.userId === userId && r.emoji === emoji,
     );
 
     if (existingIndex >= 0) {
@@ -527,7 +552,8 @@ export class AITeamChatService {
     const response = `Ekibe özel yanıt: ${command}`;
 
     await this.sendAIResponse(conversationId, response, {
-      replyTo: context.conversationHistory[context.conversationHistory.length - 1]?.id,
+      replyTo:
+        context.conversationHistory[context.conversationHistory.length - 1]?.id,
     });
 
     return response;
@@ -549,13 +575,15 @@ export class AITeamChatService {
   async getUnreadMentions(
     userId: string,
     tenantId: string,
-  ): Promise<Array<{
-    conversationId: string;
-    messageId: string;
-    mentionedBy: string;
-    content: string;
-    timestamp: Date;
-  }>> {
+  ): Promise<
+    Array<{
+      conversationId: string;
+      messageId: string;
+      mentionedBy: string;
+      content: string;
+      timestamp: Date;
+    }>
+  > {
     // Get messages where user is mentioned and hasn't read
     const messages = await this.prisma.aITeamMessage.findMany({
       where: {
@@ -572,7 +600,7 @@ export class AITeamChatService {
       take: 50,
     });
 
-    return messages.map(m => ({
+    return messages.map((m) => ({
       conversationId: m.conversationId,
       messageId: m.id,
       mentionedBy: m.userId,
@@ -596,7 +624,7 @@ export class AITeamChatService {
     if (!conversation) return false;
 
     const members = conversation.members as any[];
-    const member = members.find(m => m.userId === userId);
+    const member = members.find((m) => m.userId === userId);
 
     if (!member) return false;
 
@@ -643,7 +671,7 @@ export class AITeamChatService {
       timestamp: message.createdAt,
       mentions: message.mentions,
       replyTo: message.replyTo || undefined,
-      reactions: message.reactions as any[] || [],
+      reactions: (message.reactions as any[]) || [],
     };
   }
 }

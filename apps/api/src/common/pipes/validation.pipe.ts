@@ -1,4 +1,9 @@
-import { Injectable, PipeTransform, ArgumentMetadata, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  PipeTransform,
+  ArgumentMetadata,
+  BadRequestException,
+} from '@nestjs/common';
 import { validate, ValidationError } from 'class-validator';
 import { plainToClass } from 'class-transformer';
 
@@ -11,11 +16,16 @@ import { plainToClass } from 'class-transformer';
  */
 @Injectable()
 export class StrictValidationPipe implements PipeTransform {
-  constructor(private options: { whitelist?: boolean; forbidNonWhitelisted?: boolean } = {}) {}
+  constructor(
+    private options: {
+      whitelist?: boolean;
+      forbidNonWhitelisted?: boolean;
+    } = {},
+  ) {}
 
   async transform(value: any, metadata: ArgumentMetadata) {
     const { metatype } = metadata;
-    
+
     if (!metatype || !this.toValidate(metatype)) {
       return value;
     }
@@ -44,8 +54,10 @@ export class StrictValidationPipe implements PipeTransform {
     return !types.includes(metatype);
   }
 
-  private formatErrors(errors: ValidationError[]): Array<{ field: string; message: string; value: any }> {
-    return errors.map(error => ({
+  private formatErrors(
+    errors: ValidationError[],
+  ): Array<{ field: string; message: string; value: any }> {
+    return errors.map((error) => ({
       field: error.property,
       message: Object.values(error.constraints || {}).join(', '),
       value: error.value,
@@ -98,10 +110,14 @@ export function ToUpperCase() {
 /**
  * Custom Validators
  */
-import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator';
+import {
+  registerDecorator,
+  ValidationOptions,
+  ValidationArguments,
+} from 'class-validator';
 
 export function IsTurkishPhone(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'isTurkishPhone',
       target: object.constructor,
@@ -110,7 +126,10 @@ export function IsTurkishPhone(validationOptions?: ValidationOptions) {
       validator: {
         validate(value: any) {
           const phoneRegex = /^((\+90|0)?5[0-9]{9})$/;
-          return typeof value === 'string' && phoneRegex.test(value.replace(/\s/g, ''));
+          return (
+            typeof value === 'string' &&
+            phoneRegex.test(value.replace(/\s/g, ''))
+          );
         },
         defaultMessage() {
           return 'Geçersiz telefon numarası formatı';
@@ -121,7 +140,7 @@ export function IsTurkishPhone(validationOptions?: ValidationOptions) {
 }
 
 export function IsStrongPassword(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'isStrongPassword',
       target: object.constructor,
@@ -130,9 +149,10 @@ export function IsStrongPassword(validationOptions?: ValidationOptions) {
       validator: {
         validate(value: any) {
           if (typeof value !== 'string') return false;
-          
+
           // Min 8 chars, 1 upper, 1 lower, 1 number, 1 special
-          const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+          const strongRegex =
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
           return strongRegex.test(value);
         },
         defaultMessage() {
@@ -157,13 +177,13 @@ export class SanitizationPipe implements PipeTransform {
 
   private sanitizeObject(obj: any): any {
     const sanitized: any = {};
-    
+
     for (const key of Object.keys(obj)) {
       if (obj[key] !== null && obj[key] !== undefined) {
         sanitized[key] = this.sanitizeValue(obj[key]);
       }
     }
-    
+
     return sanitized;
   }
 
@@ -176,15 +196,15 @@ export class SanitizationPipe implements PipeTransform {
         .replace(/on\w+\s*=/gi, '')
         .trim();
     }
-    
+
     if (Array.isArray(value)) {
-      return value.map(item => this.sanitizeValue(item));
+      return value.map((item) => this.sanitizeValue(item));
     }
-    
+
     if (typeof value === 'object') {
       return this.sanitizeObject(value);
     }
-    
+
     return value;
   }
 }
@@ -236,13 +256,13 @@ export class IdParamDto {
 export class QuerySanitizationPipe implements PipeTransform {
   transform(value: any) {
     const sanitized: any = {};
-    
+
     for (const [key, val] of Object.entries(value)) {
       // Remove dangerous query params
       if (['__proto__', 'constructor', 'prototype'].includes(key)) {
         continue;
       }
-      
+
       // Sanitize values
       if (typeof val === 'string') {
         sanitized[key] = this.sanitizeString(val);
@@ -250,14 +270,11 @@ export class QuerySanitizationPipe implements PipeTransform {
         sanitized[key] = val;
       }
     }
-    
+
     return sanitized;
   }
 
   private sanitizeString(str: string): string {
-    return str
-      .replace(/[<>]/g, '')
-      .replace(/['";]/g, '')
-      .substring(0, 1000); // Max length
+    return str.replace(/[<>]/g, '').replace(/['";]/g, '').substring(0, 1000); // Max length
   }
 }

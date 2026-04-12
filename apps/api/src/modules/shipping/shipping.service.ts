@@ -16,7 +16,7 @@ import { TenantCredentialsService } from '../tenant-credentials/tenant-credentia
 /** Kargo firması adı ↔ ServiceType eşleştirmesi */
 const CARRIER_SERVICE_MAP: Record<string, ServiceType> = {
   Aras: ServiceType.SHIPPING_ARAS,
-  'Yurtiçi': ServiceType.SHIPPING_YURTICI,
+  Yurtiçi: ServiceType.SHIPPING_YURTICI,
   MNG: ServiceType.SHIPPING_MNG,
   PTT: ServiceType.SHIPPING_PTT,
 };
@@ -56,7 +56,11 @@ export class ShippingService {
     );
 
     const config = creds
-      ? { apiUrl: creds.apiUrl, apiUser: creds.apiKey, apiPassword: creds.apiSecret }
+      ? {
+          apiUrl: creds.apiUrl,
+          apiUser: creds.apiKey,
+          apiPassword: creds.apiSecret,
+        }
       : {};
 
     switch (serviceType) {
@@ -69,7 +73,9 @@ export class ShippingService {
       case ServiceType.SHIPPING_PTT:
         return new PttKargoBridge(config);
       default:
-        throw new BadRequestException(`Desteklenmeyen kargo firması: ${carrierName}`);
+        throw new BadRequestException(
+          `Desteklenmeyen kargo firması: ${carrierName}`,
+        );
     }
   }
 
@@ -134,7 +140,9 @@ export class ShippingService {
       },
     });
 
-    this.logger.log(`Kargo oluşturuldu: ${result.trackingNumber} (${dto.carrier}) - Sipariş: ${dto.orderId}`);
+    this.logger.log(
+      `Kargo oluşturuldu: ${result.trackingNumber} (${dto.carrier}) - Sipariş: ${dto.orderId}`,
+    );
 
     return shipment;
   }
@@ -188,10 +196,25 @@ export class ShippingService {
   }
 
   /** Ücret hesaplama - tüm kargo firmaları için */
-  async calculateRates(tenantId: string, dto: CalculateRateDto): Promise<ShippingRate[]> {
+  async calculateRates(
+    tenantId: string,
+    dto: CalculateRateDto,
+  ): Promise<ShippingRate[]> {
     const request: ShipmentRequest = {
-      senderAddress: { name: '', phone: '', address: '', city: 'İstanbul', district: '' },
-      receiverAddress: { name: '', phone: '', address: '', city: dto.city, district: '' },
+      senderAddress: {
+        name: '',
+        phone: '',
+        address: '',
+        city: 'İstanbul',
+        district: '',
+      },
+      receiverAddress: {
+        name: '',
+        phone: '',
+        address: '',
+        city: dto.city,
+        district: '',
+      },
       weight: dto.weight,
       dimensions: dto.dimensions,
     };
@@ -214,9 +237,7 @@ export class ShippingService {
 
     // Aktif kargo yoksa tüm desteklenen taşıyıcıları dene
     const namesToCheck =
-      carrierNames.length > 0
-        ? carrierNames
-        : Object.keys(CARRIER_SERVICE_MAP);
+      carrierNames.length > 0 ? carrierNames : Object.keys(CARRIER_SERVICE_MAP);
 
     const rates: ShippingRate[] = [];
     for (const name of namesToCheck) {
@@ -244,7 +265,9 @@ export class ShippingService {
       throw new BadRequestException('Teslim edilmiş kargo iptal edilemez');
     }
     if (!shipment.trackingNumber) {
-      throw new BadRequestException('Takip numarası olmayan kargo iptal edilemez');
+      throw new BadRequestException(
+        'Takip numarası olmayan kargo iptal edilemez',
+      );
     }
 
     const carrier = await this.getCarrierForTenant(tenantId, shipment.carrier);
@@ -260,7 +283,15 @@ export class ShippingService {
   }
 
   /** Tenant'ın tüm kargolarını listele */
-  async findAll(tenantId: string, filters?: { status?: string; carrier?: string; page?: number; limit?: number }) {
+  async findAll(
+    tenantId: string,
+    filters?: {
+      status?: string;
+      carrier?: string;
+      page?: number;
+      limit?: number;
+    },
+  ) {
     const { status, carrier, page = 1, limit = 20 } = filters || {};
 
     const where: any = { tenantId };
@@ -313,7 +344,10 @@ export class ShippingService {
     return {
       total,
       byStatus: byStatus.map((s) => ({ status: s.status, count: s._count.id })),
-      byCarrier: byCarrier.map((c) => ({ carrier: c.carrier, count: c._count.id })),
+      byCarrier: byCarrier.map((c) => ({
+        carrier: c.carrier,
+        count: c._count.id,
+      })),
     };
   }
 }

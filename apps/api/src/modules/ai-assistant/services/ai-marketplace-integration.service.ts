@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
-import { MarketplaceService, Platform } from '../../marketplace/marketplace.service';
+import {
+  MarketplaceService,
+  Platform,
+} from '../../marketplace/marketplace.service';
 import { AIAssistantGateway } from '../ai-assistant.gateway';
 import { AiService } from '../../ai/ai.service';
 
@@ -24,7 +27,9 @@ export interface SyncJob {
 
 @Injectable()
 export class AIAssistantMarketplaceIntegrationService {
-  private readonly logger = new Logger(AIAssistantMarketplaceIntegrationService.name);
+  private readonly logger = new Logger(
+    AIAssistantMarketplaceIntegrationService.name,
+  );
 
   constructor(
     private prisma: PrismaService,
@@ -44,7 +49,7 @@ export class AIAssistantMarketplaceIntegrationService {
     const job = await this.createSyncJob(tenantId, userId, platform, 'BRAND');
 
     // Start async processing
-    this.processBrandSync(job.id, tenantId, userId, platform).catch(error => {
+    this.processBrandSync(job.id, tenantId, userId, platform).catch((error) => {
       this.logger.error(`Brand sync failed for ${platform}:`, error);
     });
 
@@ -59,7 +64,7 @@ export class AIAssistantMarketplaceIntegrationService {
   ): Promise<void> {
     try {
       await this.updateJobStatus(jobId, 'PROCESSING');
-      
+
       // Notify user
       this.gateway.notifySyncProgress(userId, {
         jobId,
@@ -91,7 +96,7 @@ export class AIAssistantMarketplaceIntegrationService {
         if (processed % 10 === 0 || processed === total) {
           const progress = Math.round((processed / total) * 100);
           await this.updateJobProgress(jobId, progress, processed, 0, total);
-          
+
           this.gateway.notifySyncProgress(userId, {
             jobId,
             type: 'BRAND_SYNC',
@@ -124,10 +129,12 @@ export class AIAssistantMarketplaceIntegrationService {
           failed: 0,
         },
       });
-
     } catch (error) {
-      await this.failJob(jobId, error instanceof Error ? error.message : 'Sync failed');
-      
+      await this.failJob(
+        jobId,
+        error instanceof Error ? error.message : 'Sync failed',
+      );
+
       this.gateway.notifySyncCompleted(userId, {
         jobId,
         type: 'BRAND_SYNC',
@@ -145,11 +152,18 @@ export class AIAssistantMarketplaceIntegrationService {
     userId: string,
     platform: string,
   ): Promise<SyncJob> {
-    const job = await this.createSyncJob(tenantId, userId, platform, 'CATEGORY');
+    const job = await this.createSyncJob(
+      tenantId,
+      userId,
+      platform,
+      'CATEGORY',
+    );
 
-    this.processCategorySync(job.id, tenantId, userId, platform).catch(error => {
-      this.logger.error(`Category sync failed for ${platform}:`, error);
-    });
+    this.processCategorySync(job.id, tenantId, userId, platform).catch(
+      (error) => {
+        this.logger.error(`Category sync failed for ${platform}:`, error);
+      },
+    );
 
     return job;
   }
@@ -162,7 +176,7 @@ export class AIAssistantMarketplaceIntegrationService {
   ): Promise<void> {
     try {
       await this.updateJobStatus(jobId, 'PROCESSING');
-      
+
       this.gateway.notifySyncProgress(userId, {
         jobId,
         type: 'CATEGORY_SYNC',
@@ -178,27 +192,33 @@ export class AIAssistantMarketplaceIntegrationService {
       );
 
       const categories = await this.fetchCategoriesFromBridge(bridge, platform);
-      
+
       // Process categories recursively
       let processed = 0;
       const total = this.countCategories(categories);
 
-      await this.processCategoryTree(tenantId, platform, categories, null, async () => {
-        processed++;
-        if (processed % 5 === 0 || processed === total) {
-          const progress = Math.round((processed / total) * 100);
-          await this.updateJobProgress(jobId, progress, processed, 0, total);
-          
-          this.gateway.notifySyncProgress(userId, {
-            jobId,
-            type: 'CATEGORY_SYNC',
-            platform,
-            progress,
-            status: 'processing',
-            message: `${processed}/${total} kategori işlendi`,
-          });
-        }
-      });
+      await this.processCategoryTree(
+        tenantId,
+        platform,
+        categories,
+        null,
+        async () => {
+          processed++;
+          if (processed % 5 === 0 || processed === total) {
+            const progress = Math.round((processed / total) * 100);
+            await this.updateJobProgress(jobId, progress, processed, 0, total);
+
+            this.gateway.notifySyncProgress(userId, {
+              jobId,
+              type: 'CATEGORY_SYNC',
+              platform,
+              progress,
+              status: 'processing',
+              message: `${processed}/${total} kategori işlendi`,
+            });
+          }
+        },
+      );
 
       await this.completeJob(jobId, { totalCategories: total, platform });
 
@@ -210,10 +230,12 @@ export class AIAssistantMarketplaceIntegrationService {
         message: `${total} kategori başarıyla eşitlendi`,
         stats: { total, processed, failed: 0 },
       });
-
     } catch (error) {
-      await this.failJob(jobId, error instanceof Error ? error.message : 'Sync failed');
-      
+      await this.failJob(
+        jobId,
+        error instanceof Error ? error.message : 'Sync failed',
+      );
+
       this.gateway.notifySyncCompleted(userId, {
         jobId,
         type: 'CATEGORY_SYNC',
@@ -238,7 +260,13 @@ export class AIAssistantMarketplaceIntegrationService {
   ): Promise<SyncJob> {
     const job = await this.createSyncJob(tenantId, userId, platform, 'PRODUCT');
 
-    this.processProductUpload(job.id, tenantId, userId, platform, productData).catch(error => {
+    this.processProductUpload(
+      job.id,
+      tenantId,
+      userId,
+      platform,
+      productData,
+    ).catch((error) => {
       this.logger.error(`Product upload failed for ${platform}:`, error);
     });
 
@@ -265,8 +293,12 @@ export class AIAssistantMarketplaceIntegrationService {
       });
 
       // Get product from database
-      const product = await this.getProduct(tenantId, productData.productId, productData.sku);
-      
+      const product = await this.getProduct(
+        tenantId,
+        productData.productId,
+        productData.sku,
+      );
+
       if (!product) {
         throw new Error('Ürün bulunamadı');
       }
@@ -281,7 +313,7 @@ export class AIAssistantMarketplaceIntegrationService {
           status: 'processing',
           message: 'AI ile içerik optimizasyonu yapılıyor...',
         });
-        
+
         await this.optimizeProductContent(product);
       }
 
@@ -316,10 +348,12 @@ export class AIAssistantMarketplaceIntegrationService {
         message: `"${product.title}" ürünü ${platform}'a başarıyla yüklendi`,
         stats: { total: 1, processed: 1, failed: 0 },
       });
-
     } catch (error) {
-      await this.failJob(jobId, error instanceof Error ? error.message : 'Upload failed');
-      
+      await this.failJob(
+        jobId,
+        error instanceof Error ? error.message : 'Upload failed',
+      );
+
       this.gateway.notifySyncCompleted(userId, {
         jobId,
         type: 'PRODUCT_UPLOAD',
@@ -340,9 +374,11 @@ export class AIAssistantMarketplaceIntegrationService {
   ): Promise<SyncJob> {
     const job = await this.createSyncJob(tenantId, userId, platform, 'STOCK');
 
-    this.processStockSync(job.id, tenantId, userId, platform, filters).catch(error => {
-      this.logger.error(`Stock sync failed for ${platform}:`, error);
-    });
+    this.processStockSync(job.id, tenantId, userId, platform, filters).catch(
+      (error) => {
+        this.logger.error(`Stock sync failed for ${platform}:`, error);
+      },
+    );
 
     return job;
   }
@@ -386,10 +422,16 @@ export class AIAssistantMarketplaceIntegrationService {
           failed++;
         }
 
-        if ((processed + failed) % 10 === 0 || (processed + failed) === total) {
+        if ((processed + failed) % 10 === 0 || processed + failed === total) {
           const progress = Math.round(((processed + failed) / total) * 100);
-          await this.updateJobProgress(jobId, progress, processed, failed, total);
-          
+          await this.updateJobProgress(
+            jobId,
+            progress,
+            processed,
+            failed,
+            total,
+          );
+
           this.gateway.notifySyncProgress(userId, {
             jobId,
             type: 'STOCK_SYNC',
@@ -411,10 +453,12 @@ export class AIAssistantMarketplaceIntegrationService {
         message: `Stok senkronizasyonu tamamlandı. ${processed} başarılı, ${failed} başarısız`,
         stats: { total, processed, failed },
       });
-
     } catch (error) {
-      await this.failJob(jobId, error instanceof Error ? error.message : 'Sync failed');
-      
+      await this.failJob(
+        jobId,
+        error instanceof Error ? error.message : 'Sync failed',
+      );
+
       this.gateway.notifySyncCompleted(userId, {
         jobId,
         type: 'STOCK_SYNC',
@@ -451,7 +495,7 @@ export class AIAssistantMarketplaceIntegrationService {
       tenantId: job.tenantId,
       userId: job.userId,
       platform: job.platform,
-      type: type as SyncJob['type'],
+      type: type,
       status: job.status as SyncJob['status'],
       progress: Math.round((job.processedItems / (job.totalItems || 1)) * 100),
       totalItems: job.totalItems,
@@ -460,7 +504,10 @@ export class AIAssistantMarketplaceIntegrationService {
     };
   }
 
-  private async updateJobStatus(jobId: string, status: SyncJob['status']): Promise<void> {
+  private async updateJobStatus(
+    jobId: string,
+    status: SyncJob['status'],
+  ): Promise<void> {
     await this.prisma.aIAssistantSyncJob.update({
       where: { id: jobId },
       data: {
@@ -493,7 +540,7 @@ export class AIAssistantMarketplaceIntegrationService {
       data: {
         status: 'COMPLETED',
         completedAt: new Date(),
-        result: result as any,
+        result: result,
       },
     });
   }
@@ -511,30 +558,37 @@ export class AIAssistantMarketplaceIntegrationService {
 
   // ==================== BRIDGE INTEGRATION METHODS ====================
 
-  private async fetchBrandsFromBridge(bridge: any, platform: string): Promise<any[]> {
+  private async fetchBrandsFromBridge(
+    bridge: any,
+    platform: string,
+  ): Promise<any[]> {
     // Each bridge should have a getBrands method
     if (bridge.getBrands) {
       return bridge.getBrands();
     }
-    
+
     // Fallback: sync products and extract unique brands
     if (bridge.syncProducts) {
       const products = await bridge.syncProducts();
       const brands = new Map();
-      
+
       for (const product of products) {
         if (product.brand) {
           brands.set(product.brand.id || product.brand, product.brand);
         }
       }
-      
+
       return Array.from(brands.values());
     }
-    
+
     return [];
   }
 
-  private async saveBrand(tenantId: string, platform: string, brand: any): Promise<void> {
+  private async saveBrand(
+    tenantId: string,
+    platform: string,
+    brand: any,
+  ): Promise<void> {
     await this.prisma.marketplaceBrand.upsert({
       where: {
         tenantId_platform_brandId: {
@@ -558,11 +612,14 @@ export class AIAssistantMarketplaceIntegrationService {
     });
   }
 
-  private async fetchCategoriesFromBridge(bridge: any, platform: string): Promise<any[]> {
+  private async fetchCategoriesFromBridge(
+    bridge: any,
+    platform: string,
+  ): Promise<any[]> {
     if (bridge.getCategories) {
       return bridge.getCategories();
     }
-    
+
     // Fallback implementation
     return [];
   }
@@ -644,17 +701,21 @@ export class AIAssistantMarketplaceIntegrationService {
         where: { id: productId, tenantId },
       });
     }
-    
+
     if (sku) {
       return this.prisma.product.findFirst({
         where: { sku, tenantId },
       });
     }
-    
+
     return null;
   }
 
-  private async optimizeProductContent(product: any): Promise<{ optimizedTitle: string; optimizedDescription: string; seoScore: number }> {
+  private async optimizeProductContent(product: any): Promise<{
+    optimizedTitle: string;
+    optimizedDescription: string;
+    seoScore: number;
+  }> {
     try {
       if (!this.aiService) {
         this.logger.warn('AI service not available, skipping optimization');
@@ -672,7 +733,8 @@ export class AIAssistantMarketplaceIntegrationService {
 
       return {
         optimizedTitle: result.improvedTitle || product.title,
-        optimizedDescription: result.improvedDescription || product.description || '',
+        optimizedDescription:
+          result.improvedDescription || product.description || '',
         seoScore: result.seoScore || 0,
       };
     } catch (error) {
@@ -689,11 +751,11 @@ export class AIAssistantMarketplaceIntegrationService {
     if (bridge.createProduct) {
       return bridge.createProduct(product);
     }
-    
+
     if (bridge.updateProduct) {
       return bridge.updateProduct(product.sku, product);
     }
-    
+
     throw new Error('Platform does not support product upload');
   }
 
@@ -702,15 +764,15 @@ export class AIAssistantMarketplaceIntegrationService {
     filters?: any,
   ): Promise<any[]> {
     const where: any = { tenantId };
-    
+
     if (filters?.productIds) {
       where.id = { in: filters.productIds };
     }
-    
+
     if (filters?.categoryId) {
       where.categoryId = filters.categoryId;
     }
-    
+
     return this.prisma.product.findMany({
       where,
       select: {
@@ -759,7 +821,7 @@ export class AIAssistantMarketplaceIntegrationService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return jobs.map(job => ({
+    return jobs.map((job) => ({
       id: job.id,
       tenantId: job.tenantId,
       userId: job.userId,
@@ -777,7 +839,10 @@ export class AIAssistantMarketplaceIntegrationService {
   async cancelJob(jobId: string, tenantId: string): Promise<void> {
     await this.prisma.aIAssistantSyncJob.updateMany({
       where: { id: jobId, tenantId },
-      data: { status: 'FAILED', errors: JSON.stringify({ message: 'Cancelled by user' }) },
+      data: {
+        status: 'FAILED',
+        errors: JSON.stringify({ message: 'Cancelled by user' }),
+      },
     });
   }
 }

@@ -16,7 +16,10 @@ import { DatabaseModule } from '../../database/database.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
-        const secret = config.get<string>('JWT_SECRET', 'change-this-secret-in-production');
+        const secret = config.get<string>(
+          'JWT_SECRET',
+          'change-this-secret-in-production',
+        );
         return {
           secret,
           signOptions: {

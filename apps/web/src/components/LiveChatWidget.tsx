@@ -151,7 +151,7 @@ export default function LiveChatWidget() {
                         }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        className="fixed bottom-32 lg:bottom-6 right-6 z-[110] w-[380px] sx:max-w-[calc(100vw-48px)] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+                        className="fixed bottom-32 lg:bottom-6 right-6 z-[110] w-[380px] max-w-[calc(100vw-48px)] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col"
                     >
                         {/* Header */}
                         <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-4">

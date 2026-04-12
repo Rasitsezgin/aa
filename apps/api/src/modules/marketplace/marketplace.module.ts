@@ -5,9 +5,9 @@ import { DatabaseModule } from '../../database/database.module';
 import { ScrapingModule } from '../scraping/scraping.module';
 
 @Module({
-    imports: [DatabaseModule, ScrapingModule],
-    providers: [MarketplaceService],
-    controllers: [MarketplaceController],
-    exports: [MarketplaceService],
+  imports: [DatabaseModule, ScrapingModule],
+  providers: [MarketplaceService],
+  controllers: [MarketplaceController],
+  exports: [MarketplaceService],
 })
-export class MarketplaceModule { }
+export class MarketplaceModule {}

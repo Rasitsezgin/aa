@@ -4,12 +4,12 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import {
     ArrowRight, Moon, Sun, Menu, X, ChevronDown, ChevronRight,
-    Zap, BarChart3, Package, Users, Globe, Shield, Layers, Cpu,
-    BookOpen, Video, Calendar, Award, FileText, HelpCircle, GraduationCap,
+    Zap, BarChart3, Package, Users, Globe, Layers,
+    BookOpen, Video, Calendar, Award, FileText, HelpCircle,
     Building2, Newspaper, Briefcase, Gift, MessageCircle, Heart, Target,
-    ShoppingBag, Store, Boxes, TrendingUp, PieChart, ClipboardList,
-    Truck, CreditCard, Bell, Settings, Sparkles, Play, ArrowUpRight,
-    ExternalLink, Rocket, Star, Hexagon, Brain, DollarSign, Shirt,
+    ShoppingBag, Store, Boxes, TrendingUp, ClipboardList,
+    Truck, CreditCard, Bell, Settings, Sparkles, Play,
+    Rocket, Star, Brain, DollarSign, Shirt,
     Laptop, Apple, LayoutDashboard, LogOut
 } from 'lucide-react';
 import { useTheme } from '@/providers/theme-provider';
@@ -253,15 +253,6 @@ const megaMenuVariants = {
     exit: { opacity: 0, y: 12, scale: 0.97, transition: { duration: 0.2, ease: 'easeIn' as const } }
 };
 
-const staggerContainer = {
-    visible: { transition: { staggerChildren: 0.05, delayChildren: 0.05 } }
-};
-
-const staggerItem = {
-    hidden: { opacity: 0, x: -8 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: 'easeOut' as const } }
-};
-
 const contentVariants = {
     hidden: { opacity: 0, x: 16 },
     visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number], staggerChildren: 0.04, delayChildren: 0.04 } },
@@ -470,8 +461,34 @@ export default function Navbar() {
     const dropdownRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const { theme, resolvedMode, toggleTheme } = useTheme();
+    const { resolvedMode, toggleTheme } = useTheme();
     const { data: session, status } = useSession();
+
+    const trackMenuClick = useCallback((label: string, href: string, section: string) => {
+        try {
+            const payload = {
+                label,
+                href,
+                section,
+                ts: Date.now(),
+            };
+
+            if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+                const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+                navigator.sendBeacon('/api/analytics/menu-click', blob);
+                return;
+            }
+
+            void fetch('/api/analytics/menu-click', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                keepalive: true,
+            });
+        } catch {
+            // analytics fire-and-forget
+        }
+    }, []);
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -514,18 +531,18 @@ export default function Navbar() {
         <>
             <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'py-2' : 'py-3'}`}>
                 <div className="container mx-auto px-4">
-                    <div className={`flex items-center justify-between px-3 sm:px-5 lg:px-6 py-2.5 rounded-2xl transition-all duration-500 ${scrolled
+                    <div className={`flex items-center justify-between px-2.5 sm:px-5 lg:px-6 py-2.5 rounded-2xl transition-all duration-500 ${scrolled
                         ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl shadow-lg shadow-slate-900/5 dark:shadow-black/30 border border-slate-200/50 dark:border-white/[0.06]'
                         : 'bg-transparent'
                         }`}>
 
                         {/* Logo */}
-                        <Link href="/" className="flex items-center gap-2.5 group">
+                        <Link href="/" className="flex items-center gap-2.5 group min-w-0">
                             <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold italic text-sm group-hover:scale-110 transition-all duration-300 shadow-lg shadow-blue-600/25 group-hover:shadow-blue-600/40">
                                 P
                                 <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
-                            <span className="font-bold text-lg tracking-tight text-slate-900 dark:text-white">
+                            <span className="font-bold text-base sm:text-lg tracking-tight text-slate-900 dark:text-white truncate max-[389px]:hidden">
                                 Pazar<span className="text-blue-600 dark:text-blue-400">yonetimi</span>
                             </span>
                         </Link>
@@ -583,6 +600,7 @@ export default function Navbar() {
                                     <Link
                                         key={link.href}
                                         href={link.href!}
+                                        onClick={() => trackMenuClick(link.label, link.href || '/', 'desktop-main')}
                                         className="px-3.5 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-white/[0.04] rounded-xl transition-all duration-200"
                                     >
                                         {link.label}
@@ -592,7 +610,7 @@ export default function Navbar() {
                         </div>
 
                         {/* Right Actions */}
-                        <div className="flex items-center gap-1 sm:gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                             <button
                                 onClick={toggleTheme}
                                 className="relative p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
@@ -615,6 +633,7 @@ export default function Navbar() {
                                 <>
                                     <Link
                                         href="/dashboard/support"
+                                        onClick={() => trackMenuClick('Destek Talebi', '/dashboard/support', 'desktop-actions')}
                                         className="hidden md:flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                     >
                                         <HelpCircle size={16} />
@@ -623,6 +642,7 @@ export default function Navbar() {
 
                                     <Link
                                         href="/dashboard"
+                                        onClick={() => trackMenuClick('Panel', '/dashboard', 'desktop-actions')}
                                         className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 text-sm font-bold hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all border border-blue-200/50 dark:border-blue-500/20 shadow-sm"
                                     >
                                         <LayoutDashboard size={16} />
@@ -655,14 +675,14 @@ export default function Navbar() {
                                                     <div className="p-2">
                                                         <Link
                                                             href="/dashboard"
-                                                            onClick={() => setProfileMenuOpen(false)}
+                                                            onClick={() => { trackMenuClick('Admin Paneli', '/dashboard', 'desktop-profile'); setProfileMenuOpen(false); }}
                                                             className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-white/5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all"
                                                         >
                                                             <LayoutDashboard size={16} /> Admin Paneli
                                                         </Link>
                                                         <Link
                                                             href="/dashboard/settings"
-                                                            onClick={() => setProfileMenuOpen(false)}
+                                                            onClick={() => { trackMenuClick('Hesap Ayarları', '/dashboard/settings', 'desktop-profile'); setProfileMenuOpen(false); }}
                                                             className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-white/5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all"
                                                         >
                                                             <Settings size={16} /> Hesap Ayarları
@@ -684,6 +704,7 @@ export default function Navbar() {
                                 <>
                                     <Link
                                         href="/login"
+                                        onClick={() => trackMenuClick('Giriş Yap', '/login', 'desktop-actions')}
                                         className="hidden sm:block px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
                                     >
                                         Giriş Yap
@@ -691,18 +712,28 @@ export default function Navbar() {
 
                                     <Link
                                         href="/demo"
-                                        className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs sm:text-sm font-semibold hover:shadow-lg hover:shadow-blue-600/25 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 relative overflow-hidden group/demo"
+                                        onClick={() => trackMenuClick('Demo İste', '/demo', 'desktop-actions')}
+                                        className="hidden min-[390px]:flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs sm:text-sm font-semibold hover:shadow-lg hover:shadow-blue-600/25 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 relative overflow-hidden group/demo"
                                     >
                                         <span className="relative z-10">Demo İste</span>
                                         <ArrowRight size={14} className="relative z-10 group-hover/demo:translate-x-0.5 transition-transform hidden sm:block" />
                                         <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-indigo-700 opacity-0 group-hover/demo:opacity-100 transition-opacity" />
+                                    </Link>
+
+                                    <Link
+                                        href="/demo"
+                                        onClick={() => trackMenuClick('Demo İste', '/demo', 'desktop-actions')}
+                                        className="min-[390px]:hidden inline-flex items-center justify-center p-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm"
+                                        aria-label="Demo İste"
+                                    >
+                                        <Play size={16} />
                                     </Link>
                                 </>
                             )}
 
                             <button
                                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                                className="lg:hidden p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all text-slate-600 dark:text-white"
+                                className="lg:hidden p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all text-slate-600 dark:text-white border border-transparent hover:border-slate-200 dark:hover:border-white/10"
                                 aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
                                 aria-expanded={mobileMenuOpen}
                             >
@@ -731,7 +762,10 @@ export default function Navbar() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.98 }}
                         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                        className="fixed inset-0 z-40 bg-white/90 dark:bg-[#020617]/90 backdrop-blur-2xl pt-20 overflow-y-auto lg:hidden"
+                        className="fixed inset-0 z-40 bg-white/90 dark:bg-[#020617]/90 backdrop-blur-2xl pt-[max(4.75rem,env(safe-area-inset-top))] overflow-y-auto lg:hidden"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Mobil Menü"
                     >
                         {/* Premium Background Effects */}
                         <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -745,10 +779,46 @@ export default function Navbar() {
                             variants={{
                                 visible: { transition: { staggerChildren: 0.05 } }
                             }}
-                            className="relative container mx-auto px-4 pb-10 space-y-1"
+                            className="relative container mx-auto px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] space-y-1"
                         >
+                            <div className="sticky top-0 z-10 mb-3 -mx-1 px-1 py-2 bg-white/70 dark:bg-[#020617]/70 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/10">
+                                <div className="flex items-center justify-between px-2">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Menü</span>
+                                    <button
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="p-2 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white"
+                                        aria-label="Menüyü kapat"
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                </div>
+                                <div className="mt-2 grid grid-cols-3 gap-2 px-2">
+                                    <Link
+                                        href="/demo"
+                                        onClick={() => { trackMenuClick('Demo İste', '/demo', 'mobile-top-strip'); setMobileMenuOpen(false); }}
+                                        className="min-h-[44px] rounded-lg bg-blue-600 text-white text-xs font-bold flex items-center justify-center"
+                                    >
+                                        Demo
+                                    </Link>
+                                    <Link
+                                        href="/pricing"
+                                        onClick={() => { trackMenuClick('Fiyatlandırma', '/pricing', 'mobile-top-strip'); setMobileMenuOpen(false); }}
+                                        className="min-h-[44px] rounded-lg bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-white text-xs font-bold flex items-center justify-center"
+                                    >
+                                        Fiyat
+                                    </Link>
+                                    <Link
+                                        href="/login"
+                                        onClick={() => { trackMenuClick('Giriş Yap', '/login', 'mobile-top-strip'); setMobileMenuOpen(false); }}
+                                        className="min-h-[44px] rounded-lg bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-white text-xs font-bold flex items-center justify-center"
+                                    >
+                                        Giriş
+                                    </Link>
+                                </div>
+                            </div>
+
                             <div className="flex flex-col gap-2">
-                                {navLinks.map((link, index) => (
+                                {navLinks.map((link) => (
                                     <motion.div
                                         key={link.label}
                                         variants={{
@@ -760,13 +830,14 @@ export default function Navbar() {
                                             <MobileMegaMenu
                                                 label={link.label}
                                                 megaMenu={link.megaMenu}
+                                                onTrack={trackMenuClick}
                                                 onClose={() => setMobileMenuOpen(false)}
                                             />
                                         ) : (
                                             <Link
                                                 href={link.href!}
-                                                onClick={() => setMobileMenuOpen(false)}
-                                                className="group flex items-center justify-between p-4 text-lg font-bold text-slate-900 dark:text-white bg-white/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 rounded-2xl hover:bg-white dark:hover:bg-white/10 transition-all duration-300 shadow-sm"
+                                                onClick={() => { trackMenuClick(link.label, link.href || '/', 'mobile-main'); setMobileMenuOpen(false); }}
+                                                className="group flex items-center justify-between p-4 min-h-[56px] text-base font-bold text-slate-900 dark:text-white bg-white/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 rounded-2xl hover:bg-white dark:hover:bg-white/10 transition-all duration-300 shadow-sm"
                                             >
                                                 {link.label}
                                                 <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors">
@@ -785,12 +856,12 @@ export default function Navbar() {
                                 }}
                                 className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10 space-y-4"
                             >
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-3">
                                     {status === 'authenticated' ? (
                                         <>
                                             <Link
                                                 href="/dashboard"
-                                                onClick={() => setMobileMenuOpen(false)}
+                                                onClick={() => { trackMenuClick('Admin Paneli', '/dashboard', 'mobile-quick'); setMobileMenuOpen(false); }}
                                                 className="flex flex-col items-center justify-center py-4 bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/20 text-white gap-1 col-span-2 overflow-hidden relative group"
                                             >
                                                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
@@ -799,7 +870,7 @@ export default function Navbar() {
                                             </Link>
                                             <Link
                                                 href="/dashboard/support"
-                                                onClick={() => setMobileMenuOpen(false)}
+                                                onClick={() => { trackMenuClick('Destek', '/dashboard/support', 'mobile-quick'); setMobileMenuOpen(false); }}
                                                 className="flex flex-col items-center justify-center py-4 bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors gap-1"
                                             >
                                                 <HelpCircle size={18} className="text-blue-500" />
@@ -817,14 +888,14 @@ export default function Navbar() {
                                         <>
                                             <Link
                                                 href="/login"
-                                                onClick={() => setMobileMenuOpen(false)}
+                                                onClick={() => { trackMenuClick('Giriş Yap', '/login', 'mobile-quick'); setMobileMenuOpen(false); }}
                                                 className="flex items-center justify-center py-4 text-base font-bold text-slate-800 dark:text-white bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
                                             >
                                                 Giriş Yap
                                             </Link>
                                             <Link
                                                 href="/demo"
-                                                onClick={() => setMobileMenuOpen(false)}
+                                                onClick={() => { trackMenuClick('Demo İste', '/demo', 'mobile-quick'); setMobileMenuOpen(false); }}
                                                 className="flex items-center justify-center py-4 text-base font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all"
                                             >
                                                 Demo İste
@@ -856,28 +927,16 @@ export default function Navbar() {
 function MobileMegaMenu({
     label,
     megaMenu,
+    onTrack,
     onClose
 }: {
     label: string;
     megaMenu: MegaMenuItem['megaMenu'];
+    onTrack: (label: string, href: string, section: string) => void;
     onClose: () => void;
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const [activeColumn, setActiveColumn] = useState<number | null>(null);
-
-    // Initial animation for columns
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, x: -10 },
-        visible: { opacity: 1, x: 0 }
-    };
 
     if (!megaMenu) return null;
 
@@ -885,7 +944,7 @@ function MobileMegaMenu({
         <div className={`overflow-hidden rounded-2xl transition-all duration-300 border ${isOpen ? 'bg-white/80 dark:bg-slate-900/80 border-blue-100 dark:border-blue-500/20 shadow-lg shadow-blue-500/5' : 'bg-white/50 dark:bg-white/5 border-slate-200/50 dark:border-white/5'}`}>
             <button
                 onClick={() => { setIsOpen(!isOpen); setActiveColumn(null); }}
-                className="flex items-center justify-between w-full p-4 text-left transition-colors"
+                className="flex items-center justify-between w-full p-4 min-h-[56px] text-left transition-colors"
                 aria-expanded={isOpen}
             >
                 <span className={`text-lg font-bold transition-colors ${isOpen ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
@@ -909,7 +968,7 @@ function MobileMegaMenu({
                                 <div key={colIdx} className="bg-slate-50/50 dark:bg-white/[0.02] rounded-xl overflow-hidden border border-slate-100 dark:border-white/5">
                                     <button
                                         onClick={() => setActiveColumn(activeColumn === colIdx ? null : colIdx)}
-                                        className="flex items-center gap-3 w-full px-4 py-3 text-left transition-colors hover:bg-slate-100/50 dark:hover:bg-white/5"
+                                        className="flex items-center gap-3 w-full px-4 py-3.5 min-h-[52px] text-left transition-colors hover:bg-slate-100/50 dark:hover:bg-white/5"
                                     >
                                         {column.icon && (
                                             <div className="w-8 h-8 rounded-lg bg-white dark:bg-white/5 shadow-sm border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400">
@@ -936,13 +995,12 @@ function MobileMegaMenu({
                                             >
                                                 <div className="px-2 pb-2 space-y-1">
                                                     {column.items.map((item, itemIdx) => {
-                                                        const colors = iconColorMap[item.color || 'blue'];
                                                         return (
                                                             <Link
                                                                 key={itemIdx}
                                                                 href={item.href}
-                                                                onClick={onClose}
-                                                                className="group flex items-start gap-3 p-3 rounded-lg hover:bg-white dark:hover:bg-white/5 transition-all"
+                                                                onClick={() => { onTrack(item.label, item.href, `mobile-submenu:${label}`); onClose(); }}
+                                                                className="group flex items-start gap-3 p-3.5 rounded-lg hover:bg-white dark:hover:bg-white/5 transition-all"
                                                             >
                                                                 <div className={`mt-1 w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-blue-500 transition-colors`} />
                                                                 <div className="flex-1">
@@ -981,7 +1039,7 @@ function MobileMegaMenu({
                             {megaMenu.featured && (
                                 <Link
                                     href={megaMenu.featured.href}
-                                    onClick={onClose}
+                                    onClick={() => { onTrack(megaMenu.featured?.title || label, megaMenu.featured?.href || '/', `mobile-featured:${label}`); onClose(); }}
                                     className={`relative block p-5 rounded-xl bg-gradient-to-br ${megaMenu.featured.gradient || 'from-blue-600 to-indigo-600'} overflow-hidden shadow-lg shadow-blue-500/25`}
                                 >
                                     <div className="absolute top-0 right-0 p-3 opacity-20">

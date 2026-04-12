@@ -100,7 +100,9 @@ export class EmailService {
       });
       this.logger.log('Email transporter initialized');
     } else {
-      this.logger.warn('SMTP configuration missing, emails will be logged to console only');
+      this.logger.warn(
+        'SMTP configuration missing, emails will be logged to console only',
+      );
     }
   }
 
@@ -112,7 +114,8 @@ export class EmailService {
         name: 'Hoşgeldin Emaili',
         type: EmailType.WELCOME,
         subject: 'Hoş geldiniz {{firstName}}!',
-        htmlContent: '<h1>Hoş geldiniz!</h1><p>{{firstName}}, premium erişiminiz başladı.</p>',
+        htmlContent:
+          '<h1>Hoş geldiniz!</h1><p>{{firstName}}, premium erişiminiz başladı.</p>',
         variables: ['firstName', 'accountUrl'],
         previewText: 'Hesabınız başarıyla oluşturuldu',
       },
@@ -121,7 +124,8 @@ export class EmailService {
         name: 'Terk Edilen Sepet',
         type: EmailType.ABANDONED_CART,
         subject: 'Sepetiniz bekleniyor! 20% İndirim',
-        htmlContent: '<h1>Sepeti tamamlayın</h1><p>{{cartTotal}} tutarındaki ürünleri unutmayın.</p>',
+        htmlContent:
+          '<h1>Sepeti tamamlayın</h1><p>{{cartTotal}} tutarındaki ürünleri unutmayın.</p>',
         variables: ['cartTotal', 'cartUrl', 'discountCode'],
         previewText: 'Alışverişinizi tamamlayın ve %20 indirim alın',
       },
@@ -130,7 +134,8 @@ export class EmailService {
         name: 'Sipariş Onayı',
         type: EmailType.PURCHASE_CONFIRMATION,
         subject: 'Siparişiniz onaylandı #{{orderNumber}}',
-        htmlContent: '<h1>Teşekkürler!</h1><p>Siparişiniz #{{orderNumber}} onaylandı.</p>',
+        htmlContent:
+          '<h1>Teşekkürler!</h1><p>Siparişiniz #{{orderNumber}} onaylandı.</p>',
         variables: ['orderNumber', 'orderTotal', 'trackingUrl'],
         previewText: 'Siparişiniz onaylandı ve hazırlanıyor',
       },
@@ -139,13 +144,14 @@ export class EmailService {
         name: 'Kargo Bildirimi',
         type: EmailType.SHIPPING_NOTIFICATION,
         subject: 'Siparişiniz kargoda! Takip: {{trackingNumber}}',
-        htmlContent: '<h1>Siparişiniz kargoda!</h1><p>Takip numarası: {{trackingNumber}}</p>',
+        htmlContent:
+          '<h1>Siparişiniz kargoda!</h1><p>Takip numarası: {{trackingNumber}}</p>',
         variables: ['trackingNumber', 'trackingUrl', 'estimatedDelivery'],
         previewText: 'Siparişiniz kargoda, takip edin',
       },
     ];
 
-    return type ? templates.filter(t => t.type === type) : templates;
+    return type ? templates.filter((t) => t.type === type) : templates;
   }
 
   // Get email campaigns
@@ -217,11 +223,14 @@ export class EmailService {
       },
     ];
 
-    return status ? campaigns.filter(c => c.status === status) : campaigns;
+    return status ? campaigns.filter((c) => c.status === status) : campaigns;
   }
 
   // Get email analytics
-  async getEmailAnalytics(startDate?: Date, endDate?: Date): Promise<EmailAnalytics> {
+  async getEmailAnalytics(
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<EmailAnalytics> {
     return {
       period: 'Şubat 2025',
       totalSent: 15000,
@@ -249,7 +258,7 @@ export class EmailService {
     to: string,
     subject: string,
     html: string,
-    text?: string
+    text?: string,
   ): Promise<boolean> {
     return this.sendSystemEmail(to, subject, html);
   }
@@ -268,14 +277,19 @@ export class EmailService {
       subject: params.subject,
       htmlContent: params.htmlContent,
       textContent: params.htmlContent.replace(/<[^>]*>/g, ''), // Strip HTML tags
-      variables: params.subject.match(/\{\{(\w+)\}\}/g)?.map(v => v.replace(/\{\{|\}\}/g, '')) || [],
+      variables:
+        params.subject
+          .match(/\{\{(\w+)\}\}/g)
+          ?.map((v) => v.replace(/\{\{|\}\}/g, '')) || [],
     };
     this.logger.log(`[Email] Template created: ${newTemplate.id}`);
     return newTemplate;
   }
 
   // Send campaign immediately
-  async sendCampaign(campaignId: string): Promise<{ success: boolean; sentCount: number }> {
+  async sendCampaign(
+    campaignId: string,
+  ): Promise<{ success: boolean; sentCount: number }> {
     this.logger.log(`[Email] Sending campaign: ${campaignId}`);
     // In real implementation, this would queue emails to be sent
     return { success: true, sentCount: 100 };
@@ -285,11 +299,11 @@ export class EmailService {
   async getAnalytics(
     period?: string,
     startDate?: string,
-    endDate?: string
+    endDate?: string,
   ): Promise<EmailAnalytics> {
     return this.getEmailAnalytics(
       startDate ? new Date(startDate) : undefined,
-      endDate ? new Date(endDate) : undefined
+      endDate ? new Date(endDate) : undefined,
     );
   }
 
@@ -312,11 +326,17 @@ export class EmailService {
   }
 
   // Helper for sending system emails without templates (Ad-hoc)
-  async sendSystemEmail(to: string, subject: string, html: string): Promise<boolean> {
+  async sendSystemEmail(
+    to: string,
+    subject: string,
+    html: string,
+  ): Promise<boolean> {
     if (this.transporter) {
       try {
         await this.transporter.sendMail({
-          from: this.configService.get('SMTP_FROM') || '"PazarYönetimi" <noreply@pazaryonetimi.com>',
+          from:
+            this.configService.get('SMTP_FROM') ||
+            '"PazarYönetimi" <noreply@pazaryonetimi.com>',
           to,
           subject,
           html,
@@ -381,14 +401,16 @@ export class EmailService {
   }
 
   // Get A/B test results
-  async getABTestResults(campaignId: string): Promise<{
-    variant: string;
-    recipientCount: number;
-    openRate: number;
-    clickRate: number;
-    conversionRate: number;
-    winner?: string;
-  }[]> {
+  async getABTestResults(campaignId: string): Promise<
+    {
+      variant: string;
+      recipientCount: number;
+      openRate: number;
+      clickRate: number;
+      conversionRate: number;
+      winner?: string;
+    }[]
+  > {
     return [
       {
         variant: 'Variant A: Kırmızı CTA',

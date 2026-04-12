@@ -38,29 +38,19 @@ import {
     BarChart3,
     Target,
     Tag,
-    TrendingDown,
-    Calendar,
     Eye,
-    MousePointerClick,
     Award,
     Flame,
     ArrowUpRight,
-    ArrowDownRight,
     AlertTriangle,
     Activity,
     PieChart,
     Layers,
-    LineChart,
-    Percent,
-    TrendingUpIcon,
     SlidersHorizontal,
     Mail,
     FileJson,
     Lightbulb,
-    Zap as ZapIcon,
     AlertCircle,
-    CheckSquare,
-    Grid,
     Wrench,
     Plus
 } from 'lucide-react';
@@ -1183,8 +1173,9 @@ const SupportedPlatformsWidget = ({ currentPlatform }: { currentPlatform: string
 };
 
 const RawEvidencePanel = ({ storeData }: { storeData: StoreData | null }) => {
-    if (!storeData?.dataSources) return null;
     const [showConfidenceHelp, setShowConfidenceHelp] = useState(false);
+
+    if (!storeData?.dataSources) return null;
 
     const overall = getSourceBadgeLabel(storeData.dataSources.overall);
     const confidenceScore = storeData.confidence?.score;
@@ -2035,6 +2026,10 @@ const ExportReports = ({ domain, score }: { domain: string; score: number }) => 
                 <Download className="text-blue-500" size={24} />
                 Raporlar & Export
             </h3>
+
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                Alan: {domain} · Performans skoru: %{score}
+            </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <motion.button
@@ -3110,9 +3105,9 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
     );
 }
 
-export default async function AnalysisPage({ searchParams }: { searchParams: Promise<{ url?: string }> }) {
-    const params = await searchParams;
-    const url = params?.url || '';
+export default function AnalysisPage() {
+    const searchParams = useSearchParams();
+    const url = searchParams.get('url') || '';
     return (
         <Suspense fallback={
             <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#020617]">

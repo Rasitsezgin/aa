@@ -34,13 +34,21 @@ export class PricingOptimizationController {
   async applyPriceChange(
     @Body() dto: { productId: string; newPrice: number; tenantId: string },
   ) {
-    return this.pricingService.applyPriceChange(dto.productId, dto.newPrice, dto.tenantId);
+    return this.pricingService.applyPriceChange(
+      dto.productId,
+      dto.newPrice,
+      dto.tenantId,
+    );
   }
 
   @Post('apply-bulk')
   @ApiOperation({ summary: 'Toplu fiyat değişikliği uygula' })
   async applyBulkPriceChanges(
-    @Body() dto: { changes: { productId: string; newPrice: number }[]; tenantId: string },
+    @Body()
+    dto: {
+      changes: { productId: string; newPrice: number }[];
+      tenantId: string;
+    },
   ) {
     return this.pricingService.applyBulkPriceChanges(dto.changes, dto.tenantId);
   }

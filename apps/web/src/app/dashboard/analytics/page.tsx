@@ -3,24 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    LineChart,
     TrendingUp,
     TrendingDown,
     DollarSign,
     ShoppingBag,
-    Users,
     Package,
-    Eye,
     MousePointer,
-    Calendar,
-    Download,
-    Filter,
-    RefreshCw,
-    ArrowUp,
-    ArrowDown,
-    BarChart3,
-    PieChart,
-    Target,
     Zap,
     Loader2
 } from 'lucide-react';
@@ -106,10 +94,10 @@ export default function AnalyticsPage() {
 
     // Real data hooks
     const { data: stats, loading: statsLoading, refetch: refetchStats } = useDashboardStats(selectedPeriod);
-    const { data: _platformData, loading: _platformLoading } = usePlatformPerformance();
+    usePlatformPerformance();
     const { data: topProducts, loading: productsLoading } = useTopProducts(5);
     const { data: trendData, loading: trendLoading } = usePerformanceTrend(selectedMetric, selectedPeriod);
-    const { data: _forecast, loading: _forecastLoading } = useSalesForecast(30);
+    useSalesForecast(30);
     const { data: categories, loading: categoriesLoading } = useCategoryPerformance();
 
     // Re-fetch when period changes

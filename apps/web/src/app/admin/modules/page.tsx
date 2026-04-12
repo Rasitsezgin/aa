@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
-    Layers, Shield, Zap, Sparkles, Plus, Search, Filter,
-    Package, Settings, Edit3, Trash2, Eye, EyeOff, Star, TrendingUp,
-    Users, DollarSign, BarChart3, Clock, CheckCircle, XCircle, AlertTriangle,
-    ChevronDown, ChevronRight, Save, X, RefreshCw, Download, Upload,
-    Bot, Target, Image, Store, Globe, Boxes, Tags, Truck, Warehouse,
+    Layers, Shield, Zap, Sparkles, Plus, Search,
+    Package, Settings, Edit3, Eye, EyeOff, Star, TrendingUp,
+    Users, DollarSign, BarChart3, CheckCircle,
+    Download,
+    Bot, Target, Image, Store, Globe, Boxes, Truck, Warehouse,
     CreditCard, Receipt, Megaphone, MessageSquare, FileText, LineChart, PieChart,
-    LayoutDashboard, ShoppingCart, Crown, Gem, Award, ToggleRight
+    Crown, Gem
 } from 'lucide-react';
 
 // Modül kategorileri
@@ -130,7 +130,7 @@ const MODULES_DATA = [
     },
 ];
 
-const ICON_MAP: Record<string, any> = {
+const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
     Bot, Target, Image, TrendingUp, PieChart, Store, Globe, Boxes,
     Receipt, Megaphone, Truck, Warehouse, LineChart, BarChart3,
     Sparkles, Shield, Zap, Package, CreditCard, FileText, MessageSquare,

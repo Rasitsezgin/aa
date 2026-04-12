@@ -1,5 +1,18 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
-import { AnnouncementsService, CreateAnnouncementDto, UpdateAnnouncementDto } from './announcements.service';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+} from '@nestjs/common';
+import {
+  AnnouncementsService,
+  CreateAnnouncementDto,
+  UpdateAnnouncementDto,
+} from './announcements.service';
 
 @Controller('announcements')
 export class AnnouncementsController {
@@ -67,7 +80,10 @@ export class AnnouncementsController {
 
   // Mark as read
   @Post(':id/read')
-  async markAsRead(@Param('id') id: string, @Body('tenantId') tenantId: string) {
+  async markAsRead(
+    @Param('id') id: string,
+    @Body('tenantId') tenantId: string,
+  ) {
     return this.announcementsService.markAsRead(id, tenantId);
   }
 

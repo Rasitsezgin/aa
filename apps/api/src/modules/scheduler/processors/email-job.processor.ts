@@ -14,7 +14,9 @@ export class EmailJobProcessor extends WorkerHost {
   private readonly logger = new Logger(EmailJobProcessor.name);
 
   async process(job: Job<EmailJobData>): Promise<any> {
-    this.logger.log(`E-posta işleniyor: ${job.data.template} - ${job.data.recipients.length} alıcı`);
+    this.logger.log(
+      `E-posta işleniyor: ${job.data.template} - ${job.data.recipients.length} alıcı`,
+    );
 
     const { template, recipients, data } = job.data;
 
@@ -38,7 +40,11 @@ export class EmailJobProcessor extends WorkerHost {
     }
   }
 
-  private async sendEmail(to: string, template: string, data: Record<string, any>): Promise<void> {
+  private async sendEmail(
+    to: string,
+    template: string,
+    data: Record<string, any>,
+  ): Promise<void> {
     // Simüle edilmiş e-posta gönderimi
     this.logger.debug(`E-posta gönderiliyor: ${to} - Template: ${template}`);
 
@@ -52,6 +58,6 @@ export class EmailJobProcessor extends WorkerHost {
     // });
 
     // Simülasyon için kısa bekleme
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 }

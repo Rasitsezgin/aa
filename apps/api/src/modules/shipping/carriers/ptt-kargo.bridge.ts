@@ -17,14 +17,20 @@ export class PttKargoBridge implements CarrierBridge {
   private readonly apiUser: string;
   private readonly apiPassword: string;
 
-  constructor(config: { apiUrl?: string; apiUser?: string; apiPassword?: string }) {
+  constructor(config: {
+    apiUrl?: string;
+    apiUser?: string;
+    apiPassword?: string;
+  }) {
     this.apiUrl = config.apiUrl || process.env.PTT_API_URL || '';
     this.apiUser = config.apiUser || process.env.PTT_API_USER || '';
     this.apiPassword = config.apiPassword || process.env.PTT_API_PASSWORD || '';
   }
 
   async createShipment(request: ShipmentRequest): Promise<ShipmentResponse> {
-    this.logger.log(`PTT Kargo gönderi oluşturuluyor: ${request.receiverAddress.city}`);
+    this.logger.log(
+      `PTT Kargo gönderi oluşturuluyor: ${request.receiverAddress.city}`,
+    );
 
     const trackingNumber = `PTT${Date.now()}${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
@@ -53,11 +59,15 @@ export class PttKargoBridge implements CarrierBridge {
 
   async calculateRate(request: ShipmentRequest): Promise<ShippingRate> {
     const baseCost = 25; // PTT genelde daha ekonomik
-    const weightCost = Math.max(0, (request.weight - 1)) * 3.5;
+    const weightCost = Math.max(0, request.weight - 1) * 3.5;
     let desiCost = 0;
     if (request.dimensions) {
-      const desi = (request.dimensions.length * request.dimensions.width * request.dimensions.height) / 3000;
-      desiCost = Math.max(0, (desi - 1)) * 3.5;
+      const desi =
+        (request.dimensions.length *
+          request.dimensions.width *
+          request.dimensions.height) /
+        3000;
+      desiCost = Math.max(0, desi - 1) * 3.5;
     }
 
     return {

@@ -4,9 +4,9 @@ import { TenantController } from './tenant.controller';
 import { DatabaseModule } from '../../database/database.module';
 
 @Module({
-    imports: [DatabaseModule],
-    controllers: [TenantController],
-    providers: [TenantService],
-    exports: [TenantService],
+  imports: [DatabaseModule],
+  controllers: [TenantController],
+  providers: [TenantService],
+  exports: [TenantService],
 })
-export class TenantModule { }
+export class TenantModule {}

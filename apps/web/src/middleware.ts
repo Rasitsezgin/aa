@@ -149,13 +149,19 @@ export default async function middleware(req: NextRequest) {
 
     // Define allowed domains (localhost for dev, your production domain)
     // You might want to move these to env variables
-    const allowedDomains = ["localhost:3000", "localhost:3001", "localhost:3002", "pazaryonetimi.com"];
+    const allowedDomains = [
+        "localhost:3000",
+        "localhost:3001",
+        "localhost:3002",
+        "localhost:3100",
+        "127.0.0.1:3000",
+        "127.0.0.1:3001",
+        "127.0.0.1:3002",
+        "127.0.0.1:3100",
+        "pazaryonetimi.com",
+    ];
 
-    // Verify if hostname exist in allowed domains
-    // If it's a subdomain, e.g. "tenant.pazaryonetimi.com", hostname will be "tenant.pazaryonetimi.com"
-    const isMainDomain = allowedDomains.some(domain => hostname?.includes(domain)) &&
-        !hostname?.split('.')[0].includes('localhost') &&
-        (hostname?.split('.').length === 2 || (hostname?.includes('localhost') && hostname?.split('.').length === 1));
+    const isLocalHost = hostname?.startsWith('localhost') || hostname?.startsWith('127.0.0.1');
 
     // Determine the current subdomain
     // For production: tenant.pazaryonetimi.com -> subdomain is 'tenant'
@@ -178,7 +184,7 @@ export default async function middleware(req: NextRequest) {
 
     // Simplified for now:
     // If subdomain exists and is NOT 'www' and NOT 'app', it's a tenant.
-    if (currentHost && !allowedDomains.includes(currentHost) && currentHost !== 'www' && currentHost !== 'app' && currentHost !== 'api') {
+    if (!isLocalHost && currentHost && !allowedDomains.includes(currentHost) && currentHost !== 'www' && currentHost !== 'app' && currentHost !== 'api') {
         const searchParams = req.nextUrl.searchParams.toString();
         // Rewrite to /_sites/[site]
         const path = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""

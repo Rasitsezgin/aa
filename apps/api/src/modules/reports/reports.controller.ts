@@ -33,7 +33,7 @@ export class ReportsController {
     private readonly reportsService: ReportsService,
     private readonly emailReportService: EmailReportService,
     private readonly prisma: PrismaService,
-  ) { }
+  ) {}
 
   /**
    * Rapor listesi (tüm raporlar)
@@ -91,7 +91,15 @@ export class ReportsController {
    */
   @Post('generate')
   @HttpCode(HttpStatus.OK)
-  async generateNewReport(@Body() data: { type: string; tenantId: string; period?: string; [key: string]: any }) {
+  async generateNewReport(
+    @Body()
+    data: {
+      type: string;
+      tenantId: string;
+      period?: string;
+      [key: string]: any;
+    },
+  ) {
     const report = await this.prisma.report.create({
       data: {
         tenantId: data.tenantId,
@@ -127,7 +135,11 @@ export class ReportsController {
     @Query('period') period: string = 'monthly',
     @Query('planType') planType: string = 'professional',
   ) {
-    const report = await this.reportsService.generateReport(storeId, period as ReportPeriod, planType as PlanType);
+    const report = await this.reportsService.generateReport(
+      storeId,
+      period as ReportPeriod,
+      planType as PlanType,
+    );
     return {
       success: true,
       data: report,
@@ -140,10 +152,12 @@ export class ReportsController {
    */
   @Get('periods/:planType')
   getAvailablePeriods(@Param('planType') planType: string) {
-    const periods = this.reportsService.getAvailablePeriods(planType as PlanType);
+    const periods = this.reportsService.getAvailablePeriods(
+      planType as PlanType,
+    );
     return {
       success: true,
-      data: periods.map(p => ({
+      data: periods.map((p) => ({
         id: p,
         name: this.reportsService.getPeriodName(p),
       })),
@@ -183,7 +197,11 @@ export class ReportsController {
     @Query('period') period: string = 'monthly',
     @Query('planType') planType: string = 'professional',
   ) {
-    const report = await this.reportsService.generateReport(storeId, period as ReportPeriod, planType as PlanType);
+    const report = await this.reportsService.generateReport(
+      storeId,
+      period as ReportPeriod,
+      planType as PlanType,
+    );
     const html = this.emailReportService.generateEmailTemplate(report);
 
     return html; // Raw HTML döndür
@@ -197,7 +215,7 @@ export class ReportsController {
   @HttpCode(HttpStatus.OK)
   async scheduleReports(@Body() dto: ScheduleReportDto) {
     // Gerçek uygulamada cron job veya task scheduler kullanılacak
-    const schedules = dto.periods.map(period => ({
+    const schedules = dto.periods.map((period) => ({
       period,
       periodName: this.reportsService.getPeriodName(period),
       schedule: this.getCronSchedule(period),
@@ -232,7 +250,9 @@ export class ReportsController {
     });
 
     const stores = scheduled.flatMap((s) => {
-      const recipients = Array.isArray(s.recipients) ? (s.recipients as string[]) : [];
+      const recipients = Array.isArray(s.recipients)
+        ? (s.recipients as string[])
+        : [];
       return recipients.map((email) => ({
         id: s.tenantId,
         email,
@@ -241,12 +261,17 @@ export class ReportsController {
     });
 
     const results = await Promise.all(
-      stores.map(store =>
-        this.emailReportService.sendReportEmail(store.email, store.id, period as ReportPeriod, store.planType)
-      )
+      stores.map((store) =>
+        this.emailReportService.sendReportEmail(
+          store.email,
+          store.id,
+          period as ReportPeriod,
+          store.planType,
+        ),
+      ),
     );
 
-    const successCount = results.filter(r => r.success).length;
+    const successCount = results.filter((r) => r.success).length;
 
     return {
       success: true,
@@ -292,10 +317,13 @@ export class ReportsController {
       id: report.id,
       type: report.type,
       title: report.name,
-      period: (report.parameters as { period?: string } | null)?.period || 'monthly',
+      period:
+        (report.parameters as { period?: string } | null)?.period || 'monthly',
       status: report.status,
       format: report.format,
-      size: report.fileSize ? `${(report.fileSize / (1024 * 1024)).toFixed(1)}MB` : null,
+      size: report.fileSize
+        ? `${(report.fileSize / (1024 * 1024)).toFixed(1)}MB`
+        : null,
       createdAt: report.createdAt.toISOString(),
       downloadUrl: report.fileUrl || `/api/reports/download/${report.id}`,
     }));

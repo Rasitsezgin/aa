@@ -254,10 +254,14 @@ export class TenantCredentialsService {
           : 'API Key veya URL boş';
       } else if (st.startsWith('SMS_')) {
         success = apiKey.length > 0;
-        message = success ? 'SMS kimlik bilgileri geçerli görünüyor' : 'API Key boş';
+        message = success
+          ? 'SMS kimlik bilgileri geçerli görünüyor'
+          : 'API Key boş';
       } else if (st.startsWith('EMAIL_')) {
         success = apiKey.length > 0;
-        message = success ? 'E-posta kimlik bilgileri geçerli görünüyor' : 'Kimlik bilgisi boş';
+        message = success
+          ? 'E-posta kimlik bilgileri geçerli görünüyor'
+          : 'Kimlik bilgisi boş';
       } else {
         success = apiKey.length > 0;
         message = success ? 'Kimlik bilgileri dolu' : 'Kimlik bilgisi boş';
@@ -281,11 +285,19 @@ export class TenantCredentialsService {
       tenantId,
       resourceType: 'ServiceCredential',
       resourceId: id,
-      metadata: { serviceType: credential.serviceType, result: success ? 'OK' : 'FAIL' },
+      metadata: {
+        serviceType: credential.serviceType,
+        result: success ? 'OK' : 'FAIL',
+      },
       success,
     });
 
-    return { success, message, serviceType: credential.serviceType, testedAt: new Date() };
+    return {
+      success,
+      message,
+      serviceType: credential.serviceType,
+      testedAt: new Date(),
+    };
   }
 
   /**
@@ -349,11 +361,18 @@ export class TenantCredentialsService {
         metadata: { serviceType: existing.serviceType, oldCredentialId: id },
         success: true,
       });
-      return { success: true, newCredentialId: newCred.id, message: 'Rotasyon başarılı' };
+      return {
+        success: true,
+        newCredentialId: newCred.id,
+        message: 'Rotasyon başarılı',
+      };
     } else {
       // Test başarısız → yeni girdiden geri dön
       await this.prisma.serviceCredential.delete({ where: { id: newCred.id } });
-      return { success: false, message: `Yeni kimlik bilgisi testi başarısız: ${testResult.message}` };
+      return {
+        success: false,
+        message: `Yeni kimlik bilgisi testi başarısız: ${testResult.message}`,
+      };
     }
   }
 

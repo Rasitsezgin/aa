@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
 import { Injectable } from '@nestjs/common';
 
 export type SupportedLanguage = 'tr' | 'en' | 'ar' | 'de' | 'fr' | 'es' | 'ru';
@@ -64,7 +64,7 @@ export class AII18nService {
         LAZADA: 'Lazada',
       },
       assistant: {
-        welcome: 'Sopyo AI Asistan\'a hoş geldiniz!',
+        welcome: "Sopyo AI Asistan'a hoş geldiniz!",
         help: 'Size nasıl yardımcı olabilirim?',
         understanding: 'Anlıyorum...',
         processing: 'İşlem yapılıyor...',
@@ -404,7 +404,7 @@ export class AII18nService {
         LAZADA: 'Lazada',
       },
       assistant: {
-        welcome: 'Bienvenue dans l\'Assistant AI Sopyo!',
+        welcome: "Bienvenue dans l'Assistant AI Sopyo!",
         help: 'Comment puis-je vous aider?',
         understanding: 'Je comprends...',
         processing: 'Traitement en cours...',
@@ -424,11 +424,11 @@ export class AII18nService {
         permissionError: 'Erreur de permission',
         unknownError: 'Erreur inconnue',
         retryLater: 'Veuillez réessayer plus tard',
-        contactSupport: 'Contactez l\'équipe de support',
+        contactSupport: "Contactez l'équipe de support",
       },
       time: {
         now: 'maintenant',
-        today: 'aujourd\'hui',
+        today: "aujourd'hui",
         tomorrow: 'demain',
         yesterday: 'hier',
         minutes: 'minutes',
@@ -627,10 +627,14 @@ export class AII18nService {
   /**
    * Get translation by key
    */
-  translate(key: string, language?: SupportedLanguage, params?: Record<string, string>): string {
+  translate(
+    key: string,
+    language?: SupportedLanguage,
+    params?: Record<string, string>,
+  ): string {
     const lang = language || this.defaultContext.language;
     const translation = this.getNestedValue(this.translations[lang], key);
-    
+
     if (!translation || typeof translation !== 'string') {
       // Fallback to English
       const fallback = this.getNestedValue(this.translations.en, key);
@@ -653,7 +657,11 @@ export class AII18nService {
   /**
    * Get supported languages
    */
-  getSupportedLanguages(): Array<{ code: SupportedLanguage; name: string; nativeName: string }> {
+  getSupportedLanguages(): Array<{
+    code: SupportedLanguage;
+    name: string;
+    nativeName: string;
+  }> {
     return [
       { code: 'tr', name: 'Turkish', nativeName: 'Türkçe' },
       { code: 'en', name: 'English', nativeName: 'English' },
@@ -682,10 +690,14 @@ export class AII18nService {
   /**
    * Format date according to language/locale
    */
-  formatDate(date: Date, language?: SupportedLanguage, format?: string): string {
+  formatDate(
+    date: Date,
+    language?: SupportedLanguage,
+    format?: string,
+  ): string {
     const lang = language || this.defaultContext.language;
     const locale = this.getLocale(lang);
-    
+
     return new Intl.DateTimeFormat(locale, {
       year: 'numeric',
       month: 'long',
@@ -698,21 +710,29 @@ export class AII18nService {
   /**
    * Format number according to language/locale
    */
-  formatNumber(number: number, language?: SupportedLanguage, options?: Intl.NumberFormatOptions): string {
+  formatNumber(
+    number: number,
+    language?: SupportedLanguage,
+    options?: Intl.NumberFormatOptions,
+  ): string {
     const lang = language || this.defaultContext.language;
     const locale = this.getLocale(lang);
-    
+
     return new Intl.NumberFormat(locale, options).format(number);
   }
 
   /**
    * Format currency
    */
-  formatCurrency(amount: number, currency?: string, language?: SupportedLanguage): string {
+  formatCurrency(
+    amount: number,
+    currency?: string,
+    language?: SupportedLanguage,
+  ): string {
     const lang = language || this.defaultContext.language;
     const curr = currency || this.defaultContext.currency;
     const locale = this.getLocale(lang);
-    
+
     return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: curr,
@@ -725,7 +745,7 @@ export class AII18nService {
   getRelativeTime(date: Date, language?: SupportedLanguage): string {
     const lang = language || this.defaultContext.language;
     const locale = this.getLocale(lang);
-    
+
     return new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(
       Math.ceil((date.getTime() - Date.now()) / 1000 / 60),
       'minute',
@@ -748,7 +768,7 @@ export class AII18nService {
     };
 
     for (const [lang, regexes] of Object.entries(patterns)) {
-      if (regexes.some(regex => regex.test(text))) {
+      if (regexes.some((regex) => regex.test(text))) {
         return lang as SupportedLanguage;
       }
     }
@@ -764,7 +784,7 @@ export class AII18nService {
 
   private interpolate(text: string, params?: Record<string, string>): string {
     if (!params) return text;
-    
+
     return text.replace(/\{\{(\w+)\}\}/g, (match, key) => {
       return params[key] || match;
     });

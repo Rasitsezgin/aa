@@ -1,8 +1,17 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 
 // Types
-export type SubscriptionStatus = 'pending' | 'active' | 'cancelled' | 'expired' | 'suspended';
+export type SubscriptionStatus =
+  | 'pending'
+  | 'active'
+  | 'cancelled'
+  | 'expired'
+  | 'suspended';
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
 export type PackageType = 'starter' | 'professional' | 'enterprise';
 export type BillingPeriod = 'monthly' | 'yearly';
@@ -45,15 +54,16 @@ export interface SubscriptionFilters {
 }
 
 // Package prices
-const packagePrices: Record<PackageType, { monthly: number; yearly: number }> = {
-  starter: { monthly: 299, yearly: 2990 },
-  professional: { monthly: 599, yearly: 5990 },
-  enterprise: { monthly: 1299, yearly: 12990 },
-};
+const packagePrices: Record<PackageType, { monthly: number; yearly: number }> =
+  {
+    starter: { monthly: 299, yearly: 2990 },
+    professional: { monthly: 599, yearly: 5990 },
+    enterprise: { monthly: 1299, yearly: 12990 },
+  };
 
 @Injectable()
 export class SubscriptionsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   /**
    * Yeni abonelik oluştur (fiyatlandırma sayfasından)
@@ -63,17 +73,21 @@ export class SubscriptionsService {
     const amount = packagePrices[dto.packageType][dto.billingPeriod];
 
     // Ödeme yöntemine göre durum belirle
-    const status: SubscriptionStatus = dto.paymentMethod === 'credit_card'
-      ? 'active'  // Kredi kartı - otomatik aktif
-      : 'pending'; // Havale - admin onayı gerekli
+    const status: SubscriptionStatus =
+      dto.paymentMethod === 'credit_card'
+        ? 'active' // Kredi kartı - otomatik aktif
+        : 'pending'; // Havale - admin onayı gerekli
 
-    const paymentStatus: PaymentStatus = dto.paymentMethod === 'credit_card'
-      ? 'paid'
-      : 'pending';
+    const paymentStatus: PaymentStatus =
+      dto.paymentMethod === 'credit_card' ? 'paid' : 'pending';
 
-    const startDate = dto.paymentMethod === 'credit_card' ? new Date() : undefined;
+    const startDate =
+      dto.paymentMethod === 'credit_card' ? new Date() : undefined;
     const endDate = startDate
-      ? new Date(startDate.getTime() + (dto.billingPeriod === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000)
+      ? new Date(
+          startDate.getTime() +
+            (dto.billingPeriod === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000,
+        )
       : undefined;
 
     const subscription = {
@@ -95,14 +109,18 @@ export class SubscriptionsService {
       createdAt: new Date(),
       updatedAt: new Date(),
       approvedAt: dto.paymentMethod === 'credit_card' ? new Date() : undefined,
-      approvedBy: dto.paymentMethod === 'credit_card' ? 'Sistem (Otomatik)' : undefined,
+      approvedBy:
+        dto.paymentMethod === 'credit_card' ? 'Sistem (Otomatik)' : undefined,
     };
 
     // Admin bildirimi gönder
     if (dto.paymentMethod === 'credit_card') {
       await this.sendAdminNotification(subscription, 'new_subscription_auto');
     } else {
-      await this.sendAdminNotification(subscription, 'new_subscription_pending');
+      await this.sendAdminNotification(
+        subscription,
+        'new_subscription_pending',
+      );
     }
 
     // Müşteriye e-posta gönder
@@ -120,24 +138,29 @@ export class SubscriptionsService {
 
     // Filtrele
     if (filters.status) {
-      subscriptions = subscriptions.filter(s => s.status === filters.status);
+      subscriptions = subscriptions.filter((s) => s.status === filters.status);
     }
 
     if (filters.packageType) {
-      subscriptions = subscriptions.filter(s => s.packageType === filters.packageType);
+      subscriptions = subscriptions.filter(
+        (s) => s.packageType === filters.packageType,
+      );
     }
 
     if (filters.paymentStatus) {
-      subscriptions = subscriptions.filter(s => s.paymentStatus === filters.paymentStatus);
+      subscriptions = subscriptions.filter(
+        (s) => s.paymentStatus === filters.paymentStatus,
+      );
     }
 
     if (filters.search) {
       const search = filters.search.toLowerCase();
-      subscriptions = subscriptions.filter(s =>
-        s.userName.toLowerCase().includes(search) ||
-        s.userEmail.toLowerCase().includes(search) ||
-        s.userPhone.includes(search) ||
-        (s.companyName && s.companyName.toLowerCase().includes(search))
+      subscriptions = subscriptions.filter(
+        (s) =>
+          s.userName.toLowerCase().includes(search) ||
+          s.userEmail.toLowerCase().includes(search) ||
+          s.userPhone.includes(search) ||
+          (s.companyName && s.companyName.toLowerCase().includes(search)),
       );
     }
 
@@ -161,7 +184,7 @@ export class SubscriptionsService {
    */
   async findOne(id: string) {
     const subscriptions = this.getDemoSubscriptions();
-    const subscription = subscriptions.find(s => s.id === id);
+    const subscription = subscriptions.find((s) => s.id === id);
 
     if (!subscription) {
       throw new NotFoundException('Abonelik bulunamadı');
@@ -175,22 +198,34 @@ export class SubscriptionsService {
    */
   async getPendingApprovals() {
     const subscriptions = this.getDemoSubscriptions();
-    return subscriptions.filter(s => s.status === 'pending');
+    return subscriptions.filter((s) => s.status === 'pending');
   }
 
   /**
    * Aboneliği onayla
    */
-  async approveSubscription(id: string, dto: ApproveSubscriptionDto, adminId: string) {
+  async approveSubscription(
+    id: string,
+    dto: ApproveSubscriptionDto,
+    adminId: string,
+  ) {
     const subscription = await this.findOne(id);
 
     if (subscription.status !== 'pending') {
-      throw new BadRequestException('Bu abonelik zaten onaylanmış veya iptal edilmiş');
+      throw new BadRequestException(
+        'Bu abonelik zaten onaylanmış veya iptal edilmiş',
+      );
     }
 
     const startDate = new Date();
-    const endDate = new Date(startDate.getTime() +
-      (subscription.billingPeriod === 'yearly' ? 365 : 30) * 24 * 60 * 60 * 1000);
+    const endDate = new Date(
+      startDate.getTime() +
+        (subscription.billingPeriod === 'yearly' ? 365 : 30) *
+          24 *
+          60 *
+          60 *
+          1000,
+    );
 
     const updatedSubscription = {
       ...subscription,
@@ -213,7 +248,11 @@ export class SubscriptionsService {
   /**
    * Aboneliği reddet
    */
-  async rejectSubscription(id: string, dto: RejectSubscriptionDto, adminId: string) {
+  async rejectSubscription(
+    id: string,
+    dto: RejectSubscriptionDto,
+    adminId: string,
+  ) {
     const subscription = await this.findOne(id);
 
     if (subscription.status !== 'pending') {
@@ -244,7 +283,9 @@ export class SubscriptionsService {
     const subscription = await this.findOne(id);
 
     if (subscription.status !== 'active') {
-      throw new BadRequestException('Sadece aktif abonelikler askıya alınabilir');
+      throw new BadRequestException(
+        'Sadece aktif abonelikler askıya alınabilir',
+      );
     }
 
     const updatedSubscription = {
@@ -287,30 +328,37 @@ export class SubscriptionsService {
   async getStats() {
     const subscriptions = this.getDemoSubscriptions();
 
-    const active = subscriptions.filter(s => s.status === 'active');
-    const pending = subscriptions.filter(s => s.status === 'pending');
+    const active = subscriptions.filter((s) => s.status === 'active');
+    const pending = subscriptions.filter((s) => s.status === 'pending');
 
-    const monthlyRevenue = active.reduce((sum, s) =>
-      sum + (s.billingPeriod === 'monthly' ? s.amount : s.amount / 12), 0
+    const monthlyRevenue = active.reduce(
+      (sum, s) =>
+        sum + (s.billingPeriod === 'monthly' ? s.amount : s.amount / 12),
+      0,
     );
 
     const byPackage = {
-      starter: subscriptions.filter(s => s.packageType === 'starter').length,
-      professional: subscriptions.filter(s => s.packageType === 'professional').length,
-      enterprise: subscriptions.filter(s => s.packageType === 'enterprise').length,
+      starter: subscriptions.filter((s) => s.packageType === 'starter').length,
+      professional: subscriptions.filter(
+        (s) => s.packageType === 'professional',
+      ).length,
+      enterprise: subscriptions.filter((s) => s.packageType === 'enterprise')
+        .length,
     };
 
     return {
       total: subscriptions.length,
       active: active.length,
       pending: pending.length,
-      cancelled: subscriptions.filter(s => s.status === 'cancelled').length,
+      cancelled: subscriptions.filter((s) => s.status === 'cancelled').length,
       monthlyRevenue: Math.round(monthlyRevenue),
       yearlyRevenue: Math.round(monthlyRevenue * 12),
       byPackage,
       byBillingPeriod: {
-        monthly: subscriptions.filter(s => s.billingPeriod === 'monthly').length,
-        yearly: subscriptions.filter(s => s.billingPeriod === 'yearly').length,
+        monthly: subscriptions.filter((s) => s.billingPeriod === 'monthly')
+          .length,
+        yearly: subscriptions.filter((s) => s.billingPeriod === 'yearly')
+          .length,
       },
     };
   }

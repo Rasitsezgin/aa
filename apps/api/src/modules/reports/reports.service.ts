@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 
-export type ReportPeriod = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'semi-annual' | 'yearly';
+export type ReportPeriod =
+  | 'daily'
+  | 'weekly'
+  | 'monthly'
+  | 'quarterly'
+  | 'semi-annual'
+  | 'yearly';
 export type PlanType = 'professional' | 'enterprise';
 
 export interface ReportData {
@@ -11,7 +17,7 @@ export interface ReportData {
   storeName: string;
   storeId: string;
   planType: PlanType;
-  
+
   // Özet Metrikleri
   summary: {
     totalRevenue: number;
@@ -72,7 +78,12 @@ export interface ReportData {
     outOfStockCount: number;
     overstockCount: number;
     turnoverRate: number;
-    alerts: { product: string; currentStock: number; avgDailySales: number; daysUntilStockout: number }[];
+    alerts: {
+      product: string;
+      currentStock: number;
+      avgDailySales: number;
+      daysUntilStockout: number;
+    }[];
   };
 
   // Kategori Performansı
@@ -103,8 +114,18 @@ export interface ReportData {
   // Rakip Analizi (Kurumsal için)
   competitors?: {
     marketShare: number;
-    priceComparison: { category: string; yourAvg: number; marketAvg: number; difference: number }[];
-    rankingChanges: { keyword: string; yourRank: number; previousRank: number; topCompetitor: string }[];
+    priceComparison: {
+      category: string;
+      yourAvg: number;
+      marketAvg: number;
+      difference: number;
+    }[];
+    rankingChanges: {
+      keyword: string;
+      yourRank: number;
+      previousRank: number;
+      topCompetitor: string;
+    }[];
   };
 
   // AI Önerileri
@@ -165,32 +186,89 @@ export class ReportsService {
   /**
    * Mağaza analiz raporu oluştur
    */
-  async generateReport(storeId: string, period: ReportPeriod, planType: PlanType): Promise<ReportData> {
+  async generateReport(
+    storeId: string,
+    period: ReportPeriod,
+    planType: PlanType,
+  ): Promise<ReportData> {
     const { startDate, endDate } = this.getDateRange(period);
     const periodMs = endDate.getTime() - startDate.getTime();
     const previousStartDate = new Date(startDate.getTime() - periodMs);
     const previousEndDate = new Date(startDate.getTime());
 
-    const [tenant, products, integrations, currentOrders, previousOrders] = await Promise.all([
-      this.prisma.tenant.findUnique({ where: { id: storeId }, select: { name: true } }),
-      this.prisma.product.findMany({ where: { tenantId: storeId }, select: { id: true, title: true, sku: true, stock: true, price: true, category: true } }),
-      this.prisma.integration.findMany({ where: { tenantId: storeId, isActive: true }, select: { platform: true } }),
-      this.prisma.order.findMany({ where: { tenantId: storeId, orderDate: { gte: startDate, lte: endDate }, status: { not: 'CANCELLED' } }, select: { id: true, platform: true, totalAmount: true, status: true, customerName: true, orderDate: true } }),
-      this.prisma.order.findMany({ where: { tenantId: storeId, orderDate: { gte: previousStartDate, lt: previousEndDate }, status: { not: 'CANCELLED' } }, select: { id: true, totalAmount: true, status: true } }),
-    ]);
+    const [tenant, products, integrations, currentOrders, previousOrders] =
+      await Promise.all([
+        this.prisma.tenant.findUnique({
+          where: { id: storeId },
+          select: { name: true },
+        }),
+        this.prisma.product.findMany({
+          where: { tenantId: storeId },
+          select: {
+            id: true,
+            title: true,
+            sku: true,
+            stock: true,
+            price: true,
+            category: true,
+          },
+        }),
+        this.prisma.integration.findMany({
+          where: { tenantId: storeId, isActive: true },
+          select: { platform: true },
+        }),
+        this.prisma.order.findMany({
+          where: {
+            tenantId: storeId,
+            orderDate: { gte: startDate, lte: endDate },
+            status: { not: 'CANCELLED' },
+          },
+          select: {
+            id: true,
+            platform: true,
+            totalAmount: true,
+            status: true,
+            customerName: true,
+            orderDate: true,
+          },
+        }),
+        this.prisma.order.findMany({
+          where: {
+            tenantId: storeId,
+            orderDate: { gte: previousStartDate, lt: previousEndDate },
+            status: { not: 'CANCELLED' },
+          },
+          select: { id: true, totalAmount: true, status: true },
+        }),
+      ]);
 
     const orderIdSet = new Set(currentOrders.map((o) => o.id));
-    const previousRevenue = previousOrders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
-    const totalRevenue = currentOrders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
+    const previousRevenue = previousOrders.reduce(
+      (sum, o) => sum + Number(o.totalAmount),
+      0,
+    );
+    const totalRevenue = currentOrders.reduce(
+      (sum, o) => sum + Number(o.totalAmount),
+      0,
+    );
     const totalOrders = currentOrders.length;
     const previousOrdersCount = previousOrders.length;
-    const deliveredOrders = currentOrders.filter((o) => o.status === 'DELIVERED').length;
-    const previousDeliveredOrders = previousOrders.filter((o) => o.status === 'DELIVERED').length;
-    const conversionRate = totalOrders > 0 ? (deliveredOrders / totalOrders) * 100 : 0;
-    const previousConversion = previousOrdersCount > 0 ? (previousDeliveredOrders / previousOrdersCount) * 100 : 0;
+    const deliveredOrders = currentOrders.filter(
+      (o) => o.status === 'DELIVERED',
+    ).length;
+    const previousDeliveredOrders = previousOrders.filter(
+      (o) => o.status === 'DELIVERED',
+    ).length;
+    const conversionRate =
+      totalOrders > 0 ? (deliveredOrders / totalOrders) * 100 : 0;
+    const previousConversion =
+      previousOrdersCount > 0
+        ? (previousDeliveredOrders / previousOrdersCount) * 100
+        : 0;
 
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-    const previousAvgOrder = previousOrdersCount > 0 ? previousRevenue / previousOrdersCount : 0;
+    const previousAvgOrder =
+      previousOrdersCount > 0 ? previousRevenue / previousOrdersCount : 0;
     const activeProducts = products.filter((p) => p.stock > 0).length;
 
     const pctChange = (current: number, prev: number) => {
@@ -198,9 +276,16 @@ export class ReportsService {
       return ((current - prev) / prev) * 100;
     };
 
-    const platformMap = new Map<string, { revenue: number; orders: number; delivered: number }>();
+    const platformMap = new Map<
+      string,
+      { revenue: number; orders: number; delivered: number }
+    >();
     for (const order of currentOrders) {
-      const entry = platformMap.get(order.platform) || { revenue: 0, orders: 0, delivered: 0 };
+      const entry = platformMap.get(order.platform) || {
+        revenue: 0,
+        orders: 0,
+        delivered: 0,
+      };
       entry.revenue += Number(order.totalAmount);
       entry.orders += 1;
       if (order.status === 'DELIVERED') entry.delivered += 1;
@@ -210,10 +295,16 @@ export class ReportsService {
     const platformPreviousMap = new Map<string, number>();
     const previousPlatformOrders = await this.prisma.order.groupBy({
       by: ['platform'],
-      where: { tenantId: storeId, orderDate: { gte: previousStartDate, lt: previousEndDate }, status: { not: 'CANCELLED' } },
+      where: {
+        tenantId: storeId,
+        orderDate: { gte: previousStartDate, lt: previousEndDate },
+        status: { not: 'CANCELLED' },
+      },
       _sum: { totalAmount: true },
     });
-    previousPlatformOrders.forEach((p) => platformPreviousMap.set(p.platform, Number(p._sum.totalAmount ?? 0)));
+    previousPlatformOrders.forEach((p) =>
+      platformPreviousMap.set(p.platform, Number(p._sum.totalAmount ?? 0)),
+    );
 
     const topOrderItems = await this.prisma.orderItem.groupBy({
       by: ['productId'],
@@ -230,8 +321,13 @@ export class ReportsService {
       take: 20,
     });
 
-    const topProductIds = topOrderItems.map((i) => i.productId).filter((v): v is string => Boolean(v));
-    const topProductData = await this.prisma.product.findMany({ where: { id: { in: topProductIds } }, select: { id: true, title: true, sku: true, stock: true } });
+    const topProductIds = topOrderItems
+      .map((i) => i.productId)
+      .filter((v): v is string => Boolean(v));
+    const topProductData = await this.prisma.product.findMany({
+      where: { id: { in: topProductIds } },
+      select: { id: true, title: true, sku: true, stock: true },
+    });
     const topProductMap = new Map(topProductData.map((p) => [p.id, p]));
 
     const orderItems = await this.prisma.orderItem.findMany({
@@ -243,38 +339,73 @@ export class ReportsService {
         },
       },
       include: {
-        order: { select: { id: true, platform: true, customerName: true, orderDate: true } },
-        product: { select: { id: true, title: true, sku: true, stock: true, category: true } },
+        order: {
+          select: {
+            id: true,
+            platform: true,
+            customerName: true,
+            orderDate: true,
+          },
+        },
+        product: {
+          select: {
+            id: true,
+            title: true,
+            sku: true,
+            stock: true,
+            category: true,
+          },
+        },
       },
     });
 
-    const platformTopProducts = new Map<string, { name: string; sales: number; revenue: number }[]>();
+    const platformTopProducts = new Map<
+      string,
+      { name: string; sales: number; revenue: number }[]
+    >();
     const categoryMap = new Map<string, { revenue: number; count: number }>();
-    const productSalesMap = new Map<string, { sales: number; revenue: number; marketplace: string }>();
+    const productSalesMap = new Map<
+      string,
+      { sales: number; revenue: number; marketplace: string }
+    >();
 
     for (const item of orderItems) {
       const revenue = Number(item.unitPrice) * item.quantity;
-      const productId = item.productId || item.product?.id || `unknown-${item.id}`;
-      const salesEntry = productSalesMap.get(productId) || { sales: 0, revenue: 0, marketplace: item.order.platform };
+      const productId =
+        item.productId || item.product?.id || `unknown-${item.id}`;
+      const salesEntry = productSalesMap.get(productId) || {
+        sales: 0,
+        revenue: 0,
+        marketplace: item.order.platform,
+      };
       salesEntry.sales += item.quantity;
       salesEntry.revenue += revenue;
       salesEntry.marketplace = item.order.platform;
       productSalesMap.set(productId, salesEntry);
 
       const category = item.product?.category || 'Kategorisiz';
-      const categoryEntry = categoryMap.get(category) || { revenue: 0, count: 0 };
+      const categoryEntry = categoryMap.get(category) || {
+        revenue: 0,
+        count: 0,
+      };
       categoryEntry.revenue += revenue;
       categoryEntry.count += item.quantity;
       categoryMap.set(category, categoryEntry);
     }
 
-    const totalCategoryRevenue = Array.from(categoryMap.values()).reduce((sum, c) => sum + c.revenue, 0);
+    const totalCategoryRevenue = Array.from(categoryMap.values()).reduce(
+      (sum, c) => sum + c.revenue,
+      0,
+    );
     const categories = Array.from(categoryMap.entries())
       .map(([name, data]) => ({
         name,
         revenue: Math.round(data.revenue),
-        percentage: totalCategoryRevenue > 0 ? +(data.revenue / totalCategoryRevenue * 100).toFixed(2) : 0,
-        growth: +(pctChange(data.revenue, data.revenue * 0.9)).toFixed(2),
+        percentage:
+          totalCategoryRevenue > 0
+            ? +((data.revenue / totalCategoryRevenue) * 100).toFixed(2)
+            : 0,
+        growth: +pctChange(data.revenue, data.revenue * 0.9).toFixed(2),
         productCount: data.count,
       }))
       .sort((a, b) => b.revenue - a.revenue)
@@ -293,21 +424,28 @@ export class ReportsService {
       platformTopProducts.set(platform, productRows);
     }
 
-    const totalPlatformRevenue = Array.from(platformMap.values()).reduce((sum, p) => sum + p.revenue, 0);
-    const marketplaces = Array.from(platformMap.entries()).map(([platform, stat]) => {
-      const prevRevenue = platformPreviousMap.get(platform) || 0;
-      const listingCount = products.filter((p) => p.id && topProductMap.has(p.id)).length;
-      return {
-        name: platform,
-        logo: platform.toLowerCase(),
-        revenue: Math.round(stat.revenue),
-        orders: stat.orders,
-        products: listingCount,
-        rating: +(4 + (stat.delivered / Math.max(stat.orders, 1))).toFixed(1),
-        growth: +pctChange(stat.revenue, prevRevenue).toFixed(2),
-        topProducts: platformTopProducts.get(platform) || [],
-      };
-    });
+    const totalPlatformRevenue = Array.from(platformMap.values()).reduce(
+      (sum, p) => sum + p.revenue,
+      0,
+    );
+    const marketplaces = Array.from(platformMap.entries()).map(
+      ([platform, stat]) => {
+        const prevRevenue = platformPreviousMap.get(platform) || 0;
+        const listingCount = products.filter(
+          (p) => p.id && topProductMap.has(p.id),
+        ).length;
+        return {
+          name: platform,
+          logo: platform.toLowerCase(),
+          revenue: Math.round(stat.revenue),
+          orders: stat.orders,
+          products: listingCount,
+          rating: +(4 + stat.delivered / Math.max(stat.orders, 1)).toFixed(1),
+          growth: +pctChange(stat.revenue, prevRevenue).toFixed(2),
+          topProducts: platformTopProducts.get(platform) || [],
+        };
+      },
+    );
 
     const topProducts = Array.from(productSalesMap.entries())
       .map(([productId, sales]) => {
@@ -321,7 +459,12 @@ export class ReportsService {
           revenue: Math.round(sales.revenue),
           marketplace: sales.marketplace,
           growth: +pctChange(sales.revenue, sales.revenue * 0.9).toFixed(2),
-          stockStatus: stock <= 0 ? 'out_of_stock' as const : stock <= 20 ? 'low_stock' as const : 'in_stock' as const,
+          stockStatus:
+            stock <= 0
+              ? ('out_of_stock' as const)
+              : stock <= 20
+                ? ('low_stock' as const)
+                : ('in_stock' as const),
         };
       })
       .sort((a, b) => b.totalSales - a.totalSales)
@@ -341,8 +484,13 @@ export class ReportsService {
         recommendation: 'Başlık, görsel ve fiyat optimizasyonu önerilir',
       }));
 
-    const inventoryValue = products.reduce((sum, p) => sum + Number(p.price) * p.stock, 0);
-    const lowStockProducts = products.filter((p) => p.stock > 0 && p.stock <= 20);
+    const inventoryValue = products.reduce(
+      (sum, p) => sum + Number(p.price) * p.stock,
+      0,
+    );
+    const lowStockProducts = products.filter(
+      (p) => p.stock > 0 && p.stock <= 20,
+    );
     const outOfStockProducts = products.filter((p) => p.stock <= 0);
     const overstockProducts = products.filter((p) => p.stock >= 250);
 
@@ -351,12 +499,25 @@ export class ReportsService {
       lowStockCount: lowStockProducts.length,
       outOfStockCount: outOfStockProducts.length,
       overstockCount: overstockProducts.length,
-      turnoverRate: products.length > 0 ? +(totalOrders / products.length).toFixed(2) : 0,
+      turnoverRate:
+        products.length > 0 ? +(totalOrders / products.length).toFixed(2) : 0,
       alerts: lowStockProducts.slice(0, 5).map((p) => ({
         product: p.title,
         currentStock: p.stock,
-        avgDailySales: Math.max(1, Math.round(totalOrders / Math.max(products.length, 1) / 30)),
-        daysUntilStockout: Math.max(1, Math.floor(p.stock / Math.max(1, Math.round(totalOrders / Math.max(products.length, 1) / 30)))),
+        avgDailySales: Math.max(
+          1,
+          Math.round(totalOrders / Math.max(products.length, 1) / 30),
+        ),
+        daysUntilStockout: Math.max(
+          1,
+          Math.floor(
+            p.stock /
+              Math.max(
+                1,
+                Math.round(totalOrders / Math.max(products.length, 1) / 30),
+              ),
+          ),
+        ),
       })),
     };
 
@@ -376,10 +537,16 @@ export class ReportsService {
         return Math.min(3, Math.floor((date.getDate() - 1) / 7));
       }
       if (period === 'quarterly') {
-        return Math.min(2, Math.floor((date.getMonth() - startDate.getMonth() + 12) % 12));
+        return Math.min(
+          2,
+          Math.floor((date.getMonth() - startDate.getMonth() + 12) % 12),
+        );
       }
       if (period === 'semi-annual') {
-        return Math.min(5, Math.floor((date.getMonth() - startDate.getMonth() + 12) % 12));
+        return Math.min(
+          5,
+          Math.floor((date.getMonth() - startDate.getMonth() + 12) % 12),
+        );
       }
       return date.getMonth();
     };
@@ -427,16 +594,31 @@ export class ReportsService {
     const goals: ReportData['goals'] = [
       {
         name: 'Dönem Gelir Hedefi',
-        target: Math.round(Math.max(totalRevenue, previousRevenue) * 1.1 || 100000),
+        target: Math.round(
+          Math.max(totalRevenue, previousRevenue) * 1.1 || 100000,
+        ),
         current: Math.round(totalRevenue),
-        percentage: Math.round(((totalRevenue) / Math.max(Math.max(totalRevenue, previousRevenue) * 1.1 || 100000, 1)) * 10000) / 100,
+        percentage:
+          Math.round(
+            (totalRevenue /
+              Math.max(
+                Math.max(totalRevenue, previousRevenue) * 1.1 || 100000,
+                1,
+              )) *
+              10000,
+          ) / 100,
         status: totalRevenue >= previousRevenue ? 'on_track' : 'at_risk',
       },
       {
         name: 'Sipariş Hedefi',
         target: Math.max(Math.round(previousOrdersCount * 1.1), 50),
         current: totalOrders,
-        percentage: Math.round((totalOrders / Math.max(Math.round(previousOrdersCount * 1.1), 50)) * 10000) / 100,
+        percentage:
+          Math.round(
+            (totalOrders /
+              Math.max(Math.round(previousOrdersCount * 1.1), 50)) *
+              10000,
+          ) / 100,
         status: totalOrders >= previousOrdersCount ? 'on_track' : 'behind',
       },
     ];
@@ -479,38 +661,58 @@ export class ReportsService {
     };
 
     if (planType === 'enterprise') {
-      const customerMap = new Map<string, { orders: number; totalSpent: number }>();
+      const customerMap = new Map<
+        string,
+        { orders: number; totalSpent: number }
+      >();
       for (const order of currentOrders) {
         const customerName = (order.customerName || 'Anonim').trim();
-        const entry = customerMap.get(customerName) || { orders: 0, totalSpent: 0 };
+        const entry = customerMap.get(customerName) || {
+          orders: 0,
+          totalSpent: 0,
+        };
         entry.orders += 1;
         entry.totalSpent += Number(order.totalAmount);
         customerMap.set(customerName, entry);
       }
 
       const topCustomers = Array.from(customerMap.entries())
-        .map(([name, data]) => ({ name, orders: data.orders, totalSpent: Math.round(data.totalSpent) }))
+        .map(([name, data]) => ({
+          name,
+          orders: data.orders,
+          totalSpent: Math.round(data.totalSpent),
+        }))
         .sort((a, b) => b.totalSpent - a.totalSpent)
         .slice(0, 5);
 
-      const returningCustomers = Array.from(customerMap.values()).filter((c) => c.orders > 1).length;
+      const returningCustomers = Array.from(customerMap.values()).filter(
+        (c) => c.orders > 1,
+      ).length;
       const newCustomers = Math.max(0, customerMap.size - returningCustomers);
 
       report.customers = {
         newCustomers,
         returningCustomers,
-        avgLifetimeValue: customerMap.size > 0 ? Math.round(totalRevenue / customerMap.size) : 0,
+        avgLifetimeValue:
+          customerMap.size > 0
+            ? Math.round(totalRevenue / customerMap.size)
+            : 0,
         topCustomers,
-        satisfactionScore: Math.min(5, Math.max(3.5, 4 + (conversionRate / 100))),
+        satisfactionScore: Math.min(5, Math.max(3.5, 4 + conversionRate / 100)),
       };
 
       const priceComparison = categories.slice(0, 5).map((category) => {
-        const categoryProducts = products.filter((p) => (p.category || 'Kategorisiz') === category.name);
-        const yourAvg = categoryProducts.length > 0
-          ? categoryProducts.reduce((sum, p) => sum + Number(p.price), 0) / categoryProducts.length
-          : 0;
+        const categoryProducts = products.filter(
+          (p) => (p.category || 'Kategorisiz') === category.name,
+        );
+        const yourAvg =
+          categoryProducts.length > 0
+            ? categoryProducts.reduce((sum, p) => sum + Number(p.price), 0) /
+              categoryProducts.length
+            : 0;
         const marketAvg = yourAvg * 1.08;
-        const difference = marketAvg > 0 ? ((yourAvg - marketAvg) / marketAvg) * 100 : 0;
+        const difference =
+          marketAvg > 0 ? ((yourAvg - marketAvg) / marketAvg) * 100 : 0;
         return {
           category: category.name,
           yourAvg: Math.round(yourAvg),
@@ -520,11 +722,24 @@ export class ReportsService {
       });
 
       report.competitors = {
-        marketShare: integrations.length > 0 ? +(Math.min(35, 5 + integrations.length * 3)).toFixed(2) : 0,
+        marketShare:
+          integrations.length > 0
+            ? +Math.min(35, 5 + integrations.length * 3).toFixed(2)
+            : 0,
         priceComparison,
         rankingChanges: [
-          { keyword: 'ana kategori', yourRank: 5, previousRank: 7, topCompetitor: 'Pazar Rakibi A' },
-          { keyword: 'fiyat avantajı', yourRank: 6, previousRank: 6, topCompetitor: 'Pazar Rakibi B' },
+          {
+            keyword: 'ana kategori',
+            yourRank: 5,
+            previousRank: 7,
+            topCompetitor: 'Pazar Rakibi A',
+          },
+          {
+            keyword: 'fiyat avantajı',
+            yourRank: 6,
+            previousRank: 6,
+            topCompetitor: 'Pazar Rakibi B',
+          },
         ],
       };
     }
@@ -545,7 +760,20 @@ export class ReportsService {
       case 'semi-annual':
         return ['1. Ay', '2. Ay', '3. Ay', '4. Ay', '5. Ay', '6. Ay'];
       case 'yearly':
-        return ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+        return [
+          'Oca',
+          'Şub',
+          'Mar',
+          'Nis',
+          'May',
+          'Haz',
+          'Tem',
+          'Ağu',
+          'Eyl',
+          'Eki',
+          'Kas',
+          'Ara',
+        ];
       default:
         return [];
     }
@@ -571,7 +799,14 @@ export class ReportsService {
    */
   getAvailablePeriods(planType: PlanType): ReportPeriod[] {
     if (planType === 'enterprise') {
-      return ['daily', 'weekly', 'monthly', 'quarterly', 'semi-annual', 'yearly'];
+      return [
+        'daily',
+        'weekly',
+        'monthly',
+        'quarterly',
+        'semi-annual',
+        'yearly',
+      ];
     }
     // Professional plan
     return ['weekly', 'monthly', 'quarterly', 'yearly'];

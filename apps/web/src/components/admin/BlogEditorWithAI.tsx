@@ -1,45 +1,31 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Save,
   Sparkles,
   Bot,
   Wand2,
-  Image,
+  Image as ImageIcon,
   Type,
-  Hash,
-  Eye,
-  Check,
   X,
-  Upload,
-  RefreshCw,
-  Send,
   Loader2,
-  ChevronRight,
   Lightbulb,
   FileText,
   Settings,
   Layout,
-  Clock,
-  Calendar,
-  Tag,
-  Folder,
   AlertCircle,
   CheckCircle,
   Copy,
-  Download,
   Zap,
   PenTool,
   Search,
   Plus,
-  Trash2,
-  GripVertical,
-  Star,
 } from "lucide-react";
 
 interface AIAssistPanelProps {
@@ -277,7 +263,7 @@ function AIAssistPanel({ content, title, onApplySuggestion }: AIAssistPanelProps
                   </>
                 ) : (
                   <>
-                    <Image className="w-4 h-4" />
+                    <ImageIcon className="w-4 h-4" />
                     Görsel Oluştur
                   </>
                 )}
@@ -287,7 +273,7 @@ function AIAssistPanel({ content, title, onApplySuggestion }: AIAssistPanelProps
             <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3">
               <p className="text-xs text-yellow-700">
                 <Lightbulb className="w-3 h-3 inline mr-1" />
-                İpucu: Detaylı açıklamalar daha iyi sonuçlar verir. Örn: "Modern bir ofiste laptop kullanan genç profesyonel"
+                İpucu: Detaylı açıklamalar daha iyi sonuçlar verir. Örn: &quot;Modern bir ofiste laptop kullanan genç profesyonel&quot;
               </p>
             </div>
           </div>
@@ -587,10 +573,12 @@ export default function BlogEditPage({ post }: { post?: any }) {
                 <div className="flex gap-4">
                   {formData.featuredImage ? (
                     <div className="relative w-40 h-24 rounded-lg overflow-hidden">
-                      <img
+                      <Image
                         src={formData.featuredImage}
-                        alt="Featured"
-                        className="w-full h-full object-cover"
+                        alt="Kapak görseli"
+                        fill
+                        unoptimized
+                        className="object-cover"
                       />
                       <button
                         onClick={() => setFormData({ ...formData, featuredImage: "" })}
@@ -601,7 +589,7 @@ export default function BlogEditPage({ post }: { post?: any }) {
                     </div>
                   ) : (
                     <div className="w-40 h-24 bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center">
-                      <Image className="w-8 h-8 text-slate-400" />
+                      <ImageIcon className="w-8 h-8 text-slate-400" />
                     </div>
                   )}
                   <div className="flex-1 space-y-2">

@@ -12,7 +12,11 @@ import {
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { ApiTags } from '@nestjs/swagger';
 import { ShippingService } from './shipping.service';
-import { CreateShipmentDto, CalculateRateDto, BulkCreateShipmentDto } from './dto/shipping.dto';
+import {
+  CreateShipmentDto,
+  CalculateRateDto,
+  BulkCreateShipmentDto,
+} from './dto/shipping.dto';
 
 @ApiTags('Shipping')
 @Controller('shipping')
@@ -59,14 +63,20 @@ export class ShippingController {
 
   /** Toplu kargo oluştur */
   @Post('bulk')
-  async bulkCreateShipments(@Req() req: any, @Body() dto: BulkCreateShipmentDto) {
+  async bulkCreateShipments(
+    @Req() req: any,
+    @Body() dto: BulkCreateShipmentDto,
+  ) {
     const tenantId = req.user?.tenantId;
     const results: any[] = [];
     let failed = 0;
 
     for (const shipmentDto of dto.shipments) {
       try {
-        const shipment = await this.shippingService.createShipment(tenantId, shipmentDto);
+        const shipment = await this.shippingService.createShipment(
+          tenantId,
+          shipmentDto,
+        );
         results.push(shipment);
       } catch {
         failed++;
@@ -90,8 +100,14 @@ export class ShippingController {
 
   /** Takip numarasıyla sorgula */
   @Get('track/:trackingNumber')
-  trackByNumber(@Req() req: any, @Param('trackingNumber') trackingNumber: string) {
-    return this.shippingService.trackByNumber(req.user?.tenantId, trackingNumber);
+  trackByNumber(
+    @Req() req: any,
+    @Param('trackingNumber') trackingNumber: string,
+  ) {
+    return this.shippingService.trackByNumber(
+      req.user?.tenantId,
+      trackingNumber,
+    );
   }
 
   /** Kargo iptal et */

@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Star, Quote, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 
 const brands = [
@@ -44,7 +43,7 @@ const row2 = brands.slice(15);
 
 export default function SocialProof() {
     return (
-        <section className="py-12 sm:py-20 bg-white dark:bg-[#020617] overflow-hidden relative transition-colors duration-500">
+        <section className="py-10 sm:py-20 bg-white dark:bg-[#020617] overflow-hidden relative transition-colors duration-500">
             {/* Background */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03]" style={{
@@ -60,7 +59,7 @@ export default function SocialProof() {
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="text-center mb-10 sm:mb-16"
+                    className="text-center mb-8 sm:mb-16"
                 >
                     <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 rounded-full mb-4 sm:mb-6">
                         <span className="relative flex h-2 w-2">
@@ -72,17 +71,35 @@ export default function SocialProof() {
                         </p>
                     </div>
 
-                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-3 sm:mb-4 tracking-tight">
-                        Türkiye'nin Lider <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">E-ticaret Platformları</span>
+                    <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-3 sm:mb-4 tracking-tight leading-tight">
+                        Türkiye&apos;nin Lider <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">E-ticaret Platformları</span>
                     </h3>
-                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                    <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl mx-auto text-balance">
                         Tüm büyük pazaryerleri ve e-ticaret altyapıları ile tam entegre çalışıyoruz.
                         Satışlarınızı tek panelden yönetmenin özgürlüğünü yaşayın.
                     </p>
                 </motion.div>
 
+                {/* Mobile Static Grid */}
+                <div className="sm:hidden grid grid-cols-2 gap-3">
+                    {brands.slice(0, 10).map((brand) => (
+                        <div
+                            key={`mobile-${brand.name}`}
+                            className="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-slate-900/60 border border-slate-100 dark:border-white/10 flex items-center justify-center min-h-[62px]"
+                        >
+                            <Image
+                                src={brand.logo}
+                                alt={brand.name}
+                                width={96}
+                                height={28}
+                                className="h-6 w-auto max-w-[112px] object-contain opacity-90"
+                            />
+                        </div>
+                    ))}
+                </div>
+
                 {/* Logo Carousel Container */}
-                <div className="relative flex flex-col gap-8 sm:gap-12 mask-linear-fade">
+                <div className="relative hidden sm:flex flex-col gap-8 sm:gap-12 mask-linear-fade">
                     {/* Gradient Fades */}
                     <div className="absolute inset-y-0 left-0 w-20 sm:w-32 bg-gradient-to-r from-white dark:from-[#020617] to-transparent z-10 pointer-events-none" />
                     <div className="absolute inset-y-0 right-0 w-20 sm:w-32 bg-gradient-to-l from-white dark:from-[#020617] to-transparent z-10 pointer-events-none" />

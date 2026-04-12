@@ -10,7 +10,11 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { WebhooksService, CreateWebhookDto, UpdateWebhookDto } from './webhooks.service';
+import {
+  WebhooksService,
+  CreateWebhookDto,
+  UpdateWebhookDto,
+} from './webhooks.service';
 
 @Controller('webhooks')
 export class WebhooksController {
@@ -59,7 +63,12 @@ export class WebhooksController {
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
   ) {
-    return this.webhooksService.getLogs(id, tenantId, parseInt(page), parseInt(limit));
+    return this.webhooksService.getLogs(
+      id,
+      tenantId,
+      parseInt(page),
+      parseInt(limit),
+    );
   }
 
   // Yeni webhook oluştur

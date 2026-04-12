@@ -2,7 +2,6 @@
 const nextConfig = {
   output: "standalone",
   transpilePackages: ["@pazaryonetimi/database"],
-  swcMinify: false,
   experimental: {
     workerThreads: false,
     cpus: 1,
@@ -10,10 +9,6 @@ const nextConfig = {
   typescript: {
     // TODO: Tüm TypeScript hataları düzeltildikten sonra false yapılmalı
     ignoreBuildErrors: true,
-  },
-  eslint: {
-    // TODO: Tüm ESLint hataları düzeltildikten sonra false yapılmalı
-    ignoreDuringBuilds: true,
   },
   devIndicators: {
     appIsrStatus: false,

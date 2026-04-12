@@ -6,9 +6,17 @@ import { ForecastingService } from './forecasting.service';
 import { MarketplaceModule } from '../marketplace/marketplace.module';
 
 @Module({
-    imports: [MarketplaceModule],
-    controllers: [MarketIntelligenceController],
-    providers: [MarketIntelligenceService, PricingEngineService, ForecastingService],
-    exports: [MarketIntelligenceService, PricingEngineService, ForecastingService],
+  imports: [MarketplaceModule],
+  controllers: [MarketIntelligenceController],
+  providers: [
+    MarketIntelligenceService,
+    PricingEngineService,
+    ForecastingService,
+  ],
+  exports: [
+    MarketIntelligenceService,
+    PricingEngineService,
+    ForecastingService,
+  ],
 })
-export class MarketIntelligenceModule { }
+export class MarketIntelligenceModule {}

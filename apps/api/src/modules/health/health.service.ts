@@ -21,7 +21,7 @@ export class HealthService {
       memory: this.checkMemory(),
     };
 
-    const allHealthy = Object.values(checks).every(c => c.status === 'ok');
+    const allHealthy = Object.values(checks).every((c) => c.status === 'ok');
 
     return {
       status: allHealthy ? 'ok' : 'degraded',
@@ -44,7 +44,7 @@ export class HealthService {
   private checkMemory(): { status: string; used: number; total: number } {
     const used = process.memoryUsage();
     const total = require('os').totalmem();
-    
+
     return {
       status: used.heapUsed < total * 0.8 ? 'ok' : 'warning',
       used: Math.round(used.heapUsed / 1024 / 1024), // MB

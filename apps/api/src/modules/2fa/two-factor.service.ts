@@ -18,7 +18,7 @@ export class TwoFactorService {
       crypto: NobleCryptoPlugin as any,
       base32: ScureBase32Plugin as any,
     });
-    
+
     // Config
     (this.authenticator as any).options = {
       digits: 6,
@@ -49,7 +49,11 @@ export class TwoFactorService {
     const secret = this.authenticator.generateSecret();
     const appName = 'PazarYonetimi';
     const otpauthUrl = String(
-      (this.authenticator as any).generateURI({ issuer: appName, label: String(user.email), secret }),
+      (this.authenticator as any).generateURI({
+        issuer: appName,
+        label: String(user.email),
+        secret,
+      }),
     );
 
     // Secret'ı geçici olarak kaydet (henüz aktif değil)

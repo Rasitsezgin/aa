@@ -41,19 +41,26 @@ export interface MarketplaceAnalysisResponse {
 }
 
 export function computeConfidenceFromSources(
-  sources: Record<string, AnalysisMetricSource>
+  sources: Record<string, AnalysisMetricSource>,
 ): AnalysisConfidence {
   const values = Object.values(sources);
   const total = values.length;
 
-  const real = values.filter((s) => s === 'api' || s === 'scraped' || s === 'api_or_scraped').length;
+  const real = values.filter(
+    (s) => s === 'api' || s === 'scraped' || s === 'api_or_scraped',
+  ).length;
   const calculated = values.filter((s) => s === 'calculated').length;
-  const estimated = values.filter((s) => s === 'estimated' || s === 'scraped_or_unknown').length;
+  const estimated = values.filter(
+    (s) => s === 'estimated' || s === 'scraped_or_unknown',
+  ).length;
   const unavailable = values.filter((s) => s === 'not_available').length;
 
-  const weightedScoreRaw = total === 0
-    ? 0
-    : ((real * 1 + calculated * 0.7 + estimated * 0.35 + unavailable * 0) / total) * 100;
+  const weightedScoreRaw =
+    total === 0
+      ? 0
+      : ((real * 1 + calculated * 0.7 + estimated * 0.35 + unavailable * 0) /
+          total) *
+        100;
 
   return {
     score: Math.round(weightedScoreRaw),

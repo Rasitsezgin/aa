@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import { AILearningService } from './ai-learning.service';
@@ -6,7 +6,12 @@ import { AIContextMemoryService } from './ai-context-memory.service';
 
 export interface PredictiveSuggestion {
   id?: string;
-  type: 'next_action' | 'optimization' | 'alert' | 'reminder' | 'learning_opportunity';
+  type:
+    | 'next_action'
+    | 'optimization'
+    | 'alert'
+    | 'reminder'
+    | 'learning_opportunity';
   title: string;
   description: string;
   confidence: number;
@@ -68,7 +73,9 @@ export class AIPredictiveService {
     });
 
     // Get recent context
-    const context = currentContext || await this.contextMemory.buildContextSnapshot(tenantId, userId);
+    const context =
+      currentContext ||
+      (await this.contextMemory.buildContextSnapshot(tenantId, userId));
 
     // Get pending workflows
     const pendingWorkflows = await this.contextMemory.getMemoriesByType(
@@ -116,19 +123,30 @@ export class AIPredictiveService {
     }
 
     // Suggestion 3: Time-based suggestions
-    const timeSuggestion = await this.generateTimeBasedSuggestion(tenantId, userId);
+    const timeSuggestion = await this.generateTimeBasedSuggestion(
+      tenantId,
+      userId,
+    );
     if (timeSuggestion) {
       suggestions.push(timeSuggestion);
     }
 
     // Suggestion 4: Platform sync suggestions
-    const syncSuggestion = await this.generateSyncSuggestion(tenantId, userId, context);
+    const syncSuggestion = await this.generateSyncSuggestion(
+      tenantId,
+      userId,
+      context,
+    );
     if (syncSuggestion) {
       suggestions.push(syncSuggestion);
     }
 
     // Suggestion 5: Optimization opportunities
-    const optimizationSuggestion = await this.generateOptimizationSuggestion(tenantId, userId, context);
+    const optimizationSuggestion = await this.generateOptimizationSuggestion(
+      tenantId,
+      userId,
+      context,
+    );
     if (optimizationSuggestion) {
       suggestions.push(optimizationSuggestion);
     }
@@ -167,7 +185,7 @@ export class AIPredictiveService {
         priority: 'high',
         suggestedAction: {
           type: 'retry_failed_syncs',
-          payload: { jobIds: recentFailedJobs.map(j => j.id) },
+          payload: { jobIds: recentFailedJobs.map((j) => j.id) },
         },
       });
     }
@@ -189,7 +207,10 @@ export class AIPredictiveService {
     }
 
     // Check for incomplete bulk operations
-    const incompleteBulks = await this.findIncompleteBulkOperations(tenantId, userId);
+    const incompleteBulks = await this.findIncompleteBulkOperations(
+      tenantId,
+      userId,
+    );
     for (const bulk of incompleteBulks) {
       alerts.push({
         type: 'alert',
@@ -259,7 +280,8 @@ export class AIPredictiveService {
       optimizations.push({
         type: 'optimization',
         title: 'Toplu Yükleme Önerisi',
-        description: 'Tek tek ürün yükleme yerine toplu yükleme kullanarak zaman kazanabilirsiniz',
+        description:
+          'Tek tek ürün yükleme yerine toplu yükleme kullanarak zaman kazanabilirsiniz',
         confidence: 0.8,
         priority: 'low',
         suggestedAction: {
@@ -287,11 +309,17 @@ export class AIPredictiveService {
       'actions',
     );
 
-    const usedFeatures = userPreferences.map(p => p.key.replace('freq_', ''));
-    
+    const usedFeatures = userPreferences.map((p) => p.key.replace('freq_', ''));
+
     // Suggest unused but potentially useful features
-    const allFeatures = ['BRAND_SYNC', 'CATEGORY_SYNC', 'ATTRIBUTE_SYNC', 'BULK_UPLOAD', 'REPORT'];
-    const unusedFeatures = allFeatures.filter(f => !usedFeatures.includes(f));
+    const allFeatures = [
+      'BRAND_SYNC',
+      'CATEGORY_SYNC',
+      'ATTRIBUTE_SYNC',
+      'BULK_UPLOAD',
+      'REPORT',
+    ];
+    const unusedFeatures = allFeatures.filter((f) => !usedFeatures.includes(f));
 
     for (const feature of unusedFeatures.slice(0, 2)) {
       opportunities.push({
@@ -354,7 +382,8 @@ export class AIPredictiveService {
       recommendations.push({
         type: 'optimization',
         title: 'Verimli Zaman Aralığı',
-        description: 'Şu an en aktif olduğunuz saatlerdesiniz. Önemli işlemleri şimdi yapabilirsiniz',
+        description:
+          'Şu an en aktif olduğunuz saatlerdesiniz. Önemli işlemleri şimdi yapabilirsiniz',
         confidence: 0.7,
         priority: 'low',
         suggestedAction: {
@@ -378,7 +407,9 @@ export class AIPredictiveService {
     return contextString.includes(trigger.toLowerCase());
   }
 
-  private calculatePriority(confidence: number): 'low' | 'medium' | 'high' | 'urgent' {
+  private calculatePriority(
+    confidence: number,
+  ): 'low' | 'medium' | 'high' | 'urgent' {
     if (confidence >= 0.9) return 'urgent';
     if (confidence >= 0.7) return 'high';
     if (confidence >= 0.5) return 'medium';
@@ -442,12 +473,16 @@ export class AIPredictiveService {
       },
     });
 
-    const syncedPlatforms = new Set(recentSyncs.map(s => s.platform));
+    const syncedPlatforms = new Set(recentSyncs.map((s) => s.platform));
     const allPlatforms = ['TRENDYOL', 'AMAZON', 'HEPSIBURADA', 'N11'];
-    const unsyncedPlatforms = allPlatforms.filter(p => !syncedPlatforms.has(p));
+    const unsyncedPlatforms = allPlatforms.filter(
+      (p) => !syncedPlatforms.has(p),
+    );
 
     if (unsyncedPlatforms.length > 0 && context.activePlatforms?.length > 0) {
-      const platform = unsyncedPlatforms.find(p => context.activePlatforms.includes(p));
+      const platform = unsyncedPlatforms.find((p) =>
+        context.activePlatforms.includes(p),
+      );
       if (platform) {
         return {
           type: 'reminder',
@@ -484,14 +519,15 @@ export class AIPredictiveService {
     });
 
     const unoptimizedCount = recentUploads.filter(
-      job => !(job.payload as any)?.optimize
+      (job) => !(job.payload as any)?.optimize,
     ).length;
 
     if (unoptimizedCount >= 3) {
       return {
         type: 'optimization',
         title: 'AI Optimizasyonu',
-        description: 'Son ürün yüklemelerinizde AI optimizasyonu kullanılmamış. Daha iyi sonuçlar için açabilirsiniz',
+        description:
+          'Son ürün yüklemelerinizde AI optimizasyonu kullanılmamış. Daha iyi sonuçlar için açabilirsiniz',
         confidence: 0.75,
         priority: 'low',
         suggestedAction: {
@@ -524,7 +560,8 @@ export class AIPredictiveService {
 
       if (lastSync?.completedAt) {
         const daysSince = Math.floor(
-          (Date.now() - new Date(lastSync.completedAt).getTime()) / (1000 * 60 * 60 * 24)
+          (Date.now() - new Date(lastSync.completedAt).getTime()) /
+            (1000 * 60 * 60 * 24),
         );
 
         if (daysSince >= 3) {
@@ -549,21 +586,25 @@ export class AIPredictiveService {
       },
     });
 
-    return incompleteJobs.map(job => ({
+    return incompleteJobs.map((job) => ({
       id: job.id,
       type: job.type,
-      progress: job.totalItems > 0 
-        ? Math.round((job.processedItems / job.totalItems) * 100) 
-        : 0,
+      progress:
+        job.totalItems > 0
+          ? Math.round((job.processedItems / job.totalItems) * 100)
+          : 0,
     }));
   }
 
-  private sortSuggestions(suggestions: PredictiveSuggestion[]): PredictiveSuggestion[] {
+  private sortSuggestions(
+    suggestions: PredictiveSuggestion[],
+  ): PredictiveSuggestion[] {
     const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
 
     return suggestions.sort((a, b) => {
       // First by priority
-      const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+      const priorityDiff =
+        priorityOrder[a.priority] - priorityOrder[b.priority];
       if (priorityDiff !== 0) return priorityDiff;
 
       // Then by confidence
@@ -588,7 +629,8 @@ export class AIPredictiveService {
         basedOn: suggestion.context || {},
         confidence: suggestion.confidence,
         suggestedAction: (suggestion.suggestedAction || null) as any,
-        validUntil: suggestion.validUntil || new Date(Date.now() + 24 * 60 * 60 * 1000),
+        validUntil:
+          suggestion.validUntil || new Date(Date.now() + 24 * 60 * 60 * 1000),
       },
     });
   }
@@ -610,7 +652,7 @@ export class AIPredictiveService {
       take: 10,
     });
 
-    return suggestions.map(s => ({
+    return suggestions.map((s) => ({
       id: s.id,
       type: s.suggestionType as PredictiveSuggestion['type'],
       title: s.title,
@@ -672,18 +714,19 @@ export class AIPredictiveService {
     });
 
     // Predict next actions
-    const likelyNextActions = patterns
-      .slice(0, 5)
-      .map(p => ({
-        action: p.action,
-        probability: p.confidence * (p.successRate || 1),
-        context: { trigger: p.trigger, conditions: p.conditions },
-      }));
+    const likelyNextActions = patterns.slice(0, 5).map((p) => ({
+      action: p.action,
+      probability: p.confidence * (p.successRate || 1),
+      context: { trigger: p.trigger, conditions: p.conditions },
+    }));
 
     // Find optimal timing
-    const timingPatterns = patterns.filter(p => p.patternType === 'timing');
-    let optimalTiming = { bestTime: '09:00-17:00', reason: 'Standart iş saatleri' };
-    
+    const timingPatterns = patterns.filter((p) => p.patternType === 'timing');
+    let optimalTiming = {
+      bestTime: '09:00-17:00',
+      reason: 'Standart iş saatleri',
+    };
+
     if (timingPatterns.length > 0) {
       const bestTiming = timingPatterns[0];
       optimalTiming = {
@@ -694,8 +737,10 @@ export class AIPredictiveService {
 
     // Predict potential issues
     const potentialIssues: UserBehaviorPrediction['potentialIssues'] = [];
-    
-    const errorPatterns = patterns.filter(p => p.patternType === 'error_pattern');
+
+    const errorPatterns = patterns.filter(
+      (p) => p.patternType === 'error_pattern',
+    );
     for (const error of errorPatterns.slice(0, 2)) {
       potentialIssues.push({
         issue: error.trigger || 'Bilinmeyen hata',

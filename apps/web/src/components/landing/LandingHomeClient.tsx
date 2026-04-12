@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import HeroNew from "@/components/HeroNew";
 import SocialProof from "@/components/SocialProof";
@@ -11,7 +11,6 @@ import {
   PricingSkeleton,
   TestimonialsSkeleton,
   FAQSkeleton,
-  StatsSkeleton,
   CardSkeleton
 } from "@/components/ui/Skeleton";
 import { mapCatalogToHomepagePricing, type PricingCatalog } from '@/config/pricing-catalog';
@@ -24,7 +23,6 @@ const FAQ = dynamic(() => import("@/components/FAQ"), { loading: () => <FAQSkele
 const Pricing = dynamic(() => import("@/components/Pricing"), { loading: () => <PricingSkeleton /> });
 const ChaosVsControl = dynamic(() => import("@/components/ChaosVsControl"), { loading: () => <CardSkeleton /> });
 const GlobalMap = dynamic(() => import("@/components/GlobalMap"), { ssr: false, loading: () => <CardSkeleton /> });
-const RoiCalculator = dynamic(() => import("@/components/RoiCalculator"), { loading: () => <CardSkeleton /> });
 const EcosystemCloud = dynamic(() => import("@/components/EcosystemCloud"), { loading: () => <CardSkeleton /> });
 const ComparisonTable = dynamic(() => import("@/components/ComparisonTable"), { loading: () => <CardSkeleton /> });
 const CTASection = dynamic(() => import("@/components/CTASection"), { loading: () => <CardSkeleton /> });
@@ -61,7 +59,8 @@ const INITIAL_CONFIG = [
 ];
 
 export default function LandingHomeClient() {
-  const [activeConfig, setActiveConfig] = useState(INITIAL_CONFIG);
+  const [activeConfig] = useState(INITIAL_CONFIG);
+  const [isMobile, setIsMobile] = useState(false);
   const [texts, setTexts] = useState(HOMEPAGE_TEXTS);
   const [features, setFeatures] = useState({
     liveDemo: { enabled: true, spotlightIntensity: 70, mouseFollow: true },
@@ -74,6 +73,14 @@ export default function LandingHomeClient() {
   });
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const media = window.matchMedia('(max-width: 1023px)');
+    const onChange = () => setIsMobile(media.matches);
+    onChange();
+
+    media.addEventListener('change', onChange);
+
     // Hydrate Text Config - use setTimeout to avoid synchronous setState in effect
     const timer = setTimeout(() => {
       const savedTexts = localStorage.getItem('homepage_texts');
@@ -114,13 +121,20 @@ export default function LandingHomeClient() {
       }
     }, 0);
 
-    setActiveConfig(INITIAL_CONFIG);
     return () => {
+      media.removeEventListener('change', onChange);
       clearTimeout(timer);
       clearTimeout(pricingTimer);
       clearTimeout(featuresTimer);
     };
   }, []);
+
+  const visibleSections = useMemo(() => {
+    if (!isMobile) return activeConfig;
+
+    const mobileHidden = new Set(['particles', 'map', 'command-palette']);
+    return activeConfig.filter((section) => !mobileHidden.has(section.id));
+  }, [activeConfig, isMobile]);
 
   return (
     <main className="min-h-screen bg-white dark:bg-[#020617] text-foreground relative selection:bg-blue-500/30 overflow-x-hidden">
@@ -153,10 +167,10 @@ export default function LandingHomeClient() {
       {/* ──────────────────────────────────────────────────────────────────────── */}
       {/* SECTION RENDERER */}
       {/* ──────────────────────────────────────────────────────────────────────── */}
-      <div className="relative z-10 flex flex-col gap-0">
-        {activeConfig.map((section) => {
+      <div className="relative z-10 flex flex-col gap-0 pb-8 sm:pb-0">
+        {visibleSections.map((section) => {
           if (!section.isActive) return null;
-          const Component = section.component as React.ComponentType<any>;
+          const Component = section.component as React.ComponentType<Record<string, unknown>>;
 
           // Pass dynamic texts if component supports it
           const componentProps: Record<string, unknown> = {};

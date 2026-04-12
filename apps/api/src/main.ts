@@ -51,7 +51,9 @@ async function bootstrap() {
       process.env.WEB_URL || 'https://pazaryonetimi.com',
       'https://pazaryonetimi.com',
       /\.pazaryonetimi\.com$/,
-      ...(process.env.NODE_ENV !== 'production' ? ['http://localhost:3000'] : []),
+      ...(process.env.NODE_ENV !== 'production'
+        ? ['http://localhost:3000']
+        : []),
     ],
     credentials: true,
   });
@@ -59,7 +61,8 @@ async function bootstrap() {
   // Swagger/OpenAPI Dokümantasyonu
   const config = new DocumentBuilder()
     .setTitle('PazarYonetimi API')
-    .setDescription(`
+    .setDescription(
+      `
 ## E-ticaret Pazar Yeri Yönetim Platformu API
 
 Bu API, çoklu pazar yeri entegrasyonu, stok yönetimi, sipariş işleme, 
@@ -79,9 +82,13 @@ API, Bearer Token kimlik doğrulaması kullanır. Header'a ekleyin:
 \`\`\`
 Authorization: Bearer <your-token>
 \`\`\`
-    `)
+    `,
+    )
     .setVersion('1.0')
-    .addServer(process.env.API_URL || 'https://api.pazaryonetimi.com', 'Production')
+    .addServer(
+      process.env.API_URL || 'https://api.pazaryonetimi.com',
+      'Production',
+    )
     .addServer('http://localhost:3001', 'Geliştirme')
     .addBearerAuth()
     .addTag('Analytics', 'Dashboard ve analitik verileri')

@@ -4,15 +4,14 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import {
-    MessageCircle, Settings, Send, CheckCircle2, XCircle,
-    Eye, Phone, Bell, Zap, Shield, Clock, ChevronRight,
-    AlertCircle, Loader2, MessageSquare, BarChart3,
-    Smartphone, QrCode, Plus, RefreshCw, Smartphone as MobileIcon,
-    ShieldCheck, ShoppingCart, UserCheck, Search, Filter,
-    ArrowUpRight, ArrowDownRight
+    MessageCircle, Settings, Send, CheckCircle2,
+    Zap, Shield, Clock, ChevronRight,
+    AlertCircle, MessageSquare,
+    Smartphone as MobileIcon, QrCode, Plus, RefreshCw,
+    ShieldCheck, ShoppingCart
 } from 'lucide-react';
 
-import { useWhatsAppData, Message as WhatsAppMessage, Template as WhatsAppTemplate, WhatsAppStats, WhatsAppData } from '@/lib/hooks';
+import { useWhatsAppData } from '@/lib/hooks';
 
 const notificationOptions = [
     { key: 'orderConfirmation', label: 'Sipariş Onayı', desc: 'Yeni sipariş alındığında müşteriye bildirim', icon: CheckCircle2 },
@@ -27,8 +26,6 @@ const notificationOptions = [
 export default function WhatsAppPage() {
     const { data: whatsappData, loading: isLoading } = useWhatsAppData();
     const [activeTab, setActiveTab] = useState<'engagement' | 'settings' | 'templates'>('engagement');
-    const [enabled, setEnabled] = useState(true);
-    const [isSyncing, setIsSyncing] = useState(false);
 
     const messages = whatsappData?.messages || [];
     const stats = whatsappData?.stats || { sent: 0, readRate: 0, conversion: 0, avgResponse: 0 };
@@ -71,7 +68,7 @@ export default function WhatsAppPage() {
                 </div>
                 <div className="flex items-center gap-2 w-full md:w-auto">
                     <button className="flex-1 md:flex-initial px-4 py-2 bg-white dark:bg-slate-800 border border-border rounded-xl text-xs font-bold text-foreground hover:bg-slate-50 transition-all flex items-center justify-center gap-2">
-                        <RefreshCw size={14} className={isSyncing || isLoading ? 'animate-spin' : ''} /> Bağlantıyı Kontrol Et
+                        <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} /> Bağlantıyı Kontrol Et
                     </button>
                 </div>
             </div>

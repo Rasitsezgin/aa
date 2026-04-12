@@ -1,4 +1,9 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PrismaService } from '../../database/prisma.service';
@@ -38,7 +43,7 @@ export class AuditInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<Request>();
     const startTime = Date.now();
-    
+
     // Skip health checks and static assets
     if (this.shouldSkip(request)) {
       return next.handle();
@@ -67,7 +72,7 @@ export class AuditInterceptor implements NestInterceptor {
     try {
       const user = (request as any).user;
       const tenantId = this.extractTenantId(request);
-      
+
       const entry: AuditLogEntry = {
         timestamp: new Date(),
         tenantId: tenantId || 'unknown',
@@ -91,13 +96,12 @@ export class AuditInterceptor implements NestInterceptor {
       };
 
       // Async log to database (don't block response)
-      this.saveAuditLog(entry).catch(err => {
+      this.saveAuditLog(entry).catch((err) => {
         console.error('Failed to save audit log:', err);
       });
 
       // Real-time alerting for critical events
       this.checkForAlerts(entry);
-
     } catch (err) {
       console.error('Audit logging error:', err);
     }
@@ -121,8 +125,10 @@ export class AuditInterceptor implements NestInterceptor {
     ];
 
     if (criticalEvents.includes(entry.action)) {
-      console.warn(`[SECURITY ALERT] ${entry.action} by ${entry.userEmail} from ${entry.ipAddress}`);
-      
+      console.warn(
+        `[SECURITY ALERT] ${entry.action} by ${entry.userEmail} from ${entry.ipAddress}`,
+      );
+
       // TODO: Send to notification service
       // this.notificationService.sendSecurityAlert(entry);
     }
@@ -135,11 +141,16 @@ export class AuditInterceptor implements NestInterceptor {
 
     // Unusual activity detection
     if (entry.responseTimeMs > 10000) {
-      console.warn(`[PERFORMANCE ALERT] Slow request: ${entry.path} took ${entry.responseTimeMs}ms`);
+      console.warn(
+        `[PERFORMANCE ALERT] Slow request: ${entry.path} took ${entry.responseTimeMs}ms`,
+      );
     }
   }
 
-  private async checkFailedLogins(tenantId: string, ipAddress: string): Promise<void> {
+  private async checkFailedLogins(
+    tenantId: string,
+    ipAddress: string,
+  ): Promise<void> {
     // TODO: Implement with proper model
     console.log(`[SECURITY] Checking failed logins for ${ipAddress}`);
   }
@@ -152,50 +163,54 @@ export class AuditInterceptor implements NestInterceptor {
       '/robots.txt',
       '/.well-known',
     ];
-    
-    return skipPaths.some(path => request.path.startsWith(path));
+
+    return skipPaths.some((path) => request.path.startsWith(path));
   }
 
   private extractTenantId(request: Request): string | undefined {
     return (
-      request.headers['x-tenant-id'] as string ||
+      (request.headers['x-tenant-id'] as string) ||
       (request as any).tenantId ||
-      request.query?.tenantId as string
+      (request.query?.tenantId as string)
     );
   }
 
   private determineAction(request: Request): string {
     const path = request.path;
     const method = request.method;
-    
+
     // Resource detection patterns
     if (path.includes('/auth/login')) return 'auth.login';
     if (path.includes('/auth/logout')) return 'auth.logout';
     if (path.includes('/auth/register')) return 'auth.register';
     if (path.includes('/auth/password')) return 'auth.password.changed';
-    
+
     if (path.includes('/marketplace/connect')) return 'integration.connected';
-    if (path.includes('/marketplace/disconnect')) return 'integration.disconnected';
+    if (path.includes('/marketplace/disconnect'))
+      return 'integration.disconnected';
     if (path.includes('/marketplace/sync')) return 'integration.sync';
-    
-    if (path.includes('/products') && method === 'POST') return 'product.created';
-    if (path.includes('/products') && method === 'PUT') return 'product.updated';
-    if (path.includes('/products') && method === 'DELETE') return 'product.deleted';
+
+    if (path.includes('/products') && method === 'POST')
+      return 'product.created';
+    if (path.includes('/products') && method === 'PUT')
+      return 'product.updated';
+    if (path.includes('/products') && method === 'DELETE')
+      return 'product.deleted';
     if (path.includes('/products/bulk')) return 'product.bulk_operation';
-    
+
     if (path.includes('/orders') && method === 'POST') return 'order.created';
     if (path.includes('/orders') && method === 'PATCH') return 'order.updated';
-    
+
     if (path.includes('/settings')) return 'settings.changed';
     if (path.includes('/users') && method === 'POST') return 'user.created';
     if (path.includes('/users') && method === 'DELETE') return 'user.deleted';
-    
+
     return `${method.toLowerCase()}.${path.replace(/\//g, '.')}`;
   }
 
   private determineResource(request: Request): string {
     const path = request.path;
-    
+
     if (path.includes('/products')) return 'product';
     if (path.includes('/orders')) return 'order';
     if (path.includes('/customers')) return 'customer';
@@ -206,13 +221,15 @@ export class AuditInterceptor implements NestInterceptor {
     if (path.includes('/settings')) return 'settings';
     if (path.includes('/reports')) return 'report';
     if (path.includes('/analytics')) return 'analytics';
-    
+
     return 'api';
   }
 
   private extractResourceId(request: Request): string | undefined {
     // Extract ID from path (e.g., /products/123 → 123)
-    const match = request.path.match(/\/(products|orders|customers|users)\/([^/]+)/);
+    const match = request.path.match(
+      /\/(products|orders|customers|users)\/([^/]+)/,
+    );
     return match?.[2];
   }
 
@@ -226,26 +243,38 @@ export class AuditInterceptor implements NestInterceptor {
 
   private sanitizeRequestBody(body: any): any {
     if (!body) return undefined;
-    
+
     // Deep clone
     const sanitized = JSON.parse(JSON.stringify(body));
-    
+
     // Remove sensitive fields
     const sensitiveFields = [
-      'password', 'apiKey', 'apiSecret', 'secretKey', 'token',
-      'accessToken', 'refreshToken', 'creditCard', 'cvv', 'ssn',
+      'password',
+      'apiKey',
+      'apiSecret',
+      'secretKey',
+      'token',
+      'accessToken',
+      'refreshToken',
+      'creditCard',
+      'cvv',
+      'ssn',
     ];
-    
+
     const maskField = (obj: any) => {
       for (const key in obj) {
-        if (sensitiveFields.some(sf => key.toLowerCase().includes(sf.toLowerCase()))) {
+        if (
+          sensitiveFields.some((sf) =>
+            key.toLowerCase().includes(sf.toLowerCase()),
+          )
+        ) {
           obj[key] = '***MASKED***';
         } else if (typeof obj[key] === 'object' && obj[key] !== null) {
           maskField(obj[key]);
         }
       }
     };
-    
+
     maskField(sanitized);
     return sanitized;
   }
@@ -283,7 +312,7 @@ export class AuditQueryService {
     offset?: number;
   }) {
     const where: any = {};
-    
+
     if (params.tenantId) where.tenantId = params.tenantId;
     if (params.userId) where.userId = params.userId;
     if (params.action) where.action = params.action;

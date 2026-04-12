@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutGrid,
   Plus,
@@ -16,17 +16,11 @@ import {
   Users,
   BarChart3,
   PieChart,
-  Activity,
   Bell,
   Zap,
-  Star,
   Eye,
   EyeOff,
   RotateCcw,
-  Save,
-  ChevronDown,
-  Maximize2,
-  Minimize2,
   RefreshCw,
   LucideIcon
 } from 'lucide-react';
@@ -185,7 +179,6 @@ const defaultWidgets: Widget[] = [
 export default function WidgetsPage() {
   const [widgets, setWidgets] = useState<Widget[]>(defaultWidgets);
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedWidget, setSelectedWidget] = useState<Widget | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
   const visibleWidgets = widgets.filter(w => w.isVisible);
@@ -332,8 +325,8 @@ export default function WidgetsPage() {
               <LayoutGrid className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Dashboard Widget'ları</h1>
-              <p className="text-slate-600 dark:text-slate-400 text-sm">Widget'ları düzenleyerek kendi dashboard'unuzu oluşturun</p>
+              <h1 className="text-2xl font-bold text-foreground">Dashboard Widget&apos;ları</h1>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">Widget&apos;ları düzenleyerek kendi dashboard&apos;unuzu oluşturun</p>
             </div>
           </div>
 
@@ -383,7 +376,7 @@ export default function WidgetsPage() {
               <div className="bg-purple-100 dark:bg-purple-500/10 border border-purple-300 dark:border-purple-500/30 rounded-2xl p-4 flex items-center gap-4">
                 <Settings className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                 <p className="text-purple-700 dark:text-purple-300 text-sm">
-                  Düzenleme modu aktif. Widget'ları taşıyabilir, boyutlarını değiştirebilir veya gizleyebilirsiniz.
+                  Düzenleme modu aktif. Widget&apos;ları taşıyabilir, boyutlarını değiştirebilir veya gizleyebilirsiniz.
                 </p>
               </div>
             </motion.div>
@@ -452,7 +445,7 @@ export default function WidgetsPage() {
           <div className="mt-8">
             <h3 className="text-lg font-semibold text-slate-600 dark:text-slate-400 mb-4 flex items-center gap-2">
               <EyeOff className="w-5 h-5" />
-              Gizli Widget'lar ({hiddenWidgets.length})
+              Gizli Widget&apos;lar ({hiddenWidgets.length})
             </h3>
             <div className="flex flex-wrap gap-3">
               {hiddenWidgets.map((widget) => (

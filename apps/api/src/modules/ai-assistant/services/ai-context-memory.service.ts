@@ -1,11 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 
 export interface MemoryItem {
   key: string;
   value: any;
-  memoryType: 'product_context' | 'platform_state' | 'user_goal' | 'error_history' | 'workflow_state';
+  memoryType:
+    | 'product_context'
+    | 'platform_state'
+    | 'user_goal'
+    | 'error_history'
+    | 'workflow_state';
   expiresIn?: number; // minutes
 }
 
@@ -112,10 +117,7 @@ export class AIContextMemoryService {
         tenantId,
         userId,
         memoryType,
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: new Date() } },
-        ],
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       },
       orderBy: [{ relevanceScore: 'desc' }, { lastAccessedAt: 'desc' }],
       take: limit,
@@ -131,7 +133,11 @@ export class AIContextMemoryService {
       });
     }
 
-    return memories.map(m => ({ key: m.key, value: m.value, relevance: m.relevanceScore }));
+    return memories.map((m) => ({
+      key: m.key,
+      value: m.value,
+      relevance: m.relevanceScore,
+    }));
   }
 
   // ==================== CONTEXT SNAPSHOT ====================
@@ -172,14 +178,18 @@ export class AIContextMemoryService {
     );
 
     // Extract active platforms
-    const activePlatforms: string[] = [...new Set(recentJobs.map(job => job.platform))];
+    const activePlatforms: string[] = [
+      ...new Set(recentJobs.map((job) => job.platform)),
+    ];
 
     return {
-      recentActions: recentJobs.map(job => `${job.type} on ${job.platform} (${job.status})`),
+      recentActions: recentJobs.map(
+        (job) => `${job.type} on ${job.platform} (${job.status})`,
+      ),
       activePlatforms,
       pendingTasks,
-      lastErrors: errorHistory.map(e => e.value?.error || e.key),
-      userGoals: userGoals.map(g => g.value?.goal || g.key),
+      lastErrors: errorHistory.map((e) => e.value?.error || e.key),
+      userGoals: userGoals.map((g) => g.value?.goal || g.key),
     };
   }
 
@@ -272,7 +282,7 @@ export class AIContextMemoryService {
     context: any,
   ): Promise<void> {
     const errorKey = `error_${Date.now()}`;
-    
+
     await this.storeMemory(tenantId, userId, {
       key: errorKey,
       memoryType: 'error_history',
@@ -312,7 +322,7 @@ export class AIContextMemoryService {
     priority: 'low' | 'medium' | 'high' = 'medium',
   ): Promise<void> {
     const goalKey = `goal_${Date.now()}`;
-    
+
     await this.storeMemory(tenantId, userId, {
       key: goalKey,
       memoryType: 'user_goal',

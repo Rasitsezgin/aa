@@ -3,12 +3,12 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Variants, motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue, useInView } from 'framer-motion';
+import { Variants, motion, AnimatePresence, useTransform, useSpring, useMotionValue } from 'framer-motion';
 import MagneticButton from './ui/MagneticButton';
 import { useRouter } from 'next/navigation';
 import {
     ArrowRight, Play, Search, Sparkles, Zap, Shield, BarChart3,
-    TrendingUp, Package, Users, Check, X,
+    TrendingUp, Package, Check, X,
     Globe, Layers, Activity
 } from 'lucide-react';
 
@@ -71,64 +71,36 @@ const chartPath = buildSmoothPath(chartPoints);
 const chartAreaPath = chartPath + ` L 100 100 L 0 100 Z`;
 
 // ────────────────────────────────────────────
-// ANIMATED COUNTER
-// ────────────────────────────────────────────
-function AnimatedCounter({ value, suffix, duration = 2 }: { value: number; suffix: string; duration?: number }) {
-    const [count, setCount] = useState(0);
-    const ref = useRef<HTMLSpanElement>(null);
-    const inView = useInView(ref, { once: true, margin: "-50px" });
-
-    useEffect(() => {
-        if (!inView) return;
-        const start = 0;
-        const end = value;
-        const isDecimal = value % 1 !== 0;
-        const startTime = Date.now();
-        const timer = setInterval(() => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / (duration * 1000), 1);
-            const eased = 1 - Math.pow(1 - progress, 4);
-            const current = start + (end - start) * eased;
-            setCount(isDecimal ? parseFloat(current.toFixed(1)) : Math.floor(current));
-            if (progress >= 1) clearInterval(timer);
-        }, 16);
-        return () => clearInterval(timer);
-    }, [inView, value, duration]);
-
-    return (
-        <span ref={ref}>
-            {count % 1 !== 0 ? count.toFixed(1) : count.toLocaleString('tr-TR')}
-            {suffix}
-        </span>
-    );
-}
-
-// ────────────────────────────────────────────
 // FLOATING PARTICLES
 // ────────────────────────────────────────────
 function FloatingParticles() {
-    const [mounted, setMounted] = useState(false);
+    const [particles, setParticles] = useState<Array<{
+        id: number;
+        x: number;
+        y: number;
+        size: number;
+        duration: number;
+        delay: number;
+        opacity: number;
+    }>>([]);
 
     useEffect(() => {
-        setMounted(true);
+        const timer = setTimeout(() => {
+            setParticles(Array.from({ length: 30 }, (_, i) => ({
+                id: i,
+                x: Math.random() * 100,
+                y: Math.random() * 100,
+                size: Math.random() * 3 + 1,
+                duration: Math.random() * 20 + 15,
+                delay: Math.random() * 10,
+                opacity: Math.random() * 0.3 + 0.1,
+            })));
+        }, 0);
+
+        return () => clearTimeout(timer);
     }, []);
 
-    const [particles, setParticles] = useState<any[]>([]);
-
-    useEffect(() => {
-        setMounted(true);
-        setParticles(Array.from({ length: 30 }, (_, i) => ({
-            id: i,
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            size: Math.random() * 3 + 1,
-            duration: Math.random() * 20 + 15,
-            delay: Math.random() * 10,
-            opacity: Math.random() * 0.3 + 0.1,
-        })));
-    }, []);
-
-    if (!mounted || particles.length === 0) return null;
+    if (particles.length === 0) return null;
 
     return (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -222,7 +194,7 @@ function MobileHeroVisual() {
             initial={{ opacity: 0, y: 30, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:hidden relative w-full max-w-[340px] mx-auto my-12"
+            className="lg:hidden relative w-full max-w-[360px] mx-auto mt-8 mb-7 px-1"
         >
             {/* Background Glow */}
             <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-blue-500/20 rounded-[32px] blur-2xl" />
@@ -280,7 +252,7 @@ function MobileHeroVisual() {
             <motion.div
                 animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -left-4 top-12 bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-white/10 shadow-lg flex items-center gap-2"
+                className="absolute left-1 top-10 bg-white/95 dark:bg-slate-800/95 p-2 rounded-xl border border-slate-100 dark:border-white/10 shadow-lg flex items-center gap-2 max-w-[140px] max-[379px]:hidden"
             >
                 <div className="bg-blue-100 dark:bg-blue-500/10 p-1.5 rounded-lg text-blue-600 dark:text-blue-400">
                     <Package size={14} />
@@ -295,7 +267,7 @@ function MobileHeroVisual() {
             <motion.div
                 animate={{ y: [0, 8, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute -right-2 bottom-20 bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-white/10 shadow-lg flex items-center gap-2"
+                className="absolute right-1 bottom-16 bg-white/95 dark:bg-slate-800/95 p-2 rounded-xl border border-slate-100 dark:border-white/10 shadow-lg flex items-center gap-2 max-w-[148px] max-[379px]:hidden"
             >
                 <div className="bg-orange-100 dark:bg-orange-500/10 p-1.5 rounded-lg text-orange-600 dark:text-orange-400">
                     <TrendingUp size={14} />
@@ -314,7 +286,6 @@ function MobileHeroVisual() {
 // ────────────────────────────────────────────
 
 export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeof HOMEPAGE_TEXTS.hero }) {
-    const [mounted, setMounted] = useState(false);
     const [wordIndex, setWordIndex] = useState(0);
     const [analyzerFocused, setAnalyzerFocused] = useState(false);
     const [showAnnouncement, setShowAnnouncement] = useState(false);
@@ -339,8 +310,6 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
     }, [mouseX, mouseY]);
 
     useEffect(() => {
-        setMounted(true);
-        // Using a short timeout fixes the React synchronous state update warning during render phase
         const timer = setTimeout(() => {
             const dismissed = localStorage.getItem('hero-announcement-dismissed');
             if (!dismissed) {
@@ -357,12 +326,11 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
 
     // Rotating words
     useEffect(() => {
-        if (!mounted) return;
         const interval = setInterval(() => {
             setWordIndex((prev) => (prev + 1) % rotatingLogos.length);
         }, 2800);
         return () => clearInterval(interval);
-    }, [mounted]);
+    }, []);
 
     const handleSearch = useCallback(() => {
         if (!searchValue.trim()) return;
@@ -498,7 +466,7 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
             {/* ═══════════════════════════════════════════════ */}
             {/* MAIN CONTENT                                   */}
             {/* ═══════════════════════════════════════════════ */}
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-16 sm:py-20 lg:py-28">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-[max(4.75rem,env(safe-area-inset-top))] pb-12 sm:py-20 lg:py-28">
 
                 {/* ────────────────────── TOP ANNOUNCEMENT ────────────────────── */}
                 <AnimatePresence>
@@ -561,7 +529,7 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
                         {/* Headline */}
                         <motion.h1
                             variants={fadeUp}
-                            className="text-[2rem] xs:text-[2.5rem] sm:text-[3rem] md:text-[3.5rem] lg:text-[4rem] xl:text-[4.5rem] font-black tracking-[-0.035em] leading-[1.08] text-slate-900 dark:text-white mb-5 sm:mb-7"
+                            className="text-[1.8rem] xs:text-[2.3rem] sm:text-[3rem] md:text-[3.5rem] lg:text-[4rem] xl:text-[4.5rem] font-black tracking-[-0.03em] leading-[1.07] text-slate-900 dark:text-white mb-5 sm:mb-7 text-balance"
                         >
                             <span className="flex items-center gap-2 sm:gap-3 md:gap-4 justify-center lg:justify-start flex-wrap">
                                 <AnimatePresence mode="wait">
@@ -579,7 +547,7 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
                                             style={{ backgroundColor: rotatingLogos[wordIndex].glow }}
                                         />
                                         {/* Gradient border wrapper */}
-                                        <span className={`relative inline-flex items-center justify-center w-[110px] sm:w-[140px] md:w-[160px] h-[44px] sm:h-[52px] md:h-[64px] rounded-xl sm:rounded-2xl bg-gradient-to-br ${rotatingLogos[wordIndex].accent} transition-colors duration-500`}>
+                                        <span className={`relative inline-flex items-center justify-center w-[100px] sm:w-[140px] md:w-[160px] h-[42px] sm:h-[52px] md:h-[64px] rounded-xl sm:rounded-2xl bg-gradient-to-br ${rotatingLogos[wordIndex].accent} transition-colors duration-500`}>
                                             <span className="inline-flex items-center justify-center w-[calc(100%-4px)] h-[calc(100%-4px)] rounded-lg sm:rounded-[14px] bg-white dark:bg-[#0c1222] relative">
                                                 <Image
                                                     src={rotatingLogos[wordIndex].image}
@@ -602,7 +570,7 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
                         {/* Subtitle */}
                         <motion.p
                             variants={fadeUp}
-                            className="text-sm sm:text-base lg:text-lg xl:text-xl text-slate-500 dark:text-slate-400 max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed"
+                            className="text-[0.95rem] sm:text-base lg:text-lg xl:text-xl text-slate-500 dark:text-slate-400 max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed text-balance"
                         >
                             {texts.subtitlePrefix}
                             <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -618,7 +586,7 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
                                 <div className={`absolute -inset-[2px] rounded-2xl bg-gradient-to-r from-emerald-500/60 via-teal-500/60 to-cyan-500/60 transition-opacity duration-500 blur-sm ${analyzerFocused ? 'opacity-60' : 'opacity-0 group-hover:opacity-30'}`} />
                                 <div className={`absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 transition-opacity duration-500 ${analyzerFocused ? 'opacity-30' : 'opacity-0 group-hover:opacity-15'}`} />
 
-                                <div className="relative flex items-center bg-white dark:bg-[#0c1222] rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl shadow-slate-900/5 dark:shadow-black/20 p-1.5 sm:p-2">
+                                <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-0 bg-white dark:bg-[#0c1222] rounded-2xl border border-slate-200 dark:border-white/10 shadow-xl shadow-slate-900/5 dark:shadow-black/20 p-1.5 sm:p-2">
                                     <Search className="text-slate-400 ml-3 sm:ml-4 shrink-0" size={20} />
                                     <input
                                         type="text"
@@ -628,11 +596,11 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
                                         onKeyDown={handleKeyDown}
                                         onFocus={() => setAnalyzerFocused(true)}
                                         onBlur={() => setAnalyzerFocused(false)}
-                                        className="flex-1 bg-transparent border-none outline-none text-slate-900 dark:text-white text-sm sm:text-base px-3 sm:px-4 py-2.5 sm:py-3 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                                        className="flex-1 bg-transparent border-none outline-none text-slate-900 dark:text-white text-sm sm:text-base px-3 sm:px-4 py-2.5 sm:py-3 placeholder:text-slate-400 dark:placeholder:text-slate-500 min-w-0"
                                     />
                                     <button
                                         onClick={handleSearch}
-                                        className="relative overflow-hidden px-5 sm:px-7 py-2.5 sm:py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold text-sm transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95 flex items-center gap-2 group/btn"
+                                        className="relative overflow-hidden w-full sm:w-auto px-4 sm:px-7 py-2.5 sm:py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold text-sm transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95 flex items-center justify-center gap-2 group/btn min-h-[44px]"
                                     >
                                         <Sparkles size={15} className="group-hover/btn:rotate-12 transition-transform" />
                                         <span className="hidden sm:inline">{texts.analyzerButton}</span>
@@ -651,7 +619,7 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
                         {/* CTA Buttons */}
                         <motion.div
                             variants={fadeUp}
-                            className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 justify-center lg:justify-start mb-6 sm:mb-8"
+                            className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 justify-center lg:justify-start mb-5 sm:mb-8"
                         >
                             <MagneticButton distance={0.2} className="w-full sm:w-auto">
                                 <Link
@@ -684,7 +652,7 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
                         {/* Trust badges */}
                         <motion.div
                             variants={fadeUp}
-                            className="flex flex-wrap items-center gap-x-5 gap-y-2 justify-center lg:justify-start"
+                            className="flex flex-wrap items-center gap-x-4 gap-y-2 justify-center lg:justify-start"
                         >
                             {trustBadges.map((badge, i) => (
                                 <div key={i} className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">

@@ -1,117 +1,191 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Headers, Query, Req, Res, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Headers,
+  Query,
+  Req,
+  Res,
+  UseInterceptors,
+} from '@nestjs/common';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { ProductService } from './product.service';
 import type { Response } from 'express';
 
 @Controller('products')
 export class ProductController {
-    constructor(private readonly productService: ProductService) { }
+  constructor(private readonly productService: ProductService) {}
 
-    @Post('bulk-action')
-    async executeBulkAction(
-        @Headers('x-tenant-id') tenantId: string,
-        @Body() data: { action: string; productIds: string[]; [key: string]: any },
-    ) {
-        return this.productService.executeBulkAction({ ...data, tenantId });
+  @Post('bulk-action')
+  async executeBulkAction(
+    @Headers('x-tenant-id') tenantId: string,
+    @Body() data: { action: string; productIds: string[]; [key: string]: any },
+  ) {
+    return this.productService.executeBulkAction({ ...data, tenantId });
+  }
+
+  @Get('bulk-action-history')
+  async getBulkActionHistory(@Headers('x-tenant-id') tenantId: string) {
+    return this.productService.getBulkActionHistory(tenantId);
+  }
+
+  @Get('stats')
+  async getStats(@Headers('x-tenant-id') tenantId: string) {
+    return this.productService.getProductStats(tenantId);
+  }
+
+  @Post('import')
+  async importProducts(
+    @Headers('x-tenant-id') tenantId: string,
+    @Body() data: { products: any[]; mode: 'create' | 'update' | 'upsert' },
+  ) {
+    return this.productService.importProducts(
+      tenantId,
+      data.products,
+      data.mode,
+    );
+  }
+
+  @Get('export')
+  async exportProducts(
+    @Headers('x-tenant-id') tenantId: string,
+    @Query('format') format: string,
+    @Res() res: Response,
+  ) {
+    const products = await this.productService.getExportData(tenantId);
+
+    if (format === 'json') {
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename=products.json',
+      );
+      return res.json(products);
     }
 
-    @Get('bulk-action-history')
-    async getBulkActionHistory(@Headers('x-tenant-id') tenantId: string) {
-        return this.productService.getBulkActionHistory(tenantId);
-    }
+    // CSV format (default)
+    const csvHeaders = [
+      'SKU',
+      'Barkod',
+      'Ürün Adı',
+      'Açıklama',
+      'Fiyat',
+      'Maliyet',
+      'Stok',
+      'Kategori',
+      'Marka',
+      'Durum',
+      'Etiketler',
+      'Ağırlık (kg)',
+    ];
+    const csvRows = products.map((p: any) =>
+      [
+        p.sku,
+        p.barcode || '',
+        `"${(p.title || '').replace(/"/g, '""')}"`,
+        `"${(p.description || '').replace(/"/g, '""')}"`,
+        p.price,
+        p.costPrice || '',
+        p.stock,
+        p.category || '',
+        p.brand || '',
+        p.status || 'active',
+        (p.tags || []).join('|'),
+        p.weight || '',
+      ].join(';'),
+    );
 
-    @Get('stats')
-    async getStats(@Headers('x-tenant-id') tenantId: string) {
-        return this.productService.getProductStats(tenantId);
-    }
+    const csv = '\uFEFF' + csvHeaders.join(';') + '\n' + csvRows.join('\n');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename=products.csv');
+    return res.send(csv);
+  }
 
-    @Post('import')
-    async importProducts(
-        @Headers('x-tenant-id') tenantId: string,
-        @Body() data: { products: any[]; mode: 'create' | 'update' | 'upsert' }
-    ) {
-        return this.productService.importProducts(tenantId, data.products, data.mode);
-    }
+  @Get('export/template')
+  async getImportTemplate(@Res() res: Response) {
+    const csvHeaders = [
+      'SKU',
+      'Barkod',
+      'Ürün Adı',
+      'Açıklama',
+      'Fiyat',
+      'Maliyet',
+      'Stok',
+      'Kategori',
+      'Marka',
+      'Durum',
+      'Etiketler',
+      'Ağırlık (kg)',
+    ];
+    const exampleRow = [
+      'ORNEK-SKU-001',
+      '8680001234567',
+      'Örnek Ürün Adı',
+      'Ürün açıklaması buraya yazılır',
+      '199.99',
+      '120.00',
+      '100',
+      'Elektronik',
+      'Marka Adı',
+      'active',
+      'etiket1|etiket2',
+      '0.5',
+    ];
+    const csv = '\uFEFF' + csvHeaders.join(';') + '\n' + exampleRow.join(';');
 
-    @Get('export')
-    async exportProducts(
-        @Headers('x-tenant-id') tenantId: string,
-        @Query('format') format: string,
-        @Res() res: Response,
-    ) {
-        const products = await this.productService.getExportData(tenantId);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=urun-sablonu.csv',
+    );
+    return res.send(csv);
+  }
 
-        if (format === 'json') {
-            res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Content-Disposition', 'attachment; filename=products.json');
-            return res.json(products);
-        }
+  @Post()
+  async create(@Headers('x-tenant-id') tenantId: string, @Body() data: any) {
+    return this.productService.create(tenantId, data);
+  }
 
-        // CSV format (default)
-        const csvHeaders = ['SKU', 'Barkod', 'Ürün Adı', 'Açıklama', 'Fiyat', 'Maliyet', 'Stok', 'Kategori', 'Marka', 'Durum', 'Etiketler', 'Ağırlık (kg)'];
-        const csvRows = products.map((p: any) => [
-            p.sku,
-            p.barcode || '',
-            `"${(p.title || '').replace(/"/g, '""')}"`,
-            `"${(p.description || '').replace(/"/g, '""')}"`,
-            p.price,
-            p.costPrice || '',
-            p.stock,
-            p.category || '',
-            p.brand || '',
-            p.status || 'active',
-            (p.tags || []).join('|'),
-            p.weight || '',
-        ].join(';'));
+  @Get()
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(60000)
+  async findAll(
+    @Headers('x-tenant-id') tenantId: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.productService.findAll(tenantId, {
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 20,
+    });
+  }
 
-        const csv = '\uFEFF' + csvHeaders.join(';') + '\n' + csvRows.join('\n');
-        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-        res.setHeader('Content-Disposition', 'attachment; filename=products.csv');
-        return res.send(csv);
-    }
+  @Get(':id')
+  async findOne(
+    @Headers('x-tenant-id') tenantId: string,
+    @Param('id') id: string,
+  ) {
+    return this.productService.findOne(tenantId, id);
+  }
 
-    @Get('export/template')
-    async getImportTemplate(@Res() res: Response) {
-        const csvHeaders = ['SKU', 'Barkod', 'Ürün Adı', 'Açıklama', 'Fiyat', 'Maliyet', 'Stok', 'Kategori', 'Marka', 'Durum', 'Etiketler', 'Ağırlık (kg)'];
-        const exampleRow = ['ORNEK-SKU-001', '8680001234567', 'Örnek Ürün Adı', 'Ürün açıklaması buraya yazılır', '199.99', '120.00', '100', 'Elektronik', 'Marka Adı', 'active', 'etiket1|etiket2', '0.5'];
-        const csv = '\uFEFF' + csvHeaders.join(';') + '\n' + exampleRow.join(';');
+  @Put(':id')
+  async update(
+    @Headers('x-tenant-id') tenantId: string,
+    @Param('id') id: string,
+    @Body() data: any,
+  ) {
+    return this.productService.update(tenantId, id, data);
+  }
 
-        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-        res.setHeader('Content-Disposition', 'attachment; filename=urun-sablonu.csv');
-        return res.send(csv);
-    }
-
-    @Post()
-    async create(@Headers('x-tenant-id') tenantId: string, @Body() data: any) {
-        return this.productService.create(tenantId, data);
-    }
-
-    @Get()
-    @UseInterceptors(CacheInterceptor)
-    @CacheTTL(60000)
-    async findAll(
-        @Headers('x-tenant-id') tenantId: string,
-        @Query('page') page?: string,
-        @Query('limit') limit?: string,
-    ) {
-        return this.productService.findAll(tenantId, {
-            page: page ? Number(page) : 1,
-            limit: limit ? Number(limit) : 20,
-        });
-    }
-
-    @Get(':id')
-    async findOne(@Headers('x-tenant-id') tenantId: string, @Param('id') id: string) {
-        return this.productService.findOne(tenantId, id);
-    }
-
-    @Put(':id')
-    async update(@Headers('x-tenant-id') tenantId: string, @Param('id') id: string, @Body() data: any) {
-        return this.productService.update(tenantId, id, data);
-    }
-
-    @Delete(':id')
-    async remove(@Headers('x-tenant-id') tenantId: string, @Param('id') id: string) {
-        return this.productService.remove(tenantId, id);
-    }
+  @Delete(':id')
+  async remove(
+    @Headers('x-tenant-id') tenantId: string,
+    @Param('id') id: string,
+  ) {
+    return this.productService.remove(tenantId, id);
+  }
 }

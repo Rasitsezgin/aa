@@ -135,12 +135,18 @@ export class SchedulerService implements OnModuleInit {
     for (const integration of integrations) {
       await this.syncQueue.add(
         'inventory-sync',
-        { integrationId: integration.id, tenantId: integration.tenantId, platform: integration.platform },
+        {
+          integrationId: integration.id,
+          tenantId: integration.tenantId,
+          platform: integration.platform,
+        },
         { attempts: 3, removeOnComplete: 100, removeOnFail: 50 },
       );
     }
 
-    this.logger.log(`${integrations.length} entegrasyon için stok senkronizasyonu planlandı`);
+    this.logger.log(
+      `${integrations.length} entegrasyon için stok senkronizasyonu planlandı`,
+    );
   }
 
   async scheduleOrderSync() {
@@ -152,7 +158,11 @@ export class SchedulerService implements OnModuleInit {
     for (const integration of integrations) {
       await this.syncQueue.add(
         'order-sync',
-        { integrationId: integration.id, tenantId: integration.tenantId, platform: integration.platform },
+        {
+          integrationId: integration.id,
+          tenantId: integration.tenantId,
+          platform: integration.platform,
+        },
         { attempts: 3 },
       );
     }
@@ -176,14 +186,20 @@ export class SchedulerService implements OnModuleInit {
 
     for (const tenant of tenants) {
       try {
-        await this.marketIntelligenceService.runCompetitorSnapshot(tenant.id, { limitPerStore: 10 });
+        await this.marketIntelligenceService.runCompetitorSnapshot(tenant.id, {
+          limitPerStore: 10,
+        });
         await this.marketIntelligenceService.getCompetitorAlerts(tenant.id, 5);
       } catch (error) {
-        this.logger.warn(`Rakip zeka gorevi hatasi tenant=${tenant.id}: ${(error as Error).message}`);
+        this.logger.warn(
+          `Rakip zeka gorevi hatasi tenant=${tenant.id}: ${(error as Error).message}`,
+        );
       }
     }
 
-    this.logger.log(`${tenants.length} tenant icin rakip zeka gorevi tamamlandi`);
+    this.logger.log(
+      `${tenants.length} tenant icin rakip zeka gorevi tamamlandi`,
+    );
   }
 
   async scheduleCompetitorSummaryReports() {
@@ -194,9 +210,14 @@ export class SchedulerService implements OnModuleInit {
 
     for (const tenant of tenants) {
       try {
-        await this.marketIntelligenceService.generateCompetitorSummaryReport(tenant.id, 7);
+        await this.marketIntelligenceService.generateCompetitorSummaryReport(
+          tenant.id,
+          7,
+        );
       } catch (error) {
-        this.logger.warn(`Rakip ozet raporu hatasi tenant=${tenant.id}: ${(error as Error).message}`);
+        this.logger.warn(
+          `Rakip ozet raporu hatasi tenant=${tenant.id}: ${(error as Error).message}`,
+        );
       }
     }
 
@@ -213,17 +234,19 @@ export class SchedulerService implements OnModuleInit {
     for (const integration of integrations) {
       await this.syncQueue.add(
         'marketplace-product-sync',
-        { 
-          integrationId: integration.id, 
-          tenantId: integration.tenantId, 
+        {
+          integrationId: integration.id,
+          tenantId: integration.tenantId,
           platform: integration.platform,
-          priority: 'normal'
+          priority: 'normal',
         },
         { attempts: 3, backoff: { type: 'exponential', delay: 2000 } },
       );
     }
 
-    this.logger.log(`${integrations.length} pazaryeri için ürün senkronizasyonu planlandı`);
+    this.logger.log(
+      `${integrations.length} pazaryeri için ürün senkronizasyonu planlandı`,
+    );
   }
 
   async scheduleSEOAnalysis() {
@@ -235,11 +258,14 @@ export class SchedulerService implements OnModuleInit {
     for (const integration of integrations) {
       await this.syncQueue.add(
         'seo-analysis',
-        { 
-          integrationId: integration.id, 
-          tenantId: integration.tenantId, 
+        {
+          integrationId: integration.id,
+          tenantId: integration.tenantId,
           platform: integration.platform,
-          storeId: (integration.apiExtra as any)?.supplierId || (integration.apiExtra as any)?.merchantId || null
+          storeId:
+            (integration.apiExtra as any)?.supplierId ||
+            (integration.apiExtra as any)?.merchantId ||
+            null,
         },
         { attempts: 2 },
       );
@@ -265,10 +291,16 @@ export class SchedulerService implements OnModuleInit {
     this.logger.log(`${tenants.length} tenant için fiyat izleme planlandı`);
   }
 
-  async runManualCompetitorAnalysis(tenantId: string, competitorUrls: Array<{ url: string; platform: Platform }>) {
+  async runManualCompetitorAnalysis(
+    tenantId: string,
+    competitorUrls: Array<{ url: string; platform: Platform }>,
+  ) {
     try {
-      const result = await this.competitorService.analyzeMultipleCompetitors(competitorUrls, tenantId);
-      
+      const result = await this.competitorService.analyzeMultipleCompetitors(
+        competitorUrls,
+        tenantId,
+      );
+
       // Sonuçları kaydet
       await this.prisma.activityLog.create({
         data: {
@@ -284,7 +316,9 @@ export class SchedulerService implements OnModuleInit {
 
       return result;
     } catch (error) {
-      this.logger.error(`Manual competitor analysis failed: ${(error as Error).message}`);
+      this.logger.error(
+        `Manual competitor analysis failed: ${(error as Error).message}`,
+      );
       throw error;
     }
   }
@@ -298,7 +332,11 @@ export class SchedulerService implements OnModuleInit {
     return { jobId: job.id, status: 'queued' };
   }
 
-  async createSyncJob(tenantId: string, platform: string, type: 'inventory' | 'orders' | 'products') {
+  async createSyncJob(
+    tenantId: string,
+    platform: string,
+    type: 'inventory' | 'orders' | 'products',
+  ) {
     const job = await this.syncQueue.add(`${type}-sync`, {
       tenantId,
       platform,
@@ -307,7 +345,12 @@ export class SchedulerService implements OnModuleInit {
     return { jobId: job.id, status: 'queued' };
   }
 
-  async sendScheduledEmail(tenantId: string, template: string, recipients: string[], data: any) {
+  async sendScheduledEmail(
+    tenantId: string,
+    template: string,
+    recipients: string[],
+    data: any,
+  ) {
     const job = await this.emailsQueue.add('send-email', {
       tenantId,
       template,
@@ -335,10 +378,10 @@ export class SchedulerService implements OnModuleInit {
   async scheduleHealthChecks() {
     const integrations = await this.prisma.integration.findMany({
       where: { isActive: true },
-      select: { 
-        id: true, 
-        tenantId: true, 
-        platform: true, 
+      select: {
+        id: true,
+        tenantId: true,
+        platform: true,
         apiKey: true,
       },
     });
@@ -346,18 +389,20 @@ export class SchedulerService implements OnModuleInit {
     for (const integration of integrations) {
       await this.syncQueue.add(
         'health-check',
-        { 
-          integrationId: integration.id, 
-          tenantId: integration.tenantId, 
-          platform: integration.platform 
+        {
+          integrationId: integration.id,
+          tenantId: integration.tenantId,
+          platform: integration.platform,
         },
-        { 
-          attempts: 2, 
+        {
+          attempts: 2,
           backoff: { type: 'fixed', delay: 5000 },
         },
       );
     }
 
-    this.logger.log(`${integrations.length} entegrasyon için sağlık kontrolü planlandı`);
+    this.logger.log(
+      `${integrations.length} entegrasyon için sağlık kontrolü planlandı`,
+    );
   }
 }

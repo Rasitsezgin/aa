@@ -7,9 +7,9 @@ import { DatabaseModule } from '../../database/database.module';
 import { ReportsModule } from '../reports/reports.module';
 
 @Module({
-    imports: [ConfigModule, DatabaseModule, ReportsModule],
-    providers: [WhatsappService, WhatsappCommandService],
-    controllers: [WhatsappController],
-    exports: [WhatsappService, WhatsappCommandService],
+  imports: [ConfigModule, DatabaseModule, ReportsModule],
+  providers: [WhatsappService, WhatsappCommandService],
+  controllers: [WhatsappController],
+  exports: [WhatsappService, WhatsappCommandService],
 })
-export class WhatsappModule { }
+export class WhatsappModule {}

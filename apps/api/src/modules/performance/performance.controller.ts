@@ -1,8 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { PerformanceService } from './performance.service';
 
 @Controller('performance')
@@ -30,7 +26,10 @@ export class PerformanceController {
     @Query('tenantId') tenantId: string = 'tenant-1',
     @Query('limit') limit: string = '10',
   ) {
-    return this.performanceService.getProductPerformance(tenantId, parseInt(limit));
+    return this.performanceService.getProductPerformance(
+      tenantId,
+      parseInt(limit),
+    );
   }
 
   // Kategori performansı

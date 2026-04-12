@@ -592,7 +592,6 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
             <KeyboardShortcutsHelp />
             <AICopilot />
-            <AICopilot />
         </div>
     );
 }

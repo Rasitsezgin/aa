@@ -1,0 +1,5 @@
+Baseline and current differ for pixel7-home-menu-open.png
+baseline: C:\Projeler\pazaryonetimi.com\apps\web\artifacts\mobile-visual\baseline\pixel7-home-menu-open.png
+current: C:\Projeler\pazaryonetimi.com\apps\web\artifacts\mobile-visual\current\pixel7-home-menu-open.png
+baselineHash: d41fbdfd50a820725a869398b91051e3b34208ee576d627a36e66eb40648d3be
+currentHash: 79752b85aeec20cb9f661079b2bf6ddb16e8567afacc32713a1675d22605b93f

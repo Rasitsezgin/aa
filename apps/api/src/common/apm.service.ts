@@ -1,4 +1,9 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
 import { performance } from 'perf_hooks';
 import { PrismaService } from '../database/prisma.service';
@@ -35,7 +40,7 @@ export class APMService {
 
   recordMetric(metric: MetricData): void {
     this.metrics.push(metric);
-    
+
     // Sliding window - eski metrikleri sil
     if (this.metrics.length > this.maxMetricsSize) {
       this.metrics = this.metrics.slice(-this.maxMetricsSize / 2);
@@ -43,7 +48,9 @@ export class APMService {
 
     // Slow request detection
     if (metric.responseTimeMs > 1000) {
-      console.warn(`[SLOW REQUEST] ${metric.method} ${metric.path} took ${metric.responseTimeMs}ms`);
+      console.warn(
+        `[SLOW REQUEST] ${metric.method} ${metric.path} took ${metric.responseTimeMs}ms`,
+      );
     }
 
     // Error rate alert
@@ -62,14 +69,19 @@ export class APMService {
     topErrors: Array<{ path: string; statusCode: number; count: number }>;
   } {
     const cutoff = new Date(Date.now() - timeWindowMinutes * 60 * 1000);
-    const recentMetrics = this.metrics.filter(m => m.timestamp >= cutoff);
+    const recentMetrics = this.metrics.filter((m) => m.timestamp >= cutoff);
 
-    const responseTimes = recentMetrics.map(m => m.responseTimeMs).sort((a, b) => a - b);
-    const errorCount = recentMetrics.filter(m => m.statusCode >= 400).length;
+    const responseTimes = recentMetrics
+      .map((m) => m.responseTimeMs)
+      .sort((a, b) => a - b);
+    const errorCount = recentMetrics.filter((m) => m.statusCode >= 400).length;
 
     // Endpoint bazlı analiz
-    const endpointStats = new Map<string, { times: number[]; errors: number }>();
-    
+    const endpointStats = new Map<
+      string,
+      { times: number[]; errors: number }
+    >();
+
     for (const m of recentMetrics) {
       const key = `${m.method} ${m.path}`;
       if (!endpointStats.has(key)) {
@@ -93,7 +105,10 @@ export class APMService {
       .filter(([, stats]) => stats.errors > 0)
       .map(([path, stats]) => ({
         path,
-        statusCode: recentMetrics.find(m => `${m.method} ${m.path}` === path && m.statusCode >= 400)?.statusCode || 500,
+        statusCode:
+          recentMetrics.find(
+            (m) => `${m.method} ${m.path}` === path && m.statusCode >= 400,
+          )?.statusCode || 500,
         count: stats.errors,
       }))
       .sort((a, b) => b.count - a.count)
@@ -101,12 +116,16 @@ export class APMService {
 
     return {
       totalRequests: recentMetrics.length,
-      avgResponseTime: responseTimes.length > 0 
-        ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length 
-        : 0,
+      avgResponseTime:
+        responseTimes.length > 0
+          ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
+          : 0,
       p95ResponseTime: this.percentile(responseTimes, 95),
       p99ResponseTime: this.percentile(responseTimes, 99),
-      errorRate: recentMetrics.length > 0 ? (errorCount / recentMetrics.length) * 100 : 0,
+      errorRate:
+        recentMetrics.length > 0
+          ? (errorCount / recentMetrics.length) * 100
+          : 0,
       topSlowEndpoints: topSlow,
       topErrors: topErrs,
     };
@@ -114,27 +133,48 @@ export class APMService {
 
   getHealthStatus(): {
     status: 'healthy' | 'degraded' | 'unhealthy';
-    checks: Record<string, { status: 'pass' | 'fail' | 'warn'; message: string }>;
+    checks: Record<
+      string,
+      { status: 'pass' | 'fail' | 'warn'; message: string }
+    >;
   } {
     const metrics = this.getMetrics(1); // Last 1 minute
 
-    const checks: Record<string, { status: 'pass' | 'fail' | 'warn'; message: string }> = {
+    const checks: Record<
+      string,
+      { status: 'pass' | 'fail' | 'warn'; message: string }
+    > = {
       responseTime: {
-        status: metrics.avgResponseTime < 200 ? 'pass' : metrics.avgResponseTime < 500 ? 'warn' : 'fail',
+        status:
+          metrics.avgResponseTime < 200
+            ? 'pass'
+            : metrics.avgResponseTime < 500
+              ? 'warn'
+              : 'fail',
         message: `Avg: ${metrics.avgResponseTime.toFixed(0)}ms`,
       },
       errorRate: {
-        status: metrics.errorRate < 1 ? 'pass' : metrics.errorRate < 5 ? 'warn' : 'fail',
+        status:
+          metrics.errorRate < 1
+            ? 'pass'
+            : metrics.errorRate < 5
+              ? 'warn'
+              : 'fail',
         message: `${metrics.errorRate.toFixed(2)}%`,
       },
       memory: {
-        status: this.getMemoryUsage() < 80 ? 'pass' : this.getMemoryUsage() < 90 ? 'warn' : 'fail',
+        status:
+          this.getMemoryUsage() < 80
+            ? 'pass'
+            : this.getMemoryUsage() < 90
+              ? 'warn'
+              : 'fail',
         message: `${this.getMemoryUsage().toFixed(1)}%`,
       },
     };
 
-    const hasFail = Object.values(checks).some(c => c.status === 'fail');
-    const hasWarn = Object.values(checks).some(c => c.status === 'warn');
+    const hasFail = Object.values(checks).some((c) => c.status === 'fail');
+    const hasWarn = Object.values(checks).some((c) => c.status === 'warn');
 
     return {
       status: hasFail ? 'unhealthy' : hasWarn ? 'degraded' : 'healthy',
@@ -144,23 +184,31 @@ export class APMService {
 
   async saveMetricsToDatabase(): Promise<void> {
     const batch = this.metrics.splice(0, 100); // Process in batches
-    
+
     if (batch.length === 0) return;
 
     // Aggregate metrics by hour
-    const hourlyStats = new Map<string, {
-      count: number;
-      totalTime: number;
-      errors: number;
-      path: string;
-    }>();
+    const hourlyStats = new Map<
+      string,
+      {
+        count: number;
+        totalTime: number;
+        errors: number;
+        path: string;
+      }
+    >();
 
     for (const m of batch) {
       const hour = m.timestamp.toISOString().slice(0, 13); // YYYY-MM-DDTHH
       const key = `${hour}:${m.path}`;
 
       if (!hourlyStats.has(key)) {
-        hourlyStats.set(key, { count: 0, totalTime: 0, errors: 0, path: m.path });
+        hourlyStats.set(key, {
+          count: 0,
+          totalTime: 0,
+          errors: 0,
+          path: m.path,
+        });
       }
 
       const stats = hourlyStats.get(key)!;
@@ -189,14 +237,17 @@ export class APMService {
   }
 
   private async checkErrorRate(path: string): Promise<void> {
-    const recent = this.metrics.filter(m => 
-      m.path === path && 
-      m.statusCode >= 500 &&
-      m.timestamp > new Date(Date.now() - 60000) // Last 1 minute
+    const recent = this.metrics.filter(
+      (m) =>
+        m.path === path &&
+        m.statusCode >= 500 &&
+        m.timestamp > new Date(Date.now() - 60000), // Last 1 minute
     );
 
     if (recent.length >= 5) {
-      console.error(`[ERROR ALERT] ${path} - ${recent.length} errors in last minute`);
+      console.error(
+        `[ERROR ALERT] ${path} - ${recent.length} errors in last minute`,
+      );
       // TODO: Send alert to notification service
     }
   }
@@ -231,13 +282,25 @@ export class APMInterceptor implements NestInterceptor {
         },
         error: (error) => {
           const status = error.status || 500;
-          this.recordMetric(request, startTime, startMemory, status, error.message);
+          this.recordMetric(
+            request,
+            startTime,
+            startMemory,
+            status,
+            error.message,
+          );
         },
       }),
     );
   }
 
-  private recordMetric(request: any, startTime: number, startMemory: NodeJS.MemoryUsage, statusCode: number, error?: string): void {
+  private recordMetric(
+    request: any,
+    startTime: number,
+    startMemory: NodeJS.MemoryUsage,
+    statusCode: number,
+    error?: string,
+  ): void {
     const endTime = performance.now();
     const endMemory = process.memoryUsage();
 
@@ -251,8 +314,8 @@ export class APMInterceptor implements NestInterceptor {
       dbQueryTimeMs: this.dbQueryTime,
       memoryUsageMB: (endMemory.heapUsed - startMemory.heapUsed) / 1024 / 1024,
       cpuUsagePercent: process.cpuUsage().user / 1000000,
-      tenantId: request.headers['x-tenant-id'] || (request as any).tenantId,
-      userId: (request as any).user?.id,
+      tenantId: request.headers['x-tenant-id'] || request.tenantId,
+      userId: request.user?.id,
       error,
     });
   }

@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 
 interface TenantLimits {
@@ -68,18 +73,26 @@ export class TenantGuardService {
   /**
    * Tenant'ın kaynak limitlerini kontrol et
    */
-  async checkLimit(tenantId: string, resource: keyof TenantLimits, amount = 1): Promise<boolean> {
+  async checkLimit(
+    tenantId: string,
+    resource: keyof TenantLimits,
+    amount = 1,
+  ): Promise<boolean> {
     const plan = await this.getTenantPlan(tenantId);
     const limit = this.planLimits[plan][resource];
     const usage = await this.getResourceUsage(tenantId, resource);
 
-    return (usage + amount) <= limit;
+    return usage + amount <= limit;
   }
 
   /**
    * Kaynak kullanımını artır
    */
-  async incrementUsage(tenantId: string, resource: keyof TenantLimits, amount = 1): Promise<void> {
+  async incrementUsage(
+    tenantId: string,
+    resource: keyof TenantLimits,
+    amount = 1,
+  ): Promise<void> {
     await this.prisma.tenant.update({
       where: { id: tenantId },
       data: {
@@ -95,7 +108,11 @@ export class TenantGuardService {
   /**
    * Kaynak kullanımını azalt (örn: ürün silindiğinde)
    */
-  async decrementUsage(tenantId: string, resource: keyof TenantLimits, amount = 1): Promise<void> {
+  async decrementUsage(
+    tenantId: string,
+    resource: keyof TenantLimits,
+    amount = 1,
+  ): Promise<void> {
     await this.prisma.tenant.update({
       where: { id: tenantId },
       data: {
@@ -111,10 +128,14 @@ export class TenantGuardService {
   /**
    * Tüm kaynak kullanımını getir
    */
-  async getAllUsage(tenantId: string): Promise<{ used: ResourceUsage; limits: TenantLimits; percentages: Record<string, number> }> {
+  async getAllUsage(tenantId: string): Promise<{
+    used: ResourceUsage;
+    limits: TenantLimits;
+    percentages: Record<string, number>;
+  }> {
     const plan = await this.getTenantPlan(tenantId);
     const limits = this.planLimits[plan];
-    
+
     const used: ResourceUsage = {
       products: await this.getResourceUsage(tenantId, 'products'),
       orders: await this.getResourceUsage(tenantId, 'orders'),
@@ -139,9 +160,19 @@ export class TenantGuardService {
   /**
    * Uyarı gönderilmesi gereken limitler
    */
-  async getAlertThresholds(tenantId: string): Promise<Array<{ resource: string; percentage: number; severity: 'warning' | 'critical' }>> {
+  async getAlertThresholds(tenantId: string): Promise<
+    Array<{
+      resource: string;
+      percentage: number;
+      severity: 'warning' | 'critical';
+    }>
+  > {
     const { percentages } = await this.getAllUsage(tenantId);
-    const alerts: Array<{ resource: string; percentage: number; severity: 'warning' | 'critical' }> = [];
+    const alerts: Array<{
+      resource: string;
+      percentage: number;
+      severity: 'warning' | 'critical';
+    }> = [];
 
     for (const [resource, percentage] of Object.entries(percentages)) {
       if (percentage >= 90) {
@@ -167,7 +198,7 @@ export class TenantGuardService {
       const result = await this.prisma.$transaction(async (tx) => {
         // Tenant context middleware
         await tx.$executeRaw`SET app.current_tenant_id = ${tenantId}`;
-        
+
         return await operation();
       });
 
@@ -181,14 +212,20 @@ export class TenantGuardService {
   /**
    * Tenant'ın diğer tenant'ların verilerine erişimini engelle
    */
-  async validateOwnership(tenantId: string, resourceId: string, resourceType: string): Promise<boolean> {
+  async validateOwnership(
+    tenantId: string,
+    resourceId: string,
+    resourceType: string,
+  ): Promise<boolean> {
     const resource = await this.prisma[resourceType].findUnique({
       where: { id: resourceId },
       select: { tenantId: true },
     });
 
     if (!resource || resource.tenantId !== tenantId) {
-      throw new ForbiddenException(`You do not have access to this ${resourceType}`);
+      throw new ForbiddenException(
+        `You do not have access to this ${resourceType}`,
+      );
     }
 
     return true;
@@ -203,7 +240,10 @@ export class TenantGuardService {
     return tenant?.plan || 'FREE';
   }
 
-  private async getResourceUsage(tenantId: string, resource: keyof TenantLimits): Promise<number> {
+  private async getResourceUsage(
+    tenantId: string,
+    resource: keyof TenantLimits,
+  ): Promise<number> {
     switch (resource) {
       case 'products':
         return this.prisma.product.count({ where: { tenantId } });
@@ -240,18 +280,18 @@ export class TenantResourceGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const tenantId = request.headers['x-tenant-id'] || request.tenantId;
-    
+
     if (!tenantId) {
       throw new ForbiddenException('Tenant ID required');
     }
 
     // Check if tenant is within limits
     const alerts = await this.tenantGuard.getAlertThresholds(tenantId);
-    const critical = alerts.find(a => a.severity === 'critical');
+    const critical = alerts.find((a) => a.severity === 'critical');
 
     if (critical) {
       throw new ForbiddenException(
-        `Resource limit exceeded: ${critical.resource} (${critical.percentage.toFixed(1)}%)`
+        `Resource limit exceeded: ${critical.resource} (${critical.percentage.toFixed(1)}%)`,
       );
     }
 
@@ -263,7 +303,11 @@ export class TenantResourceGuard implements CanActivate {
  * Tenant Isolation Decorator
  */
 export function WithTenantIsolation() {
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor,
+  ) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {

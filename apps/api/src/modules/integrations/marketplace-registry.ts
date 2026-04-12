@@ -3,30 +3,30 @@
 // Dünya ve Türkiye'deki tüm desteklenen pazaryerleri
 // ===========================================
 
-export type PlatformRegion = 
-  | 'TURKEY' 
-  | 'NORTH_AMERICA' 
-  | 'EUROPE' 
-  | 'ASIA_PACIFIC' 
-  | 'LATIN_AMERICA' 
-  | 'MIDDLE_EAST' 
+export type PlatformRegion =
+  | 'TURKEY'
+  | 'NORTH_AMERICA'
+  | 'EUROPE'
+  | 'ASIA_PACIFIC'
+  | 'LATIN_AMERICA'
+  | 'MIDDLE_EAST'
   | 'GLOBAL';
 
-export type PlatformCategory = 
-  | 'GENERAL' 
-  | 'FASHION' 
-  | 'ELECTRONICS' 
-  | 'HOME_GARDEN' 
-  | 'HANDMADE' 
-  | 'B2B' 
-  | 'WHOLESALE' 
+export type PlatformCategory =
+  | 'GENERAL'
+  | 'FASHION'
+  | 'ELECTRONICS'
+  | 'HOME_GARDEN'
+  | 'HANDMADE'
+  | 'B2B'
+  | 'WHOLESALE'
   | 'ECOMMERCE';
 
-export type SubscriptionPlan = 
-  | 'FREE' 
-  | 'STARTER' 
-  | 'PROFESSIONAL' 
-  | 'ENTERPRISE' 
+export type SubscriptionPlan =
+  | 'FREE'
+  | 'STARTER'
+  | 'PROFESSIONAL'
+  | 'ENTERPRISE'
   | 'CUSTOM';
 
 export interface MarketplaceConfig {
@@ -40,13 +40,13 @@ export interface MarketplaceConfig {
   category: PlatformCategory;
   description: string;
   website: string;
-  
+
   // API Konfigürasyonu
   apiType: 'REST' | 'SOAP' | 'GRAPHQL' | 'WEBHOOK';
   authType: 'API_KEY' | 'OAUTH2' | 'BASIC' | 'TOKEN' | 'SIGNATURE';
   sandboxAvailable: boolean;
   apiDocumentation: string;
-  
+
   // Özellikler
   features: {
     productSync: boolean;
@@ -60,23 +60,23 @@ export interface MarketplaceConfig {
     fulfillmentService: boolean;
     multiWarehouse: boolean;
   };
-  
+
   // Gerekli Alanlar (Bağlantı için)
   requiredFields: MarketplaceField[];
-  
+
   // Paket Gereksinimleri
   minimumPlan: SubscriptionPlan;
-  
+
   // Durum
   status: 'ACTIVE' | 'BETA' | 'COMING_SOON' | 'DEPRECATED';
   popularity: number; // 1-100
-  
+
   // Komisyon Bilgisi
   commissionRange?: string;
-  
+
   // Renk Teması
   brandColor: string;
-  
+
   // Ek Bilgiler
   monthlyVisitors?: string;
   sellerCount?: string;
@@ -111,7 +111,8 @@ const turkeyMarketplaces: MarketplaceConfig[] = [
     country: 'Türkiye',
     countryCode: 'TR',
     category: 'GENERAL',
-    description: 'Türkiye\'nin en büyük e-ticaret platformu. Moda, elektronik, ev & yaşam kategorilerinde milyonlarca ürün.',
+    description:
+      "Türkiye'nin en büyük e-ticaret platformu. Moda, elektronik, ev & yaşam kategorilerinde milyonlarca ürün.",
     website: 'https://www.trendyol.com',
     apiType: 'REST',
     authType: 'TOKEN',
@@ -130,9 +131,25 @@ const turkeyMarketplaces: MarketplaceConfig[] = [
       multiWarehouse: true,
     },
     requiredFields: [
-      { key: 'supplierId', label: 'Satıcı ID', type: 'text', required: true, placeholder: '100000' },
-      { key: 'apiKey', label: 'API Anahtarı', type: 'password', required: true },
-      { key: 'apiSecret', label: 'API Secret', type: 'password', required: true },
+      {
+        key: 'supplierId',
+        label: 'Satıcı ID',
+        type: 'text',
+        required: true,
+        placeholder: '100000',
+      },
+      {
+        key: 'apiKey',
+        label: 'API Anahtarı',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'apiSecret',
+        label: 'API Secret',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'FREE',
     status: 'ACTIVE',
@@ -151,7 +168,8 @@ const turkeyMarketplaces: MarketplaceConfig[] = [
     country: 'Türkiye',
     countryCode: 'TR',
     category: 'GENERAL',
-    description: 'Türkiye\'nin lider e-ticaret platformlarından biri. Geniş ürün yelpazesi ve güçlü lojistik altyapısı.',
+    description:
+      "Türkiye'nin lider e-ticaret platformlarından biri. Geniş ürün yelpazesi ve güçlü lojistik altyapısı.",
     website: 'https://www.hepsiburada.com',
     apiType: 'REST',
     authType: 'OAUTH2',
@@ -191,7 +209,8 @@ const turkeyMarketplaces: MarketplaceConfig[] = [
     country: 'Türkiye',
     countryCode: 'TR',
     category: 'GENERAL',
-    description: 'Türkiye\'nin öncü online alışveriş platformlarından biri. SK Planet ve Doğuş Grubu ortaklığı.',
+    description:
+      "Türkiye'nin öncü online alışveriş platformlarından biri. SK Planet ve Doğuş Grubu ortaklığı.",
     website: 'https://www.n11.com',
     apiType: 'SOAP',
     authType: 'API_KEY',
@@ -211,7 +230,12 @@ const turkeyMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'apiKey', label: 'API Key', type: 'password', required: true },
-      { key: 'apiSecret', label: 'API Secret', type: 'password', required: true },
+      {
+        key: 'apiSecret',
+        label: 'API Secret',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'FREE',
     status: 'ACTIVE',
@@ -230,7 +254,8 @@ const turkeyMarketplaces: MarketplaceConfig[] = [
     country: 'Türkiye',
     countryCode: 'TR',
     category: 'GENERAL',
-    description: 'eBay Türkiye partneri. Açık artırma ve sabit fiyat satış modelleri.',
+    description:
+      'eBay Türkiye partneri. Açık artırma ve sabit fiyat satış modelleri.',
     website: 'https://www.gittigidiyor.com',
     apiType: 'REST',
     authType: 'TOKEN',
@@ -250,7 +275,12 @@ const turkeyMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'apiKey', label: 'API Key', type: 'password', required: true },
-      { key: 'secretKey', label: 'Secret Key', type: 'password', required: true },
+      {
+        key: 'secretKey',
+        label: 'Secret Key',
+        type: 'password',
+        required: true,
+      },
       { key: 'nick', label: 'Satıcı Nick', type: 'text', required: true },
     ],
     minimumPlan: 'STARTER',
@@ -290,9 +320,24 @@ const turkeyMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'sellerId', label: 'Seller ID', type: 'text', required: true },
-      { key: 'mwsAuthToken', label: 'MWS Auth Token', type: 'password', required: true },
-      { key: 'accessKeyId', label: 'Access Key ID', type: 'password', required: true },
-      { key: 'secretKey', label: 'Secret Key', type: 'password', required: true },
+      {
+        key: 'mwsAuthToken',
+        label: 'MWS Auth Token',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'accessKeyId',
+        label: 'Access Key ID',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'secretKey',
+        label: 'Secret Key',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'STARTER',
     status: 'ACTIVE',
@@ -311,7 +356,8 @@ const turkeyMarketplaces: MarketplaceConfig[] = [
     country: 'Türkiye',
     countryCode: 'TR',
     category: 'GENERAL',
-    description: 'Çiçek, hediye ve yaşam ürünlerinde Türkiye\'nin lider platformu.',
+    description:
+      "Çiçek, hediye ve yaşam ürünlerinde Türkiye'nin lider platformu.",
     website: 'https://www.ciceksepeti.com',
     apiType: 'REST',
     authType: 'API_KEY',
@@ -331,7 +377,12 @@ const turkeyMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'apiKey', label: 'API Key', type: 'password', required: true },
-      { key: 'supplierId', label: 'Tedarikçi ID', type: 'text', required: true },
+      {
+        key: 'supplierId',
+        label: 'Tedarikçi ID',
+        type: 'text',
+        required: true,
+      },
     ],
     minimumPlan: 'STARTER',
     status: 'ACTIVE',
@@ -350,7 +401,7 @@ const turkeyMarketplaces: MarketplaceConfig[] = [
     country: 'Türkiye',
     countryCode: 'TR',
     category: 'GENERAL',
-    description: 'PTT\'nin e-ticaret platformu. Güvenilir lojistik altyapısı.',
+    description: "PTT'nin e-ticaret platformu. Güvenilir lojistik altyapısı.",
     website: 'https://www.pttavm.com',
     apiType: 'REST',
     authType: 'TOKEN',
@@ -370,7 +421,12 @@ const turkeyMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'shopId', label: 'Mağaza ID', type: 'text', required: true },
-      { key: 'apiKey', label: 'API Anahtarı', type: 'password', required: true },
+      {
+        key: 'apiKey',
+        label: 'API Anahtarı',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'FREE',
     status: 'ACTIVE',
@@ -389,7 +445,8 @@ const turkeyMarketplaces: MarketplaceConfig[] = [
     country: 'Türkiye',
     countryCode: 'TR',
     category: 'FASHION',
-    description: 'Boyner Grup\'un özel alışveriş kulübü. Moda ve yaşam ürünleri.',
+    description:
+      "Boyner Grup'un özel alışveriş kulübü. Moda ve yaşam ürünleri.",
     website: 'https://www.morhipo.com',
     apiType: 'REST',
     authType: 'API_KEY',
@@ -428,7 +485,7 @@ const turkeyMarketplaces: MarketplaceConfig[] = [
     country: 'Türkiye',
     countryCode: 'TR',
     category: 'FASHION',
-    description: 'Türkiye\'nin önde gelen hazır giyim markası ve marketplace\'i.',
+    description: "Türkiye'nin önde gelen hazır giyim markası ve marketplace'i.",
     website: 'https://www.lcwaikiki.com',
     apiType: 'REST',
     authType: 'API_KEY',
@@ -474,7 +531,8 @@ const amazonMarketplaces: MarketplaceConfig[] = [
     country: 'Amerika Birleşik Devletleri',
     countryCode: 'US',
     category: 'GENERAL',
-    description: 'Dünyanın en büyük e-ticaret platformu. Milyonlarca aktif müşteri.',
+    description:
+      'Dünyanın en büyük e-ticaret platformu. Milyonlarca aktif müşteri.',
     website: 'https://www.amazon.com',
     apiType: 'REST',
     authType: 'OAUTH2',
@@ -494,12 +552,26 @@ const amazonMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'sellerId', label: 'Seller ID', type: 'text', required: true },
-      { key: 'refreshToken', label: 'Refresh Token', type: 'password', required: true },
+      {
+        key: 'refreshToken',
+        label: 'Refresh Token',
+        type: 'password',
+        required: true,
+      },
       { key: 'clientId', label: 'Client ID', type: 'text', required: true },
-      { key: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
-      { key: 'region', label: 'Bölge', type: 'select', required: true, options: [
-        { value: 'na', label: 'North America' },
-      ]},
+      {
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'region',
+        label: 'Bölge',
+        type: 'select',
+        required: true,
+        options: [{ value: 'na', label: 'North America' }],
+      },
     ],
     minimumPlan: 'PROFESSIONAL',
     status: 'ACTIVE',
@@ -518,7 +590,7 @@ const amazonMarketplaces: MarketplaceConfig[] = [
     country: 'Birleşik Krallık',
     countryCode: 'GB',
     category: 'GENERAL',
-    description: 'Amazon\'un Avrupa\'daki en büyük pazarı.',
+    description: "Amazon'un Avrupa'daki en büyük pazarı.",
     website: 'https://www.amazon.co.uk',
     apiType: 'REST',
     authType: 'OAUTH2',
@@ -538,9 +610,19 @@ const amazonMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'sellerId', label: 'Seller ID', type: 'text', required: true },
-      { key: 'refreshToken', label: 'Refresh Token', type: 'password', required: true },
+      {
+        key: 'refreshToken',
+        label: 'Refresh Token',
+        type: 'password',
+        required: true,
+      },
       { key: 'clientId', label: 'Client ID', type: 'text', required: true },
-      { key: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
+      {
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'PROFESSIONAL',
     status: 'ACTIVE',
@@ -559,7 +641,7 @@ const amazonMarketplaces: MarketplaceConfig[] = [
     country: 'Almanya',
     countryCode: 'DE',
     category: 'GENERAL',
-    description: 'Amazon\'un Avrupa\'daki en büyük ikinci pazarı.',
+    description: "Amazon'un Avrupa'daki en büyük ikinci pazarı.",
     website: 'https://www.amazon.de',
     apiType: 'REST',
     authType: 'OAUTH2',
@@ -579,9 +661,19 @@ const amazonMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'sellerId', label: 'Seller ID', type: 'text', required: true },
-      { key: 'refreshToken', label: 'Refresh Token', type: 'password', required: true },
+      {
+        key: 'refreshToken',
+        label: 'Refresh Token',
+        type: 'password',
+        required: true,
+      },
       { key: 'clientId', label: 'Client ID', type: 'text', required: true },
-      { key: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
+      {
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'PROFESSIONAL',
     status: 'ACTIVE',
@@ -626,10 +718,25 @@ const ebayMarketplaces: MarketplaceConfig[] = [
       multiWarehouse: false,
     },
     requiredFields: [
-      { key: 'clientId', label: 'Client ID (App ID)', type: 'text', required: true },
-      { key: 'clientSecret', label: 'Client Secret (Cert ID)', type: 'password', required: true },
+      {
+        key: 'clientId',
+        label: 'Client ID (App ID)',
+        type: 'text',
+        required: true,
+      },
+      {
+        key: 'clientSecret',
+        label: 'Client Secret (Cert ID)',
+        type: 'password',
+        required: true,
+      },
       { key: 'devId', label: 'Dev ID', type: 'text', required: true },
-      { key: 'refreshToken', label: 'Refresh Token', type: 'password', required: true },
+      {
+        key: 'refreshToken',
+        label: 'Refresh Token',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'STARTER',
     status: 'ACTIVE',
@@ -648,7 +755,7 @@ const ebayMarketplaces: MarketplaceConfig[] = [
     country: 'Birleşik Krallık',
     countryCode: 'GB',
     category: 'GENERAL',
-    description: 'eBay\'in Avrupa\'daki en büyük pazarı.',
+    description: "eBay'in Avrupa'daki en büyük pazarı.",
     website: 'https://www.ebay.co.uk',
     apiType: 'REST',
     authType: 'OAUTH2',
@@ -668,8 +775,18 @@ const ebayMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'clientId', label: 'Client ID', type: 'text', required: true },
-      { key: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
-      { key: 'refreshToken', label: 'Refresh Token', type: 'password', required: true },
+      {
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'refreshToken',
+        label: 'Refresh Token',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'STARTER',
     status: 'ACTIVE',
@@ -688,7 +805,7 @@ const ebayMarketplaces: MarketplaceConfig[] = [
     country: 'Almanya',
     countryCode: 'DE',
     category: 'GENERAL',
-    description: 'eBay\'in Almanya pazarı.',
+    description: "eBay'in Almanya pazarı.",
     website: 'https://www.ebay.de',
     apiType: 'REST',
     authType: 'OAUTH2',
@@ -708,8 +825,18 @@ const ebayMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'clientId', label: 'Client ID', type: 'text', required: true },
-      { key: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
-      { key: 'refreshToken', label: 'Refresh Token', type: 'password', required: true },
+      {
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'refreshToken',
+        label: 'Refresh Token',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'STARTER',
     status: 'ACTIVE',
@@ -735,7 +862,8 @@ const asiaPacificMarketplaces: MarketplaceConfig[] = [
     country: 'Çin (Global)',
     countryCode: 'CN',
     category: 'GENERAL',
-    description: 'Alibaba\'nın global B2C platformu. Dünya çapında satış imkanı.',
+    description:
+      "Alibaba'nın global B2C platformu. Dünya çapında satış imkanı.",
     website: 'https://www.aliexpress.com',
     apiType: 'REST',
     authType: 'OAUTH2',
@@ -755,8 +883,18 @@ const asiaPacificMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'appKey', label: 'App Key', type: 'text', required: true },
-      { key: 'appSecret', label: 'App Secret', type: 'password', required: true },
-      { key: 'accessToken', label: 'Access Token', type: 'password', required: true },
+      {
+        key: 'appSecret',
+        label: 'App Secret',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'accessToken',
+        label: 'Access Token',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'PROFESSIONAL',
     status: 'ACTIVE',
@@ -795,7 +933,12 @@ const asiaPacificMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'appKey', label: 'App Key', type: 'text', required: true },
-      { key: 'appSecret', label: 'App Secret', type: 'password', required: true },
+      {
+        key: 'appSecret',
+        label: 'App Secret',
+        type: 'password',
+        required: true,
+      },
       { key: 'memberId', label: 'Member ID', type: 'text', required: true },
     ],
     minimumPlan: 'ENTERPRISE',
@@ -815,7 +958,7 @@ const asiaPacificMarketplaces: MarketplaceConfig[] = [
     country: 'Singapur',
     countryCode: 'SG',
     category: 'GENERAL',
-    description: 'Güneydoğu Asya\'nın lider e-ticaret platformu.',
+    description: "Güneydoğu Asya'nın lider e-ticaret platformu.",
     website: 'https://shopee.sg',
     apiType: 'REST',
     authType: 'OAUTH2',
@@ -835,9 +978,19 @@ const asiaPacificMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'partnerId', label: 'Partner ID', type: 'text', required: true },
-      { key: 'partnerKey', label: 'Partner Key', type: 'password', required: true },
+      {
+        key: 'partnerKey',
+        label: 'Partner Key',
+        type: 'password',
+        required: true,
+      },
       { key: 'shopId', label: 'Shop ID', type: 'text', required: true },
-      { key: 'accessToken', label: 'Access Token', type: 'password', required: true },
+      {
+        key: 'accessToken',
+        label: 'Access Token',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'PROFESSIONAL',
     status: 'ACTIVE',
@@ -856,7 +1009,7 @@ const asiaPacificMarketplaces: MarketplaceConfig[] = [
     country: 'Singapur',
     countryCode: 'SG',
     category: 'GENERAL',
-    description: 'Alibaba\'nın Güneydoğu Asya e-ticaret platformu.',
+    description: "Alibaba'nın Güneydoğu Asya e-ticaret platformu.",
     website: 'https://www.lazada.sg',
     apiType: 'REST',
     authType: 'OAUTH2',
@@ -876,8 +1029,18 @@ const asiaPacificMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'appKey', label: 'App Key', type: 'text', required: true },
-      { key: 'appSecret', label: 'App Secret', type: 'password', required: true },
-      { key: 'accessToken', label: 'Access Token', type: 'password', required: true },
+      {
+        key: 'appSecret',
+        label: 'App Secret',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'accessToken',
+        label: 'Access Token',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'PROFESSIONAL',
     status: 'ACTIVE',
@@ -896,7 +1059,7 @@ const asiaPacificMarketplaces: MarketplaceConfig[] = [
     country: 'Japonya',
     countryCode: 'JP',
     category: 'GENERAL',
-    description: 'Japonya\'nın en büyük e-ticaret platformu.',
+    description: "Japonya'nın en büyük e-ticaret platformu.",
     website: 'https://www.rakuten.co.jp',
     apiType: 'REST',
     authType: 'API_KEY',
@@ -915,8 +1078,18 @@ const asiaPacificMarketplaces: MarketplaceConfig[] = [
       multiWarehouse: false,
     },
     requiredFields: [
-      { key: 'serviceSecret', label: 'Service Secret', type: 'password', required: true },
-      { key: 'licenseKey', label: 'License Key', type: 'password', required: true },
+      {
+        key: 'serviceSecret',
+        label: 'Service Secret',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'licenseKey',
+        label: 'License Key',
+        type: 'password',
+        required: true,
+      },
       { key: 'shopUrl', label: 'Shop URL', type: 'text', required: true },
     ],
     minimumPlan: 'ENTERPRISE',
@@ -943,7 +1116,7 @@ const europeMarketplaces: MarketplaceConfig[] = [
     country: 'Almanya (Pan-Avrupa)',
     countryCode: 'DE',
     category: 'FASHION',
-    description: 'Avrupa\'nın lider online moda platformu. 25+ ülkede faaliyet.',
+    description: "Avrupa'nın lider online moda platformu. 25+ ülkede faaliyet.",
     website: 'https://www.zalando.com',
     apiType: 'REST',
     authType: 'OAUTH2',
@@ -963,7 +1136,12 @@ const europeMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'clientId', label: 'Client ID', type: 'text', required: true },
-      { key: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
+      {
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        required: true,
+      },
       { key: 'merchantId', label: 'Merchant ID', type: 'text', required: true },
     ],
     minimumPlan: 'ENTERPRISE',
@@ -983,7 +1161,7 @@ const europeMarketplaces: MarketplaceConfig[] = [
     country: 'Polonya',
     countryCode: 'PL',
     category: 'GENERAL',
-    description: 'Polonya\'nın en büyük e-ticaret platformu.',
+    description: "Polonya'nın en büyük e-ticaret platformu.",
     website: 'https://allegro.pl',
     apiType: 'REST',
     authType: 'OAUTH2',
@@ -1003,8 +1181,18 @@ const europeMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'clientId', label: 'Client ID', type: 'text', required: true },
-      { key: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
-      { key: 'refreshToken', label: 'Refresh Token', type: 'password', required: true },
+      {
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'refreshToken',
+        label: 'Refresh Token',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'PROFESSIONAL',
     status: 'ACTIVE',
@@ -1043,7 +1231,12 @@ const europeMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'clientId', label: 'Client ID', type: 'text', required: true },
-      { key: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
+      {
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'PROFESSIONAL',
     status: 'ACTIVE',
@@ -1062,7 +1255,7 @@ const europeMarketplaces: MarketplaceConfig[] = [
     country: 'Fransa',
     countryCode: 'FR',
     category: 'GENERAL',
-    description: 'Fransa\'nın en büyük yerli e-ticaret platformu.',
+    description: "Fransa'nın en büyük yerli e-ticaret platformu.",
     website: 'https://www.cdiscount.com',
     apiType: 'REST',
     authType: 'API_KEY',
@@ -1101,7 +1294,7 @@ const europeMarketplaces: MarketplaceConfig[] = [
     country: 'Almanya',
     countryCode: 'DE',
     category: 'GENERAL',
-    description: 'Almanya\'nın ikinci büyük online perakende platformu.',
+    description: "Almanya'nın ikinci büyük online perakende platformu.",
     website: 'https://www.otto.de',
     apiType: 'REST',
     authType: 'OAUTH2',
@@ -1121,7 +1314,12 @@ const europeMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'clientId', label: 'Client ID', type: 'text', required: true },
-      { key: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
+      {
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'ENTERPRISE',
     status: 'ACTIVE',
@@ -1147,7 +1345,7 @@ const latinAmericaMarketplaces: MarketplaceConfig[] = [
     country: 'Meksika',
     countryCode: 'MX',
     category: 'GENERAL',
-    description: 'Latin Amerika\'nın en büyük e-ticaret platformu.',
+    description: "Latin Amerika'nın en büyük e-ticaret platformu.",
     website: 'https://www.mercadolibre.com.mx',
     apiType: 'REST',
     authType: 'OAUTH2',
@@ -1167,8 +1365,18 @@ const latinAmericaMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'clientId', label: 'Client ID', type: 'text', required: true },
-      { key: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
-      { key: 'refreshToken', label: 'Refresh Token', type: 'password', required: true },
+      {
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'refreshToken',
+        label: 'Refresh Token',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'PROFESSIONAL',
     status: 'ACTIVE',
@@ -1187,7 +1395,7 @@ const latinAmericaMarketplaces: MarketplaceConfig[] = [
     country: 'Brezilya',
     countryCode: 'BR',
     category: 'GENERAL',
-    description: 'Brezilya\'nın en büyük e-ticaret platformu.',
+    description: "Brezilya'nın en büyük e-ticaret platformu.",
     website: 'https://www.mercadolivre.com.br',
     apiType: 'REST',
     authType: 'OAUTH2',
@@ -1207,8 +1415,18 @@ const latinAmericaMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'clientId', label: 'Client ID', type: 'text', required: true },
-      { key: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
-      { key: 'refreshToken', label: 'Refresh Token', type: 'password', required: true },
+      {
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'refreshToken',
+        label: 'Refresh Token',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'PROFESSIONAL',
     status: 'ACTIVE',
@@ -1254,7 +1472,12 @@ const northAmericaMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'clientId', label: 'Client ID', type: 'text', required: true },
-      { key: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
+      {
+        key: 'clientSecret',
+        label: 'Client Secret',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'ENTERPRISE',
     status: 'ACTIVE',
@@ -1293,9 +1516,24 @@ const northAmericaMarketplaces: MarketplaceConfig[] = [
     },
     requiredFields: [
       { key: 'keystring', label: 'Keystring', type: 'text', required: true },
-      { key: 'sharedSecret', label: 'Shared Secret', type: 'password', required: true },
-      { key: 'accessToken', label: 'Access Token', type: 'password', required: true },
-      { key: 'accessTokenSecret', label: 'Access Token Secret', type: 'password', required: true },
+      {
+        key: 'sharedSecret',
+        label: 'Shared Secret',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'accessToken',
+        label: 'Access Token',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'accessTokenSecret',
+        label: 'Access Token Secret',
+        type: 'password',
+        required: true,
+      },
       { key: 'shopId', label: 'Shop ID', type: 'text', required: true },
     ],
     minimumPlan: 'STARTER',
@@ -1315,7 +1553,7 @@ const northAmericaMarketplaces: MarketplaceConfig[] = [
     country: 'Amerika Birleşik Devletleri',
     countryCode: 'US',
     category: 'HOME_GARDEN',
-    description: 'Ev ve mobilya kategorisinde Amerika\'nın lider platformu.',
+    description: "Ev ve mobilya kategorisinde Amerika'nın lider platformu.",
     website: 'https://www.wayfair.com',
     apiType: 'REST',
     authType: 'API_KEY',
@@ -1380,8 +1618,19 @@ const ecommercePlatforms: MarketplaceConfig[] = [
       multiWarehouse: true,
     },
     requiredFields: [
-      { key: 'shopDomain', label: 'Mağaza Domain', type: 'text', required: true, placeholder: 'yourstore.myshopify.com' },
-      { key: 'accessToken', label: 'Access Token', type: 'password', required: true },
+      {
+        key: 'shopDomain',
+        label: 'Mağaza Domain',
+        type: 'text',
+        required: true,
+        placeholder: 'yourstore.myshopify.com',
+      },
+      {
+        key: 'accessToken',
+        label: 'Access Token',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'STARTER',
     status: 'ACTIVE',
@@ -1405,7 +1654,8 @@ const ecommercePlatforms: MarketplaceConfig[] = [
     apiType: 'REST',
     authType: 'BASIC',
     sandboxAvailable: true,
-    apiDocumentation: 'https://woocommerce.github.io/woocommerce-rest-api-docs/',
+    apiDocumentation:
+      'https://woocommerce.github.io/woocommerce-rest-api-docs/',
     features: {
       productSync: true,
       orderSync: true,
@@ -1419,9 +1669,25 @@ const ecommercePlatforms: MarketplaceConfig[] = [
       multiWarehouse: false,
     },
     requiredFields: [
-      { key: 'siteUrl', label: 'Site URL', type: 'url', required: true, placeholder: 'https://yourstore.com' },
-      { key: 'consumerKey', label: 'Consumer Key', type: 'password', required: true },
-      { key: 'consumerSecret', label: 'Consumer Secret', type: 'password', required: true },
+      {
+        key: 'siteUrl',
+        label: 'Site URL',
+        type: 'url',
+        required: true,
+        placeholder: 'https://yourstore.com',
+      },
+      {
+        key: 'consumerKey',
+        label: 'Consumer Key',
+        type: 'password',
+        required: true,
+      },
+      {
+        key: 'consumerSecret',
+        label: 'Consumer Secret',
+        type: 'password',
+        required: true,
+      },
     ],
     minimumPlan: 'FREE',
     status: 'ACTIVE',
@@ -1449,10 +1715,20 @@ export const ALL_MARKETPLACES: MarketplaceConfig[] = [
 ];
 
 // Bölgeye göre grupla
-export const MARKETPLACES_BY_REGION: Record<PlatformRegion, MarketplaceConfig[]> = {
+export const MARKETPLACES_BY_REGION: Record<
+  PlatformRegion,
+  MarketplaceConfig[]
+> = {
   TURKEY: turkeyMarketplaces,
-  NORTH_AMERICA: [...amazonMarketplaces.filter(m => m.region === 'NORTH_AMERICA'), ...northAmericaMarketplaces],
-  EUROPE: [...amazonMarketplaces.filter(m => m.region === 'EUROPE'), ...ebayMarketplaces.filter(m => m.region === 'EUROPE'), ...europeMarketplaces],
+  NORTH_AMERICA: [
+    ...amazonMarketplaces.filter((m) => m.region === 'NORTH_AMERICA'),
+    ...northAmericaMarketplaces,
+  ],
+  EUROPE: [
+    ...amazonMarketplaces.filter((m) => m.region === 'EUROPE'),
+    ...ebayMarketplaces.filter((m) => m.region === 'EUROPE'),
+    ...europeMarketplaces,
+  ],
   ASIA_PACIFIC: asiaPacificMarketplaces,
   LATIN_AMERICA: latinAmericaMarketplaces,
   MIDDLE_EAST: [],
@@ -1460,56 +1736,79 @@ export const MARKETPLACES_BY_REGION: Record<PlatformRegion, MarketplaceConfig[]>
 };
 
 // Kategoriye göre grupla
-export const MARKETPLACES_BY_CATEGORY: Record<PlatformCategory, MarketplaceConfig[]> = {
-  GENERAL: ALL_MARKETPLACES.filter(m => m.category === 'GENERAL'),
-  FASHION: ALL_MARKETPLACES.filter(m => m.category === 'FASHION'),
-  ELECTRONICS: ALL_MARKETPLACES.filter(m => m.category === 'ELECTRONICS'),
-  HOME_GARDEN: ALL_MARKETPLACES.filter(m => m.category === 'HOME_GARDEN'),
-  HANDMADE: ALL_MARKETPLACES.filter(m => m.category === 'HANDMADE'),
-  B2B: ALL_MARKETPLACES.filter(m => m.category === 'B2B'),
-  WHOLESALE: ALL_MARKETPLACES.filter(m => m.category === 'WHOLESALE'),
-  ECOMMERCE: ALL_MARKETPLACES.filter(m => m.category === 'ECOMMERCE'),
+export const MARKETPLACES_BY_CATEGORY: Record<
+  PlatformCategory,
+  MarketplaceConfig[]
+> = {
+  GENERAL: ALL_MARKETPLACES.filter((m) => m.category === 'GENERAL'),
+  FASHION: ALL_MARKETPLACES.filter((m) => m.category === 'FASHION'),
+  ELECTRONICS: ALL_MARKETPLACES.filter((m) => m.category === 'ELECTRONICS'),
+  HOME_GARDEN: ALL_MARKETPLACES.filter((m) => m.category === 'HOME_GARDEN'),
+  HANDMADE: ALL_MARKETPLACES.filter((m) => m.category === 'HANDMADE'),
+  B2B: ALL_MARKETPLACES.filter((m) => m.category === 'B2B'),
+  WHOLESALE: ALL_MARKETPLACES.filter((m) => m.category === 'WHOLESALE'),
+  ECOMMERCE: ALL_MARKETPLACES.filter((m) => m.category === 'ECOMMERCE'),
 };
 
 // Paket bazlı erişim
-export const MARKETPLACES_BY_PLAN: Record<SubscriptionPlan, MarketplaceConfig[]> = {
-  FREE: ALL_MARKETPLACES.filter(m => m.minimumPlan === 'FREE'),
-  STARTER: ALL_MARKETPLACES.filter(m => ['FREE', 'STARTER'].includes(m.minimumPlan)),
-  PROFESSIONAL: ALL_MARKETPLACES.filter(m => ['FREE', 'STARTER', 'PROFESSIONAL'].includes(m.minimumPlan)),
+export const MARKETPLACES_BY_PLAN: Record<
+  SubscriptionPlan,
+  MarketplaceConfig[]
+> = {
+  FREE: ALL_MARKETPLACES.filter((m) => m.minimumPlan === 'FREE'),
+  STARTER: ALL_MARKETPLACES.filter((m) =>
+    ['FREE', 'STARTER'].includes(m.minimumPlan),
+  ),
+  PROFESSIONAL: ALL_MARKETPLACES.filter((m) =>
+    ['FREE', 'STARTER', 'PROFESSIONAL'].includes(m.minimumPlan),
+  ),
   ENTERPRISE: ALL_MARKETPLACES,
   CUSTOM: ALL_MARKETPLACES,
 };
 
 // Helper fonksiyonlar
 export function getMarketplaceById(id: string): MarketplaceConfig | undefined {
-  return ALL_MARKETPLACES.find(m => m.id === id);
+  return ALL_MARKETPLACES.find((m) => m.id === id);
 }
 
-export function getMarketplacesByRegion(region: PlatformRegion): MarketplaceConfig[] {
+export function getMarketplacesByRegion(
+  region: PlatformRegion,
+): MarketplaceConfig[] {
   return MARKETPLACES_BY_REGION[region] || [];
 }
 
-export function getMarketplacesByPlan(plan: SubscriptionPlan): MarketplaceConfig[] {
+export function getMarketplacesByPlan(
+  plan: SubscriptionPlan,
+): MarketplaceConfig[] {
   return MARKETPLACES_BY_PLAN[plan] || [];
 }
 
-export function canAccessMarketplace(marketplace: MarketplaceConfig, userPlan: SubscriptionPlan): boolean {
-  const planHierarchy: SubscriptionPlan[] = ['FREE', 'STARTER', 'PROFESSIONAL', 'ENTERPRISE', 'CUSTOM'];
+export function canAccessMarketplace(
+  marketplace: MarketplaceConfig,
+  userPlan: SubscriptionPlan,
+): boolean {
+  const planHierarchy: SubscriptionPlan[] = [
+    'FREE',
+    'STARTER',
+    'PROFESSIONAL',
+    'ENTERPRISE',
+    'CUSTOM',
+  ];
   const userPlanIndex = planHierarchy.indexOf(userPlan);
   const requiredPlanIndex = planHierarchy.indexOf(marketplace.minimumPlan);
   return userPlanIndex >= requiredPlanIndex;
 }
 
 export function getActiveMarketplaces(): MarketplaceConfig[] {
-  return ALL_MARKETPLACES.filter(m => m.status === 'ACTIVE');
+  return ALL_MARKETPLACES.filter((m) => m.status === 'ACTIVE');
 }
 
 export function getBetaMarketplaces(): MarketplaceConfig[] {
-  return ALL_MARKETPLACES.filter(m => m.status === 'BETA');
+  return ALL_MARKETPLACES.filter((m) => m.status === 'BETA');
 }
 
 export function getComingSoonMarketplaces(): MarketplaceConfig[] {
-  return ALL_MARKETPLACES.filter(m => m.status === 'COMING_SOON');
+  return ALL_MARKETPLACES.filter((m) => m.status === 'COMING_SOON');
 }
 
 // Bölge isimleri (Türkçe)

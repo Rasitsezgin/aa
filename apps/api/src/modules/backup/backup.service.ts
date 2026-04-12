@@ -114,7 +114,11 @@ export class BackupService {
 
     const schedule = await (this.prisma as any).backupSchedule.create({
       data: {
-        tenant: { connect: { id: (this.prisma as any).currentTenantId || 'default-tenant-id' } }, // Assuming tenantId context or similar
+        tenant: {
+          connect: {
+            id: (this.prisma as any).currentTenantId || 'default-tenant-id',
+          },
+        }, // Assuming tenantId context or similar
         name,
         type,
         frequency,
@@ -223,7 +227,11 @@ export class BackupService {
         retentionDays,
         expiresAt: new Date(Date.now() + retentionDays * 24 * 60 * 60 * 1000),
         estimatedRestoreTimeMs: this.estimateRestoreTime(type, databases),
-        tenant: { connect: { id: (this.prisma as any).currentTenantId || 'default-tenant-id' } },
+        tenant: {
+          connect: {
+            id: (this.prisma as any).currentTenantId || 'default-tenant-id',
+          },
+        },
       },
     });
 
@@ -275,10 +283,14 @@ export class BackupService {
       take: 100,
     });
 
-    const totalSize = allBackups.reduce((sum, b) => sum + (Number(b.compressedSize) || 0), 0);
-    const avgDuration = allBackups
-      .filter(b => b.duration)
-      .reduce((sum, b) => sum + (b.duration || 0), 0) / allBackups.length;
+    const totalSize = allBackups.reduce(
+      (sum, b) => sum + (Number(b.compressedSize) || 0),
+      0,
+    );
+    const avgDuration =
+      allBackups
+        .filter((b) => b.duration)
+        .reduce((sum, b) => sum + (b.duration || 0), 0) / allBackups.length;
 
     return {
       totalBackups,
@@ -288,7 +300,11 @@ export class BackupService {
       totalSize,
       averageDurationMs: avgDuration,
       totalCompressedSize: totalSize,
-      averageCompressionRatio: allBackups.reduce((sum, b) => sum + (Number(b.compressionRatio) || 0), 0) / allBackups.length,
+      averageCompressionRatio:
+        allBackups.reduce(
+          (sum, b) => sum + (Number(b.compressionRatio) || 0),
+          0,
+        ) / allBackups.length,
     };
   }
 
@@ -302,12 +318,15 @@ export class BackupService {
     }
 
     // Verify based on metadata completeness and status
-    const isValid = backup.status === BackupStatus.COMPLETED
-      && backup.compressedSize > 0
-      && backup.uncompressedSize > 0
-      && backup.tables > 0;
+    const isValid =
+      backup.status === BackupStatus.COMPLETED &&
+      backup.compressedSize > 0 &&
+      backup.uncompressedSize > 0 &&
+      backup.tables > 0;
 
-    const status = isValid ? VerificationStatus.VERIFIED : VerificationStatus.FAILED;
+    const status = isValid
+      ? VerificationStatus.VERIFIED
+      : VerificationStatus.FAILED;
 
     await this.prisma.backupJob.update({
       where: { id: backupId },
@@ -360,7 +379,11 @@ export class BackupService {
         startedAt: new Date(),
         dryRun,
         estimatedDurationMs: backup.estimatedRestoreTimeMs,
-        tenant: { connect: { id: (this.prisma as any).currentTenantId || 'default-tenant-id' } },
+        tenant: {
+          connect: {
+            id: (this.prisma as any).currentTenantId || 'default-tenant-id',
+          },
+        },
       },
     });
 
@@ -439,7 +462,11 @@ export class BackupService {
         encryptionAlgorithm: data.encryptionAlgorithm || 'AES-256',
         dataRetentionYears: data.dataRetentionYears || 7,
         complianceLevel: data.complianceLevel || 'GDPR',
-        tenant: { connect: { id: (this.prisma as any).currentTenantId || 'default-tenant-id' } },
+        tenant: {
+          connect: {
+            id: (this.prisma as any).currentTenantId || 'default-tenant-id',
+          },
+        },
       },
     });
   }
@@ -540,7 +567,7 @@ export class BackupService {
     const dbMultiplier = databases.length * 2000;
     const typeMultiplier = type === BackupType.FULL ? 8 : 2;
 
-    return baseTime + dbMultiplier + (baseTime * typeMultiplier);
+    return baseTime + dbMultiplier + baseTime * typeMultiplier;
   }
 
   /**
@@ -553,16 +580,20 @@ export class BackupService {
       if (!backup) return;
 
       // Get actual table count and row count from database
-      const tableCountResult = await this.prisma.$queryRawUnsafe<{ count: bigint }[]>(
-        `SELECT count(*) as count FROM information_schema.tables WHERE table_schema = 'public'`
-      ).catch(() => [{ count: BigInt(0) }]);
+      const tableCountResult = await this.prisma
+        .$queryRawUnsafe<
+          { count: bigint }[]
+        >(`SELECT count(*) as count FROM information_schema.tables WHERE table_schema = 'public'`)
+        .catch(() => [{ count: BigInt(0) }]);
 
       const tables = Number(tableCountResult[0]?.count || 0);
 
       // Estimate size based on DB stats
-      const dbSizeResult = await this.prisma.$queryRawUnsafe<{ size: string }[]>(
-        `SELECT pg_database_size(current_database())::text as size`
-      ).catch(() => [{ size: '0' }]);
+      const dbSizeResult = await this.prisma
+        .$queryRawUnsafe<
+          { size: string }[]
+        >(`SELECT pg_database_size(current_database())::text as size`)
+        .catch(() => [{ size: '0' }]);
 
       const uncompressedSize = parseInt(dbSizeResult[0]?.size || '0', 10);
       const compressionRatio = 0.3; // typical gzip compression
@@ -578,21 +609,24 @@ export class BackupService {
           duration,
           uncompressedSize: uncompressedSize || 1,
           compressedSize: compressedSize || 1,
-          compressionRatio: uncompressedSize > 0 ? compressedSize / uncompressedSize : 0,
+          compressionRatio:
+            uncompressedSize > 0 ? compressedSize / uncompressedSize : 0,
           tables,
           rows: 0, // will be filled on verification
           verificationStatus: VerificationStatus.PENDING,
         },
       });
     } catch (error) {
-      await this.prisma.backupJob.update({
-        where: { id: backupId },
-        data: {
-          status: BackupStatus.FAILED,
-          endTime: new Date(),
-          duration: Date.now() - startTime,
-        },
-      }).catch(() => { });
+      await this.prisma.backupJob
+        .update({
+          where: { id: backupId },
+          data: {
+            status: BackupStatus.FAILED,
+            endTime: new Date(),
+            duration: Date.now() - startTime,
+          },
+        })
+        .catch(() => {});
     }
   }
 
@@ -617,14 +651,16 @@ export class BackupService {
         });
       }
     } catch {
-      await this.prisma.restoreJob.update({
-        where: { id: restoreId },
-        data: {
-          status: 'failed',
-          endTime: new Date(),
-          duration: Date.now() - startTime,
-        },
-      }).catch(() => { });
+      await this.prisma.restoreJob
+        .update({
+          where: { id: restoreId },
+          data: {
+            status: 'failed',
+            endTime: new Date(),
+            duration: Date.now() - startTime,
+          },
+        })
+        .catch(() => {});
     }
   }
 

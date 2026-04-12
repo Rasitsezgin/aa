@@ -8,9 +8,9 @@ initSentry();
 
 async function bootstrap() {
   const logger = new Logger('Worker');
-  
+
   logger.log('🚀 Starting Worker Service...');
-  
+
   const app = await NestFactory.createApplicationContext(WorkerModule, {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });

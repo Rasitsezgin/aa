@@ -6,12 +6,31 @@ import { ArrowLeft, Shield } from 'lucide-react';
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from '@/providers/theme-provider';
 import "@/app/globals.css";
+import { usePathname } from 'next/navigation';
 
 export default function AdminLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const pathname = usePathname();
+    const isLoginPage = pathname === '/admin/login';
+
+    // Login page renders its own full-screen layout
+    if (isLoginPage) {
+        return (
+            <html lang="tr" suppressHydrationWarning>
+                <body className="antialiased">
+                    <ThemeProvider>
+                        <SessionProvider>
+                            {children}
+                        </SessionProvider>
+                    </ThemeProvider>
+                </body>
+            </html>
+        );
+    }
+
     return (
         <html lang="tr" suppressHydrationWarning>
             <body className="antialiased">

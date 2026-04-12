@@ -148,8 +148,8 @@ export class SearchService {
     ];
 
     return products
-      .filter(p => p.name.toLowerCase().includes(q.toLowerCase()))
-      .map(p => ({
+      .filter((p) => p.name.toLowerCase().includes(q.toLowerCase()))
+      .map((p) => ({
         id: p.id,
         type: 'product' as const,
         title: p.name,
@@ -176,22 +176,34 @@ export class SearchService {
         customerName: 'Ali Demir',
         status: 'shipped',
       },
-      { id: 'order-246', orderNumber: '#246', customerName: 'Ayşe Yılmaz', status: 'delivered' },
+      {
+        id: 'order-246',
+        orderNumber: '#246',
+        customerName: 'Ayşe Yılmaz',
+        status: 'delivered',
+      },
     ];
 
     return orders
       .filter(
-        o =>
+        (o) =>
           o.orderNumber.includes(q) ||
           o.customerName.toLowerCase().includes(q.toLowerCase()),
       )
-      .map(o => ({
+      .map((o) => ({
         id: o.id,
         type: 'order' as const,
         title: `Sipariş ${o.orderNumber} - ${o.customerName}`,
         description: `Durum: ${o.status}`,
-        metadata: { orderNumber: o.orderNumber, customer: o.customerName, status: o.status },
-        relevanceScore: this.calculateRelevance(`${o.orderNumber} ${o.customerName}`, q),
+        metadata: {
+          orderNumber: o.orderNumber,
+          customer: o.customerName,
+          status: o.status,
+        },
+        relevanceScore: this.calculateRelevance(
+          `${o.orderNumber} ${o.customerName}`,
+          q,
+        ),
         matchedFields: ['orderNumber', 'customerName'],
       }));
   }
@@ -206,13 +218,26 @@ export class SearchService {
     offset: number,
   ): Promise<FullTextSearchResult[]> {
     const customers = [
-      { id: 'cust-089', name: 'Fatma Kaya', email: 'fatma@example.com', tier: 'premium' },
-      { id: 'cust-090', name: 'İbrahim Çetin', email: 'ibrahim@example.com', tier: 'standard' },
+      {
+        id: 'cust-089',
+        name: 'Fatma Kaya',
+        email: 'fatma@example.com',
+        tier: 'premium',
+      },
+      {
+        id: 'cust-090',
+        name: 'İbrahim Çetin',
+        email: 'ibrahim@example.com',
+        tier: 'standard',
+      },
     ];
 
     return customers
-      .filter(c => c.name.toLowerCase().includes(q.toLowerCase()) || c.email.includes(q))
-      .map(c => ({
+      .filter(
+        (c) =>
+          c.name.toLowerCase().includes(q.toLowerCase()) || c.email.includes(q),
+      )
+      .map((c) => ({
         id: c.id,
         type: 'customer' as const,
         title: c.name,
@@ -238,8 +263,8 @@ export class SearchService {
     ];
 
     return vendors
-      .filter(v => v.name.toLowerCase().includes(q.toLowerCase()))
-      .map(v => ({
+      .filter((v) => v.name.toLowerCase().includes(q.toLowerCase()))
+      .map((v) => ({
         id: v.id,
         type: 'vendor' as const,
         title: v.name,
@@ -253,7 +278,10 @@ export class SearchService {
   /**
    * Get search suggestions
    */
-  async getSuggestions(query: string, limit: number = 10): Promise<SearchSuggestion[]> {
+  async getSuggestions(
+    query: string,
+    limit: number = 10,
+  ): Promise<SearchSuggestion[]> {
     const suggestions: SearchSuggestion[] = [];
 
     // Add recent searches
@@ -264,7 +292,7 @@ export class SearchService {
     });
 
     suggestions.push(
-      ...recentSearches.map(s => ({
+      ...recentSearches.map((s) => ({
         text: s.query,
         type: 'recent' as const,
         frequency: 1,
@@ -278,7 +306,7 @@ export class SearchService {
     });
 
     suggestions.push(
-      ...savedSearches.map(s => ({
+      ...savedSearches.map((s) => ({
         text: s.name,
         type: 'saved_search' as const,
       })),
@@ -290,10 +318,10 @@ export class SearchService {
       'durum:aktif',
       'fiyat:>5000',
       'stok:<10',
-    ].filter(f => f.includes(query));
+    ].filter((f) => f.includes(query));
 
     suggestions.push(
-      ...filterSuggestions.map(f => ({
+      ...filterSuggestions.map((f) => ({
         text: f,
         type: 'filter' as const,
       })),
@@ -439,7 +467,7 @@ export class SearchService {
     return {
       totalSearches,
       uniqueQueries: uniqueQueries.length,
-      topSearches: topSearches.map(s => ({
+      topSearches: topSearches.map((s) => ({
         query: s.query,
         count: s._count,
       })),
@@ -469,7 +497,7 @@ export class SearchService {
 
     // Partial match
     const queryWords = lowerQuery.split(' ');
-    const matchedWords = queryWords.filter(w => lowerText.includes(w)).length;
+    const matchedWords = queryWords.filter((w) => lowerText.includes(w)).length;
     return (matchedWords / queryWords.length) * 0.5;
   }
 
@@ -492,7 +520,7 @@ export class SearchService {
       const startTime = Date.now();
 
       // Would reindex products, orders, customers, vendors
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const duration = Date.now() - startTime;
       console.log(`Reindex completed in ${duration}ms`);

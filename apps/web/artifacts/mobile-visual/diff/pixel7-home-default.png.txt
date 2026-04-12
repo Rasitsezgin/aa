@@ -1,0 +1,5 @@
+Baseline and current differ for pixel7-home-default.png
+baseline: C:\Projeler\pazaryonetimi.com\apps\web\artifacts\mobile-visual\baseline\pixel7-home-default.png
+current: C:\Projeler\pazaryonetimi.com\apps\web\artifacts\mobile-visual\current\pixel7-home-default.png
+baselineHash: 606d641d7f31d5a37e0206487e43aac4334632030845288d1c4ada585cf47d1b
+currentHash: 40b3c0c4cdee3bbca82d758310743858138a0b01d160176a2a926177a3df8f19

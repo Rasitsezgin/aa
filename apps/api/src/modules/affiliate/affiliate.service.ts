@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import * as crypto from 'crypto';
 
@@ -104,15 +108,24 @@ export class AffiliateService {
 
     const stats = {
       totalAffiliates: affiliates.length,
-      activeAffiliates: affiliates.filter(a => a.status === 'active').length,
+      activeAffiliates: affiliates.filter((a) => a.status === 'active').length,
       totalClicks: affiliates.reduce((s, a) => s + a.clicks, 0),
       totalConversions: affiliates.reduce((s, a) => s + a.conversions, 0),
       totalRevenue: affiliates.reduce((s, a) => s + a.totalRevenue, 0),
       totalCommission: affiliates.reduce((s, a) => s + a.totalCommission, 0),
       pendingPayments: affiliates.reduce((s, a) => s + a.pendingCommission, 0),
-      avgConversionRate: affiliates.length > 0
-        ? Math.round(affiliates.reduce((s, a) => s + (a.clicks > 0 ? (a.conversions / a.clicks) * 100 : 0), 0) / affiliates.filter(a => a.clicks > 0).length * 100) / 100
-        : 0,
+      avgConversionRate:
+        affiliates.length > 0
+          ? Math.round(
+              (affiliates.reduce(
+                (s, a) =>
+                  s + (a.clicks > 0 ? (a.conversions / a.clicks) * 100 : 0),
+                0,
+              ) /
+                affiliates.filter((a) => a.clicks > 0).length) *
+                100,
+            ) / 100
+          : 0,
     };
 
     return { affiliates, stats };
@@ -123,7 +136,7 @@ export class AffiliateService {
    */
   async findOne(id: string, tenantId: string) {
     const { affiliates } = await this.findAll(tenantId);
-    const affiliate = affiliates.find(a => a.id === id);
+    const affiliate = affiliates.find((a) => a.id === id);
 
     if (!affiliate) {
       throw new NotFoundException('Affiliate bulunamadı');
@@ -141,9 +154,11 @@ export class AffiliateService {
     return {
       ...affiliate,
       recentTransactions,
-      conversionRate: affiliate.clicks > 0
-        ? Math.round((affiliate.conversions / affiliate.clicks) * 100 * 100) / 100
-        : 0,
+      conversionRate:
+        affiliate.clicks > 0
+          ? Math.round((affiliate.conversions / affiliate.clicks) * 100 * 100) /
+            100
+          : 0,
     };
   }
 
@@ -196,7 +211,11 @@ export class AffiliateService {
   /**
    * Affiliate durumunu değiştir
    */
-  async updateStatus(id: string, status: 'active' | 'inactive' | 'pending', tenantId: string) {
+  async updateStatus(
+    id: string,
+    status: 'active' | 'inactive' | 'pending',
+    tenantId: string,
+  ) {
     await this.prisma.activityLog.create({
       data: {
         tenantId,
@@ -213,7 +232,10 @@ export class AffiliateService {
   /**
    * Referans linki ile tıklama kaydet
    */
-  async trackClick(code: string, metadata: { ip?: string; userAgent?: string; referer?: string }) {
+  async trackClick(
+    code: string,
+    metadata: { ip?: string; userAgent?: string; referer?: string },
+  ) {
     // Gerçek uygulamada click tracking tablosu kullanılır
     return {
       code,
@@ -226,9 +248,14 @@ export class AffiliateService {
   /**
    * Satış dönüşümü kaydet
    */
-  async trackConversion(code: string, orderId: string, orderAmount: number, tenantId: string) {
+  async trackConversion(
+    code: string,
+    orderId: string,
+    orderAmount: number,
+    tenantId: string,
+  ) {
     const { affiliates } = await this.findAll(tenantId);
-    const affiliate = affiliates.find(a => a.code === code);
+    const affiliate = affiliates.find((a) => a.code === code);
 
     if (!affiliate) {
       return { tracked: false, reason: 'Invalid affiliate code' };
@@ -269,14 +296,16 @@ export class AffiliateService {
    */
   async payCommission(affiliateId: string, amount: number, tenantId: string) {
     const { affiliates } = await this.findAll(tenantId);
-    const affiliate = affiliates.find(a => a.id === affiliateId);
+    const affiliate = affiliates.find((a) => a.id === affiliateId);
 
     if (!affiliate) {
       throw new NotFoundException('Affiliate bulunamadı');
     }
 
     if (amount > affiliate.pendingCommission) {
-      throw new BadRequestException('Ödeme tutarı bekleyen komisyondan fazla olamaz');
+      throw new BadRequestException(
+        'Ödeme tutarı bekleyen komisyondan fazla olamaz',
+      );
     }
 
     await this.prisma.activityLog.create({

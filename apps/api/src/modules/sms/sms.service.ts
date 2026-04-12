@@ -10,13 +10,13 @@ export class SmsService {
 
   async sendSms(phoneNumber: string, message: string): Promise<boolean> {
     const cleanPhone = phoneNumber.replace(/\s/g, '').replace(/^0/, '');
-    
+
     if (!cleanPhone || cleanPhone.length < 10) {
       throw new BadRequestException('Geçersiz telefon numarası');
     }
 
     const smsProvider = this.configService.get('SMS_PROVIDER');
-    
+
     if (smsProvider === 'netgsm') {
       return this.sendNetgsm(cleanPhone, message);
     }
@@ -26,7 +26,9 @@ export class SmsService {
     }
 
     // Default: Log only (development mode)
-    this.logger.log(`[SMS] Development mode - SMS to ${cleanPhone}: ${message.substring(0, 50)}...`);
+    this.logger.log(
+      `[SMS] Development mode - SMS to ${cleanPhone}: ${message.substring(0, 50)}...`,
+    );
     return true;
   }
 
@@ -54,17 +56,17 @@ export class SmsService {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
-        }
+        },
       );
 
       const result = response.data;
       // Netgsm returns "00" for success
       const success = result.startsWith('00');
-      
+
       if (!success) {
         this.logger.error(`Netgsm error: ${result}`);
       }
-      
+
       return success;
     } catch (error) {
       this.logger.error(`Netgsm send failed: ${(error as Error).message}`);
@@ -95,7 +97,7 @@ export class SmsService {
             username: accountSid,
             password: authToken,
           },
-        }
+        },
       );
 
       return response.status === 201;
@@ -107,7 +109,7 @@ export class SmsService {
 
   async getBalance(): Promise<{ provider: string; balance: number }> {
     const smsProvider = this.configService.get('SMS_PROVIDER');
-    
+
     if (smsProvider === 'netgsm') {
       try {
         const username = this.configService.get('NETGSM_USERNAME');
@@ -118,12 +120,14 @@ export class SmsService {
           {
             usercode: username,
             password: password,
-          }
+          },
         );
 
         return { provider: 'netgsm', balance: parseFloat(response.data) || 0 };
       } catch (error) {
-        this.logger.error(`Netgsm balance check failed: ${(error as Error).message}`);
+        this.logger.error(
+          `Netgsm balance check failed: ${(error as Error).message}`,
+        );
         return { provider: 'netgsm', balance: 0 };
       }
     }

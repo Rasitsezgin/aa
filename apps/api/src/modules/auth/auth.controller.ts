@@ -2,7 +2,12 @@ import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { Public } from './public.decorator';
-import { LoginDto, RegisterDto, RefreshTokenDto, ChangePasswordDto } from './dto/auth.dto';
+import {
+  LoginDto,
+  RegisterDto,
+  RefreshTokenDto,
+  ChangePasswordDto,
+} from './dto/auth.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -44,7 +49,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Şifre değiştirme' })
   async changePassword(@Body() body: ChangePasswordDto) {
-    await this.authService.changePassword(body.userId, body.oldPassword, body.newPassword);
+    await this.authService.changePassword(
+      body.userId,
+      body.oldPassword,
+      body.newPassword,
+    );
     return { message: 'Şifre başarıyla değiştirildi' };
   }
 }

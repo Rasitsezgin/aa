@@ -1,4 +1,10 @@
-import { IsEmail, IsString, MinLength, IsOptional, MaxLength } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  IsOptional,
+  MaxLength,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class LoginDto {
@@ -35,7 +41,10 @@ export class RegisterDto {
   @MaxLength(100)
   lastName?: string;
 
-  @ApiPropertyOptional({ example: 'TechStore Türkiye', description: 'Şirket/Mağaza adı - yeni tenant oluşturmak için kullanılır' })
+  @ApiPropertyOptional({
+    example: 'TechStore Türkiye',
+    description: 'Şirket/Mağaza adı - yeni tenant oluşturmak için kullanılır',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(200)
