@@ -93,6 +93,8 @@
     "is-number": "^7.0.0",
     "os-tmpdir": "^1.0.2",
     "boxen": "^5.1.2",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.3",
     "prettier": "^3.4.2",
     "chokidar": "^3.6.0",
     "source-map-support": "^0.5.21",
