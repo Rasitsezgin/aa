@@ -31,7 +31,7 @@
         "rollup": "4.28.1",
         "glob": "9.3.5",
         "tmp": "0.2.3",
-        "rxjs": "^7.8.1",
+        "rxjs": "^7.8.2",
         "chokidar": "3.6.0",
         "is-number": "7.0.0",
         "is-binary-path": "2.1.0",
