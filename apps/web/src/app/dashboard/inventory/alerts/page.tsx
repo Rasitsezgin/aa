@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { 
-    Bell, AlertTriangle, PlusCircle, Settings2,
+    BellRing, AlertTriangle, PlusCircle, Settings2,
     Mail, Smartphone, Search, Trash2, ShieldAlert
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,7 +22,7 @@ export default function CriticalStockAlertsPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black flex items-center gap-3">
-                        <Bell className="w-8 h-8 text-rose-500" />
+                        <BellRing className="w-8 h-8 text-rose-500" />
                         Kritik Stok Alarm Merkezi
                     </h1>
                     <p className="text-slate-500 mt-2">
@@ -74,7 +74,7 @@ export default function CriticalStockAlertsPage() {
                         <div key={alert.id} className="flex flex-col md:flex-row md:items-center justify-between p-5 rounded-2xl border border-border bg-background hover:border-rose-500/30 transition-all gap-4">
                             <div className="flex items-center gap-4 w-full md:w-1/3">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${alert.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
-                                    <Bell className="w-5 h-5" />
+                                    <BellRing className="w-5 h-5" />
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-slate-900 dark:text-white">{alert.rule}</h4>
