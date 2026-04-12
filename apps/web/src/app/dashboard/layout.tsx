@@ -602,11 +602,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <WebSocketProvider>
                 <ToastProvider>
                     <QuickActionsProvider>
-                        <ErrorBoundary>
+                        {/* <ErrorBoundary> */}
                             <OnboardingProvider>
                                 <DashboardLayoutContent>{children}</DashboardLayoutContent>
                             </OnboardingProvider>
-                        </ErrorBoundary>
+                        {/* </ErrorBoundary> */}
                     </QuickActionsProvider>
                 </ToastProvider>
             </WebSocketProvider>
