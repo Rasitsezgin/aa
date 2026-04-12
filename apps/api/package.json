@@ -38,6 +38,7 @@
     "@pazaryonetimi/database": "*",
     "@sentry/nestjs": "^10.42.0",
     "@sentry/node": "^10.42.0",
+    "@dabh/diagnostics": "^2.0.3",
     "@types/cheerio": "^0.22.35",
     "@types/nodemailer": "^7.0.10",
     "@types/puppeteer": "^5.4.7",
