@@ -25,7 +25,7 @@ interface AiModel {
   modelId: string;
   description?: string;
   isActive: boolean;
-  capabilities?: { seo?: boolean; analysis?: boolean; image?: boolean };
+  capabilities?: any;
   tokensUsed: number;
   callsCount: number;
   createdAt: string;
@@ -110,7 +110,7 @@ export default function AiModelsAdmin() {
         setTimeout(() => setSuccessMessage(''), 3000);
       }
     } catch (error) {
-      console.error('AI model save error:', error);
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
@@ -125,7 +125,7 @@ export default function AiModelsAdmin() {
       setSuccessMessage('Model silindi');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
-      console.error('AI model delete error:', error);
+      console.error('Error:', error);
     }
   };
 
@@ -134,7 +134,7 @@ export default function AiModelsAdmin() {
       await fetch(`/api/ai-models/${id}/toggle`, { method: 'PUT' });
       fetchModels();
     } catch (error) {
-      console.error('AI model toggle error:', error);
+      console.error('Error:', error);
     }
   };
 
@@ -417,10 +417,11 @@ export default function AiModelsAdmin() {
               key={model.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`p-6 rounded-xl border transition-all ${model.isActive
+              className={`p-6 rounded-xl border transition-all ${
+                model.isActive
                   ? 'bg-primary/5 border-primary/30'
                   : 'bg-slate-900/50 border-white/5 opacity-60'
-                }`}
+              }`}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
@@ -433,10 +434,11 @@ export default function AiModelsAdmin() {
                 </div>
                 <button
                   onClick={() => handleToggle(model.id)}
-                  className={`p-2 rounded-lg transition-all ${model.isActive
+                  className={`p-2 rounded-lg transition-all ${
+                    model.isActive
                       ? 'bg-green-500/20 text-green-400'
                       : 'bg-slate-700 text-slate-400'
-                    }`}
+                  }`}
                 >
                   <ToggleRight size={18} />
                 </button>

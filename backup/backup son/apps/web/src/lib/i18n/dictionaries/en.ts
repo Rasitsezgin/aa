@@ -1,0 +1,232 @@
+// English language file
+export const en = {
+  // Common
+  common: {
+    save: 'Save',
+    cancel: 'Cancel',
+    delete: 'Delete',
+    edit: 'Edit',
+    add: 'Add',
+    search: 'Search',
+    filter: 'Filter',
+    export: 'Export',
+    import: 'Import',
+    loading: 'Loading...',
+    noData: 'No data found',
+    error: 'Error',
+    success: 'Success',
+    warning: 'Warning',
+    info: 'Info',
+    confirm: 'Confirm',
+    back: 'Back',
+    next: 'Next',
+    previous: 'Previous',
+    close: 'Close',
+    yes: 'Yes',
+    no: 'No',
+    all: 'All',
+    none: 'None',
+    select: 'Select',
+    required: 'Required',
+    optional: 'Optional',
+  },
+
+  // Navigation
+  nav: {
+    dashboard: 'Dashboard',
+    orders: 'Orders',
+    products: 'Products',
+    inventory: 'Inventory',
+    customers: 'Customers',
+    analytics: 'Analytics',
+    finance: 'Finance',
+    reports: 'Reports',
+    settings: 'Settings',
+    integrations: 'Integrations',
+    support: 'Support',
+    warehouse: 'Warehouses',
+    campaigns: 'Campaigns',
+    affiliates: 'Affiliates',
+  },
+
+  // Dashboard
+  dashboard: {
+    title: 'Dashboard',
+    welcome: 'Welcome',
+    totalRevenue: 'Total Revenue',
+    totalOrders: 'Total Orders',
+    totalProducts: 'Total Products',
+    totalCustomers: 'Total Customers',
+    recentOrders: 'Recent Orders',
+    topProducts: 'Top Selling Products',
+    lowStock: 'Low Stock Alerts',
+    pendingOrders: 'Pending Orders',
+    todaySales: "Today's Sales",
+    thisWeek: 'This Week',
+    thisMonth: 'This Month',
+    comparedToLast: 'compared to previous period',
+  },
+
+  // Orders
+  orders: {
+    title: 'Orders',
+    newOrder: 'New Order',
+    orderNumber: 'Order Number',
+    orderDate: 'Order Date',
+    customer: 'Customer',
+    status: 'Status',
+    total: 'Total',
+    items: 'Items',
+    shipping: 'Shipping',
+    payment: 'Payment',
+    notes: 'Notes',
+    statuses: {
+      pending: 'Pending',
+      confirmed: 'Confirmed',
+      shipped: 'Shipped',
+      delivered: 'Delivered',
+      cancelled: 'Cancelled',
+      returned: 'Returned',
+    },
+  },
+
+  // Products
+  products: {
+    title: 'Products',
+    newProduct: 'New Product',
+    productName: 'Product Name',
+    sku: 'SKU',
+    barcode: 'Barcode',
+    price: 'Price',
+    stock: 'Stock',
+    category: 'Category',
+    brand: 'Brand',
+    description: 'Description',
+    images: 'Images',
+    variants: 'Variants',
+    active: 'Active',
+    inactive: 'Inactive',
+  },
+
+  // Inventory
+  inventory: {
+    title: 'Inventory',
+    stockLevel: 'Stock Level',
+    lowStockThreshold: 'Low Stock Threshold',
+    reorderPoint: 'Reorder Point',
+    inStock: 'In Stock',
+    outOfStock: 'Out of Stock',
+    lowStock: 'Low Stock',
+    updateStock: 'Update Stock',
+    stockHistory: 'Stock History',
+    warehouse: 'Warehouse',
+    transfer: 'Transfer',
+  },
+
+  // Finance
+  finance: {
+    title: 'Finance',
+    revenue: 'Revenue',
+    expenses: 'Expenses',
+    profit: 'Profit',
+    commission: 'Commission',
+    tax: 'Tax',
+    invoices: 'Invoices',
+    payments: 'Payments',
+    balance: 'Balance',
+  },
+
+  // Settings
+  settings: {
+    title: 'Settings',
+    general: 'General',
+    account: 'Account',
+    security: 'Security',
+    notifications: 'Notifications',
+    integrations: 'Integrations',
+    billing: 'Billing',
+    team: 'Team',
+    language: 'Language',
+    timezone: 'Timezone',
+    currency: 'Currency',
+    twoFactor: 'Two-Factor Authentication',
+    changePassword: 'Change Password',
+  },
+
+  // Errors
+  errors: {
+    generic: 'An error occurred. Please try again.',
+    notFound: 'Page not found',
+    unauthorized: 'You are not authorized for this action',
+    networkError: 'Network error. Check your internet connection.',
+    validationError: 'Please fill in all fields correctly',
+    sessionExpired: 'Your session has expired. Please log in again.',
+  },
+
+  // Time
+  time: {
+    now: 'Now',
+    today: 'Today',
+    yesterday: 'Yesterday',
+    tomorrow: 'Tomorrow',
+    thisWeek: 'This Week',
+    lastWeek: 'Last Week',
+    thisMonth: 'This Month',
+    lastMonth: 'Last Month',
+    thisYear: 'This Year',
+    ago: 'ago',
+    minutes: 'minutes',
+    hours: 'hours',
+    days: 'days',
+  },
+
+  // Marketplace
+  marketplace: {
+    title: 'Marketplaces',
+    sync: 'Sync',
+    lastSync: 'Last Sync',
+    connected: 'Connected',
+    disconnected: 'Disconnected',
+    configure: 'Configure',
+    testConnection: 'Test Connection',
+    syncProducts: 'Sync Products',
+    syncOrders: 'Sync Orders',
+  },
+
+  // Competitor Analysis
+  competitor: {
+    title: 'Competitor Tracking',
+    addCompetitor: 'Add Competitor',
+    priceComparison: 'Price Comparison',
+    priceHistory: 'Price History',
+    competitorCount: 'Competitor Count',
+    avgPrice: 'Average Price',
+    minPrice: 'Lowest Price',
+    maxPrice: 'Highest Price',
+  },
+
+  // Pricing
+  pricing: {
+    title: 'Price Optimization',
+    suggestedPrice: 'Suggested Price',
+    currentPrice: 'Current Price',
+    costPrice: 'Cost Price',
+    margin: 'Profit Margin',
+    rules: 'Pricing Rules',
+    createRule: 'Create Rule',
+    confidence: 'Confidence Score',
+    applyPrice: 'Apply Price',
+  },
+
+  // Forecasting
+  forecasting: {
+    title: 'Sales Forecast',
+    predictedSales: 'Predicted Sales',
+    avgDailySales: 'Avg. Daily Sales',
+    trend: 'Trend',
+    increasing: 'Increasing',
+    decreasing: 'Decreasing',
+    stable: 'Stable',
+    stockWarning: 'Stock Warning',
+  },
+};

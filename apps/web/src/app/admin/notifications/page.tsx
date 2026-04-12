@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Bell, Send, Users, AlertTriangle, Info, CheckCircle, Plus, Edit3,
-    Trash2, Eye, Clock, Gift, Wrench, RefreshCw,
-    X, MessageSquare,
-    Crown, Gem, Package, Pin, Search
+    Trash2, Eye, EyeOff, Clock, Calendar, Target, Gift, Wrench, RefreshCw,
+    ChevronDown, X, Image, Link, Star, TrendingUp, MessageSquare, Zap,
+    Crown, Gem, Package, Pin, Archive, BarChart3, Filter, Search
 } from 'lucide-react';
 
 const ANNOUNCEMENT_TYPES = {
@@ -25,31 +25,99 @@ const TARGET_AUDIENCES = {
     ENTERPRISE_USERS: { name: 'Kurumsal Kullanıcılar', icon: Gem },
 };
 
-interface Announcement {
-    id: string;
-    title: string;
-    content: string;
-    summary?: string;
-    type: string;
-    target: string;
-    actionUrl?: string;
-    actionText?: string;
-    startsAt: Date;
-    endsAt?: Date | null;
-    isActive: boolean;
-    isPinned: boolean;
-    priority: number;
-    viewCount: number;
-    readCount: number;
-    dismissCount: number;
-    createdAt: Date;
-}
+const MOCK_ANNOUNCEMENTS = [
+    {
+        id: '1',
+        title: '🚀 Yeni AI Görsel İşleme Modülü!',
+        content: 'Yapay zeka destekli görsel işleme modülümüz artık kullanımda. Arka plan silme, görsel iyileştirme ve daha fazlası...',
+        summary: 'AI görsel işleme modülü yayında!',
+        type: 'UPDATE',
+        target: 'ALL',
+        actionUrl: '/dashboard/ai-tools',
+        actionText: 'Keşfet',
+        startsAt: new Date(),
+        endsAt: null,
+        isActive: true,
+        isPinned: true,
+        priority: 10,
+        viewCount: 1250,
+        readCount: 890,
+        dismissCount: 45,
+        createdAt: new Date(),
+    },
+    {
+        id: '2',
+        title: '⚡ Performans İyileştirmeleri',
+        content: 'Sistem genelinde %40 daha hızlı yükleme süreleri ve geliştirilmiş kullanıcı deneyimi.',
+        summary: 'Sistem performansı artırıldı',
+        type: 'SUCCESS',
+        target: 'ALL',
+        startsAt: new Date(Date.now() - 86400000),
+        isActive: true,
+        isPinned: false,
+        priority: 5,
+        viewCount: 890,
+        readCount: 650,
+        dismissCount: 120,
+        createdAt: new Date(Date.now() - 86400000),
+    },
+    {
+        id: '3',
+        title: '🎁 Pro Kullanıcılara Özel İndirim!',
+        content: 'Bu hafta sonu Pro pakette %20 indirim fırsatını kaçırmayın. Kod: PROWEEKEND',
+        summary: 'Pro pakette %20 indirim',
+        type: 'PROMOTION',
+        target: 'FREE_USERS',
+        actionUrl: '/pricing',
+        actionText: 'Yükselt',
+        startsAt: new Date(),
+        endsAt: new Date(Date.now() + 172800000),
+        isActive: true,
+        isPinned: false,
+        priority: 8,
+        viewCount: 456,
+        readCount: 320,
+        dismissCount: 23,
+        createdAt: new Date(),
+    },
+    {
+        id: '4',
+        title: '🔧 Planlı Bakım Bildirimi',
+        content: '5 Şubat 2026 saat 03:00-05:00 arasında planlı bakım yapılacaktır.',
+        summary: '5 Şubat planlı bakım',
+        type: 'MAINTENANCE',
+        target: 'ALL',
+        startsAt: new Date(),
+        isActive: true,
+        isPinned: false,
+        priority: 7,
+        viewCount: 234,
+        readCount: 180,
+        dismissCount: 12,
+        createdAt: new Date(),
+    },
+    {
+        id: '5',
+        title: '⚠️ Trendyol API Güncellemesi',
+        content: 'Trendyol API\'si yeni sürüme geçti. Entegrasyonlarınızı kontrol edin.',
+        summary: 'Trendyol API güncellendi',
+        type: 'WARNING',
+        target: 'ALL',
+        startsAt: new Date(Date.now() - 172800000),
+        isActive: false,
+        isPinned: false,
+        priority: 6,
+        viewCount: 1850,
+        readCount: 1650,
+        dismissCount: 200,
+        createdAt: new Date(Date.now() - 172800000),
+    },
+];
 
 export default function NotificationsPage() {
-    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [announcements, setAnnouncements] = useState(MOCK_ANNOUNCEMENTS);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+    const [editingAnnouncement, setEditingAnnouncement] = useState<any>(null);
     const [filterType, setFilterType] = useState<string | null>(null);
     const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
     const [searchQuery, setSearchQuery] = useState('');
@@ -67,43 +135,6 @@ export default function NotificationsPage() {
         priority: 5,
     });
 
-    const refreshAnnouncements = async () => {
-        try {
-            const res = await fetch('/api/admin/announcements', { cache: 'no-store' });
-            if (!res.ok) throw new Error('Duyurular yüklenemedi');
-            const data = await res.json();
-            const normalized = (Array.isArray(data) ? data : []).map((item: any) => ({
-                id: String(item.id),
-                title: String(item.title || ''),
-                content: String(item.content || item.message || ''),
-                summary: item.summary ? String(item.summary) : undefined,
-                type: String(item.type || 'INFO'),
-                target: String(item.target || 'ALL'),
-                actionUrl: item.actionUrl ? String(item.actionUrl) : undefined,
-                actionText: item.actionText ? String(item.actionText) : undefined,
-                startsAt: new Date(item.startsAt || item.createdAt || Date.now()),
-                endsAt: item.endsAt ? new Date(item.endsAt) : null,
-                isActive: Boolean(item.isActive),
-                isPinned: Boolean(item.isPinned),
-                priority: Number(item.priority || 0),
-                viewCount: Number(item.viewCount || 0),
-                readCount: Number(item.readCount || 0),
-                dismissCount: Number(item.dismissCount || 0),
-                createdAt: new Date(item.createdAt || Date.now()),
-            })) as Announcement[];
-            setAnnouncements(normalized);
-        } catch (error) {
-            console.error('Duyurular alınamadı:', error);
-            setAnnouncements([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        refreshAnnouncements();
-    }, []);
-
     const filteredAnnouncements = announcements.filter(a => {
         if (searchQuery && !a.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
         if (filterType && a.type !== filterType) return false;
@@ -119,77 +150,58 @@ export default function NotificationsPage() {
         totalReads: announcements.reduce((sum, a) => sum + a.readCount, 0),
     };
 
-    const toggleStatus = async (id: string) => {
-        const targetAnnouncement = announcements.find(a => a.id === id);
-        if (!targetAnnouncement) return;
-        try {
-            const res = await fetch(`/api/admin/announcements/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ isActive: !targetAnnouncement.isActive }),
-            });
-            if (!res.ok) throw new Error('Durum güncellenemedi');
-            await refreshAnnouncements();
-        } catch (error) {
-            console.error('Duyuru durumu güncellenemedi:', error);
-        }
+    const toggleStatus = (id: string) => {
+        setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, isActive: !a.isActive } : a));
     };
 
-    const togglePin = async (id: string) => {
-        const targetAnnouncement = announcements.find(a => a.id === id);
-        if (!targetAnnouncement) return;
-        try {
-            const res = await fetch(`/api/admin/announcements/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ isPinned: !targetAnnouncement.isPinned }),
-            });
-            if (!res.ok) throw new Error('Sabit durumu güncellenemedi');
-            await refreshAnnouncements();
-        } catch (error) {
-            console.error('Duyuru sabitleme güncellenemedi:', error);
-        }
+    const togglePin = (id: string) => {
+        setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, isPinned: !a.isPinned } : a));
     };
 
-    const deleteAnnouncement = async (id: string) => {
-        try {
-            const res = await fetch(`/api/admin/announcements/${id}`, {
-                method: 'DELETE',
-            });
-            if (!res.ok) throw new Error('Duyuru silinemedi');
-            await refreshAnnouncements();
-        } catch (error) {
-            console.error('Duyuru silinemedi:', error);
-        }
+    const deleteAnnouncement = (id: string) => {
+        setAnnouncements(prev => prev.filter(a => a.id !== id));
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = () => {
         if (editingAnnouncement) {
-            try {
-                const res = await fetch(`/api/admin/announcements/${editingAnnouncement.id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData),
-                });
-                if (!res.ok) throw new Error('Duyuru güncellenemedi');
-                await refreshAnnouncements();
-            } catch (error) {
-                console.error('Duyuru güncellenemedi:', error);
-                return;
-            }
+            setAnnouncements(prev => prev.map(a => {
+                if (a.id === editingAnnouncement.id) {
+                    return {
+                        ...a,
+                        title: formData.title,
+                        content: formData.content,
+                        summary: formData.summary,
+                        type: formData.type,
+                        target: formData.target,
+                        actionUrl: formData.actionUrl,
+                        actionText: formData.actionText,
+                        isPinned: formData.isPinned,
+                        priority: formData.priority,
+                    } as any;
+                }
+                return a;
+            }));
         } else {
-            try {
-                const res = await fetch('/api/admin/announcements', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData),
-                });
-                if (!res.ok) throw new Error('Duyuru oluşturulamadı');
-                await refreshAnnouncements();
-            } catch (error) {
-                console.error('Duyuru oluşturulamadı:', error);
-                return;
-            }
+            const newAnnouncement = {
+                id: Date.now().toString(),
+                title: formData.title,
+                content: formData.content,
+                summary: formData.summary,
+                type: formData.type,
+                target: formData.target,
+                actionUrl: formData.actionUrl,
+                actionText: formData.actionText,
+                startsAt: new Date(),
+                endsAt: null,
+                isActive: true,
+                isPinned: formData.isPinned,
+                priority: formData.priority,
+                viewCount: 0,
+                readCount: 0,
+                dismissCount: 0,
+                createdAt: new Date(),
+            } as any;
+            setAnnouncements(prev => [newAnnouncement, ...prev]);
         }
         setShowCreateModal(false);
         setEditingAnnouncement(null);
@@ -199,7 +211,7 @@ export default function NotificationsPage() {
         });
     };
 
-    const openEditModal = (announcement: Announcement) => {
+    const openEditModal = (announcement: any) => {
         setFormData({
             title: announcement.title,
             content: announcement.content,
@@ -217,11 +229,6 @@ export default function NotificationsPage() {
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            {loading && (
-                <div className="flex items-center justify-center h-40">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-                </div>
-            )}
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
@@ -236,7 +243,7 @@ export default function NotificationsPage() {
                 <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowCreateModal(true)}
+                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => setShowCreateModal(true)}
                     className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-600/20"
                 >
                     <Plus size={18} /> Yeni Duyuru
@@ -301,7 +308,7 @@ export default function NotificationsPage() {
                     </select>
                     <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/50 rounded-xl p-1 border border-slate-200 dark:border-slate-700">
                         {(['all', 'active', 'inactive'] as const).map((status) => (
-                            <button key={status} onClick={() => setFilterStatus(status)}
+                            <button key={status} onClick={(e: React.MouseEvent<HTMLButtonElement>) => setFilterStatus(status)}
                                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${filterStatus === status ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
                                 {status === 'all' ? 'Tümü' : status === 'active' ? 'Aktif' : 'Pasif'}
                             </button>
@@ -362,19 +369,19 @@ export default function NotificationsPage() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <button onClick={() => togglePin(announcement.id)}
+                                        <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => togglePin(announcement.id)}
                                             className={`p-2 rounded-lg transition-colors ${announcement.isPinned ? 'bg-yellow-500/20 text-yellow-400' : 'text-slate-500 hover:text-white hover:bg-slate-800'}`}>
                                             <Pin size={16} />
                                         </button>
-                                        <button onClick={() => openEditModal(announcement)}
+                                        <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => openEditModal(announcement)}
                                             className="p-2 text-slate-500 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
                                             <Edit3 size={16} />
                                         </button>
-                                        <button onClick={() => toggleStatus(announcement.id)}
+                                        <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => toggleStatus(announcement.id)}
                                             className={`relative w-12 h-6 rounded-full transition-colors ${announcement.isActive ? 'bg-green-600' : 'bg-slate-700 hover:bg-slate-600'}`}>
                                             <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${announcement.isActive ? 'translate-x-7' : 'translate-x-1'}`} />
                                         </button>
-                                        <button onClick={() => deleteAnnouncement(announcement.id)}
+                                        <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => deleteAnnouncement(announcement.id)}
                                             className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
                                             <Trash2 size={16} />
                                         </button>
@@ -402,7 +409,7 @@ export default function NotificationsPage() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                        onClick={() => { setShowCreateModal(false); setEditingAnnouncement(null); }}
+                        onClick={(e: React.MouseEvent<HTMLDivElement>) => { setShowCreateModal(false); setEditingAnnouncement(null); }}
                     >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
@@ -416,7 +423,7 @@ export default function NotificationsPage() {
                                     <h2 className="text-xl font-bold text-foreground">
                                         {editingAnnouncement ? 'Duyuru Düzenle' : 'Yeni Duyuru Oluştur'}
                                     </h2>
-                                    <button onClick={() => { setShowCreateModal(false); setEditingAnnouncement(null); }}
+                                    <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => { setShowCreateModal(false); setEditingAnnouncement(null); }}
                                         className="p-2 text-slate-500 hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
                                         <X size={20} />
                                     </button>
@@ -485,11 +492,11 @@ export default function NotificationsPage() {
                             </div>
 
                             <div className="p-6 border-t border-slate-200 dark:border-white/10 flex justify-end gap-3">
-                                <button onClick={() => { setShowCreateModal(false); setEditingAnnouncement(null); }}
+                                <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => { setShowCreateModal(false); setEditingAnnouncement(null); }}
                                     className="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300">
                                     İptal
                                 </button>
-                                <button onClick={() => handleSubmit()} disabled={!formData.title || !formData.content}
+                                <button onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleSubmit()} disabled={!formData.title || !formData.content}
                                     className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-sm font-bold text-white disabled:opacity-50 flex items-center gap-2">
                                     <Send size={16} />
                                     {editingAnnouncement ? 'Güncelle' : 'Yayınla'}

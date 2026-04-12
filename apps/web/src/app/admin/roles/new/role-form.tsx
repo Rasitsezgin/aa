@@ -10,13 +10,7 @@ const initialState = {
     errors: {} as Record<string, string[]>
 }
 
-interface Permission {
-    id: string;
-    action: string;
-    resource: string;
-}
-
-export default function RoleForm({ permissions }: { permissions: Permission[] }) {
+export default function RoleForm({ permissions }: { permissions: any[] }) {
     const [state, formAction, isPending] = useActionState(createRole, initialState)
 
     return (

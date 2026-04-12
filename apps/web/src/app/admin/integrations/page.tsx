@@ -68,8 +68,26 @@ const REGIONS = [
   { id: 'GLOBAL', name: 'Global' },
 ];
 
+// Mock marketplaces for admin
+const MOCK_ADMIN_MARKETPLACES: MarketplaceConfig[] = [
+  { id: 'trendyol', name: 'Trendyol', region: 'TURKEY', country: 'Türkiye', countryCode: 'TR', minimumPlan: 'FREE', isActive: true, isEnabled: true, totalConnections: 2450, activeConnections: 2180, brandColor: '#F27A1A', planOverrides: {} },
+  { id: 'hepsiburada', name: 'Hepsiburada', region: 'TURKEY', country: 'Türkiye', countryCode: 'TR', minimumPlan: 'FREE', isActive: true, isEnabled: true, totalConnections: 1980, activeConnections: 1750, brandColor: '#FF6000', planOverrides: {} },
+  { id: 'n11', name: 'N11', region: 'TURKEY', country: 'Türkiye', countryCode: 'TR', minimumPlan: 'FREE', isActive: true, isEnabled: true, totalConnections: 1420, activeConnections: 1280, brandColor: '#7B28C4', planOverrides: {} },
+  { id: 'amazon-tr', name: 'Amazon Türkiye', region: 'TURKEY', country: 'Türkiye', countryCode: 'TR', minimumPlan: 'STARTER', isActive: true, isEnabled: true, totalConnections: 890, activeConnections: 820, brandColor: '#FF9900', planOverrides: {} },
+  { id: 'ciceksepeti', name: 'Çiçeksepeti', region: 'TURKEY', country: 'Türkiye', countryCode: 'TR', minimumPlan: 'STARTER', isActive: true, isEnabled: true, totalConnections: 650, activeConnections: 580, brandColor: '#E91E63', planOverrides: {} },
+  { id: 'amazon-us', name: 'Amazon US', region: 'NORTH_AMERICA', country: 'ABD', countryCode: 'US', minimumPlan: 'PROFESSIONAL', isActive: true, isEnabled: true, totalConnections: 420, activeConnections: 380, brandColor: '#FF9900', planOverrides: {} },
+  { id: 'ebay-us', name: 'eBay US', region: 'NORTH_AMERICA', country: 'ABD', countryCode: 'US', minimumPlan: 'STARTER', isActive: true, isEnabled: true, totalConnections: 320, activeConnections: 290, brandColor: '#E53238', planOverrides: {} },
+  { id: 'etsy', name: 'Etsy', region: 'GLOBAL', country: 'Global', countryCode: 'US', minimumPlan: 'STARTER', isActive: true, isEnabled: true, totalConnections: 580, activeConnections: 510, brandColor: '#F1641E', planOverrides: {} },
+  { id: 'shopee-sg', name: 'Shopee', region: 'ASIA_PACIFIC', country: 'Singapur', countryCode: 'SG', minimumPlan: 'PROFESSIONAL', isActive: true, isEnabled: true, totalConnections: 280, activeConnections: 250, brandColor: '#EE4D2D', planOverrides: {} },
+  { id: 'zalando', name: 'Zalando', region: 'EUROPE', country: 'Almanya', countryCode: 'DE', minimumPlan: 'ENTERPRISE', isActive: true, isEnabled: true, totalConnections: 180, activeConnections: 160, brandColor: '#FF6900', planOverrides: {} },
+  { id: 'mercadolibre-mx', name: 'Mercado Libre', region: 'LATIN_AMERICA', country: 'Meksika', countryCode: 'MX', minimumPlan: 'PROFESSIONAL', isActive: true, isEnabled: true, totalConnections: 120, activeConnections: 100, brandColor: '#FFE600', planOverrides: {} },
+  { id: 'shopify', name: 'Shopify', region: 'GLOBAL', country: 'Global', countryCode: 'CA', minimumPlan: 'STARTER', isActive: true, isEnabled: true, totalConnections: 780, activeConnections: 720, brandColor: '#96BF48', planOverrides: {} },
+  { id: 'woocommerce', name: 'WooCommerce', region: 'GLOBAL', country: 'Global', countryCode: 'US', minimumPlan: 'FREE', isActive: true, isEnabled: true, totalConnections: 1100, activeConnections: 980, brandColor: '#7F54B3', planOverrides: {} },
+];
+
 export default function AdminIntegrationsPage() {
-  const [marketplaces, setMarketplaces] = useState<MarketplaceConfig[]>([]);
+  const [marketplaces, setMarketplaces] = useState<MarketplaceConfig[]>(MOCK_ADMIN_MARKETPLACES);
+  const [filteredMarketplaces, setFilteredMarketplaces] = useState<MarketplaceConfig[]>(MOCK_ADMIN_MARKETPLACES);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('ALL');
   const [selectedPlan, setSelectedPlan] = useState('ALL');
@@ -77,40 +95,8 @@ export default function AdminIntegrationsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
+  // Filter effect
   useEffect(() => {
-    const fetchMarketplaces = async () => {
-      try {
-        const res = await fetch('/api/integrations', { cache: 'no-store' });
-        if (!res.ok) throw new Error('Entegrasyonlar alınamadı');
-        const data = await res.json();
-        const normalized = (Array.isArray(data) ? data : []).map((item: any) => ({
-          id: String(item.platform || item.id || ''),
-          name: String(item.platform || item.id || 'Bilinmeyen Platform'),
-          region: String(item.apiExtra?.region || 'GLOBAL'),
-          country: String(item.apiExtra?.country || 'Global'),
-          countryCode: String(item.apiExtra?.countryCode || 'GL'),
-          minimumPlan: String(item.apiExtra?.minimumPlan || 'FREE'),
-          isActive: Boolean(item.isActive),
-          isEnabled: Boolean(item.isActive),
-          totalConnections: Number(item.apiExtra?.totalConnections || 0),
-          activeConnections: Number(item.apiExtra?.activeConnections || 0),
-          brandColor: String(item.apiExtra?.brandColor || '#64748b'),
-          planOverrides: typeof item.apiExtra?.planOverrides === 'object' && item.apiExtra?.planOverrides !== null
-            ? item.apiExtra.planOverrides
-            : {},
-        })) as MarketplaceConfig[];
-        setMarketplaces(normalized);
-      } catch (error) {
-        console.error('Entegrasyonlar yüklenemedi:', error);
-        setMarketplaces([]);
-      }
-    };
-
-    fetchMarketplaces();
-  }, []);
-
-  // Filter with useMemo to avoid setState in effect
-  const filteredMarketplaces = React.useMemo(() => {
     let filtered = [...marketplaces];
 
     if (searchQuery) {
@@ -129,7 +115,7 @@ export default function AdminIntegrationsPage() {
       filtered = filtered.filter(m => m.minimumPlan === selectedPlan);
     }
 
-    return filtered;
+    setFilteredMarketplaces(filtered);
   }, [marketplaces, searchQuery, selectedRegion, selectedPlan]);
 
   const toggleEnabled = (id: string) => {
@@ -171,12 +157,8 @@ export default function AdminIntegrationsPage() {
 
   const handleSaveAll = async () => {
     setIsSaving(true);
-    try {
-      const res = await fetch('/api/integrations', { cache: 'no-store' });
-      if (!res.ok) throw new Error('Kaydetme doğrulaması başarısız');
-    } catch (error) {
-      console.error('Entegrasyon ayarları kaydedilemedi:', error);
-    }
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
     setIsSaving(false);
   };
 
@@ -336,11 +318,6 @@ export default function AdminIntegrationsPage() {
 
       {/* Marketplaces Table */}
       <div className="bg-surface rounded-[24px] border border-border overflow-hidden">
-        {filteredMarketplaces.length === 0 ? (
-          <div className="p-8 text-center text-sm text-slate-500">
-            Entegrasyon verisi bulunamadı. API yanıt verdiğinde liste burada görüntülenecek.
-          </div>
-        ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-background/50 border-b border-border">
@@ -360,8 +337,9 @@ export default function AdminIntegrationsPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: idx * 0.03 }}
-                    className={`border-b border-border hover:bg-background/50 transition-colors ${!marketplace.isEnabled ? 'opacity-60' : ''
-                      }`}
+                    className={`border-b border-border hover:bg-background/50 transition-colors ${
+                      !marketplace.isEnabled ? 'opacity-60' : ''
+                    }`}
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
@@ -387,11 +365,12 @@ export default function AdminIntegrationsPage() {
                         <select
                           value={marketplace.minimumPlan}
                           onChange={e => updateMinimumPlan(marketplace.id, e.target.value)}
-                          className={`px-3 py-1.5 text-xs font-bold rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary/20 ${marketplace.minimumPlan === 'FREE' ? 'bg-slate-500/10 text-slate-500 border-slate-500/20' :
-                              marketplace.minimumPlan === 'STARTER' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
-                                marketplace.minimumPlan === 'PROFESSIONAL' ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' :
-                                  'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                            }`}
+                          className={`px-3 py-1.5 text-xs font-bold rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary/20 ${
+                            marketplace.minimumPlan === 'FREE' ? 'bg-slate-500/10 text-slate-500 border-slate-500/20' :
+                            marketplace.minimumPlan === 'STARTER' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
+                            marketplace.minimumPlan === 'PROFESSIONAL' ? 'bg-purple-500/10 text-purple-500 border-purple-500/20' :
+                            'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                          }`}
                         >
                           {PLANS.map(plan => (
                             <option key={plan.id} value={plan.id}>{plan.name}</option>
@@ -407,10 +386,11 @@ export default function AdminIntegrationsPage() {
                       <div className="flex justify-center">
                         <button
                           onClick={() => toggleEnabled(marketplace.id)}
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${marketplace.isEnabled
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            marketplace.isEnabled
                               ? 'bg-green-500/10 text-green-500'
                               : 'bg-red-500/10 text-red-500'
-                            }`}
+                          }`}
                         >
                           {marketplace.isEnabled ? (
                             <>
@@ -466,10 +446,11 @@ export default function AdminIntegrationsPage() {
                                 return (
                                   <div
                                     key={plan.id}
-                                    className={`p-4 rounded-xl border transition-all ${isAllowed
+                                    className={`p-4 rounded-xl border transition-all ${
+                                      isAllowed
                                         ? 'bg-green-500/5 border-green-500/20'
                                         : 'bg-red-500/5 border-red-500/20'
-                                      }`}
+                                    }`}
                                   >
                                     <div className="flex items-center justify-between mb-3">
                                       <div className="flex items-center gap-2">
@@ -478,10 +459,11 @@ export default function AdminIntegrationsPage() {
                                       </div>
                                       <button
                                         onClick={() => togglePlanOverride(marketplace.id, plan.id)}
-                                        className={`p-1.5 rounded-lg transition-all ${isAllowed
+                                        className={`p-1.5 rounded-lg transition-all ${
+                                          isAllowed
                                             ? 'bg-green-500/20 text-green-500'
                                             : 'bg-red-500/20 text-red-500'
-                                          }`}
+                                        }`}
                                       >
                                         {isAllowed ? <Unlock size={14} /> : <Lock size={14} />}
                                       </button>
@@ -514,7 +496,6 @@ export default function AdminIntegrationsPage() {
             </tbody>
           </table>
         </div>
-        )}
       </div>
 
       {/* Bulk Actions */}
