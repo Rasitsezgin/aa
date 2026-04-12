@@ -54,6 +54,7 @@
     "helmet": "^8.1.0",
     "ioredis": "^5.4.2",
     "keyv": "^5.2.3",
+    "logform": "^2.6.1",
     "nest-winston": "^1.10.2",
     "next-auth": "5.0.0-beta.30",
     "node-cron": "^3.0.3",
