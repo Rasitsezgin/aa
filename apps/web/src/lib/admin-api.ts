@@ -233,5 +233,18 @@ export const adminApi = {
     fetchAPI<any>('admin/bulk-operation', { method: 'POST', body: JSON.stringify(data) }),
   sendAnnouncement: (data: any) =>
     fetchAPI<any>('admin/announcement', { method: 'POST', body: JSON.stringify(data) }),
+  // ═══════════════════════════════════════════════════════════════════
+  // SYSTEM MANAGEMENT
+  // ═══════════════════════════════════════════════════════════════════
+  getSystemServices: () => fetchAPI<any>('system/services'),
+  controlService: (serviceId: string, action: 'start' | 'stop' | 'restart') =>
+    fetchAPI<any>(`system/services/${serviceId}/${action}`, { method: 'POST' }),
+  getDatabaseInfo: () => fetchAPI<any>('system/database'),
+  databaseAction: (action: 'backup' | 'migrate' | 'optimize') =>
+    fetchAPI<any>(`system/database/${action}`, { method: 'POST' }),
+  getDeploymentInfo: () => fetchAPI<any>('system/deployment'),
+  runScript: (scriptName: string) =>
+    fetchAPI<any>(`system/scripts/${scriptName}/run`, { method: 'POST' }),
+
   getSystemRealtime: () => fetchAPI<any>('system/realtime'),
 };
