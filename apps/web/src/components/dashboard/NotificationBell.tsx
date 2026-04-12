@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell,
-  BellRing,
+  Bell,
   X,
   ShoppingCart,
   Package,
@@ -115,7 +115,7 @@ export default function NotificationBell() {
           transition={{ duration: 0.6 }}
         >
           {unreadCount > 0 ? (
-            <BellRing size={20} className="text-slate-400 group-hover:text-white transition-colors" />
+            <Bell size={20} className="text-slate-400 group-hover:text-white transition-colors" />
           ) : (
             <Bell size={20} className="text-slate-400 group-hover:text-white transition-colors" />
           )}

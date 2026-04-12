@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Bell, BellRing, X, Check, CheckCheck, Trash2,
+    Bell, X, Check, CheckCheck, Trash2,
     ShoppingCart, Package, AlertTriangle, TrendingUp,
     TrendingDown, Star, Truck, Users, Shield,
     Zap, Clock, Filter, ChevronDown, ChevronRight,
@@ -263,7 +263,7 @@ export default function SmartNotificationCenter({
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
                                     <div className="relative">
-                                        <BellRing size={18} className="text-white" />
+                                        <Bell size={18} className="text-white" />
                                         {unreadCount > 0 && (
                                             <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-[8px] font-black text-white flex items-center justify-center">
                                                 {unreadCount}

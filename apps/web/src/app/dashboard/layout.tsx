@@ -63,7 +63,7 @@ const sections: Section[] = [
             { icon: Warehouse, label: "Stok Yönetimi", href: "/dashboard/inventory", badge: "!", moduleKey: "INVENTORY" },
             { icon: ShieldAlert, label: "Eksik/Hata Kontrolü", href: "/dashboard/inventory/discrepancy", pro: true, moduleKey: "INVENTORY" },
             { icon: Layers, label: "Ortak (Grup) Stok", href: "/dashboard/inventory/group-mapping", pro: true, moduleKey: "INVENTORY" },
-            { icon: BellRing, label: "Kritik Stok Alarmı", href: "/dashboard/inventory/alerts", pro: true, moduleKey: "INVENTORY" },
+            { icon: Bell, label: "Kritik Stok Alarmı", href: "/dashboard/inventory/alerts", pro: true, moduleKey: "INVENTORY" },
             { icon: Users, label: "Müşteriler", href: "/dashboard/customers", moduleKey: "CUSTOMERS" },
             { icon: Target, label: "Müşteri Segmentleri", href: "/dashboard/customer-segments", moduleKey: "CUSTOMERS" },
         ]

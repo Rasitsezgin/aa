@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Bell, BellRing, CheckCircle2, AlertTriangle, Info, XCircle,
+    Bell, CheckCircle2, AlertTriangle, Info, XCircle,
     Package, ShoppingCart, TrendingUp, Users, Settings, X,
     Check, Trash2, Filter, MailOpen, Clock
 } from 'lucide-react';
@@ -53,7 +53,7 @@ export default function NotificationCenterPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-                        <BellRing className="w-7 h-7 text-indigo-400" /> Bildirim Merkezi
+                        <Bell className="w-7 h-7 text-indigo-400" /> Bildirim Merkezi
                         {unreadCount > 0 && (
                             <span className="px-2.5 py-1 bg-red-500 text-white text-xs rounded-full font-bold">{unreadCount}</span>
                         )}
