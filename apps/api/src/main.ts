@@ -2,16 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { IoAdapter } from '@nestjs/platform-socket.io';
-import { Server } from 'socket.io';
-
-class CustomIoAdapter extends IoAdapter {
-  createIOServer(port: number, options?: any): Server {
-    const server = super.createIOServer(port, options);
-    // Ensure server is properly typed
-    return server;
-  }
-}
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
 import { winstonConfig } from './common/logger.config';
