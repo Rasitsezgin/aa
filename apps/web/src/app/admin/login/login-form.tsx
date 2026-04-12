@@ -26,13 +26,15 @@ export default function LoginForm() {
                 callbackUrl: '/admin'
             });
 
-            if (result?.error) {
+            if (!result?.ok || result?.error) {
                 setError("Geçersiz e-posta veya şifre.");
                 setIsLoading(false);
             } else {
+                // Success - full page reload to /admin
                 window.location.href = "/admin";
             }
         } catch (err) {
+            console.error('Login error:', err);
             setError("Bir hata oluştu. Lütfen tekrar deneyin.");
             setIsLoading(false);
         }
@@ -52,6 +54,7 @@ export default function LoginForm() {
                         src="/images/auth-bg-3d.png"
                         alt="Background"
                         fill
+                        sizes="50vw"
                         className="object-cover"
                         priority
                     />

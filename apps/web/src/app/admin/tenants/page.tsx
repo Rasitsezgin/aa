@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Search, AlertTriangle, CheckCircle, Mail,
@@ -33,128 +33,6 @@ interface Tenant {
     tags?: string[];
 }
 
-const MOCK_TENANTS: Tenant[] = [
-    {
-        id: 'tenant-1',
-        name: 'Mega Store A.Ş.',
-        email: 'info@megastore.com',
-        phone: '+90 212 555 0100',
-        address: 'İstanbul, Türkiye',
-        plan: 'ENTERPRISE',
-        status: 'active',
-        users: 12,
-        maxUsers: 50,
-        stores: 5,
-        products: 15420,
-        monthlyRevenue: 45000,
-        revenueChange: 12.5,
-        joinedAt: new Date('2024-01-12'),
-        lastActiveAt: new Date(),
-        billingCycle: 'yearly',
-        moduleCount: 18,
-        totalModules: 20,
-        tags: ['Elektronik', 'B2B', 'VIP']
-    },
-    {
-        id: 'tenant-2',
-        name: 'Tech World Ltd.',
-        email: 'contact@techworld.tr',
-        phone: '+90 216 444 2020',
-        address: 'Ankara, Türkiye',
-        plan: 'PRO',
-        status: 'active',
-        users: 5,
-        maxUsers: 10,
-        stores: 3,
-        products: 3250,
-        monthlyRevenue: 12500,
-        revenueChange: 8.3,
-        joinedAt: new Date('2024-01-15'),
-        lastActiveAt: new Date(Date.now() - 3600000),
-        billingCycle: 'monthly',
-        moduleCount: 12,
-        totalModules: 15,
-        tags: ['Teknoloji', 'Yazılım']
-    },
-    {
-        id: 'tenant-3',
-        name: 'Moda Butik',
-        email: 'merhaba@modabutik.com',
-        plan: 'FREE',
-        status: 'trial',
-        users: 1,
-        maxUsers: 2,
-        stores: 1,
-        products: 156,
-        monthlyRevenue: 0,
-        revenueChange: 0,
-        joinedAt: new Date('2024-01-18'),
-        lastActiveAt: new Date(Date.now() - 86400000),
-        billingCycle: 'monthly',
-        moduleCount: 5,
-        totalModules: 8,
-        tags: ['Moda', 'Yeni']
-    },
-    {
-        id: 'tenant-4',
-        name: 'Ev & Yaşam',
-        email: 'satis@evyasam.net',
-        plan: 'PRO',
-        status: 'suspended',
-        users: 3,
-        maxUsers: 10,
-        stores: 2,
-        products: 890,
-        monthlyRevenue: 0,
-        revenueChange: -100,
-        joinedAt: new Date('2023-12-20'),
-        lastActiveAt: new Date(Date.now() - 604800000),
-        billingCycle: 'monthly',
-        moduleCount: 8,
-        totalModules: 15,
-        tags: ['Mobilya', 'Dekorasyon']
-    },
-    {
-        id: 'tenant-5',
-        name: 'Spor Center',
-        email: 'info@sporcenter.com',
-        phone: '+90 532 100 5000',
-        plan: 'PRO',
-        status: 'active',
-        users: 2,
-        maxUsers: 10,
-        stores: 2,
-        products: 1420,
-        monthlyRevenue: 8900,
-        revenueChange: 22.1,
-        joinedAt: new Date('2024-02-01'),
-        lastActiveAt: new Date(Date.now() - 1800000),
-        billingCycle: 'yearly',
-        moduleCount: 10,
-        totalModules: 15,
-        tags: ['Spor', 'Fitness']
-    },
-    {
-        id: 'tenant-6',
-        name: 'Elektronik Dünyası',
-        email: 'destek@elektronikdunyasi.com.tr',
-        plan: 'ENTERPRISE',
-        status: 'active',
-        users: 25,
-        maxUsers: 100,
-        stores: 8,
-        products: 32500,
-        monthlyRevenue: 125000,
-        revenueChange: 18.7,
-        joinedAt: new Date('2023-08-15'),
-        lastActiveAt: new Date(),
-        billingCycle: 'yearly',
-        moduleCount: 20,
-        totalModules: 20,
-        tags: ['Elektronik', 'Kurumsal', 'VIP']
-    },
-];
-
 const PLAN_CONFIG = {
     FREE: { label: 'Ücretsiz', color: 'slate', icon: Tag, bgClass: 'bg-slate-500/10', textClass: 'text-slate-400', borderClass: 'border-slate-500/20' },
     PRO: { label: 'Pro', color: 'blue', icon: Sparkles, bgClass: 'bg-blue-500/10', textClass: 'text-blue-400', borderClass: 'border-blue-500/20' },
@@ -169,15 +47,37 @@ const STATUS_CONFIG = {
 };
 
 export default function TenantsPage() {
+    const [tenants, setTenants] = useState<Tenant[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedPlan, setSelectedPlan] = useState<string>('all');
     const [selectedStatus, setSelectedStatus] = useState<string>('all');
     const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
     const [currentTime] = useState(() => Date.now());
 
+    useEffect(() => {
+        async function fetchTenants() {
+            try {
+                const res = await fetch('/api/admin/tenants');
+                if (!res.ok) throw new Error('Veri alınamadı');
+                const data = await res.json();
+                setTenants((data.tenants || data || []).map((t: any) => ({
+                    ...t,
+                    joinedAt: new Date(t.joinedAt || t.createdAt),
+                    lastActiveAt: new Date(t.lastActiveAt || t.updatedAt || t.createdAt),
+                })));
+            } catch {
+                setTenants([]);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchTenants();
+    }, []);
+
     // Filtreleme ve sıralama
     const filteredTenants = useMemo(() => {
-        return MOCK_TENANTS
+        return tenants
             .filter(t => {
                 if (searchQuery && !t.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
                     !t.email.toLowerCase().includes(searchQuery.toLowerCase())) return false;
@@ -186,20 +86,20 @@ export default function TenantsPage() {
                 return true;
             })
             .sort((a, b) => b.lastActiveAt.getTime() - a.lastActiveAt.getTime());
-    }, [searchQuery, selectedPlan, selectedStatus]);
+    }, [searchQuery, selectedPlan, selectedStatus, tenants]);
 
     // İstatistikler
     const stats = useMemo(() => ({
-        total: MOCK_TENANTS.length,
-        active: MOCK_TENANTS.filter(t => t.status === 'active').length,
-        trial: MOCK_TENANTS.filter(t => t.status === 'trial').length,
-        suspended: MOCK_TENANTS.filter(t => t.status === 'suspended').length,
-        totalRevenue: MOCK_TENANTS.reduce((acc, t) => acc + t.monthlyRevenue, 0),
-        totalProducts: MOCK_TENANTS.reduce((acc, t) => acc + t.products, 0),
-        totalUsers: MOCK_TENANTS.reduce((acc, t) => acc + t.users, 0),
-        enterprise: MOCK_TENANTS.filter(t => t.plan === 'ENTERPRISE').length,
-        pro: MOCK_TENANTS.filter(t => t.plan === 'PRO').length,
-    }), []);
+        total: tenants.length,
+        active: tenants.filter(t => t.status === 'active').length,
+        trial: tenants.filter(t => t.status === 'trial').length,
+        suspended: tenants.filter(t => t.status === 'suspended').length,
+        totalRevenue: tenants.reduce((acc, t) => acc + t.monthlyRevenue, 0),
+        totalProducts: tenants.reduce((acc, t) => acc + t.products, 0),
+        totalUsers: tenants.reduce((acc, t) => acc + t.users, 0),
+        enterprise: tenants.filter(t => t.plan === 'ENTERPRISE').length,
+        pro: tenants.filter(t => t.plan === 'PRO').length,
+    }), [tenants]);
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(value);
@@ -220,6 +120,12 @@ export default function TenantsPage() {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 pb-20">
+            {loading && (
+                <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                </div>
+            )}
+            {!loading && <>
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div>
@@ -654,6 +560,7 @@ export default function TenantsPage() {
                     </div>
                 </div>
             </div>
+            </>}
         </div>
     );
 }
