@@ -92,6 +92,7 @@
     "jest": "^30.0.0",
     "is-number": "^7.0.0",
     "os-tmpdir": "^1.0.2",
+    "boxen": "^5.1.2",
     "prettier": "^3.4.2",
     "chokidar": "^3.6.0",
     "source-map-support": "^0.5.21",
