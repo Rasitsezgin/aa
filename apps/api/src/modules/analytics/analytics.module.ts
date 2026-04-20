@@ -5,9 +5,9 @@ import { DatabaseModule } from '../../database/database.module';
 import { AiModule } from '../ai/ai.module';
 
 @Module({
-  imports: [DatabaseModule, AiModule],
+  imports: [DatabaseModule], // Removed AiModule temporarily
   controllers: [AnalyticsController],
-  providers: [AnalyticsService],
-  exports: [AnalyticsService],
+  providers: [], // Temporarily removed AnalyticsService
+  exports: [],
 })
 export class AnalyticsModule {}

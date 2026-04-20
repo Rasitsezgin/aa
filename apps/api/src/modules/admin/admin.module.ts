@@ -9,7 +9,7 @@ import { AiModule } from '../ai/ai.module';
 import { AnalyticsModule } from '../analytics/analytics.module';
 
 @Module({
-  imports: [DatabaseModule, AiModule, AnalyticsModule],
+  imports: [DatabaseModule, AiModule],
   controllers: [AdminController, AiAssistantController],
   providers: [AdminService, AdminGuard, AiAssistantService],
   exports: [AdminService, AiAssistantService],

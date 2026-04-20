@@ -1,39 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  MessageSquare,
-  ArrowLeft,
-  Pin,
-  Lock,
-  Eye,
-  MessageCircle,
-  ThumbsUp,
-  Heart,
-  CheckCircle,
-  Clock,
-  MoreHorizontal,
-  Reply,
-  Share2,
-  Flag,
-  Bookmark,
-  ChevronLeft,
-  ChevronRight,
-  User,
-  Shield,
-  Award,
-  Star,
-  Image as ImageIcon,
-  Smile,
-  Bold,
-  Italic,
-  Link as LinkIcon,
-  List,
-  Code,
-  Send,
+  MessageSquare, ArrowLeft, Pin, Lock, Eye, MessageCircle,
+  ThumbsUp, Heart, CheckCircle, Clock, MoreHorizontal, Reply,
+  Share2, Flag, Bookmark, ChevronLeft, ChevronRight, User,
+  Shield, Award, Star, Image as ImageIcon, Smile, Bold, Italic,
+  Link as LinkIcon, List, Code, Send, Loader2
 } from "lucide-react";
+import { communityService } from "@/lib/services/community-service";
 
 interface ForumTopic {
   id: string;
@@ -95,45 +73,71 @@ interface ForumPost {
 }
 
 export default function ForumTopicPage() {
-  const [topic, setTopic] = useState<ForumTopic | null>(null);
-  const [posts, setPosts] = useState<ForumPost[]>([]);
+  const params = useParams();
+  const slug = params?.slug as string || '';
+  
+  const [topic, setTopic] = useState<any>(null);
+  const [posts, setPosts] = useState<any[]>([]);
   const [replyContent, setReplyContent] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showReplyEditor, setShowReplyEditor] = useState(false);
 
-  // Initialize mock data
-  useState(() => {
-    const mockTopic: ForumTopic = {
-      id: "1",
-      title: "Örnek Konu Başlığı",
-      slug: "ornek-konu",
-      type: "NORMAL",
-      status: "OPEN",
-      author: { id: "1", name: "Admin", reputation: 100, postCount: 50, joinedAt: "2024-01-01" },
-      board: { id: "1", name: "Genel", slug: "general" },
-      viewCount: 1234,
-      replyCount: 5,
-      reactionCount: 42,
-      createdAt: "2024-01-15T10:30:00Z",
-      tags: ["örnek", "konu"],
-      isWatching: false,
+  useEffect(() => {
+    const fetchTopic = async () => {
+      if (!slug) return;
+      
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/community/topic/${slug}`);
+        
+        if (!response.ok) {
+          throw new Error('Konu bulunamadı');
+        }
+        
+        const data = await response.json();
+        setTopic(data);
+        setPosts(data.posts || []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Bir hata oluştu');
+      } finally {
+        setLoading(false);
+      }
     };
-    setTopic(mockTopic);
 
-    const mockPosts: ForumPost[] = [
-      {
-        id: "1",
-        postNumber: 1,
-        author: { id: "1", name: "Admin", isOnline: true, reputation: 100, postCount: 50, joinedAt: "2024-01-01", badges: [] },
-        content: "Bu bir örnek içeriktir.",
-        contentHtml: "<p>Bu bir örnek içeriktir.</p>",
-        createdAt: "2 saat önce",
-        editCount: 0,
-        reactionCount: 5,
-        reactions: [],
-      },
-    ];
-    setPosts(mockPosts);
-  });
+    fetchTopic();
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-[#02040a] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-cyan-600 animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 dark:text-slate-400">Konu yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !topic) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-[#02040a] flex items-center justify-center">
+        <div className="text-center">
+          <MessageSquare className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+            {error || 'Konu bulunamadı'}
+          </h1>
+          <Link 
+            href="/forum" 
+            className="text-cyan-600 hover:underline inline-flex items-center gap-2"
+          >
+            <ChevronLeft size={18} />
+            Foruma Dön
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const getReactionIcon = (type: string) => {
     switch (type) {
@@ -155,7 +159,7 @@ export default function ForumTopicPage() {
             <ChevronLeft className="w-4 h-4 rotate-180" />
             {topic ? (
               <>
-                <Link href={`/forum/board/${topic.board.slug}`} className="hover:text-indigo-600">{topic.board.name}</Link>
+                <Link href={`/forum`} className="hover:text-cyan-600">{topic.board?.name || topic.category || 'Forum'}</Link>
                 <ChevronLeft className="w-4 h-4 rotate-180" />
                 <span className="text-slate-700 font-medium truncate">{topic.title}</span>
               </>
@@ -211,16 +215,16 @@ export default function ForumTopicPage() {
                 <span className="flex items-center gap-1"><ThumbsUp className="w-4 h-4" /> {topic.reactionCount} beğeni</span>
               </div>
               <div className="flex flex-wrap gap-2 mt-3">
-                {topic.tags.map((tag) => (
-                  <Link key={tag} href={`/forum/tag/${tag}`} className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm hover:bg-indigo-100">
-                    #{tag}
+                {topic.tags?.map((tag: {name: string; slug: string; color?: string}) => (
+                  <Link key={tag.slug} href={`/forum/tag/${tag.slug}`} className="px-3 py-1 bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400 rounded-full text-sm hover:bg-cyan-100">
+                    #{tag.name}
                   </Link>
                 ))}
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-slate-100 rounded-lg" title="Abone Ol">
-                <Bookmark className={`w-5 h-5 ${topic.isWatching ? "fill-indigo-600 text-indigo-600" : "text-slate-400"}`} />
+              <button className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg" title="Abone Ol">
+                <Bookmark className="w-5 h-5 text-slate-400" />
               </button>
               <button className="p-2 hover:bg-slate-100 rounded-lg" title="Paylaş">
                 <Share2 className="w-5 h-5 text-slate-400" />
@@ -293,9 +297,9 @@ export default function ForumTopicPage() {
                     </div>
                   </div>
 
-                  {post.author.badges.length > 0 && (
+                  {post.author.badges?.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-1">
-                      {post.author.badges.map((badge) => (
+                      {post.author.badges.map((badge: string) => (
                         <span key={badge} className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs rounded" title={badge}>
                           <Award className="w-3 h-3" />
                         </span>
@@ -351,12 +355,12 @@ export default function ForumTopicPage() {
                   {/* Actions */}
                   <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
                     <div className="flex items-center gap-2">
-                      {post.reactions.map((reaction) => (
+                      {post.reactions?.map((reaction: {type: string; count: number; userReacted?: boolean}) => (
                         <button
                           key={reaction.type}
                           className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm ${
                             reaction.userReacted
-                              ? "bg-indigo-100 text-indigo-700"
+                              ? "bg-cyan-100 text-cyan-700"
                               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                           }`}
                         >
