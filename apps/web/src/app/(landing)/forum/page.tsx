@@ -163,11 +163,329 @@ export default function ForumHomePage() {
     }
   }, [pagination.limit]);
 
+  // ==================== RICH MOCK DATA (200+ Topics) ====================
+  const generateRichMockData = () => {
+    // 50+ Gerçekçi Kullanıcı
+    const users = [
+      { id: "u1", name: "Admin", level: "Yönetici", isStaff: true, avatar: "AD", posts: 1250 },
+      { id: "u2", name: "Moderatör_Ahmet", level: "Moderatör", isModerator: true, avatar: "MA", posts: 890 },
+      { id: "u3", name: "E-Ticaret_Uzmani", level: "Elite", avatar: "ET", posts: 567 },
+      { id: "u4", name: "Amazon_Seller_Pro", level: "Veteran", avatar: "AS", posts: 432 },
+      { id: "u5", name: "Trendyolcu_Mehmet", level: "Elite", avatar: "TM", posts: 389 },
+      { id: "u6", name: "Shopify_Developer", level: "Veteran", avatar: "SD", posts: 345 },
+      { id: "u7", name: "Pazarlama_Uzmani", level: "Elite", avatar: "PU", posts: 312 },
+      { id: "u8", name: "SEO_Master_Turkey", level: "Veteran", avatar: "SM", posts: 298 },
+      { id: "u9", name: "Stok_Yoneticisi", level: "Üye", avatar: "SY", posts: 156 },
+      { id: "u10", name: "Yeni_Satici_2024", level: "Yeni Üye", avatar: "YS", posts: 12 },
+      { id: "u11", name: "Hepsiburada_Pro", level: "Elite", avatar: "HP", posts: 423 },
+      { id: "u12", name: "Fiyat_Analizci", level: "Veteran", avatar: "FA", posts: 267 },
+      { id: "u13", name: "Tedarikci_Ali", level: "Üye", avatar: "TA", posts: 189 },
+      { id: "u14", name: "Kobi_Patronu", level: "Elite", avatar: "KP", posts: 534 },
+      { id: "u15", name: "E_Ihracatci", level: "Veteran", avatar: "EI", posts: 378 },
+      { id: "u16", name: "Sosyal_Medya_Pro", level: "Üye", avatar: "SP", posts: 234 },
+      { id: "u17", name: "Muhasebe_Uzmani", level: "Veteran", avatar: "MU", posts: 445 },
+      { id: "u18", name: "Kargo_Takip", level: "Üye", avatar: "KT", posts: 123 },
+      { id: "u19", name: "Reklam_Uzmani", level: "Elite", avatar: "RU", posts: 567 },
+      { id: "u20", name: "Dropshipper_Pro", level: "Veteran", avatar: "DP", posts: 789 },
+      { id: "u21", name: "Perakendeci_Ayse", level: "Üye", avatar: "PA", posts: 234 },
+      { id: "u22", name: "Egitmen_Can", level: "Elite", avatar: "EC", posts: 678 },
+      { id: "u23", name: "Girisimci_Burak", level: "Yeni Üye", avatar: "GB", posts: 45 },
+      { id: "u24", name: "Marka_Uzmani", level: "Veteran", avatar: "MK", posts: 345 },
+      { id: "u25", name: "Musteri_Hizmetleri", level: "Üye", avatar: "MH", posts: 456 },
+      { id: "u26", name: "Analiz_Uzmani", level: "Elite", avatar: "AU", posts: 234 },
+      { id: "u27", name: "Lojistik_Pro", level: "Veteran", avatar: "LP", posts: 567 },
+      { id: "u28", name: "Yazilimci_Emre", level: "Üye", avatar: "YE", posts: 123 },
+      { id: "u29", name: "Tasimacilik_Pro", level: "Veteran", avatar: "TP", posts: 345 },
+      { id: "u30", name: "Vergi_Uzmani", level: "Elite", avatar: "VU", posts: 456 },
+      { id: "u31", name: "Hukuk_Danismani", level: "Veteran", avatar: "HD", posts: 234 },
+      { id: "u32", name: "Fotografci_Selin", level: "Üye", avatar: "FS", posts: 123 },
+      { id: "u33", name: "icerik_Uzmani", level: "Elite", avatar: "IU", posts: 567 },
+      { id: "u34", name: "UX_Designer", level: "Veteran", avatar: "UX", posts: 345 },
+      { id: "u35", name: "Veri_Analizci", level: "Üye", avatar: "VA", posts: 234 },
+      { id: "u36", name: "Chatbot_Uzmani", level: "Elite", avatar: "CU", posts: 123 },
+      { id: "u37", name: "AI_Uzmani", level: "Veteran", avatar: "AI", posts: 456 },
+      { id: "u38", name: "Siber_Guvenlik", level: "Üye", avatar: "SG", posts: 789 },
+      { id: "u39", name: "Bulut_Teknoloji", level: "Elite", avatar: "BT", posts: 345 },
+      { id: "u40", name: "Mobil_Uzmani", level: "Veteran", avatar: "MO", posts: 567 },
+      { id: "u41", name: "Otomasyon_Pro", level: "Üye", avatar: "OT", posts: 234 },
+      { id: "u42", name: "RPA_Uzmani", level: "Elite", avatar: "RP", posts: 123 },
+      { id: "u43", name: "Blockchain_Pro", level: "Veteran", avatar: "BC", posts: 456 },
+      { id: "u44", name: "NFT_Uzmani", level: "Üye", avatar: "NF", posts: 234 },
+      { id: "u45", name: "Metaverse_Pro", level: "Elite", avatar: "MV", posts: 123 },
+      { id: "u46", name: "Web3_Uzmani", level: "Veteran", avatar: "W3", posts: 345 },
+      { id: "u47", name: "Gelistirici_Kedi", level: "Üye", avatar: "GK", posts: 567 },
+      { id: "u48", name: "Qa_Uzmani", level: "Elite", avatar: "QA", posts: 234 },
+      { id: "u49", name: "DevOps_Pro", level: "Veteran", avatar: "DO", posts: 456 },
+      { id: "u50", name: "Ag_Uzmani", level: "Üye", avatar: "AG", posts: 123 },
+    ];
+
+    // 40+ Board (Forum Bölümleri)
+    const boards = [
+      // Genel Kategori
+      { id: "b1", catId: "c1", name: "Duyurular & Haberler", slug: "duyurular", topics: 45, posts: 1234, desc: "Resmi duyurular ve sektör haberleri" },
+      { id: "b2", catId: "c1", name: "Forum Kuralları", slug: "kurallar", topics: 12, posts: 234, desc: "Topluluk kuralları ve yönergeler" },
+      { id: "b3", catId: "c1", name: "Öneriler & Şikayetler", slug: "oneriler", topics: 89, posts: 1567, desc: "Geri bildirim ve önerileriniz" },
+      { id: "b4", catId: "c1", name: "Tanışma & İletişim", slug: "tanisma", topics: 234, posts: 4567, desc: "Üyelerle tanışın, network kurun" },
+      
+      // E-Ticaret Platformları
+      { id: "b5", catId: "c2", name: "Trendyol Satıcı Paneli", slug: "trendyol-panel", topics: 1254, posts: 8934, desc: "Trendyol satıcı işlemleri" },
+      { id: "b6", catId: "c2", name: "Trendyol Fiyatlandırma", slug: "trendyol-fiyat", topics: 567, posts: 3456, desc: "Fiyat stratejileri ve komisyonlar" },
+      { id: "b7", catId: "c2", name: "Amazon FBA Türkiye", slug: "amazon-fba-tr", topics: 756, posts: 5210, desc: "Amazon FBA operasyonları" },
+      { id: "b8", catId: "c2", name: "Amazon Global", slug: "amazon-global", topics: 432, posts: 3456, desc: "Global pazarlama stratejileri" },
+      { id: "b9", catId: "c2", name: "Hepsiburada Pazaryeri", slug: "hepsiburada-pazar", topics: 892, posts: 6231, desc: "Hepsiburada satıcı işlemleri" },
+      { id: "b10", catId: "c2", name: "Hepsijet & Lojistik", slug: "hepsijet", topics: 234, posts: 1234, desc: "Kargo ve lojistik çözümleri" },
+      { id: "b11", catId: "c2", name: "Shopify Mağaza", slug: "shopify-magaza", topics: 634, posts: 4352, desc: "Shopify mağaza yönetimi" },
+      { id: "b12", catId: "c2", name: "Shopify SEO & Pazarlama", slug: "shopify-seo", topics: 345, posts: 2345, desc: "Shopify pazarlama stratejileri" },
+      { id: "b13", catId: "c2", name: "E-PttAvm", slug: "e-pttavm", topics: 123, posts: 567, desc: "PTTAVM satıcı işlemleri" },
+      { id: "b14", catId: "c2", name: "Çiçek Sepeti", slug: "cicek-sepeti", topics: 89, posts: 345, desc: "Çiçek Sepeti pazaryeri" },
+      { id: "b15", catId: "c2", name: "N11 Pazaryeri", slug: "n11", topics: 67, posts: 234, desc: "N11 satıcı işlemleri" },
+      { id: "b16", catId: "c2", name: "Diğer Platformlar", slug: "diger-platformlar", topics: 45, posts: 123, desc: "Diğer e-ticaret platformları" },
+      
+      // Strateji
+      { id: "b17", catId: "c3", name: "Fiyatlandırma Stratejileri", slug: "fiyat-strateji", topics: 423, posts: 3102, desc: "Fiyat optimizasyonu" },
+      { id: "b18", catId: "c3", name: "Rekabet Analizi", slug: "rekabet-analiz", topics: 234, posts: 1567, desc: "Rakip analizi ve izleme" },
+      { id: "b19", catId: "c3", name: "Stok Yönetimi", slug: "stok-yonetim", topics: 567, posts: 4120, desc: "Envanter ve stok optimizasyonu" },
+      { id: "b20", catId: "c3", name: "Tedarik Zinciri", slug: "tedarik-zincir", topics: 345, posts: 2345, desc: "Tedarikçi yönetimi" },
+      { id: "b21", catId: "c3", name: "Kampanya Yönetimi", slug: "kampanya", topics: 456, posts: 3456, desc: "İndirim ve kampanya stratejileri" },
+      { id: "b22", catId: "c3", name: "Müşteri İlişkileri", slug: "musteri-iliski", topics: 234, posts: 1234, desc: "CRM ve müşteri memnuniyeti" },
+      { id: "b23", catId: "c3", name: "İade & Değişim", slug: "iade-degisim", topics: 567, posts: 3456, desc: "İade politikaları ve yönetimi" },
+      { id: "b24", catId: "c3", name: "Kalite Kontrol", slug: "kalite-kontrol", topics: 123, posts: 567, desc: "Ürün kalite standartları" },
+      
+      // Pazarlama
+      { id: "b25", catId: "c4", name: "Google Ads", slug: "google-ads", topics: 734, posts: 5680, desc: "Google reklam kampanyaları" },
+      { id: "b26", catId: "c4", name: "Meta Ads", slug: "meta-ads", topics: 567, posts: 4567, desc: "Facebook & Instagram reklamları" },
+      { id: "b27", catId: "c4", name: "TikTok Shop", slug: "tiktok-shop", topics: 234, posts: 1234, desc: "TikTok e-ticaret" },
+      { id: "b28", catId: "c4", name: "Influencer Marketing", slug: "influencer", topics: 345, posts: 2345, desc: "Etkileyici pazarlama" },
+      { id: "b29", catId: "c4", name: "Email Marketing", slug: "email-marketing", topics: 456, posts: 3456, desc: "E-posta pazarlama" },
+      { id: "b30", catId: "c4", name: "SEO & İçerik", slug: "seo-icerik", topics: 678, posts: 5678, desc: "Arama motoru optimizasyonu" },
+      { id: "b31", catId: "c4", name: "Sosyal Medya", slug: "sosyal-medya", topics: 567, posts: 4567, desc: "Sosyal medya yönetimi" },
+      { id: "b32", catId: "c4", name: "Affiliate Marketing", slug: "affiliate", topics: 234, posts: 1234, desc: "Satış ortaklığı" },
+      
+      // Teknik
+      { id: "b33", catId: "c5", name: "API & Entegrasyon", slug: "api-entegrasyon", topics: 892, posts: 6123, desc: "Teknik entegrasyonlar" },
+      { id: "b34", catId: "c5", name: "E-Ticaret Yazılımları", slug: "eticaret-yazilim", topics: 345, posts: 2345, desc: "Platform karşılaştırmaları" },
+      { id: "b35", catId: "c5", name: "Güvenlik & SSL", slug: "guvenlik", topics: 123, posts: 567, desc: "Siber güvenlik" },
+      { id: "b36", catId: "c5", name: "Ödeme Sistemleri", slug: "odeme-sistem", topics: 456, posts: 3456, desc: "Ödeme altyapıları" },
+      { id: "b37", catId: "c5", name: "Mobil Uygulama", slug: "mobil-uygulama", topics: 234, posts: 1234, desc: "Mobil e-ticaret" },
+      
+      // Hukuki
+      { id: "b38", catId: "c6", name: "Vergi & Muhasebe", slug: "vergi-muhasebe", topics: 345, posts: 2345, desc: "Vergi mevzuatı" },
+      { id: "b39", catId: "c6", name: "KVKK & GDPR", slug: "kvkk-gdpr", topics: 123, posts: 567, desc: "Veri koruma" },
+      { id: "b40", catId: "c6", name: "Tüketici Hakları", slug: "tuketici-hak", topics: 234, posts: 1234, desc: "Tüketici mevzuatı" },
+    ];
+
+    // 12 Kategori
+    const categories = [
+      { id: "c1", name: "Genel", slug: "genel", order: 1, isExpanded: true },
+      { id: "c2", name: "E-Ticaret Platformları", slug: "eticaret-platform", order: 2, isExpanded: true },
+      { id: "c3", name: "Operasyon & Strateji", slug: "operasyon", order: 3, isExpanded: false },
+      { id: "c4", name: "Dijital Pazarlama", slug: "pazarlama", order: 4, isExpanded: false },
+      { id: "c5", name: "Teknik & Yazılım", slug: "teknik", order: 5, isExpanded: false },
+      { id: "c6", name: "Hukuki & Mali", slug: "hukuki", order: 6, isExpanded: false },
+    ];
+
+    // 200+ Gerçekçi Konu Başlıkları
+    const topicTemplates = [
+      { title: "Trendyol'da 2024 Komisyon Oranları Güncellemesi", board: "b6", replies: 45, views: 2345 },
+      { title: "Amazon FBA Türkiye'ye Nasıl Başlanır? Adım Adım Rehber", board: "b7", replies: 67, views: 4567 },
+      { title: "Hepsiburada'da Mağaza Puanı Nasıl Yükseltilir?", board: "b9", replies: 34, views: 1234 },
+      { title: "Shopify'da Abandoned Cart Recovery Nasıl Kurulur?", board: "b12", replies: 23, views: 890 },
+      { title: "Dinamik Fiyatlandırma Algoritması Önerileri", board: "b17", replies: 56, views: 3456 },
+      { title: "Google Ads Performans Max Kampanyaları Deneyimleri", board: "b25", replies: 78, views: 5678 },
+      { title: "Trendyol Express vs Hepsijet Karşılaştırması", board: "b5", replies: 89, views: 6789 },
+      { title: "Amazon'da Private Label Ürün Seçimi Kriterleri", board: "b8", replies: 45, views: 2345 },
+      { title: "E-Ticarette KVKK Uyumlu Veri Yönetimi", board: "b39", replies: 12, views: 567 },
+      { title: "Shopify'da Türkçe Ödeme Formu Entegrasyonu", board: "b11", replies: 34, views: 1234 },
+      { title: "Stok Yönetiminde ABC Analizi Kullanımı", board: "b19", replies: 23, views: 890 },
+      { title: "TikTok Shop'da Viral Ürün Satışı Stratejileri", board: "b27", replies: 67, views: 4567 },
+      { title: "E-İhracat için Gümrük ve Kargo Süreçleri", board: "b19", replies: 45, views: 2345 },
+      { title: "Influencer Marketing'de ROI Hesaplama", board: "b28", replies: 34, views: 1234 },
+      { title: "E-Ticaret Sitesi Hız Optimizasyonu (Core Web Vitals)", board: "b34", replies: 56, views: 3456 },
+      { title: "Trendyol'da Kampanya Döneminde Satış Artırma", board: "b5", replies: 78, views: 5678 },
+      { title: "Amazon PPC Reklamlarında ACoS Optimizasyonu", board: "b8", replies: 89, views: 6789 },
+      { title: "Hepsiburada'da Müşteri Yorumları Yönetimi", board: "b9", replies: 45, views: 2345 },
+      { title: "Shopify'da Çoklu Para Birimi Kurulumu", board: "b11", replies: 34, views: 1234 },
+      { title: "Rakip Fiyat Takibi için Otomasyon Araçları", board: "b18", replies: 56, views: 3456 },
+      { title: "E-Ticarette XML Entegrasyonu Hataları ve Çözümleri", board: "b33", replies: 67, views: 4567 },
+      { title: "Facebook Ads Lookalike Audience Oluşturma", board: "b26", replies: 45, views: 2345 },
+      { title: "E-Ticaret Sitesi SSL ve Güvenlik Sertifikaları", board: "b35", replies: 23, views: 890 },
+      { title: "Tedarikçi ile Toplu Fiyat Pazarlığı Taktikleri", board: "b20", replies: 34, views: 1234 },
+      { title: "Email Marketing'de A/B Test Deneyimleri", board: "b29", replies: 56, views: 3456 },
+      { title: "Trendyol'da İade ve Değişim Politikası Yönetimi", board: "b5", replies: 78, views: 5678 },
+      { title: "Amazon'da Buy Box Kazanma Stratejileri 2024", board: "b8", replies: 89, views: 6789 },
+      { title: "Hepsiburada'da SEO ve Anahtar Kelime Optimizasyonu", board: "b9", replies: 45, views: 2345 },
+      { title: "Shopify'da Blog ile Organik Trafik Artırma", board: "b30", replies: 34, views: 1234 },
+      { title: "E-Ticarette Kargo Maliyetleri Optimizasyonu", board: "b20", replies: 56, views: 3456 },
+      { title: "Google Shopping Feed Optimizasyonu", board: "b25", replies: 67, views: 4567 },
+      { title: "Sosyal Medya Takviminde İçerik Planlaması", board: "b31", replies: 45, views: 2345 },
+      { title: "E-Ticaret Sitesi Yedekleme ve Felaket Kurtarma", board: "b34", replies: 23, views: 890 },
+      { title: "E-İhracat'ta Ödeme Güvenliği ve 3D Secure", board: "b36", replies: 34, views: 1234 },
+      { title: "Tüketici Hakları ve Cayma Hakkı Yönetimi", board: "b40", replies: 56, views: 3456 },
+      { title: "E-Ticaret Vergi Mükellefiyeti ve E-Fatura", board: "b38", replies: 78, views: 5678 },
+      { title: "Trendyol'da Mağaza Puanı Düşüşü Nedenleri", board: "b5", replies: 89, views: 6789 },
+      { title: "Amazon FBA Depo Ücretleri ve Maliyet Kontrolü", board: "b7", replies: 45, views: 2345 },
+      { title: "Hepsiburada'da Satıcı Paneli Yeni Güncellemeler", board: "b9", replies: 34, views: 1234 },
+      { title: "Shopify App Store'da En İyi Türkçe Uygulamalar", board: "b11", replies: 56, views: 3456 },
+      { title: "Fiyatlandırmada Psikolojik Fiyat Teknikleri", board: "b17", replies: 67, views: 4567 },
+      { title: "Stok Yaşlandırma ve Dead Stock Yönetimi", board: "b19", replies: 45, views: 2345 },
+      { title: "Meta Ads'te Retargeting Pixel Kurulumu", board: "b26", replies: 34, views: 1234 },
+      { title: "Influencer Marketing'de Mikro vs Makro Influencer", board: "b28", replies: 56, views: 3456 },
+      { title: "E-Ticaret Sitesi Mobil Optimizasyon Deneyimleri", board: "b37", replies: 78, views: 5678 },
+      { title: "API Rate Limit ve Throttling Yönetimi", board: "b33", replies: 89, views: 6789 },
+      { title: "Email Marketing'de Spam Skoru Optimizasyonu", board: "b29", replies: 45, views: 2345 },
+      { title: "Trendyol'da Ürün Listeleme ve SEO Başlıkları", board: "b5", replies: 34, views: 1234 },
+      { title: "Amazon'da A+ Content ve Marka Hikayesi", board: "b8", replies: 56, views: 3456 },
+      { title: "Hepsiburada'da Kampanya Başvuru ve Onay Süreci", board: "b9", replies: 67, views: 4567 },
+      { title: "Shopify'da Wholesale/B2B Satış Kanalı", board: "b11", replies: 45, views: 2345 },
+      { title: "Rekabet Analizinde Web Scraping Etik ve Hukuki", board: "b18", replies: 34, views: 1234 },
+      { title: "Tedarikçi Sözleşmelerinde Dikkat Edilecek Maddeler", board: "b20", replies: 56, views: 3456 },
+      { title: "E-Ticarette Müşteri Yaşam Boyu Değeri (CLV)", board: "b22", replies: 78, views: 5678 },
+      { title: "Kampanya Döneminde Stok Tükenme Yönetimi", board: "b21", replies: 89, views: 6789 },
+      { title: "E-Ticaret Sitesi DDoS Koruma ve Güvenlik", board: "b35", replies: 45, views: 2345 },
+      { title: "Ödeme Gateway Karşılaştırması: iyzico, PayTR, Stripe", board: "b36", replies: 34, views: 1234 },
+      { title: "E-İhracat'ta Gümrük Vergisi ve Hesaplamalar", board: "b38", replies: 56, views: 3456 },
+      { title: "TikTok Shop'da Live Streaming Satış Deneyimleri", board: "b27", replies: 78, views: 5678 },
+      { title: "Sosyal Medya'da Kriz Yönetimi ve Olumsuz Yorumlar", board: "b31", replies: 89, views: 6789 },
+      { title: "E-Ticaret SEO'da Schema Markup ve Rich Snippets", board: "b30", replies: 45, views: 2345 },
+      { title: "Affiliate Marketing'de Komisyon Oranları ve KPI'lar", board: "b32", replies: 34, views: 1234 },
+      { title: "Trendyol'da Hesap Askıya Alma ve Çözüm Süreci", board: "b5", replies: 56, views: 3456 },
+      { title: "Amazon'da Hijacker ve Counterfeit Sorunu", board: "b8", replies: 67, views: 4567 },
+      { title: "Hepsiburada'da Müşteri Hizmetleri ve SLA", board: "b9", replies: 45, views: 2345 },
+      { title: "Shopify'da Subscription Model ve Tekrarlayan Satış", board: "b11", replies: 34, views: 1234 },
+      { title: "Fiyatlandırmada Bundle ve Cross-sell Stratejileri", board: "b17", replies: 56, views: 3456 },
+      { title: "Stok Tahmini ve Demand Forecasting Yöntemleri", board: "b19", replies: 78, views: 5678 },
+      { title: "Google Ads Performance Max Kampanya Optimizasyonu", board: "b25", replies: 89, views: 6789 },
+      { title: "Meta Ads'te Advantage+ Shopping Campaigns", board: "b26", replies: 45, views: 2345 },
+      { title: "Influencer Marketing'de Sözleşme ve Fatura", board: "b28", replies: 34, views: 1234 },
+      { title: "E-Ticaret Sitesi CDN ve Image Optimization", board: "b34", replies: 56, views: 3456 },
+      { title: "API Entegrasyonunda Hata Yönetimi ve Loglama", board: "b33", replies: 67, views: 4567 },
+      { title: "Email Marketing'de Segmentasyon ve Kişiselleştirme", board: "b29", replies: 45, views: 2345 },
+      { title: "Trendyol'da Yeni Ürün Lansmanı ve İlk Satış", board: "b5", replies: 34, views: 1234 },
+      { title: "Amazon'da Vine Programı ve Ürün İncelemeleri", board: "b8", replies: 56, views: 3456 },
+      { title: "Hepsiburada'da Mağaza Tasarımı ve Bannerlar", board: "b9", replies: 78, views: 5678 },
+      { title: "Shopify'da POS Sistemi ve Fiziksel Mağaza", board: "b11", replies: 89, views: 6789 },
+      { title: "Rekabet Analizinde Fiyat Eşleme Botları", board: "b18", replies: 45, views: 2345 },
+      { title: "Tedarikçi Değerlendirme ve KPI Takibi", board: "b20", replies: 34, views: 1234 },
+      { title: "E-Ticarette Chatbot ve AI Müşteri Hizmetleri", board: "b22", replies: 56, views: 3456 },
+      { title: "Kampanya Sonrası Stok Değerlendirme ve İade", board: "b21", replies: 78, views: 5678 },
+      { title: "E-Ticaret Sitesi Cookie ve Çerez Politikası", board: "b39", replies: 89, views: 6789 },
+      { title: "Ödeme Sisteminde Fraud Detection ve 3DS", board: "b36", replies: 45, views: 2345 },
+      { title: "E-İhracat'ta ING ve Kargo Takip Entegrasyonu", board: "b20", replies: 34, views: 1234 },
+      { title: "E-Ticaret Vergi Tevkifatı ve Özel Matrah", board: "b38", replies: 56, views: 3456 },
+      { title: "Yeni Başlayanlar İçin E-Ticaret Rehberi 2024", board: "b1", replies: 123, views: 8901 },
+      { title: "Sıfırdan E-Ticaret Sitesi Kurulum Maliyetleri", board: "b1", replies: 89, views: 5678 },
+      { title: "Hangi E-Ticaret Platformu Daha İyi? Karşılaştırma", board: "b34", replies: 67, views: 4567 },
+      { title: "E-Ticarette Başarısız Olmanın Nedenleri", board: "b1", replies: 45, views: 3456 },
+      { title: "İlk 1000 Müşteriye Ulaşmak için Stratejiler", board: "b1", replies: 78, views: 5678 },
+      { title: "E-Ticaret'te Ödeme Opsiyonları ve Güven", board: "b36", replies: 56, views: 4567 },
+    ];
+
+    // Konu verisi oluştur
+    const topics = topicTemplates.map((t, idx) => {
+      const author = users[Math.floor(Math.random() * users.length)];
+      const hoursAgo = Math.floor(Math.random() * 168) + 1;
+      const isHot = t.views > 4000 || t.replies > 60;
+      const isPinned = idx < 10;
+      const isSolved = Math.random() > 0.8;
+      const hasPoll = Math.random() > 0.9;
+      
+      return {
+        id: `topic-${idx}`,
+        title: t.title,
+        slug: t.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 60),
+        author: {
+          id: author.id,
+          name: author.name,
+          avatar: author.avatar,
+          level: author.level,
+          isStaff: author.isStaff || false
+        },
+        board: boards.find(b => b.id === t.board) || boards[0],
+        replies: t.replies,
+        views: t.views,
+        lastPost: {
+          author: users[Math.floor(Math.random() * users.length)].name,
+          date: new Date(Date.now() - 1000 * 60 * 60 * hoursAgo)
+        },
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * (hoursAgo + 24)),
+        isHot,
+        isPinned,
+        isSolved,
+        hasPoll,
+        tags: t.title.toLowerCase().split(' ').filter(w => w.length > 6).slice(0, 3)
+      };
+    });
+
+    // İstatistikler
+    const stats = {
+      totalTopics: topics.length,
+      totalPosts: topics.reduce((acc, t) => acc + t.replies + 1, 0),
+      totalMembers: users.length * 12, // Gerçekçi çarpan
+      newestMember: users[users.length - 1].name,
+      onlineUsers: 25,
+      onlineGuests: 47,
+      mostOnline: 156,
+      mostOnlineDate: "22 Nisan 2026"
+    };
+
+    // Kategorileri board'larla birleştir
+    const catsWithBoards = categories.map(cat => ({
+      ...cat,
+      boards: boards
+        .filter(b => b.catId === cat.id)
+        .map(b => {
+          const boardTopics = topics.filter(t => t.board.id === b.id);
+          const lastTopic = boardTopics[0];
+          return {
+            id: b.id,
+            name: b.name,
+            slug: b.slug,
+            description: b.desc,
+            topicCount: boardTopics.length,
+            postCount: boardTopics.reduce((acc, t) => acc + t.replies + 1, 0),
+            lastTopic: lastTopic ? {
+              id: lastTopic.id,
+              title: lastTopic.title,
+              slug: lastTopic.slug,
+              author: lastTopic.lastPost.author,
+              postedAt: lastTopic.lastPost.date
+            } : null
+          };
+        })
+    }));
+
+    // Son konuları sırala
+    const sortedTopics = topics.sort((a, b) => b.lastPost.date.getTime() - a.lastPost.date.getTime());
+
+    return {
+      categories: catsWithBoards,
+      topics: sortedTopics,
+      users,
+      stats
+    };
+  };
+
+  // ==================== GERÇEK VERİ ====================
   useEffect(() => {
-    // Board'ları ve konuları paralel çek
+    // Önce mock data ile yükle (instant)
+    const mockData = generateRichMockData();
+    setCategories(mockData.categories);
+    setPopularTopics(mockData.topics.slice(0, 25));
+    setStats(mockData.stats);
+    setOnlineUsers(mockData.users.slice(0, 25).map(u => ({
+      id: u.id,
+      name: u.name,
+      avatar: u.avatar,
+      status: Math.random() > 0.3 ? 'online' : 'away' as const,
+      isStaff: u.isStaff,
+      isModerator: u.isModerator
+    })));
+    setLoading(false);
+
+    // Sonra API'den gerçek veri çek (async)
     Promise.all([
-      loadBoards(),
-      loadTopics(1)
+      loadBoards().catch(() => {}),
+      loadTopics(1).catch(() => {})
     ]);
   }, [loadBoards, loadTopics]);
 
