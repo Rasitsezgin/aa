@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/response';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 // Tüm forum kategorileri ve board'larını getir
