@@ -226,96 +226,255 @@ export default function ForumHomePage() {
       }
     ];
 
-    const mockTopics: ForumTopic[] = [
-      {
-        id: "1",
-        title: "Trendyol'da Fiyatlandırma Stratejileri - Detaylı Rehber",
-        slug: "trendyol-fiyatlandirma-rehberi",
-        author: { id: "101", name: "E-Ticaretçi", level: "Elite", isStaff: false },
-        board: { id: "4", name: "Trendyol", slug: "trendyol" },
-        replies: 45,
-        views: 1250,
-        lastPost: { author: "E-Ticaretçi", date: new Date(Date.now() - 1000 * 60 * 5) },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
-        isPinned: true,
-        isHot: true,
-        tags: ["fiyatlandırma", "strateji"]
-      },
-      {
-        id: "2",
-        title: "Amazon'da Hangi Ürünler Satılır? 2024 Trend Analizi",
-        slug: "amazon-trend-2024",
-        author: { id: "102", name: "AmazonUzmanı", level: "Üye" },
-        board: { id: "6", name: "Amazon FBA", slug: "amazon-fba" },
-        replies: 32,
-        views: 980,
-        lastPost: { author: "Satıcı123", date: new Date(Date.now() - 1000 * 60 * 15) },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12),
-        isHot: true
-      },
-      {
-        id: "3",
-        title: "Hepsiburada Komisyon Oranları Güncellemesi",
-        slug: "hepsiburada-komisyon-2024",
-        author: { id: "103", name: "Admin", level: "Yönetici", isStaff: true },
-        board: { id: "5", name: "Hepsiburada", slug: "hepsiburada" },
-        replies: 78,
-        views: 3200,
-        lastPost: { author: "Admin", date: new Date(Date.now() - 1000 * 60 * 2) },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
-        isPinned: true,
-        isHot: true,
-        hasPoll: true
-      },
-      {
-        id: "4",
-        title: "Shopify SEO Optimizasyonu İçin İpuçları",
-        slug: "shopify-seo-ipuclari",
-        author: { id: "104", name: "SEO_Master", level: "Veteran" },
-        board: { id: "7", name: "Shopify", slug: "shopify" },
-        replies: 23,
-        views: 567,
-        lastPost: { author: "YeniSatıcı", date: new Date(Date.now() - 1000 * 60 * 30) },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6),
-        isSolved: true
-      },
-      {
-        id: "5",
-        title: "Stok Yönetiminde Excel Alternatifleri",
-        slug: "stok-excel-alternatifler",
-        author: { id: "105", name: "Stokçu", level: "Üye" },
-        board: { id: "9", name: "Stok & Tedarik", slug: "stok" },
-        replies: 15,
-        views: 345,
-        lastPost: { author: "TedarikçiX", date: new Date(Date.now() - 1000 * 60 * 45) },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8),
-        isLocked: true
-      },
-      {
-        id: "6",
-        title: "Yeni Başlayanlar İçin Tavsiyeler",
-        slug: "yeni-baslayanlar-tavsiye",
-        author: { id: "106", name: "DeneyimliSatıcı", level: "Elite" },
-        board: { id: "11", name: "Yeni Başlayanlar", slug: "yeni-baslayanlar" },
-        replies: 156,
-        views: 5600,
-        lastPost: { author: "DeneyimliSatıcı", date: new Date(Date.now() - 1000 * 60) },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48),
-        isHot: true,
-        isPinned: true
-      },
-      {
-        id: "7",
-        title: "Google Ads Bütçe Optimizasyonu",
-        slug: "google-ads-butce",
-        author: { id: "107", name: "PazarlamaPro", level: "Veteran" },
-        board: { id: "10", name: "Reklam & Pazarlama", slug: "pazarlama" },
-        replies: 28,
-        views: 890,
-        lastPost: { author: "Reklamcı", date: new Date(Date.now() - 1000 * 60 * 20) },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4)
-      }
+    // ==================== 150+ KONU ÜRET ====================
+    const authors = [
+      { id: "101", name: "E-Ticaretçi", level: "Elite" },
+      { id: "102", name: "AmazonUzmanı", level: "Veteran" },
+      { id: "103", name: "Admin", level: "Yönetici", isStaff: true },
+      { id: "104", name: "SEO_Master", level: "Veteran" },
+      { id: "105", name: "Stokçu", level: "Üye" },
+      { id: "106", name: "DeneyimliSatıcı", level: "Elite" },
+      { id: "107", name: "PazarlamaPro", level: "Veteran" },
+      { id: "108", name: "Trendyolcu", level: "Üye" },
+      { id: "109", name: "HepsiSatıcı", level: "Üye" },
+      { id: "110", name: "ShopifyGuru", level: "Elite" },
+      { id: "111", name: "FiyatUzmanı", level: "Veteran" },
+      { id: "112", name: "TedarikçiPro", level: "Üye" },
+      { id: "113", name: "ReklamUzmanı", level: "Elite" },
+      { id: "114", name: "YeniSatıcı", level: "Yeni Üye" },
+      { id: "115", name: "KobiPatronu", level: "Üye" },
+      { id: "116", name: "Eihracatçı", level: "Veteran" },
+      { id: "117", name: "Moderatör1", level: "Moderatör", isModerator: true },
+      { id: "118", name: "SosyalMedyaPro", level: "Üye" },
+      { id: "119", name: "MuhasebeUzmanı", level: "Veteran" },
+      { id: "120", name: "KargoTakip", level: "Üye" },
     ];
+
+    const topicTemplates = {
+      trendyol: [
+        "Trendyol'da Yeni Dönem Komisyon Oranları",
+        "Trendyol Express ile Hızlı Teslimat Deneyimleri",
+        "Trendyol Satıcı Paneli Yenilikleri",
+        "Trendyol'da Kampanya Dönemleri Stratejisi",
+        "Trendyol İade Süreci Nasıl İşliyor?",
+        "Trendyol'da Ürün Listeleme Optimizasyonu",
+        "Trendyol Plus Üyeliği Avantajları",
+        "Trendyol'da Rekabet Analizi Nasıl Yapılır?",
+        "Trendyol Depo ve Lojistik Çözümleri",
+        "Trendyol'da Müşteri Memnuniyeti Artırma",
+        "Trendyol Ödeme Sistemi ve Tahsilatlar",
+        "Trendyol'da Yeni Satıcı İlk Adımlar",
+        "Trendyol Mağaza Puanı Nasıl Yükseltilir?",
+        "Trendyol'da SEO ve Anahtar Kelime Stratejisi",
+        "Trendyol API Entegrasyonu Rehberi",
+      ],
+      amazon: [
+        "Amazon FBA 2024 Güncel Maliyetler",
+        "Amazon'da Private Label Ürün Seçimi",
+        "Amazon PPC Reklamları Optimizasyonu",
+        "Amazon'da Buy Box Kazanma Stratejileri",
+        "Amazon Brand Registry Başvurusu",
+        "Amazon'da Inventory Planning",
+        "Amazon A+ Content Nasıl Hazırlanır?",
+        "Amazon Vine Programı Deneyimleri",
+        "Amazon'da Hijacker Sorunu Çözümü",
+        "Amazon FBA vs FBM Karşılaştırması",
+        "Amazon Avrupa Pazarına Açılma",
+        "Amazon'da Review Yönetimi",
+        "Amazon Advertising Budget Planlama",
+        "Amazon'da ASIN Suspension Kurtarma",
+        "Amazon Global Selling Deneyimleri",
+      ],
+      hepsiburada: [
+        "Hepsiburada Satıcı Merkezi Yeni Arayüz",
+        "Hepsiburada Komisyon Hesaplama 2024",
+        "Hepsiburada'da Satış Artırma Taktikleri",
+        "Hepsiburada Lojistik Entegrasyonu",
+        "Hepsiburada Kampanya Başvuru Süreci",
+        "Hepsiburada'da Müşteri Hizmetleri",
+        "Hepsiburada Pazaryeri vs Hepsijet",
+        "Hepsiburada'da Ürün Onay Süreci",
+        "Hepsiburada SEO ve Görünürlük",
+        "Hepsiburada Finansman ve Tahsilat",
+        "Hepsiburada Mağaza Yönetimi İpuçları",
+        "Hepsiburada'da Rekabetçi Fiyatlandırma",
+        "Hepsiburada Mobil Uygulama Deneyimi",
+        "Hepsiburada İade Politikaları",
+        "Hepsiburada'da Çoklu Mağaza Yönetimi",
+      ],
+      shopify: [
+        "Shopify Tema Seçimi ve Özelleştirme",
+        "Shopify App Store En İyi Uygulamalar",
+        "Shopify Ödeme Gateway Entegrasyonu",
+        "Shopify'da Dropshipping Rehberi",
+        "Shopify Email Marketing Entegrasyonu",
+        "Shopify Speed Optimization",
+        "Shopify'da Abandoned Cart Recovery",
+        "Shopify Multi-Currency Kurulumu",
+        "Shopify Blog SEO Stratejileri",
+        "Shopify Inventory Management",
+        "Shopify'da Wholesale B2B Satış",
+        "Shopify Analytics ve Raporlama",
+        "Shopify Mobile App Kullanımı",
+        "Shopify'da Subscription Model",
+        "Shopify POS Sistemi Deneyimleri",
+      ],
+      fiyatlandirma: [
+        "Dinamik Fiyatlandırma Algoritmaları",
+        "Rakip Fiyat Takip Sistemleri",
+        "Maliyet + Kar Marjı Hesaplama",
+        "Psikolojik Fiyatlandırma Taktikleri",
+        "Kampanya ve İndirim Stratejileri",
+        "Fiyat Optimizasyonu A/B Testing",
+        "Minimum Fiyat ve MAP Politikaları",
+        "Fiyat Elasticity Analizi",
+        "Bundle Pricing Stratejileri",
+        "Free Shipping Threshold Belirleme",
+        "Seasonal Pricing Planlaması",
+        "Fiyat Savaşlarından Kaçınma",
+        "Premium Pricing Stratejisi",
+        "Penetration Pricing vs Skimming",
+        "Fiyatlandırmada AI ve Otomasyon",
+      ],
+      stok: [
+        "Stok Yönetimi En İyi Pratikler",
+        "JIT (Just In Time) Stok Sistemi",
+        "Güvenli Stok Seviyesi Hesaplama",
+        "Çoklu Depo Yönetimi Stratejileri",
+        "Stok Sayımı ve Reconcilation",
+        "Stok Yaşlandırma Analizi",
+        "Reorder Point Otomasyonu",
+        "Stok Optimizasyonu Yazılımları",
+        "Drop Shipping ve Stok Yönetimi",
+        "Perakende Stok Planlaması",
+        "Envanter Devir Hızı Artırma",
+        "Stok Maliyeti Düşürme Yöntemleri",
+        "ABC Analizi ile Stok Kontrolü",
+        "Tedarik Zinciri Risk Yönetimi",
+        "Stok Forecasting Metodları",
+      ],
+      pazarlama: [
+        "Google Shopping Kampanya Optimizasyonu",
+        "Facebook/Instagram Ads Targeting",
+        "TikTok Shop Satış Stratejileri",
+        "Influencer Marketing ROI Analizi",
+        "Email Marketing Automation Flowları",
+        "SMS Marketing Kampanya Planlaması",
+        "Retargeting Pixel Kurulumu",
+        "Lookalike Audience Oluşturma",
+        "ROAS ve CPA Optimizasyonu",
+        "Sosyal Medya İçerik Takvimi",
+        "Affiliate Marketing Programı",
+        "WhatsApp Business API Kullanımı",
+        "Push Notification Stratejileri",
+        "Chatbot Entegrasyonu ve Satış",
+        "Customer Lifetime Value Artırma",
+      ],
+      yeni: [
+        "E-Ticarete Başlamak İçin Gerekli Belgeler",
+        "Vergi Mükellefiyeti ve E-Fatura",
+        "E-Ticaret Sitesi Kurulum Maliyetleri",
+        "Hangi Platformda Satış Yapmalıyım?",
+        "İlk Siparişi Almak İçin İpuçları",
+        "Müşteri Yorumları ve Sosyal Kanıt",
+        "E-Ticaret için Hukuki Bilgiler",
+        "Ödeme Sistemleri Entegrasyonu",
+        "Kargo Sözleşmeleri ve Anlaşmalar",
+        "Ürün Fotoğrafçılığı Rehberi",
+        "E-Ticaret SEO Başlangıç Rehberi",
+        "Müşteri Hizmetleri ve İletişim",
+        "Geri İade Politikası Oluşturma",
+        "E-Ticaret Güvenlik ve SSL",
+        "Sosyal Medya Hesap Yönetimi",
+      ],
+      teknik: [
+        "API Entegrasyon Hataları ve Çözümleri",
+        "XML Entegrasyonu Rehberi",
+        "E-Ticaret Sitesi Hız Optimizasyonu",
+        "Mobile Responsive Tasarım Sorunları",
+        "3D Secure Ödeme Hataları",
+        "Kargo API Entegrasyonu",
+        "Muhasebe Programı Entegrasyonu",
+        "Pazaryeri API Limitleri",
+        "Webhook Kurulumu ve Kullanımı",
+        "CDN ve Image Optimization",
+        "Database Yedekleme Stratejileri",
+        "Cloud Hosting vs Dedicated Server",
+        "SSL Sertifikası Kurulum Rehberi",
+        "DDoS Koruma ve Güvenlik",
+        "E-Ticaret Yazılımı Karşılaştırması",
+      ],
+      genel: [
+        "E-Ticaret Hukuki Mevzuat Güncellemeleri",
+        "KVKK ve Müşteri Veri Yönetimi",
+        "E-İhracat Teşvikleri 2024",
+        "E-Ticaret İstatistikleri ve Trendler",
+        "Yapay Zeka ve E-Ticaret Geleceği",
+        "Sürdürülebilir E-Ticaret Paketleme",
+        "E-Ticaret Eğitim ve Sertifikalar",
+        "Sektörel Raporlar ve Analizler",
+        "E-Ticaret Etkinlik ve Fuarları",
+        "Success Story ve İlham Verenler",
+        "Kriz Yönetimi ve Risk Planlaması",
+        "E-Ticaret Ekosistemi Haritası",
+        "Girişimcilik ve Mentorluk",
+        "Network ve İş Ortaklıkları",
+        "E-Ticaret Gelişim Raporumuz",
+      ],
+    };
+
+    // Konu üretme fonksiyonu
+    const generateTopics = (boardId: string, boardName: string, boardSlug: string, templates: string[], count: number, startId: number): ForumTopic[] => {
+      return templates.slice(0, count).map((title, idx) => {
+        const author = authors[Math.floor(Math.random() * authors.length)];
+        const replies = Math.floor(Math.random() * 150) + 1;
+        const views = Math.floor(Math.random() * 5000) + 100;
+        const hoursAgo = Math.floor(Math.random() * 168) + 1; // 1 hafta içinde
+        const isHot = replies > 50 || views > 2000;
+        const isPinned = idx < 2 && Math.random() > 0.5;
+        const isSolved = Math.random() > 0.8;
+        const isLocked = Math.random() > 0.95;
+        const hasPoll = Math.random() > 0.9;
+        
+        return {
+          id: String(startId + idx),
+          title,
+          slug: title.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50),
+          author: { id: author.id, name: author.name, level: author.level, isStaff: author.isStaff },
+          board: { id: boardId, name: boardName, slug: boardSlug },
+          replies,
+          views,
+          lastPost: { 
+            author: authors[Math.floor(Math.random() * authors.length)].name, 
+            date: new Date(Date.now() - 1000 * 60 * 60 * hoursAgo) 
+          },
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * (hoursAgo + Math.random() * 24)),
+          isHot,
+          isPinned,
+          isSolved,
+          isLocked,
+          hasPoll,
+          tags: title.toLowerCase().split(' ').filter(w => w.length > 5).slice(0, 3)
+        };
+      });
+    };
+
+    // Tüm konuları üret
+    const allTopics: ForumTopic[] = [
+      ...generateTopics("4", "Trendyol", "trendyol", topicTemplates.trendyol, 15, 100),
+      ...generateTopics("6", "Amazon FBA", "amazon-fba", topicTemplates.amazon, 15, 200),
+      ...generateTopics("5", "Hepsiburada", "hepsiburada", topicTemplates.hepsiburada, 15, 300),
+      ...generateTopics("7", "Shopify", "shopify", topicTemplates.shopify, 15, 400),
+      ...generateTopics("8", "Fiyatlandırma", "fiyatlandirma", topicTemplates.fiyatlandirma, 15, 500),
+      ...generateTopics("9", "Stok & Tedarik", "stok", topicTemplates.stok, 15, 600),
+      ...generateTopics("10", "Reklam & Pazarlama", "pazarlama", topicTemplates.pazarlama, 15, 700),
+      ...generateTopics("11", "Yeni Başlayanlar", "yeni-baslayanlar", topicTemplates.yeni, 15, 800),
+      ...generateTopics("12", "Teknik Sorunlar", "teknik", topicTemplates.teknik, 15, 900),
+      ...generateTopics("3", "Öneriler & Şikayetler", "oneriler", topicTemplates.genel, 15, 1000),
+    ];
+
+    // Son konuları sırala (son aktiviteye göre)
+    const sortedTopics = allTopics.sort((a, b) => b.lastPost.date.getTime() - a.lastPost.date.getTime());
 
     const mockOnlineUsers: OnlineUser[] = [
       { id: "1", name: "Admin", avatar: "A", status: "online", isStaff: true },
@@ -328,6 +487,21 @@ export default function ForumHomePage() {
       { id: "8", name: "YeniSatıcı", avatar: "Y", status: "online" },
       { id: "9", name: "Stokçu", avatar: "S", status: "away" },
       { id: "10", name: "TedarikçiX", avatar: "T", status: "online" },
+      { id: "11", name: "Trendyolcu", avatar: "TR", status: "online" },
+      { id: "12", name: "ShopifyGuru", avatar: "SH", status: "online" },
+      { id: "13", name: "HepsiSatıcı", avatar: "HS", status: "away" },
+      { id: "14", name: "FiyatUzmanı", avatar: "FZ", status: "online" },
+      { id: "15", name: "KobiPatronu", avatar: "KP", status: "online" },
+      { id: "16", name: "Eihracatçı", avatar: "EI", status: "busy" },
+      { id: "17", name: "SosyalMedyaPro", avatar: "SM", status: "online" },
+      { id: "18", name: "MuhasebeUzmanı", avatar: "MU", status: "away" },
+      { id: "19", name: "KargoTakip", avatar: "KT", status: "online" },
+      { id: "20", name: "ReklamUzmanı", avatar: "RU", status: "online" },
+      { id: "21", name: "TedarikçiPro", avatar: "TP", status: "online" },
+      { id: "22", name: "YeniGirişimci", avatar: "YG", status: "online" },
+      { id: "23", name: "Dropshipper", avatar: "DS", status: "away" },
+      { id: "24", name: "Perakendeci", avatar: "PR", status: "online" },
+      { id: "25", name: "Eğitmen", avatar: "EG", status: "online" },
     ];
 
     const mockStats: ForumStats = {
@@ -335,16 +509,41 @@ export default function ForumHomePage() {
       totalPosts: 52341,
       totalMembers: 12450,
       newestMember: "YeniSatıcı2024",
-      onlineUsers: 156,
-      onlineGuests: 423,
-      mostOnline: 892,
-      mostOnlineDate: "15 Mart 2024"
+      onlineUsers: 25, // Gerçek çevrimiçi kullanıcı sayısı
+      onlineGuests: 47,
+      mostOnline: 156,
+      mostOnlineDate: "22 Nisan 2026"
     };
 
-    setCategories(mockCategories);
-    setPopularTopics(mockTopics);
+    // Kategorilere son konuları ekle
+    const categoriesWithTopics = mockCategories.map(cat => ({
+      ...cat,
+      boards: cat.boards.map(board => {
+        const boardTopics = sortedTopics.filter(t => t.board.id === board.id);
+        const lastTopic = boardTopics[0];
+        return {
+          ...board,
+          topicCount: boardTopics.length,
+          postCount: boardTopics.reduce((acc, t) => acc + t.replies + 1, 0),
+          lastTopic: lastTopic ? {
+            id: lastTopic.id,
+            title: lastTopic.title,
+            slug: lastTopic.slug,
+            author: lastTopic.lastPost.author,
+            postedAt: lastTopic.lastPost.date
+          } : undefined
+        };
+      })
+    }));
+
+    setCategories(categoriesWithTopics);
+    setPopularTopics(sortedTopics.slice(0, 25)); // İlk 25 konu göster
     setOnlineUsers(mockOnlineUsers);
-    setStats(mockStats);
+    setStats({
+      ...mockStats,
+      totalTopics: sortedTopics.length,
+      totalPosts: sortedTopics.reduce((acc, t) => acc + t.replies + 1, 0)
+    });
     setLoading(false);
   }, []);
 
@@ -494,14 +693,23 @@ export default function ForumHomePage() {
                             <Link
                               key={board.id}
                               href={`/forum/board/${board.slug}`}
-                              className="block px-4 py-2.5 pl-8 text-sm text-slate-600 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors border-l-2 border-transparent hover:border-cyan-500"
+                              className="block px-4 py-3 pl-8 text-sm text-slate-600 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors border-l-2 border-transparent hover:border-cyan-500"
                             >
                               <div className="flex items-center justify-between">
-                                <span>{board.name}</span>
-                                <span className="text-xs text-slate-400">({board.topicCount})</span>
+                                <span className="font-medium">{board.name}</span>
+                                <span className="text-xs text-slate-400">{board.topicCount} konu</span>
                               </div>
-                              {board.description && (
-                                <p className="text-xs text-slate-400 mt-0.5">{board.description}</p>
+                              {board.lastTopic && (
+                                <div className="mt-1.5 text-xs">
+                                  <span className="text-slate-400">Son: </span>
+                                  <span className="text-cyan-600 dark:text-cyan-400 hover:underline truncate max-w-[180px] inline-block">
+                                    {board.lastTopic.title}
+                                  </span>
+                                  <span className="text-slate-400 ml-1">by {board.lastTopic.author}</span>
+                                </div>
+                              )}
+                              {board.description && !board.lastTopic && (
+                                <p className="text-xs text-slate-400 mt-1">{board.description}</p>
                               )}
                             </Link>
                           ))}
@@ -656,17 +864,32 @@ export default function ForumHomePage() {
               {/* Pagination */}
               <div className="bg-slate-50 dark:bg-[#1a1a1a] px-4 py-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div className="text-sm text-slate-500">
-                  Sayfa 1 / 1
+                  Toplam <strong>150</strong> konu • Sayfa <strong>1</strong> / <strong>6</strong>
                 </div>
                 <div className="flex items-center gap-1">
                   <button className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded text-sm text-slate-600 dark:text-slate-400 cursor-not-allowed">
-                    &laquo; Önceki
-                  </button>
-                  <button className="px-3 py-1.5 bg-cyan-600 text-white rounded text-sm font-medium">
-                    1
+                    &laquo; İlk
                   </button>
                   <button className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 rounded text-sm text-slate-600 dark:text-slate-400 cursor-not-allowed">
-                    Sonraki &raquo;
+                    &lsaquo; Önceki
+                  </button>
+                  {[1, 2, 3, 4, 5, 6].map(page => (
+                    <button 
+                      key={page}
+                      className={`px-3 py-1.5 rounded text-sm font-medium ${
+                        page === 1 
+                          ? 'bg-cyan-600 text-white' 
+                          : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600">
+                    Sonraki &rsaquo;
+                  </button>
+                  <button className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600">
+                    Son &raquo;
                   </button>
                 </div>
               </div>
