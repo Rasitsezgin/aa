@@ -681,7 +681,7 @@ export default function ForumHomePage() {
           </div>
 
           {/* CENTER - Topic List (vBulletin Style Table) */}
-          <div className="lg:col-span-6 space-y-4 order-2 min-w-0">
+          <div className="lg:col-span-7 space-y-4 order-2 min-w-0">
             {/* Topic List Header */}
             <div className="bg-slate-800 dark:bg-[#1a1a1a] text-white rounded-t-lg px-4 py-3 flex items-center justify-between">
               <h2 className="font-bold flex items-center gap-2">
@@ -847,8 +847,8 @@ export default function ForumHomePage() {
             </div>
           </div>
 
-          {/* RIGHT SIDEBAR */}
-          <div className="lg:col-span-3 space-y-3 order-3">
+          {/* RIGHT SIDEBAR - Compact */}
+          <div className="lg:col-span-2 space-y-3 order-3">
             {/* Online Users Box */}
             <div className="bg-white dark:bg-[#111] rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
               <div className="bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 border-b border-emerald-100 dark:border-emerald-800">
@@ -880,75 +880,6 @@ export default function ForumHomePage() {
                   ))}
                 </div>
               </div>
-            </div>
-
-            {/* Son Aktiviteler - Compact */}
-            <div className="bg-white dark:bg-[#111] rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="bg-cyan-50 dark:bg-cyan-900/20 px-3 py-2 border-b border-cyan-100 dark:border-cyan-800">
-                <h3 className="font-bold text-sm text-cyan-800 dark:text-cyan-400 flex items-center gap-2">
-                  <Activity size={14} />
-                  Son Aktiviteler
-                </h3>
-              </div>
-              <div className="p-3 space-y-2">
-                {popularTopics.slice(0, 4).map((topic, idx) => (
-                  <div key={idx} className="flex items-start gap-2 text-xs">
-                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 mt-1 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <Link href={`/forum/topic/${topic.slug}`} className="text-slate-700 dark:text-slate-300 hover:text-cyan-600 truncate block leading-tight">
-                        {topic.title}
-                      </Link>
-                      <span className="text-[10px] text-slate-400">
-                        {topic.lastPost.author}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Popüler Etiketler - Compact */}
-            <div className="bg-white dark:bg-[#111] rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="bg-purple-50 dark:bg-purple-900/20 px-3 py-2 border-b border-purple-100 dark:border-purple-800">
-                <h3 className="font-bold text-sm text-purple-800 dark:text-purple-400 flex items-center gap-2">
-                  <Hash size={14} />
-                  Etiketler
-                </h3>
-              </div>
-              <div className="p-3">
-                <div className="flex flex-wrap gap-1.5">
-                  {["#trendyol", "#amazon", "#shopify", "#fiyat", "#pazarlama", "#seo", "#kampanya", "#lojistik", "#vergi", "#kvkk"].map((tag) => (
-                    <Link
-                      key={tag}
-                      href={`/forum/tag/${tag.replace('#', '')}`}
-                      className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 text-slate-600 dark:text-slate-400 hover:text-purple-600 text-[10px] rounded transition-colors"
-                    >
-                      {tag}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Haftanın En İyisi - Compact */}
-            <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/10 rounded-lg border border-amber-200 dark:border-amber-800 p-3">
-              <h3 className="font-bold text-sm text-amber-800 dark:text-amber-400 mb-2 flex items-center gap-1.5">
-                <Crown size={12} />
-                Haftanın En İyisi
-              </h3>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-xs">
-                  ET
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-sm text-slate-900 dark:text-white truncate">E-Ticaret_Uzmani</div>
-                  <div className="text-xs text-amber-600 dark:text-amber-400">🏆 1,250 puan</div>
-                </div>
-              </div>
-              <Link href="/community/leaderboard" className="mt-2 text-xs text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1">
-                <Trophy size={10} />
-                Liderlik Tablosu
-              </Link>
             </div>
 
             {/* Forum Statistics - Compact */}
