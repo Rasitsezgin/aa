@@ -661,7 +661,7 @@ export default function ForumHomePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid lg:grid-cols-12 gap-6">
           {/* LEFT SIDEBAR - Forum Tree */}
-          <div className="lg:col-span-3 space-y-4">
+          <div className="lg:col-span-3 space-y-4 order-1">
             {/* Forum Kategorileri */}
             <div className="bg-white dark:bg-[#111] rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
               <div className="bg-slate-50 dark:bg-[#1a1a1a] px-4 py-3 border-b border-slate-200 dark:border-slate-800">
@@ -739,7 +739,7 @@ export default function ForumHomePage() {
           </div>
 
           {/* CENTER - Topic List (vBulletin Style Table) */}
-          <div className="lg:col-span-6 space-y-4">
+          <div className="lg:col-span-7 space-y-4 order-2 min-w-0">
             {/* Topic List Header */}
             <div className="bg-slate-800 dark:bg-[#1a1a1a] text-white rounded-t-lg px-4 py-3 flex items-center justify-between">
               <h2 className="font-bold flex items-center gap-2">
@@ -811,8 +811,8 @@ export default function ForumHomePage() {
                           </Link>
                         </div>
                         
-                        <Link href={`/forum/topic/${topic.slug}`} className="group">
-                          <h3 className={`font-semibold text-slate-900 dark:text-white group-hover:text-cyan-600 transition-colors ${topic.isPinned ? 'text-base' : 'text-sm'}`}>
+                        <Link href={`/forum/topic/${topic.slug}`} className="group block">
+                          <h3 className={`font-semibold text-slate-900 dark:text-white group-hover:text-cyan-600 transition-colors truncate ${topic.isPinned ? 'text-base' : 'text-sm'}`}>
                             {topic.title}
                           </h3>
                         </Link>
@@ -906,7 +906,7 @@ export default function ForumHomePage() {
           </div>
 
           {/* RIGHT SIDEBAR */}
-          <div className="lg:col-span-3 space-y-4">
+          <div className="lg:col-span-2 space-y-4 order-3 hidden xl:block">
             {/* Online Users Box */}
             <div className="bg-white dark:bg-[#111] rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
               <div className="bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 border-b border-emerald-100 dark:border-emerald-800">
