@@ -10,7 +10,7 @@ import {
   BookOpen, HelpCircle, Zap, Globe, Filter, ArrowUpRight, Activity,
   Crown, Target, Star, Calendar, Folder, ChevronDown, BarChart3,
   Reply, EyeOff, StickyNote, FileText, Menu, X, Home, LogIn, UserPlus,
-  MoreHorizontal, AlertCircle, CheckCircle2
+  MoreHorizontal, AlertCircle, CheckCircle2, Trophy
 } from "lucide-react";
 // API fonksiyonları
 const fetchBoards = async () => {
@@ -681,7 +681,7 @@ export default function ForumHomePage() {
           </div>
 
           {/* CENTER - Topic List (vBulletin Style Table) */}
-          <div className="lg:col-span-7 space-y-4 order-2 min-w-0">
+          <div className="lg:col-span-5 space-y-4 order-2 min-w-0">
             {/* Topic List Header */}
             <div className="bg-slate-800 dark:bg-[#1a1a1a] text-white rounded-t-lg px-4 py-3 flex items-center justify-between">
               <h2 className="font-bold flex items-center gap-2">
@@ -848,7 +848,7 @@ export default function ForumHomePage() {
           </div>
 
           {/* RIGHT SIDEBAR */}
-          <div className="lg:col-span-2 space-y-4 order-3 hidden xl:block">
+          <div className="lg:col-span-4 space-y-4 order-3">
             {/* Online Users Box */}
             <div className="bg-white dark:bg-[#111] rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
               <div className="bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 border-b border-emerald-100 dark:border-emerald-800">
@@ -882,6 +882,82 @@ export default function ForumHomePage() {
               </div>
             </div>
 
+            {/* Son Aktiviteler */}
+            <div className="bg-white dark:bg-[#111] rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+              <div className="bg-cyan-50 dark:bg-cyan-900/20 px-4 py-3 border-b border-cyan-100 dark:border-cyan-800">
+                <h3 className="font-bold text-cyan-800 dark:text-cyan-400 flex items-center gap-2">
+                  <Activity size={16} />
+                  Son Aktiviteler
+                </h3>
+              </div>
+              <div className="p-4 space-y-3">
+                {popularTopics.slice(0, 5).map((topic, idx) => (
+                  <div key={idx} className="flex items-start gap-3 text-sm">
+                    <div className="w-2 h-2 rounded-full bg-cyan-500 mt-1.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <Link href={`/forum/topic/${topic.slug}`} className="text-slate-700 dark:text-slate-300 hover:text-cyan-600 truncate block">
+                        {topic.title}
+                      </Link>
+                      <span className="text-xs text-slate-400">
+                        {topic.lastPost.author} • {formatRelativeTime(topic.lastPost.date)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Popüler Etiketler */}
+            <div className="bg-white dark:bg-[#111] rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+              <div className="bg-purple-50 dark:bg-purple-900/20 px-4 py-3 border-b border-purple-100 dark:border-purple-800">
+                <h3 className="font-bold text-purple-800 dark:text-purple-400 flex items-center gap-2">
+                  <Hash size={16} />
+                  Popüler Etiketler
+                </h3>
+              </div>
+              <div className="p-4">
+                <div className="flex flex-wrap gap-2">
+                  {["#trendyol", "#amazon", "#shopify", "#fiyatlandırma", "#pazarlama", "#seo", "#kampanya", "#lojistik", "#müşteri-hizmetleri", "#vergi", "#kvkk", "#entegrasyon"].map((tag) => (
+                    <Link
+                      key={tag}
+                      href={`/forum/tag/${tag.replace('#', '')}`}
+                      className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 text-slate-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 rounded-md text-xs transition-colors"
+                    >
+                      {tag}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Haftanın En İyi Yazarı */}
+            <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/10 rounded-lg border border-amber-200 dark:border-amber-800 overflow-hidden">
+              <div className="px-4 py-3 border-b border-amber-200 dark:border-amber-800/50">
+                <h3 className="font-bold text-amber-800 dark:text-amber-400 flex items-center gap-2">
+                  <Crown size={16} />
+                  Haftanın En İyisi
+                </h3>
+              </div>
+              <div className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg">
+                    ET
+                  </div>
+                  <div>
+                    <div className="font-bold text-slate-900 dark:text-white">E-Ticaret_Uzmani</div>
+                    <div className="text-sm text-amber-600 dark:text-amber-400">🏆 1,250 puan</div>
+                    <div className="text-xs text-slate-500">Bu hafta 23 konuya cevap verdi</div>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-amber-200 dark:border-amber-800/50">
+                  <Link href="/community/leaderboard" className="text-sm text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1">
+                    <Trophy size={14} />
+                    Liderlik Tablosuna Git
+                  </Link>
+                </div>
+              </div>
+            </div>
+
             {/* Forum Statistics */}
             <div className="bg-white dark:bg-[#111] rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
               <div className="bg-slate-50 dark:bg-[#1a1a1a] px-4 py-3 border-b border-slate-200 dark:border-slate-800">
@@ -891,30 +967,28 @@ export default function ForumHomePage() {
                 </h3>
               </div>
               <div className="p-4 space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 dark:text-slate-400">Toplam Konu</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{stats.totalTopics.toLocaleString()}</span>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3 text-center">
+                    <div className="text-xl font-bold text-slate-900 dark:text-white">{stats.totalTopics.toLocaleString()}</div>
+                    <div className="text-xs text-slate-500">Konu</div>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3 text-center">
+                    <div className="text-xl font-bold text-slate-900 dark:text-white">{stats.totalPosts.toLocaleString()}</div>
+                    <div className="text-xs text-slate-500">Gönderi</div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 dark:text-slate-400">Toplam Gönderi</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{stats.totalPosts.toLocaleString()}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between text-sm py-2 border-t border-slate-200 dark:border-slate-800">
                   <span className="text-slate-600 dark:text-slate-400">Toplam Üye</span>
                   <span className="font-bold text-slate-900 dark:text-white">{stats.totalMembers.toLocaleString()}</span>
                 </div>
-                <div className="border-t border-slate-200 dark:border-slate-800 pt-3">
-                  <div className="text-sm">
-                    <span className="text-slate-600 dark:text-slate-400">Son Üye: </span>
-                    <Link href="#" className="text-cyan-600 hover:underline font-medium">
-                      {stats.newestMember}
-                    </Link>
-                  </div>
+                <div className="flex items-center justify-between text-sm py-2 border-t border-slate-200 dark:border-slate-800">
+                  <span className="text-slate-600 dark:text-slate-400">Son Üye</span>
+                  <Link href="#" className="text-cyan-600 hover:underline font-medium">
+                    {stats.newestMember}
+                  </Link>
                 </div>
-                <div className="border-t border-slate-200 dark:border-slate-800 pt-3">
-                  <div className="text-xs text-slate-500">
-                    En çok çevrimiçi: <strong>{stats.mostOnline}</strong> ({stats.mostOnlineDate})
-                  </div>
+                <div className="text-xs text-slate-500 pt-2 border-t border-slate-200 dark:border-slate-800">
+                  En çok çevrimiçi: <strong>{stats.mostOnline}</strong> ({stats.mostOnlineDate})
                 </div>
               </div>
             </div>
