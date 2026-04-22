@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,7 +12,32 @@ import {
   Reply, EyeOff, StickyNote, FileText, Menu, X, Home, LogIn, UserPlus,
   MoreHorizontal, AlertCircle, CheckCircle2
 } from "lucide-react";
-import { communityService } from "@/lib/services/community-service";
+// API fonksiyonları
+const fetchBoards = async () => {
+  const res = await fetch('/api/forum/boards');
+  if (!res.ok) throw new Error('Boardlar yüklenemedi');
+  return res.json();
+};
+
+const fetchTopics = async (page = 1, limit = 25) => {
+  const res = await fetch(`/api/forum/topics?page=${page}&limit=${limit}`);
+  if (!res.ok) throw new Error('Konular yüklenemedi');
+  return res.json();
+};
+
+// Tarih formatlama helper'ı
+const formatRelativeTime = (date: Date | string): string => {
+  const now = new Date();
+  const then = new Date(date);
+  const diffInSeconds = Math.floor((now.getTime() - then.getTime()) / 1000);
+  
+  if (diffInSeconds < 60) return 'az önce';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} dk önce`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} saat önce`;
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} gün önce`;
+  
+  return then.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+};
 
 interface ForumTopic {
   id: string;
@@ -100,452 +125,51 @@ export default function ForumHomePage() {
   const [loading, setLoading] = useState(true);
   const [popularTopics, setPopularTopics] = useState<any[]>([]);
 
-  // Mock veri - vBulletin/XenForo tarzı
-  useEffect(() => {
-    const mockCategories: ForumCategory[] = [
-      {
-        id: "1",
-        name: "Genel",
-        slug: "genel",
-        description: "Forum hakkında duyurular ve genel tartışmalar",
-        isExpanded: true,
-        boards: [
-          {
-            id: "1",
-            name: "Duyurular",
-            slug: "duyurular",
-            description: "Resmi duyurular ve güncellemeler",
-            topicCount: 42,
-            postCount: 386,
-            moderators: ["Admin", "Moderatör1"]
-          },
-          {
-            id: "2",
-            name: "Forum Kuralları",
-            slug: "kurallar",
-            description: "Topluluk kuralları ve yönergeler",
-            topicCount: 15,
-            postCount: 128
-          },
-          {
-            id: "3",
-            name: "Öneriler & Şikayetler",
-            slug: "oneriler",
-            description: "Geri bildirim ve önerileriniz",
-            topicCount: 89,
-            postCount: 567
-          }
-        ]
-      },
-      {
-        id: "2",
-        name: "E-Ticaret Platformları",
-        slug: "eticaret",
-        isExpanded: true,
-        boards: [
-          {
-            id: "4",
-            name: "Trendyol",
-            slug: "trendyol",
-            topicCount: 1254,
-            postCount: 8934
-          },
-          {
-            id: "5",
-            name: "Hepsiburada",
-            slug: "hepsiburada",
-            topicCount: 892,
-            postCount: 6231
-          },
-          {
-            id: "6",
-            name: "Amazon FBA",
-            slug: "amazon-fba",
-            topicCount: 756,
-            postCount: 5210
-          },
-          {
-            id: "7",
-            name: "Shopify",
-            slug: "shopify",
-            topicCount: 634,
-            postCount: 4352
-          }
-        ]
-      },
-      {
-        id: "3",
-        name: "Strateji & Teknik",
-        slug: "strateji",
-        isExpanded: false,
-        boards: [
-          {
-            id: "8",
-            name: "Fiyatlandırma",
-            slug: "fiyatlandirma",
-            topicCount: 423,
-            postCount: 3102
-          },
-          {
-            id: "9",
-            name: "Stok & Tedarik",
-            slug: "stok",
-            topicCount: 567,
-            postCount: 4120
-          },
-          {
-            id: "10",
-            name: "Reklam & Pazarlama",
-            slug: "pazarlama",
-            topicCount: 734,
-            postCount: 5680
-          }
-        ]
-      },
-      {
-        id: "4",
-        name: "Yardım & Destek",
-        slug: "destek",
-        isExpanded: false,
-        boards: [
-          {
-            id: "11",
-            name: "Yeni Başlayanlar",
-            slug: "yeni-baslayanlar",
-            topicCount: 1234,
-            postCount: 8901
-          },
-          {
-            id: "12",
-            name: "Teknik Sorunlar",
-            slug: "teknik",
-            topicCount: 892,
-            postCount: 6123
-          }
-        ]
-      }
-    ];
+  // ==================== DATABASE'DEN VERİ ÇEK ====================
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 25,
+    totalCount: 0,
+    totalPages: 1
+  });
 
-    // ==================== 150+ KONU ÜRET ====================
-    const authors = [
-      { id: "101", name: "E-Ticaretçi", level: "Elite" },
-      { id: "102", name: "AmazonUzmanı", level: "Veteran" },
-      { id: "103", name: "Admin", level: "Yönetici", isStaff: true },
-      { id: "104", name: "SEO_Master", level: "Veteran" },
-      { id: "105", name: "Stokçu", level: "Üye" },
-      { id: "106", name: "DeneyimliSatıcı", level: "Elite" },
-      { id: "107", name: "PazarlamaPro", level: "Veteran" },
-      { id: "108", name: "Trendyolcu", level: "Üye" },
-      { id: "109", name: "HepsiSatıcı", level: "Üye" },
-      { id: "110", name: "ShopifyGuru", level: "Elite" },
-      { id: "111", name: "FiyatUzmanı", level: "Veteran" },
-      { id: "112", name: "TedarikçiPro", level: "Üye" },
-      { id: "113", name: "ReklamUzmanı", level: "Elite" },
-      { id: "114", name: "YeniSatıcı", level: "Yeni Üye" },
-      { id: "115", name: "KobiPatronu", level: "Üye" },
-      { id: "116", name: "Eihracatçı", level: "Veteran" },
-      { id: "117", name: "Moderatör1", level: "Moderatör", isModerator: true },
-      { id: "118", name: "SosyalMedyaPro", level: "Üye" },
-      { id: "119", name: "MuhasebeUzmanı", level: "Veteran" },
-      { id: "120", name: "KargoTakip", level: "Üye" },
-    ];
-
-    const topicTemplates = {
-      trendyol: [
-        "Trendyol'da Yeni Dönem Komisyon Oranları",
-        "Trendyol Express ile Hızlı Teslimat Deneyimleri",
-        "Trendyol Satıcı Paneli Yenilikleri",
-        "Trendyol'da Kampanya Dönemleri Stratejisi",
-        "Trendyol İade Süreci Nasıl İşliyor?",
-        "Trendyol'da Ürün Listeleme Optimizasyonu",
-        "Trendyol Plus Üyeliği Avantajları",
-        "Trendyol'da Rekabet Analizi Nasıl Yapılır?",
-        "Trendyol Depo ve Lojistik Çözümleri",
-        "Trendyol'da Müşteri Memnuniyeti Artırma",
-        "Trendyol Ödeme Sistemi ve Tahsilatlar",
-        "Trendyol'da Yeni Satıcı İlk Adımlar",
-        "Trendyol Mağaza Puanı Nasıl Yükseltilir?",
-        "Trendyol'da SEO ve Anahtar Kelime Stratejisi",
-        "Trendyol API Entegrasyonu Rehberi",
-      ],
-      amazon: [
-        "Amazon FBA 2024 Güncel Maliyetler",
-        "Amazon'da Private Label Ürün Seçimi",
-        "Amazon PPC Reklamları Optimizasyonu",
-        "Amazon'da Buy Box Kazanma Stratejileri",
-        "Amazon Brand Registry Başvurusu",
-        "Amazon'da Inventory Planning",
-        "Amazon A+ Content Nasıl Hazırlanır?",
-        "Amazon Vine Programı Deneyimleri",
-        "Amazon'da Hijacker Sorunu Çözümü",
-        "Amazon FBA vs FBM Karşılaştırması",
-        "Amazon Avrupa Pazarına Açılma",
-        "Amazon'da Review Yönetimi",
-        "Amazon Advertising Budget Planlama",
-        "Amazon'da ASIN Suspension Kurtarma",
-        "Amazon Global Selling Deneyimleri",
-      ],
-      hepsiburada: [
-        "Hepsiburada Satıcı Merkezi Yeni Arayüz",
-        "Hepsiburada Komisyon Hesaplama 2024",
-        "Hepsiburada'da Satış Artırma Taktikleri",
-        "Hepsiburada Lojistik Entegrasyonu",
-        "Hepsiburada Kampanya Başvuru Süreci",
-        "Hepsiburada'da Müşteri Hizmetleri",
-        "Hepsiburada Pazaryeri vs Hepsijet",
-        "Hepsiburada'da Ürün Onay Süreci",
-        "Hepsiburada SEO ve Görünürlük",
-        "Hepsiburada Finansman ve Tahsilat",
-        "Hepsiburada Mağaza Yönetimi İpuçları",
-        "Hepsiburada'da Rekabetçi Fiyatlandırma",
-        "Hepsiburada Mobil Uygulama Deneyimi",
-        "Hepsiburada İade Politikaları",
-        "Hepsiburada'da Çoklu Mağaza Yönetimi",
-      ],
-      shopify: [
-        "Shopify Tema Seçimi ve Özelleştirme",
-        "Shopify App Store En İyi Uygulamalar",
-        "Shopify Ödeme Gateway Entegrasyonu",
-        "Shopify'da Dropshipping Rehberi",
-        "Shopify Email Marketing Entegrasyonu",
-        "Shopify Speed Optimization",
-        "Shopify'da Abandoned Cart Recovery",
-        "Shopify Multi-Currency Kurulumu",
-        "Shopify Blog SEO Stratejileri",
-        "Shopify Inventory Management",
-        "Shopify'da Wholesale B2B Satış",
-        "Shopify Analytics ve Raporlama",
-        "Shopify Mobile App Kullanımı",
-        "Shopify'da Subscription Model",
-        "Shopify POS Sistemi Deneyimleri",
-      ],
-      fiyatlandirma: [
-        "Dinamik Fiyatlandırma Algoritmaları",
-        "Rakip Fiyat Takip Sistemleri",
-        "Maliyet + Kar Marjı Hesaplama",
-        "Psikolojik Fiyatlandırma Taktikleri",
-        "Kampanya ve İndirim Stratejileri",
-        "Fiyat Optimizasyonu A/B Testing",
-        "Minimum Fiyat ve MAP Politikaları",
-        "Fiyat Elasticity Analizi",
-        "Bundle Pricing Stratejileri",
-        "Free Shipping Threshold Belirleme",
-        "Seasonal Pricing Planlaması",
-        "Fiyat Savaşlarından Kaçınma",
-        "Premium Pricing Stratejisi",
-        "Penetration Pricing vs Skimming",
-        "Fiyatlandırmada AI ve Otomasyon",
-      ],
-      stok: [
-        "Stok Yönetimi En İyi Pratikler",
-        "JIT (Just In Time) Stok Sistemi",
-        "Güvenli Stok Seviyesi Hesaplama",
-        "Çoklu Depo Yönetimi Stratejileri",
-        "Stok Sayımı ve Reconcilation",
-        "Stok Yaşlandırma Analizi",
-        "Reorder Point Otomasyonu",
-        "Stok Optimizasyonu Yazılımları",
-        "Drop Shipping ve Stok Yönetimi",
-        "Perakende Stok Planlaması",
-        "Envanter Devir Hızı Artırma",
-        "Stok Maliyeti Düşürme Yöntemleri",
-        "ABC Analizi ile Stok Kontrolü",
-        "Tedarik Zinciri Risk Yönetimi",
-        "Stok Forecasting Metodları",
-      ],
-      pazarlama: [
-        "Google Shopping Kampanya Optimizasyonu",
-        "Facebook/Instagram Ads Targeting",
-        "TikTok Shop Satış Stratejileri",
-        "Influencer Marketing ROI Analizi",
-        "Email Marketing Automation Flowları",
-        "SMS Marketing Kampanya Planlaması",
-        "Retargeting Pixel Kurulumu",
-        "Lookalike Audience Oluşturma",
-        "ROAS ve CPA Optimizasyonu",
-        "Sosyal Medya İçerik Takvimi",
-        "Affiliate Marketing Programı",
-        "WhatsApp Business API Kullanımı",
-        "Push Notification Stratejileri",
-        "Chatbot Entegrasyonu ve Satış",
-        "Customer Lifetime Value Artırma",
-      ],
-      yeni: [
-        "E-Ticarete Başlamak İçin Gerekli Belgeler",
-        "Vergi Mükellefiyeti ve E-Fatura",
-        "E-Ticaret Sitesi Kurulum Maliyetleri",
-        "Hangi Platformda Satış Yapmalıyım?",
-        "İlk Siparişi Almak İçin İpuçları",
-        "Müşteri Yorumları ve Sosyal Kanıt",
-        "E-Ticaret için Hukuki Bilgiler",
-        "Ödeme Sistemleri Entegrasyonu",
-        "Kargo Sözleşmeleri ve Anlaşmalar",
-        "Ürün Fotoğrafçılığı Rehberi",
-        "E-Ticaret SEO Başlangıç Rehberi",
-        "Müşteri Hizmetleri ve İletişim",
-        "Geri İade Politikası Oluşturma",
-        "E-Ticaret Güvenlik ve SSL",
-        "Sosyal Medya Hesap Yönetimi",
-      ],
-      teknik: [
-        "API Entegrasyon Hataları ve Çözümleri",
-        "XML Entegrasyonu Rehberi",
-        "E-Ticaret Sitesi Hız Optimizasyonu",
-        "Mobile Responsive Tasarım Sorunları",
-        "3D Secure Ödeme Hataları",
-        "Kargo API Entegrasyonu",
-        "Muhasebe Programı Entegrasyonu",
-        "Pazaryeri API Limitleri",
-        "Webhook Kurulumu ve Kullanımı",
-        "CDN ve Image Optimization",
-        "Database Yedekleme Stratejileri",
-        "Cloud Hosting vs Dedicated Server",
-        "SSL Sertifikası Kurulum Rehberi",
-        "DDoS Koruma ve Güvenlik",
-        "E-Ticaret Yazılımı Karşılaştırması",
-      ],
-      genel: [
-        "E-Ticaret Hukuki Mevzuat Güncellemeleri",
-        "KVKK ve Müşteri Veri Yönetimi",
-        "E-İhracat Teşvikleri 2024",
-        "E-Ticaret İstatistikleri ve Trendler",
-        "Yapay Zeka ve E-Ticaret Geleceği",
-        "Sürdürülebilir E-Ticaret Paketleme",
-        "E-Ticaret Eğitim ve Sertifikalar",
-        "Sektörel Raporlar ve Analizler",
-        "E-Ticaret Etkinlik ve Fuarları",
-        "Success Story ve İlham Verenler",
-        "Kriz Yönetimi ve Risk Planlaması",
-        "E-Ticaret Ekosistemi Haritası",
-        "Girişimcilik ve Mentorluk",
-        "Network ve İş Ortaklıkları",
-        "E-Ticaret Gelişim Raporumuz",
-      ],
-    };
-
-    // Konu üretme fonksiyonu
-    const generateTopics = (boardId: string, boardName: string, boardSlug: string, templates: string[], count: number, startId: number): ForumTopic[] => {
-      return templates.slice(0, count).map((title, idx) => {
-        const author = authors[Math.floor(Math.random() * authors.length)];
-        const replies = Math.floor(Math.random() * 150) + 1;
-        const views = Math.floor(Math.random() * 5000) + 100;
-        const hoursAgo = Math.floor(Math.random() * 168) + 1; // 1 hafta içinde
-        const isHot = replies > 50 || views > 2000;
-        const isPinned = idx < 2 && Math.random() > 0.5;
-        const isSolved = Math.random() > 0.8;
-        const isLocked = Math.random() > 0.95;
-        const hasPoll = Math.random() > 0.9;
-        
-        return {
-          id: String(startId + idx),
-          title,
-          slug: title.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50),
-          author: { id: author.id, name: author.name, level: author.level, isStaff: author.isStaff },
-          board: { id: boardId, name: boardName, slug: boardSlug },
-          replies,
-          views,
-          lastPost: { 
-            author: authors[Math.floor(Math.random() * authors.length)].name, 
-            date: new Date(Date.now() - 1000 * 60 * 60 * hoursAgo) 
-          },
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * (hoursAgo + Math.random() * 24)),
-          isHot,
-          isPinned,
-          isSolved,
-          isLocked,
-          hasPoll,
-          tags: title.toLowerCase().split(' ').filter(w => w.length > 5).slice(0, 3)
-        };
-      });
-    };
-
-    // Tüm konuları üret
-    const allTopics: ForumTopic[] = [
-      ...generateTopics("4", "Trendyol", "trendyol", topicTemplates.trendyol, 15, 100),
-      ...generateTopics("6", "Amazon FBA", "amazon-fba", topicTemplates.amazon, 15, 200),
-      ...generateTopics("5", "Hepsiburada", "hepsiburada", topicTemplates.hepsiburada, 15, 300),
-      ...generateTopics("7", "Shopify", "shopify", topicTemplates.shopify, 15, 400),
-      ...generateTopics("8", "Fiyatlandırma", "fiyatlandirma", topicTemplates.fiyatlandirma, 15, 500),
-      ...generateTopics("9", "Stok & Tedarik", "stok", topicTemplates.stok, 15, 600),
-      ...generateTopics("10", "Reklam & Pazarlama", "pazarlama", topicTemplates.pazarlama, 15, 700),
-      ...generateTopics("11", "Yeni Başlayanlar", "yeni-baslayanlar", topicTemplates.yeni, 15, 800),
-      ...generateTopics("12", "Teknik Sorunlar", "teknik", topicTemplates.teknik, 15, 900),
-      ...generateTopics("3", "Öneriler & Şikayetler", "oneriler", topicTemplates.genel, 15, 1000),
-    ];
-
-    // Son konuları sırala (son aktiviteye göre)
-    const sortedTopics = allTopics.sort((a, b) => b.lastPost.date.getTime() - a.lastPost.date.getTime());
-
-    const mockOnlineUsers: OnlineUser[] = [
-      { id: "1", name: "Admin", avatar: "A", status: "online", isStaff: true },
-      { id: "2", name: "Moderatör1", avatar: "M", status: "online", isModerator: true },
-      { id: "3", name: "E-Ticaretçi", avatar: "E", status: "online" },
-      { id: "4", name: "AmazonUzmanı", avatar: "A", status: "online" },
-      { id: "5", name: "DeneyimliSatıcı", avatar: "D", status: "away" },
-      { id: "6", name: "SEO_Master", avatar: "S", status: "online" },
-      { id: "7", name: "PazarlamaPro", avatar: "P", status: "busy" },
-      { id: "8", name: "YeniSatıcı", avatar: "Y", status: "online" },
-      { id: "9", name: "Stokçu", avatar: "S", status: "away" },
-      { id: "10", name: "TedarikçiX", avatar: "T", status: "online" },
-      { id: "11", name: "Trendyolcu", avatar: "TR", status: "online" },
-      { id: "12", name: "ShopifyGuru", avatar: "SH", status: "online" },
-      { id: "13", name: "HepsiSatıcı", avatar: "HS", status: "away" },
-      { id: "14", name: "FiyatUzmanı", avatar: "FZ", status: "online" },
-      { id: "15", name: "KobiPatronu", avatar: "KP", status: "online" },
-      { id: "16", name: "Eihracatçı", avatar: "EI", status: "busy" },
-      { id: "17", name: "SosyalMedyaPro", avatar: "SM", status: "online" },
-      { id: "18", name: "MuhasebeUzmanı", avatar: "MU", status: "away" },
-      { id: "19", name: "KargoTakip", avatar: "KT", status: "online" },
-      { id: "20", name: "ReklamUzmanı", avatar: "RU", status: "online" },
-      { id: "21", name: "TedarikçiPro", avatar: "TP", status: "online" },
-      { id: "22", name: "YeniGirişimci", avatar: "YG", status: "online" },
-      { id: "23", name: "Dropshipper", avatar: "DS", status: "away" },
-      { id: "24", name: "Perakendeci", avatar: "PR", status: "online" },
-      { id: "25", name: "Eğitmen", avatar: "EG", status: "online" },
-    ];
-
-    const mockStats: ForumStats = {
-      totalTopics: 8654,
-      totalPosts: 52341,
-      totalMembers: 12450,
-      newestMember: "YeniSatıcı2024",
-      onlineUsers: 25, // Gerçek çevrimiçi kullanıcı sayısı
-      onlineGuests: 47,
-      mostOnline: 156,
-      mostOnlineDate: "22 Nisan 2026"
-    };
-
-    // Kategorilere son konuları ekle
-    const categoriesWithTopics = mockCategories.map(cat => ({
-      ...cat,
-      boards: cat.boards.map(board => {
-        const boardTopics = sortedTopics.filter(t => t.board.id === board.id);
-        const lastTopic = boardTopics[0];
-        return {
-          ...board,
-          topicCount: boardTopics.length,
-          postCount: boardTopics.reduce((acc, t) => acc + t.replies + 1, 0),
-          lastTopic: lastTopic ? {
-            id: lastTopic.id,
-            title: lastTopic.title,
-            slug: lastTopic.slug,
-            author: lastTopic.lastPost.author,
-            postedAt: lastTopic.lastPost.date
-          } : undefined
-        };
-      })
-    }));
-
-    setCategories(categoriesWithTopics);
-    setPopularTopics(sortedTopics.slice(0, 25)); // İlk 25 konu göster
-    setOnlineUsers(mockOnlineUsers);
-    setStats({
-      ...mockStats,
-      totalTopics: sortedTopics.length,
-      totalPosts: sortedTopics.reduce((acc, t) => acc + t.replies + 1, 0)
-    });
-    setLoading(false);
+  // Board'ları API'den çek
+  const loadBoards = useCallback(async () => {
+    try {
+      const data = await fetchBoards();
+      setCategories(data);
+    } catch (error) {
+      console.error('Board yükleme hatası:', error);
+    }
   }, []);
+
+  // Konuları API'den çek
+  const loadTopics = useCallback(async (page = 1) => {
+    try {
+      setLoading(true);
+      const data = await fetchTopics(page, pagination.limit);
+      setPopularTopics(data.topics);
+      setPagination(data.pagination);
+      
+      // Stats güncelle
+      setStats(prev => ({
+        ...prev,
+        totalTopics: data.pagination.totalCount
+      }));
+    } catch (error) {
+      console.error('Konu yükleme hatası:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [pagination.limit]);
+
+  useEffect(() => {
+    // Board'ları ve konuları paralel çek
+    Promise.all([
+      loadBoards(),
+      loadTopics(1)
+    ]);
+  }, [loadBoards, loadTopics]);
 
   const toggleCategory = (catId: string) => {
     setCategories(prev => prev.map(c => 
@@ -826,7 +450,7 @@ export default function ForumHomePage() {
                             {topic.author.isStaff && <Shield size={10} className="text-cyan-500" />}
                           </span>
                           <span>•</span>
-                          <span>{communityService.formatRelativeTime(topic.createdAt)}</span>
+                          <span>{formatRelativeTime(topic.createdAt)}</span>
                           {topic.tags?.map((tag: string) => (
                             <span key={tag} className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px]">
                               #{tag}
@@ -853,7 +477,7 @@ export default function ForumHomePage() {
                           <span className="font-medium text-slate-900 dark:text-white">{topic.lastPost.author}</span>
                         </div>
                         <div className="text-slate-400">
-                          {communityService.formatRelativeTime(topic.lastPost.date)}
+                          {formatRelativeTime(topic.lastPost.date)}
                         </div>
                       </div>
                     </div>
