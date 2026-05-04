@@ -253,7 +253,76 @@ Authorization: Bearer <your-jwt-token>
 - 100 requests per minute per IP
 - Tenant-specific limits for authenticated endpoints
 
-## 🛠 Troubleshooting
+## � Deployment
+
+### Coolify Deployment
+
+This project is optimized for [Coolify](https://coolify.io) deployment.
+
+#### 1. Prerequisites
+
+- A server with Docker support (Ubuntu 20.04+ recommended)
+- 16GB+ RAM recommended
+- Coolify installed on your server
+- GitHub repository connected
+
+#### 2. Environment Variables
+
+Copy `.env.coolify.example` to `.env.coolify` and configure:
+
+```bash
+cp .env.coolify.example .env.coolify
+# Edit with your values
+```
+
+Required variables:
+- `DATABASE_URL` - PostgreSQL connection string
+- `POSTGRES_PASSWORD` - Database password
+- `REDIS_PASSWORD` - Redis password
+- `NEXTAUTH_SECRET` - NextAuth.js secret (random 32+ chars)
+- `JWT_SECRET` - JWT signing secret
+- `NEXT_PUBLIC_API_URL` - Your API URL
+
+#### 3. Coolify Setup
+
+1. **Add Resource** → **Docker Compose**
+2. **Repository**: `https://github.com/erogluerdem/pazaryonetimi`
+3. **Branch**: `main`
+4. **Docker Compose File**: `docker-compose.yaml`
+5. Load environment variables from `.env.coolify`
+
+#### 4. Services
+
+| Service | Port | Description |
+|---------|------|-------------|
+| Web | 3000 | Next.js Frontend |
+| API | 3001 | NestJS Backend |
+| Worker | - | Background job processor |
+| Postgres | 5432 | PostgreSQL database |
+| Redis | 6379 | Redis cache & queues |
+
+#### 5. Automatic Deployments
+
+GitHub Actions automatically builds and pushes Docker images on every push to `main`. Coolify webhook triggers deployment.
+
+Required GitHub Secrets:
+- `COOLIFY_WEBHOOK_URL` - From Coolify resource settings
+- `COOLIFY_API_TOKEN` - From Coolify settings
+
+#### 6. Server Maintenance
+
+The project includes automatic cleanup:
+- **Daily at 03:00** - Full system cleanup
+- **Every 6 hours** - Light cache cleanup
+- **Weekly (Sunday)** - Docker image cleanup
+
+Manual cleanup via Admin API:
+```bash
+POST /api/admin/cleanup
+Body: { "mode": "light" | "full" | "docker" }
+```
+
+## �🛠 Troubleshooting
 
 ### Common Issues
 
