@@ -14,11 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
     });
 
     if (!page) {
-      return {
-        title: "Pazaryonetimi | AI Destekli E-ticaret Yönetim Platformu",
-        description:
-          "Trendyol, Hepsiburada, Amazon, N11, Çiçeksepeti — tüm pazaryerlerinizi tek platformdan yönetin.",
-      };
+      return getDefaultMetadata();
     }
 
     return {
@@ -46,16 +42,66 @@ export async function generateMetadata(): Promise<Metadata> {
             type: "website",
           }
         : undefined,
+      twitter: {
+        card: "summary_large_image",
+        title: page.metaTitle || page.title,
+        description: page.metaDescription || page.description || undefined,
+        images: page.ogImage ? [page.ogImage] : undefined,
+      },
       robots: page.noIndex ? { index: false, follow: false } : undefined,
     };
   } catch (error) {
-    // CMS tabloları henüz oluşturulmadıysa varsayılan metadata döndür
-    return {
-      title: "Pazaryonetimi | AI Destekli E-ticaret Yönetim Platformu",
-      description:
-        "Trendyol, Hepsiburada, Amazon, N11, Çiçeksepeti — tüm pazaryerlerinizi tek platformdan yönetin.",
-    };
+    return getDefaultMetadata();
   }
+}
+
+function getDefaultMetadata(): Metadata {
+  const title = "Pazaryonetimi | AI Destekli E-ticaret Yönetim Platformu";
+  const description = "Trendyol, Hepsiburada, Amazon, N11, Çiçeksepeti — tüm pazaryerlerinizi tek platformdan yönetin. Yapay zeka destekli stok, fiyat ve sipariş yönetimi.";
+  const ogImage = "https://pazaryonetimi.com/og-image.png";
+
+  return {
+    title,
+    description,
+    keywords: ["e-ticaret", "pazaryeri", "trendyol", "hepsiburada", "amazon", "n11", "stok yönetimi", "fiyat yönetimi", "sipariş yönetimi"],
+    alternates: {
+      canonical: "https://pazaryonetimi.com",
+    },
+    openGraph: {
+      title,
+      description,
+      url: "https://pazaryonetimi.com",
+      siteName: "Pazaryonetimi",
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+      locale: "tr_TR",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    metadataBase: new URL("https://pazaryonetimi.com"),
+  };
 }
 
 export default async function Home() {

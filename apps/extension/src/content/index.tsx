@@ -113,7 +113,7 @@ const AssistantOverlay = () => {
                                 <span className="text-[10px] font-black text-orange-700 dark:text-orange-400 uppercase">AI Analizi</span>
                             </div>
                             <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-                                Bu ürünün fiyatı son 7 güne göre %4 daha yüksek. Akşam saatlerinde indirim beklenebilir.
+                                Analiz verisi yok. Gercek analiz icin panelden analiz baslatin.
                             </p>
                         </div>
                     </>

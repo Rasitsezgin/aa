@@ -69,10 +69,39 @@ export default function CTASection() {
             <div className="absolute inset-0 bg-white dark:bg-[#030712] transition-colors duration-700" />
 
 
-            {/* ── Aurora gradient blobs ── */}
+            {/* ── Aurora gradient blobs (Enhanced with animation) ── */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-emerald-500/[0.06] rounded-full blur-[150px]" />
-                <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-teal-400/[0.05] rounded-full blur-[160px]" />
+                <motion.div 
+                    animate={{
+                        scale: [1, 1.3, 1.1, 1],
+                        x: [0, 80, 40, 0],
+                        y: [0, -60, 30, 0],
+                        opacity: [0.06, 0.1, 0.08, 0.06],
+                    }}
+                    transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-emerald-500/[0.06] rounded-full blur-[150px]"
+                />
+                <motion.div 
+                    animate={{
+                        scale: [1.1, 1.4, 1.2, 1.1],
+                        x: [0, -80, -40, 0],
+                        y: [0, 50, -30, 0],
+                        opacity: [0.05, 0.09, 0.07, 0.05],
+                    }}
+                    transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-teal-400/[0.05] rounded-full blur-[160px]"
+                />
+                {/* Additional purple accent blob */}
+                <motion.div 
+                    animate={{
+                        scale: [0.9, 1.2, 1, 0.9],
+                        x: [0, -50, 25, 0],
+                        y: [0, 40, -20, 0],
+                        opacity: [0.04, 0.08, 0.06, 0.04],
+                    }}
+                    transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-purple-500/[0.04] rounded-full blur-[140px]"
+                />
             </div>
 
             {/* ── Subtle grid ── */}
@@ -83,22 +112,22 @@ export default function CTASection() {
 
 
 
-            {/* ── Floating particles with interaction ── */}
+            {/* ── Floating particles with interaction (Enhanced) ── */}
             {mounted && (
                 <div className="absolute inset-0 pointer-events-none">
-                    {[...Array(30)].map((_, i) => (
+                    {[...Array(40)].map((_, i) => (
                         <motion.div
                             key={i}
                             initial={{ opacity: 0 }}
                             animate={{
-                                opacity: [0, 0.4, 0],
-                                y: [0, -100 - Math.random() * 50],
-                                x: [0, (Math.random() - 0.5) * 50],
-                                scale: [0, Math.random() + 0.5, 0]
+                                opacity: [0, 0.5, 0],
+                                y: [0, -120 - Math.random() * 60],
+                                x: [0, (Math.random() - 0.5) * 60],
+                                scale: [0, Math.random() * 0.8 + 0.6, 0]
                             }}
                             transition={{
-                                duration: 3 + Math.random() * 5,
-                                delay: i * 0.2,
+                                duration: 4 + Math.random() * 6,
+                                delay: i * 0.15,
                                 repeat: Infinity,
                                 repeatDelay: Math.random() * 2
                             }}
@@ -106,9 +135,9 @@ export default function CTASection() {
                                 position: 'absolute',
                                 left: `${5 + Math.random() * 90}%`,
                                 top: `${60 + Math.random() * 40}%`,
-                                backgroundColor: i % 2 === 0 ? '#10b981' : '#3b82f6', // Emerald or Blue
+                                backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'][i % 4], // Emerald, Blue, Purple, Amber
                             }}
-                            className="w-1.5 h-1.5 rounded-full blur-[1px]"
+                            className="w-2 h-2 rounded-full blur-[1px]"
                         />
                     ))}
                 </div>
@@ -117,25 +146,32 @@ export default function CTASection() {
             <div className="container mx-auto px-4 sm:px-6 relative z-10">
                 <div className="max-w-5xl mx-auto">
 
-                    {/* ── Top badge ── */}
+                    {/* ── Top badge (Enhanced) ── */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                        whileInView={{ opacity: 1, y: 0, scale: 1 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
+                        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                         className="flex justify-center mb-8"
                     >
-                        <div className="group inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all duration-300">
+                        <motion.div 
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            className="group inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all duration-300 shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20"
+                        >
                             <span className="flex items-center gap-2">
-                                <span className="relative flex h-2 w-2">
+                                <motion.span 
+                                    animate={{ scale: [1, 1.2, 1] }}
+                                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                    className="relative flex h-2 w-2"
+                                >
                                     <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
                                     <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                                </span>
+                                </motion.span>
                                 <span className="text-[11px] font-bold text-slate-600 dark:text-emerald-400 uppercase tracking-wider">Sınırlı Süre</span>
                             </span>
                             <span className="w-px h-3 bg-white/20" />
                             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">14 Gün Ücretsiz Deneme</span>
-                        </div>
+                        </motion.div>
                     </motion.div>
 
                     {/* ── Headline ── */}
@@ -168,7 +204,7 @@ export default function CTASection() {
                     </motion.p>
 
 
-                    {/* ── CTA Buttons (Magnetic) ── */}
+                    {/* ── CTA Buttons (Enhanced) ── */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -176,42 +212,62 @@ export default function CTASection() {
                         transition={{ duration: 0.6, delay: 0.3 }}
                         className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
                     >
-                        {/* Primary Magnetic Button */}
+                        {/* Primary Button */}
                         <motion.div
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                            whileHover={{ scale: 1.05, y: -3 }}
+                            whileTap={{ scale: 0.97 }}
                             className="w-full sm:w-auto"
                         >
                             <Link
                                 href="/signup"
                                 className="group relative block w-full sm:w-auto"
                             >
-                                <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 rounded-2xl opacity-70 blur-lg group-hover:opacity-100 group-hover:blur-xl transition-all duration-500" />
+                                <motion.div 
+                                    animate={{ opacity: [0.7, 1, 0.7] }}
+                                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                                    className="absolute -inset-1 bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 rounded-2xl blur-lg"
+                                />
                                 <div className="relative flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-xl font-bold text-lg border border-white/10 overflow-hidden">
-                                    <Rocket size={20} className="text-emerald-400" />
+                                    <motion.div 
+                                        animate={{ x: [0, 5, 0] }}
+                                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                    >
+                                        <Rocket size={20} className="text-emerald-400" />
+                                    </motion.div>
                                     <span>Hemen Başla — Ücretsiz</span>
                                     <ArrowRight size={20} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                                    {/* Shimmer effect */}
+                                    <motion.div 
+                                        animate={{ x: ['-100%', '100%'] }}
+                                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                                    />
                                 </div>
                             </Link>
                         </motion.div>
 
                         {/* Secondary Button */}
                         <motion.div
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                            whileHover={{ scale: 1.05, y: -3 }}
+                            whileTap={{ scale: 0.97 }}
                             className="w-full sm:w-auto"
                         >
                             <Link
                                 href="/contact"
-                                className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-4 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-900 dark:text-white rounded-xl font-bold text-lg border border-slate-200 dark:border-white/10 transition-colors"
+                                className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-8 py-4 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-slate-900 dark:text-white rounded-xl font-bold text-lg border border-slate-200 dark:border-white/10 transition-colors shadow-lg hover:shadow-xl"
                             >
-                                <Play size={18} fill="currentColor" className="opacity-70" />
+                                <motion.div 
+                                    whileHover={{ rotate: [0, -10, 10, -10, 0] }}
+                                    transition={{ duration: 0.5 }}
+                                >
+                                    <Play size={18} fill="currentColor" className="opacity-70" />
+                                </motion.div>
                                 Demo İzle
                             </Link>
                         </motion.div>
                     </motion.div>
 
-                    {/* ── Stats with Glass Cards ── */}
+                    {/* ── Stats with Glass Cards (Enhanced) ── */}
                     <motion.div
                         initial={{ opacity: 0, y: 40 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -220,16 +276,29 @@ export default function CTASection() {
                         className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6"
                     >
                         {[
-                            { val: 5000, suf: "+", label: "Aktif Mağaza" },
-                            { val: 99, suf: ".9%", label: "Uptime SLA" },
-                            { val: 15, suf: "M+", label: "Aylık Sipariş" },
-                            { val: 24, suf: "/7", label: "Canlı Destek" },
+                            { val: 5000, suf: "+", label: "Aktif Mağaza", color: "from-emerald-500 to-teal-500" },
+                            { val: 99, suf: ".9%", label: "Uptime SLA", color: "from-blue-500 to-indigo-500" },
+                            { val: 15, suf: "M+", label: "Aylık Sipariş", color: "from-purple-500 to-pink-500" },
+                            { val: 24, suf: "/7", label: "Canlı Destek", color: "from-orange-500 to-amber-500" },
                         ].map((stat, i) => (
-                            <div key={i} className="p-6 rounded-3xl bg-white/50 dark:bg-white/[0.03] backdrop-blur-md border border-slate-200 dark:border-white/5 text-center group hover:bg-white dark:hover:bg-white/[0.05] transition-colors">
-                                <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-1 group-hover:scale-110 transition-transform duration-300">
-                                    <AnimatedStat value={stat.val} suffix={stat.suf} label={stat.label} />
+                            <motion.div 
+                                key={i} 
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.5 + i * 0.1 }}
+                                whileHover={{ scale: 1.05, y: -5 }}
+                                className="p-6 rounded-3xl bg-white/50 dark:bg-white/[0.03] backdrop-blur-md border border-slate-200 dark:border-white/5 text-center group hover:bg-white dark:hover:bg-white/[0.05] transition-all duration-300 shadow-lg hover:shadow-xl relative overflow-hidden"
+                            >
+                                {/* Hover gradient */}
+                                <motion.div 
+                                    className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
+                                />
+                                <div className="relative z-10">
+                                    <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-1">
+                                        <AnimatedStat value={stat.val} suffix={stat.suf} label={stat.label} />
+                                    </div>
                                 </div>
-                            </div>
+                            </motion.div>
                         ))}
                     </motion.div>
                 </div>

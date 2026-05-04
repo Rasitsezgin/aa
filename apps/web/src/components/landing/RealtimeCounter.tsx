@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Globe, Activity, TrendingUp, MapPin } from 'lucide-react';
+import { Users, Globe, Activity, TrendingUp, MapPin, Zap, ArrowUpRight } from 'lucide-react';
 
 interface CountryData {
     country: string;
@@ -30,7 +30,12 @@ export const RealtimeCounter = ({ features }: RealtimeCounterProps) => {
         { country: 'Almanya', flag: '🇩🇪', users: 234, growth: 8.7 },
         { country: 'Hollanda', flag: '🇳🇱', users: 156, growth: 12.3 },
         { country: 'Fransa', flag: '🇫🇷', users: 98, growth: 6.4 },
-        { country: 'ABD', flag: '🇺🇸', users: 67, growth: 18.9 }
+        { country: 'ABD', flag: '🇺🇸', users: 67, growth: 18.9 },
+        { country: 'İngiltere', flag: '🇬🇧', users: 45, growth: 22.1 },
+        { country: 'İtalya', flag: '🇮🇹', users: 38, growth: 14.5 },
+        { country: 'İspanya', flag: '🇪🇸', users: 32, growth: 9.8 },
+        { country: 'Avusturya', flag: '🇦🇹', users: 28, growth: 11.2 },
+        { country: 'Belçika', flag: '🇧🇪', users: 24, growth: 7.5 }
     ]);
 
     const updateInterval = features?.realTimeCounter.updateInterval || 5000;
@@ -69,120 +74,144 @@ export const RealtimeCounter = ({ features }: RealtimeCounterProps) => {
     if (!features?.realTimeCounter.enabled) return null;
 
     return (
-        <div className="bg-surface rounded-3xl border border-border overflow-hidden">
-            {/* Header */}
-            <div className="p-6 border-b border-border">
+        <div className="bg-surface rounded-3xl border border-border overflow-hidden shadow-xl shadow-primary/5">
+            {/* Enhanced Header with Gradient */}
+            <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-xl">
-                            <Activity className="w-5 h-5 text-primary" />
-                        </div>
+                        <motion.div 
+                            animate={{ 
+                                scale: [1, 1.2, 1],
+                                rotate: [0, 5, -5, 0]
+                            }}
+                            transition={{ duration: 3, repeat: Infinity }}
+                            className="p-2 bg-gradient-to-br from-primary to-primary/70 rounded-xl shadow-lg shadow-primary/20"
+                        >
+                            <Activity className="w-4 h-4 text-white" />
+                        </motion.div>
                         <div>
-                            <h3 className="text-xl font-black text-foreground">Canlı Kullanıcılar</h3>
-                            <p className="text-sm text-slate-500">Gerçek zamanlı aktivite takibi</p>
+                            <h3 className="text-base font-black bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">Canlı Kullanıcılar</h3>
+                            <p className="text-xs text-slate-500">Gerçek zamanlı aktivite takibi</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                        <span className="text-xs text-green-600 font-bold">LIVE</span>
-                    </div>
+                    <motion.div 
+                        animate={{ scale: [1, 1.05, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 rounded-full border border-green-500/20"
+                    >
+                        <motion.div 
+                            animate={{ opacity: [1, 0.3, 1] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                            className="w-2 h-2 bg-green-500 rounded-full shadow-lg shadow-green-500/50"
+                        />
+                        <span className="text-[10px] text-green-600 font-black">LIVE</span>
+                    </motion.div>
                 </div>
             </div>
 
-            {/* Main Stats */}
-            <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Enhanced Stats with Cards */}
+            <div className="px-6 py-5">
+                <div className="grid grid-cols-3 gap-4">
                     {/* Active Users */}
-                    <div className="text-center">
-                        <div className="relative inline-flex items-center justify-center">
-                            <Users className="w-8 h-8 text-primary/20 absolute" />
-                            <motion.span 
-                                key={activeUsers}
-                                initial={{ scale: 0.8, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                className="text-4xl font-black text-foreground relative"
-                            >
-                                {activeUsers.toLocaleString()}
-                            </motion.span>
+                    <motion.div 
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        className="text-center p-3 rounded-2xl bg-gradient-to-b from-blue-500/5 to-transparent border border-blue-200/50 dark:border-blue-500/10"
+                    >
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                            <Users className="w-4 h-4 text-blue-500/50" />
                         </div>
-                        <p className="text-sm text-slate-500 mt-2">Şu An Aktif</p>
-                        <div className="flex items-center justify-center gap-1 mt-1">
-                            <TrendingUp className="w-3 h-3 text-green-500" />
-                            <span className="text-xs text-green-500 font-bold">
+                        <motion.span 
+                            key={activeUsers}
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="text-xl font-black text-foreground block"
+                        >
+                            {activeUsers.toLocaleString()}
+                        </motion.span>
+                        <p className="text-[10px] text-slate-500">Şu An Aktif</p>
+                        <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: '100%' }}
+                            className="flex items-center justify-center gap-0.5 mt-1.5"
+                        >
+                            <ArrowUpRight className="w-3 h-3 text-green-500" />
+                            <span className="text-[10px] text-green-500 font-black">
                                 +{growth.toFixed(1)}%
                             </span>
-                        </div>
-                    </div>
+                        </motion.div>
+                    </motion.div>
 
                     {/* Today's Users */}
-                    <div className="text-center">
+                    <motion.div 
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        className="text-center p-3 rounded-2xl bg-gradient-to-b from-purple-500/5 to-transparent border border-purple-200/50 dark:border-purple-500/10"
+                    >
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                            <Zap className="w-4 h-4 text-purple-500/50" />
+                        </div>
                         <motion.span 
                             key={todayUsers}
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="text-4xl font-black text-foreground"
+                            className="text-xl font-black text-foreground block"
                         >
                             {todayUsers.toLocaleString()}
                         </motion.span>
-                        <p className="text-sm text-slate-500 mt-2">Bugün Toplam</p>
-                        <div className="text-xs text-slate-400 mt-1">
-                            Son 24 saat
-                        </div>
-                    </div>
+                        <p className="text-[10px] text-slate-500">Bugün Toplam</p>
+                        <p className="text-[10px] text-slate-400 mt-1">Son 24 saat</p>
+                    </motion.div>
 
                     {/* Global Reach */}
-                    <div className="text-center">
-                        <div className="flex items-center justify-center gap-1">
-                            <Globe className="w-8 h-8 text-primary/20" />
-                            <span className="text-4xl font-black text-foreground">
-                                {countries.length}
-                            </span>
+                    <motion.div 
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        className="text-center p-3 rounded-2xl bg-gradient-to-b from-emerald-500/5 to-transparent border border-emerald-200/50 dark:border-emerald-500/10"
+                    >
+                        <div className="flex items-center justify-center gap-1 mb-1">
+                            <Globe className="w-4 h-4 text-emerald-500/50" />
                         </div>
-                        <p className="text-sm text-slate-500 mt-2">Ülke</p>
-                        <div className="text-xs text-slate-400 mt-1">
-                            Global erişim
-                        </div>
-                    </div>
+                        <span className="text-xl font-black text-foreground block">
+                            {countries.length}
+                        </span>
+                        <p className="text-[10px] text-slate-500">Ülke</p>
+                        <p className="text-[10px] text-slate-400 mt-1">Global erişim</p>
+                    </motion.div>
                 </div>
 
-                {/* Country Breakdown */}
+                {/* Enhanced Country Cards - Horizontal Scroll */}
                 {showCountries && (
-                    <div className="mt-8">
-                        <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                            <MapPin className="w-4 h-4" />
-                            Ülke Bazında Aktivite
-                        </h4>
-                        <div className="space-y-3">
+                    <div className="mt-5 pt-4 border-t border-border">
+                        <div className="flex items-center gap-2 mb-3">
+                            <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Ülke Bazında Aktivite</span>
+                        </div>
+                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                             <AnimatePresence>
                                 {countries.map((country, index) => (
                                     <motion.div
                                         key={`${country.country}-${country.users}`}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: 20 }}
-                                        transition={{ delay: index * 0.1 }}
-                                        className="flex items-center justify-between p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-100 dark:border-white/10"
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.9 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        whileHover={{ scale: 1.08, y: -4 }}
+                                        className="flex-shrink-0 w-[90px] p-3 bg-gradient-to-b from-slate-50 to-white dark:from-white/10 dark:to-white/5 rounded-xl border border-slate-100 dark:border-white/10 shadow-sm hover:shadow-lg transition-all"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-2xl">{country.flag}</span>
-                                            <div>
-                                                <p className="text-sm font-bold text-foreground">{country.country}</p>
-                                                <p className="text-xs text-slate-500">{country.users} kullanıcı</p>
-                                            </div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-xl">{country.flag}</span>
+                                            <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200">{country.country.substring(0, 3)}</span>
                                         </div>
-                                        <div className="text-right">
-                                            <div className="flex items-center gap-1">
-                                                <TrendingUp className="w-3 h-3 text-green-500" />
-                                                <span className="text-xs text-green-500 font-bold">
-                                                    +{country.growth.toFixed(1)}%
-                                                </span>
+                                        <div className="space-y-1">
+                                            <span className="text-sm font-black text-foreground block">{country.users}</span>
+                                            <div className="flex items-center gap-0.5">
+                                                <TrendingUp className="w-2.5 h-2.5 text-green-500" />
+                                                <span className="text-[9px] text-green-500 font-bold">+{country.growth.toFixed(0)}%</span>
                                             </div>
-                                            <div className="w-20 h-2 bg-slate-200 dark:bg-slate-700 rounded-full mt-1 overflow-hidden">
+                                            <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                                                 <motion.div
-                                                    className="h-full bg-gradient-to-r from-primary to-primary/50 rounded-full"
                                                     initial={{ width: 0 }}
-                                                    animate={{ width: `${(country.users / 1000) * 100}%` }}
-                                                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                                                    animate={{ width: `${Math.min((country.users / 1000) * 100, 100)}%` }}
+                                                    transition={{ delay: index * 0.08 + 0.2, duration: 0.4 }}
+                                                    className="h-full bg-gradient-to-r from-primary to-primary/50 rounded-full"
                                                 />
                                             </div>
                                         </div>
@@ -192,37 +221,6 @@ export const RealtimeCounter = ({ features }: RealtimeCounterProps) => {
                         </div>
                     </div>
                 )}
-
-                {/* Live Activity Feed */}
-                <div className="mt-8">
-                    <h4 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                        <Activity className="w-4 h-4" />
-                        Canlı Aktivite Akışı
-                    </h4>
-                    <div className="space-y-2">
-                        <AnimatePresence>
-                            {[
-                                { icon: '🛒', text: 'Yeni sipariş verildi', time: 'Az önce' },
-                                { icon: '📦', text: 'Stok senkronize edildi', time: '1 dk önce' },
-                                { icon: '💰', text: 'Ödeme alındı', time: '2 dk önce' },
-                                { icon: '📈', text: 'Fiyat güncellendi', time: '3 dk önce' }
-                            ].map((activity, index) => (
-                                <motion.div
-                                    key={`${activity.text}-${index}`}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-white/5 rounded-lg text-xs"
-                                >
-                                    <span className="text-lg">{activity.icon}</span>
-                                    <span className="text-slate-600 dark:text-slate-400">{activity.text}</span>
-                                    <span className="text-slate-400 ml-auto">{activity.time}</span>
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-                    </div>
-                </div>
             </div>
         </div>
     );

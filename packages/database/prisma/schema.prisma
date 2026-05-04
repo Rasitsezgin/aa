@@ -1142,6 +1142,79 @@ model Invoice {
   @@index([gibInvoiceId])
 }
 
+// ─── E-İrsaliye (Despatch Advice) ────────────────────────────────
+model DespatchAdvice {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  // Referenced documents
+  orderId       String?
+  order         Order?  @relation(fields: [orderId], references: [id])
+  invoiceId     String?
+
+  // Despatch info
+  despatchNumber   String    @unique
+  despatchDate     DateTime  @default(now())
+  despatchType     String    @default("SATIS") // SATIS, IADE, TRANSFER
+  scenario         String    @default("TEMEL") // TEMEL, TICARI
+
+  // Seller (sender)
+  sellerTitle     String?
+  sellerTaxNumber String?
+  sellerTaxOffice String?
+  sellerAddress   String?
+  sellerCity      String?
+  sellerDistrict  String?
+
+  // Buyer (receiver)
+  buyerTitle     String?
+  buyerTaxNumber String?
+  buyerTaxOffice String?
+  buyerAddress   String?
+  buyerCity      String?
+  buyerDistrict  String?
+
+  // Shipping info
+  shippingDate     DateTime?
+  deliveryDate     DateTime?
+  carrierTitle     String? // Kargo şirketi
+  carrierTaxNumber String?
+  licensePlate1    String? // Plaka
+  licensePlate2    String? // Dorse plaka
+  driverName       String?
+  driverTckn       String?
+
+  // Items being shipped
+  items Json // Array of { productId, sku, name, quantity, unit }
+
+  // GIB integration
+  gibDespatchId  String? // GIB UUID
+  gibEnvelopeId  String? // GIB zarf ID
+  gibStatusCode  String?
+  gibStatusDesc    String?
+
+  // Status tracking
+  status String @default("DRAFT") // DRAFT, PENDING, SENT, ACCEPTED, REJECTED, CANCELLED
+
+  // Documents
+  url    String? // PDF link
+  xmlUrl String? // UBL-TR XML link
+
+  sentAt     DateTime?
+  acceptedAt DateTime?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([orderId])
+  @@index([gibDespatchId])
+}
+
 model InventoryLog {
   id        String  @id @default(uuid())
   productId String
@@ -8057,6 +8130,98 @@ model AIVoiceSession {
   @@index([tenantId, userId])
   @@index([status])
   @@index([startedAt])
+}
+
+// ==================== API KEY MANAGEMENT ====================
+
+enum ApiKeyStatus {
+  active
+  rotating
+  revoked
+  expired
+}
+
+model ApiKey {
+  id        String      @id @default(uuid())
+  tenantId  String
+  tenant    Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  keyHash     String      @unique // SHA256 hash of the actual key
+  prefix      String?     // First 8 chars for identification
+  permissions Json        // Array of permission strings
+  scopes      Json        // API scopes like ["read", "write", "admin"]
+
+  // Status
+  status   ApiKeyStatus @default(active)
+  isActive Boolean      @default(true)
+
+  // Rotation
+  rotatedToId String?
+  rotatedTo   ApiKey?   @relation("ApiKeyRotation", fields: [rotatedToId], references: [id])
+  rotatedFrom ApiKey?   @relation("ApiKeyRotation")
+
+  // Timestamps
+  lastUsed   DateTime?
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  revokeAt   DateTime? // Grace period for rotation
+  revokedAt  DateTime?
+  revokeReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([keyHash])
+  @@index([status])
+  @@index([expiresAt])
+  @@index([revokeAt])
+}
+
+// ==================== AUDIT LOG SYSTEM ====================
+
+enum AuditSeverity {
+  info
+  warning
+  critical
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
+
+  tenantId String?
+  tenant   Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  userId   String?
+  user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userEmail String?
+
+  action   String       // e.g., "product.created", "user.login"
+  resource String       // e.g., "product", "user"
+  resourceId String?
+  severity AuditSeverity @default(info)
+
+  // Request context
+  ipAddress String?
+  userAgent String?
+
+  // Change tracking
+  metadata Json?    // Additional context
+  before   Json?    // State before change
+  after    Json?    // State after change
+  changes  Json?     // Array of changed fields
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([severity])
+  @@index([timestamp])
+  @@index([tenantId, timestamp])
 }
 
 // ==================== FORUM SYSTEM (vBulletin/XenForo Style) ====================

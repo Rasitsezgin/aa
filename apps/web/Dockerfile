@@ -19,7 +19,8 @@ RUN npm install --no-save napi-postinstall && \
 # Some Prisma transitive deps can be missing in CI; ensure they exist before generate
 RUN if [ ! -d node_modules/graphmatch ] || [ ! -d node_modules/zeptomatch ]; then npm install --no-save graphmatch zeptomatch; fi
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
-ENV NODE_OPTIONS="--max-old-space-size=3968"
+# Build with increased memory (4GB for safer build)
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 # Build database package first, then web app
 RUN npx turbo run build --filter=@pazaryonetimi/database
 # Re-generate Prisma client after database build to ensure fresh types
@@ -34,6 +35,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+
+# Runtime memory setting (3GB for stable operation)
+ENV NODE_OPTIONS="--max-old-space-size=3072"
 
 # These MUST be overridden at runtime via docker-compose / Coolify env vars
 ENV DATABASE_URL=""

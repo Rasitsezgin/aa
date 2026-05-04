@@ -453,16 +453,21 @@ export class IntegrationsService {
         case 'amazon-uk':
         case 'amazon-de':
           return await this.testAmazonConnection(credentials);
-        default:
-          // Generic test - sadece credentials'ın dolu olduğunu kontrol et
+        default: {
           const hasAllRequired = marketplace.requiredFields
             .filter((f) => f.required)
             .every((f) => credentials[f.key]);
 
-          if (hasAllRequired) {
-            return { success: true, message: 'Bağlantı başarılı' };
+          if (!hasAllRequired) {
+            return { success: false, message: 'Eksik kimlik bilgileri' };
           }
-          return { success: false, message: 'Eksik kimlik bilgileri' };
+
+          return {
+            success: true,
+            message:
+              'Kimlik bilgileri format kontrolu tamamlandi. Gercek API testi desteklenmiyor.',
+          };
+        }
       }
     } catch (error: any) {
       return { success: false, message: error.message || 'Bağlantı hatası' };
@@ -475,8 +480,11 @@ export class IntegrationsService {
   ): Promise<ConnectionTestResult> {
     // Gerçek implementasyonda Trendyol API'ye istek atılacak
     if (credentials.supplierId && credentials.apiKey && credentials.apiSecret) {
-      // Simüle edilmiş başarılı bağlantı
-      return { success: true, message: 'Trendyol bağlantısı başarılı' };
+      return {
+        success: true,
+        message:
+          'Kimlik bilgileri format kontrolu tamamlandi. Gercek API testi desteklenmiyor.',
+      };
     }
     return {
       success: false,
@@ -490,10 +498,14 @@ export class IntegrationsService {
   ): Promise<ConnectionTestResult> {
     if (
       credentials.merchantId &&
-      credentials.username &&
-      credentials.password
+      credentials.apiKey &&
+      credentials.apiSecret
     ) {
-      return { success: true, message: 'Hepsiburada bağlantısı başarılı' };
+      return {
+        success: true,
+        message:
+          'Kimlik bilgileri format kontrolu tamamlandi. Gercek API testi desteklenmiyor.',
+      };
     }
     return {
       success: false,
@@ -506,7 +518,11 @@ export class IntegrationsService {
     credentials: Record<string, string>,
   ): Promise<ConnectionTestResult> {
     if (credentials.apiKey && credentials.apiSecret) {
-      return { success: true, message: 'N11 bağlantısı başarılı' };
+      return {
+        success: true,
+        message:
+          'Kimlik bilgileri format kontrolu tamamlandi. Gercek API testi desteklenmiyor.',
+      };
     }
     return {
       success: false,
@@ -518,13 +534,12 @@ export class IntegrationsService {
   private async testAmazonConnection(
     credentials: Record<string, string>,
   ): Promise<ConnectionTestResult> {
-    if (
-      credentials.sellerId &&
-      (credentials.refreshToken || credentials.mwsAuthToken) &&
-      credentials.clientId &&
-      credentials.clientSecret
-    ) {
-      return { success: true, message: 'Amazon bağlantısı başarılı' };
+    if (credentials.apiKey && credentials.apiSecret) {
+      return {
+        success: true,
+        message:
+          'Kimlik bilgileri format kontrolu tamamlandi. Gercek API testi desteklenmiyor.',
+      };
     }
     return {
       success: false,

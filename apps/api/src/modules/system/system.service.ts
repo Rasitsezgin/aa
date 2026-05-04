@@ -245,7 +245,10 @@ export class SystemService {
   /**
    * Servis kontrolü
    */
-  async controlService(serviceId: string, action: 'start' | 'stop' | 'restart') {
+  async controlService(
+    serviceId: string,
+    action: 'start' | 'stop' | 'restart',
+  ) {
     // Bu gerçek implementasyonda Docker veya PM2 ile servis kontrolü yapılır
     // Şimdilik simüle edelim
     this.logger.log(`${action} action requested for service ${serviceId}`);
@@ -274,13 +277,17 @@ export class SystemService {
       const size = Number(dbSizeResult[0]?.size || 0);
 
       // Aktif bağlantılar
-      const connectionsResult = await this.prisma.$queryRaw<{ count: bigint }[]>`
+      const connectionsResult = await this.prisma.$queryRaw<
+        { count: bigint }[]
+      >`
         SELECT count(*) as count FROM pg_stat_activity WHERE datname = current_database()
       `;
       const connections = Number(connectionsResult[0]?.count || 0);
 
       // Son yedekleme (simüle)
-      const lastBackup = new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000);
+      const lastBackup = new Date(
+        Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000,
+      );
 
       return {
         name: 'PostgreSQL',
@@ -342,7 +349,12 @@ export class SystemService {
     // Gerçek implementasyonda scripts/ dizinindeki script'leri çalıştır
     // Güvenlik için whitelist kontrolü yapılır
 
-    const allowedScripts = ['seed-demo', 'clear-cache', 'update-indexes', 'health-check'];
+    const allowedScripts = [
+      'seed-demo',
+      'clear-cache',
+      'update-indexes',
+      'health-check',
+    ];
 
     if (!allowedScripts.includes(scriptName)) {
       throw new Error(`Script ${scriptName} not allowed`);
@@ -352,7 +364,8 @@ export class SystemService {
     let output = '';
     switch (scriptName) {
       case 'seed-demo':
-        output = 'Demo data seeded successfully. Created 100 products, 50 users, 200 orders.';
+        output =
+          'Demo data seeded successfully. Created 100 products, 50 users, 200 orders.';
         break;
       case 'clear-cache':
         output = 'Cache cleared successfully. Redis cache flushed.';

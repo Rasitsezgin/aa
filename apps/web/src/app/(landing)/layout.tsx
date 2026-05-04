@@ -14,7 +14,7 @@ export default function LandingLayout({
             <Navbar />
             {children}
             <Footer />
-            
+
             {/* Floating Components */}
             <FloatingCTA />
             <ExitIntentPopup delay={10000} />

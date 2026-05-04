@@ -59,7 +59,9 @@ import { SearchModule } from './modules/search/search.module';
 import { EmailModule } from './modules/email/email.module';
 import { AIAssistantModule } from './modules/ai-assistant/ai-assistant.module';
 import { MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
+import { CleanupService } from './common/services/cleanup.service';
 
 const schedulerEnabled = process.env.ENABLE_SCHEDULER === 'true';
 
@@ -91,6 +93,8 @@ function getBullConnection() {
       ttl: 300000, // 5 dakika default TTL
       max: 1000, // Maksimum 1000 öğe
     }),
+    // Schedule module for cron jobs
+    ScheduleModule.forRoot(),
     ...(schedulerEnabled
       ? [
           BullModule.forRootAsync({
@@ -156,6 +160,7 @@ function getBullConnection() {
   controllers: [AppController],
   providers: [
     AppService,
+    CleanupService,
     // Global JWT auth guard
     {
       provide: APP_GUARD,

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
+import { motion } from 'framer-motion';
 import HeroNew from "@/components/HeroNew";
 import SocialProof from "@/components/SocialProof";
 
@@ -24,12 +25,9 @@ const Pricing = dynamic(() => import("@/components/Pricing"), { loading: () => <
 const ChaosVsControl = dynamic(() => import("@/components/ChaosVsControl"), { loading: () => <CardSkeleton /> });
 const GlobalMap = dynamic(() => import("@/components/GlobalMap"), { ssr: false, loading: () => <CardSkeleton /> });
 const EcosystemCloud = dynamic(() => import("@/components/EcosystemCloud"), { loading: () => <CardSkeleton /> });
-const ComparisonTable = dynamic(() => import("@/components/ComparisonTable"), { loading: () => <CardSkeleton /> });
 const CTASection = dynamic(() => import("@/components/CTASection"), { loading: () => <CardSkeleton /> });
 
 // New Feature Components
-const LiveDemoSpotlight = dynamic(() => import("@/components/landing/LiveDemoSpotlight").then(mod => ({ default: mod.LiveDemoSpotlight })), { loading: () => <CardSkeleton /> });
-const BeforeAfterSlider = dynamic(() => import("@/components/landing/BeforeAfterSlider").then(mod => ({ default: mod.BeforeAfterSlider })), { loading: () => <CardSkeleton /> });
 const ScrollParticles = dynamic(() => import("@/components/landing/ScrollParticles").then(mod => ({ default: mod.ScrollParticles })), { loading: () => <CardSkeleton /> });
 const RealtimeCounter = dynamic(() => import("@/components/landing/RealtimeCounter").then(mod => ({ default: mod.RealtimeCounter })), { loading: () => <CardSkeleton /> });
 const AIExitIntent = dynamic(() => import("@/components/landing/AIExitIntent").then(mod => ({ default: mod.AIExitIntent })), { ssr: false });
@@ -41,9 +39,7 @@ const INITIAL_CONFIG = [
   { id: 'hero', component: HeroNew, isActive: true },
   { id: 'social-proof', component: SocialProof, isActive: true },
   { id: 'chaos-control', component: ChaosVsControl, isActive: true },
-  { id: 'before-after', component: BeforeAfterSlider, isActive: true },
   { id: 'preview', component: DashboardPreview, isActive: true },
-  { id: 'live-demo', component: LiveDemoSpotlight, isActive: true },
   { id: 'particles', component: ScrollParticles, isActive: true },
   { id: 'realtime-counter', component: RealtimeCounter, isActive: true },
   { id: 'map', component: GlobalMap, isActive: true },
@@ -52,19 +48,35 @@ const INITIAL_CONFIG = [
   { id: 'bento', component: BentoGrid, isActive: true },
   { id: 'command-palette', component: CommandPaletteLanding, isActive: true },
   { id: 'testimonials', component: Testimonials, isActive: true },
-  { id: 'comparison', component: ComparisonTable, isActive: true },
   { id: 'pricing', component: Pricing, isActive: true },
   { id: 'faq', component: FAQ, isActive: true },
   { id: 'cta', component: CTASection, isActive: true },
 ];
+
+// Alternating background variants for visual rhythm
+const sectionBgClass: Record<string, string> = {
+  'hero': '',
+  'social-proof': '',
+  'chaos-control': 'bg-slate-50/30 dark:bg-[#020617]/50',
+  'preview': '',
+  'particles': 'bg-gradient-to-b from-slate-50/20 to-transparent dark:from-[#020617]/40',
+  'realtime-counter': '',
+  'map': 'bg-slate-50/30 dark:bg-[#020617]/50',
+  'roi': '',
+  'ecosystem': 'bg-gradient-to-b from-slate-50/20 to-transparent dark:from-[#020617]/40',
+  'bento': '',
+  'command-palette': 'bg-slate-50/30 dark:bg-[#020617]/50',
+  'testimonials': '',
+  'pricing': 'bg-slate-50/50 dark:bg-[#020617]/80',
+  'faq': '',
+  'cta': '',
+};
 
 export default function LandingHomeClient() {
   const [activeConfig] = useState(INITIAL_CONFIG);
   const [isMobile, setIsMobile] = useState(false);
   const [texts, setTexts] = useState(HOMEPAGE_TEXTS);
   const [features, setFeatures] = useState({
-    liveDemo: { enabled: true, spotlightIntensity: 70, mouseFollow: true },
-    beforeAfter: { enabled: true, autoPlay: true, animationSpeed: 3000 },
     particles: { enabled: true, particleCount: 50, triggerScroll: true },
     realTimeCounter: { enabled: true, showCountries: true, updateInterval: 5000 },
     exitIntent: { enabled: true, discountPercent: 20, triggerDelay: 1000 },
@@ -140,19 +152,60 @@ export default function LandingHomeClient() {
     <main className="min-h-screen bg-white dark:bg-[#020617] text-foreground relative selection:bg-blue-500/30 overflow-x-hidden">
 
       {/* ──────────────────────────────────────────────────────────────────────── */}
-      {/* GLOBAL BACKGROUND SYSTEM (Fixed) */}
+      {/* GLOBAL BACKGROUND SYSTEM (Enhanced with more dynamic effects) */}
       {/* ──────────────────────────────────────────────────────────────────────── */}
       <div className="fixed inset-0 pointer-events-none z-0">
         {/* Base Gradient */}
         <div className="absolute inset-0 bg-white dark:bg-[#020617]" />
 
-        {/* Animated Aurora Blobs */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen animate-blob" />
-        <div className="absolute top-[20%] right-[-10%] w-[35%] h-[35%] bg-purple-500/10 dark:bg-purple-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen animate-blob animation-delay-2000" />
-        <div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-emerald-500/10 dark:bg-emerald-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen animate-blob animation-delay-4000" />
+        {/* Animated Aurora Blobs (Enhanced with more colors and movement) */}
+        <motion.div 
+          animate={{
+            scale: [1, 1.3, 1.1, 1],
+            x: [0, 100, 50, 0],
+            y: [0, -80, 40, 0],
+            opacity: [0.12, 0.2, 0.15, 0.12],
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen"
+        />
+        <motion.div 
+          animate={{
+            scale: [1.1, 1.4, 1.2, 1.1],
+            x: [0, -80, -40, 0],
+            y: [0, 60, -30, 0],
+            opacity: [0.1, 0.18, 0.13, 0.1],
+          }}
+          transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[20%] right-[-10%] w-[35%] h-[35%] bg-purple-500/10 dark:bg-purple-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen"
+        />
+        <motion.div 
+          animate={{
+            scale: [1, 1.25, 1.1, 1],
+            x: [0, 60, -30, 0],
+            y: [0, -50, 30, 0],
+            opacity: [0.1, 0.16, 0.12, 0.1],
+          }}
+          transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-emerald-500/10 dark:bg-emerald-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen"
+        />
+        {/* Additional pink accent blob */}
+        <motion.div 
+          animate={{
+            scale: [0.9, 1.2, 1, 0.9],
+            x: [0, -50, 25, 0],
+            y: [0, 40, -20, 0],
+            opacity: [0.06, 0.12, 0.08, 0.06],
+          }}
+          transition={{ duration: 32, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[40%] left-[30%] w-[30%] h-[30%] bg-pink-500/8 dark:bg-pink-600/8 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-screen"
+        />
 
-        {/* Global Grid Pattern */}
-        <div className="absolute inset-0 opacity-[0.4] dark:opacity-[0.2]"
+        {/* Global Grid Pattern with subtle animation */}
+        <motion.div 
+          animate={{ opacity: [0.35, 0.45, 0.35] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute inset-0 dark:opacity-[0.2]"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
           }}
@@ -168,7 +221,7 @@ export default function LandingHomeClient() {
       {/* SECTION RENDERER */}
       {/* ──────────────────────────────────────────────────────────────────────── */}
       <div className="relative z-10 flex flex-col gap-0 pb-8 sm:pb-0">
-        {visibleSections.map((section) => {
+        {visibleSections.map((section, index) => {
           if (!section.isActive) return null;
           const Component = section.component as React.ComponentType<Record<string, unknown>>;
 
@@ -180,11 +233,30 @@ export default function LandingHomeClient() {
           if (section.id === 'faq') componentProps.texts = texts.faq;
           
           // Pass features to new components
-          if (['live-demo', 'before-after', 'particles', 'realtime-counter', 'exit-intent', 'command-palette', 'spotlight-tour'].includes(section.id)) {
+          if (['particles', 'realtime-counter', 'exit-intent', 'command-palette', 'spotlight-tour'].includes(section.id)) {
             componentProps.features = features;
           }
 
-          return <Component key={section.id} {...componentProps} />;
+          const bgClass = sectionBgClass[section.id] || '';
+
+          // Skip animation for hero section (it has its own)
+          if (section.id === 'hero') {
+            return <Component key={section.id} {...componentProps} />;
+          }
+
+          // Add scroll animation for other sections with alternating backgrounds
+          return (
+            <motion.div
+              key={section.id}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
+              className={bgClass}
+            >
+              <Component {...componentProps} />
+            </motion.div>
+          );
         })}
       </div>
 

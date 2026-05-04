@@ -68,38 +68,51 @@ export default function FAQ({ texts = HOMEPAGE_TEXTS.faq }: { texts?: typeof HOM
                             key={i}
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.05 }}
+                            transition={{ delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                             className={`rounded-[24px] border transition-all duration-300 overflow-hidden ${openIndex === i
                                 ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30 shadow-xl shadow-blue-500/5'
-                                : 'bg-white dark:bg-slate-900/40 border-slate-200 dark:border-white/10 hover:border-blue-200 dark:hover:border-blue-500/30'
+                                : 'bg-white dark:bg-slate-900/40 border-slate-200 dark:border-white/10 hover:border-blue-200 dark:hover:border-blue-500/30 hover:shadow-lg'
                                 }`}
                         >
-                            <button
+                            <motion.button
                                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                                whileHover={{ x: 4 }}
                                 className="w-full px-8 py-6 flex justify-between items-center text-left group"
                             >
-                                <span className={`font-bold text-lg transition-colors ${openIndex === i ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400'
-                                    }`}>{faq.q}</span>
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${openIndex === i
-                                    ? 'bg-blue-500 text-white rotate-0'
-                                    : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400'
-                                    }`}>
-                                    {openIndex === i ? <Minus size={18} /> : <Plus size={18} />}
-                                </div>
-                            </button>
+                                <motion.span 
+                                    animate={{ color: openIndex === i ? 'rgb(37,99,235)' : 'rgb(15,23,42)' }}
+                                    className={`font-bold text-lg transition-colors ${openIndex === i ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                                    }`}
+                                >{faq.q}</motion.span>
+                                <motion.div 
+                                    animate={{ rotate: openIndex === i ? 180 : 0 }}
+                                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${openIndex === i
+                                        ? 'bg-blue-500 text-white'
+                                        : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/20'
+                                        }`}
+                                >
+                                    <Plus size={18} className={openIndex === i ? 'rotate-45' : ''} />
+                                </motion.div>
+                            </motion.button>
 
-                            <AnimatePresence>
+                            <AnimatePresence mode="wait">
                                 {openIndex === i && (
                                     <motion.div
                                         initial={{ height: 0, opacity: 0 }}
                                         animate={{ height: 'auto', opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.3 }}
+                                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                                         className="overflow-hidden"
                                     >
-                                        <div className="px-8 pb-6 text-slate-600 dark:text-slate-300 leading-relaxed border-t border-blue-100 dark:border-blue-500/20 pt-4">
+                                        <motion.div 
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.1, duration: 0.3 }}
+                                            className="px-8 pb-6 text-slate-600 dark:text-slate-300 leading-relaxed border-t border-blue-100 dark:border-blue-500/20 pt-4"
+                                        >
                                             {faq.a}
-                                        </div>
+                                        </motion.div>
                                     </motion.div>
                                 )}
                             </AnimatePresence>

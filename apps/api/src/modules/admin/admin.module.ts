@@ -7,11 +7,13 @@ import { AiAssistantController } from './ai-assistant.controller';
 import { AiAssistantService } from './ai-assistant.service';
 import { AiModule } from '../ai/ai.module';
 import { AnalyticsModule } from '../analytics/analytics.module';
+import { CleanupService } from '../../common/services/cleanup.service';
+import { CacheService } from '../../common/cache.service';
 
 @Module({
   imports: [DatabaseModule, AiModule],
   controllers: [AdminController, AiAssistantController],
-  providers: [AdminService, AdminGuard, AiAssistantService],
+  providers: [AdminService, AdminGuard, AiAssistantService, CleanupService, CacheService],
   exports: [AdminService, AiAssistantService],
 })
 export class AdminModule {}

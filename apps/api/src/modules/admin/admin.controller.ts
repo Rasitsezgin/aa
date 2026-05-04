@@ -11,11 +11,15 @@ import {
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AdminGuard } from '../../common/guards/admin.guard';
+import { CleanupService } from '../../common/services/cleanup.service';
 
 @UseGuards(AdminGuard)
 @Controller('admin')
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly cleanupService: CleanupService,
+  ) {}
 
   // ═══════════════════════════════════════════════════════════════════
   // IMPERSONATION
@@ -578,4 +582,36 @@ export class AdminController {
   // ═══════════════════════════════════════════════════════════════════
   // SECURITY & AUDIT (Phase 3)
   // ═══════════════════════════════════════════════════════════════════
+
+  // ═══════════════════════════════════════════════════════════════════
+  // SERVER CLEANUP (Maintenance)
+  // ═══════════════════════════════════════════════════════════════════
+
+  @Post('cleanup')
+  async triggerCleanup(
+    @Body() body: { mode?: 'light' | 'full' | 'docker' },
+  ) {
+    const mode = body.mode || 'light';
+    const result = await this.cleanupService.triggerManualCleanup(mode);
+    return {
+      success: true,
+      mode,
+      result,
+      message: `Cleanup triggered with mode: ${mode}`,
+    };
+  }
+
+  @Get('cleanup/status')
+  async getCleanupStatus() {
+    const lastCleanup = this.cleanupService.getLastCleanup();
+    return {
+      success: true,
+      lastCleanup,
+      nextScheduled: {
+        daily: '03:00 (Europe/Istanbul)',
+        light: 'Every 6 hours',
+        docker: 'Sunday 04:00 (Europe/Istanbul)',
+      },
+    };
+  }
 }

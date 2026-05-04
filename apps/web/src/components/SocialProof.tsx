@@ -80,12 +80,13 @@ export default function SocialProof() {
                     </p>
                 </motion.div>
 
-                {/* Mobile Static Grid */}
+                {/* Mobile Static Grid with hover effects */}
                 <div className="sm:hidden grid grid-cols-2 gap-3">
                     {brands.slice(0, 10).map((brand) => (
-                        <div
+                        <motion.div
                             key={`mobile-${brand.name}`}
-                            className="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-slate-900/60 border border-slate-100 dark:border-white/10 flex items-center justify-center min-h-[62px]"
+                            whileTap={{ scale: 0.95 }}
+                            className="p-3.5 rounded-2xl bg-slate-50/90 dark:bg-slate-900/60 border border-slate-100 dark:border-white/10 flex items-center justify-center min-h-[62px] active:bg-white dark:active:bg-white/10 transition-colors duration-200"
                         >
                             <Image
                                 src={brand.logo}
@@ -94,18 +95,21 @@ export default function SocialProof() {
                                 height={28}
                                 className="h-6 w-auto max-w-[112px] object-contain opacity-90"
                             />
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
 
                 {/* Logo Carousel Container */}
                 <div className="relative hidden sm:flex flex-col gap-8 sm:gap-12 mask-linear-fade">
-                    {/* Gradient Fades */}
-                    <div className="absolute inset-y-0 left-0 w-20 sm:w-32 bg-gradient-to-r from-white dark:from-[#020617] to-transparent z-10 pointer-events-none" />
-                    <div className="absolute inset-y-0 right-0 w-20 sm:w-32 bg-gradient-to-l from-white dark:from-[#020617] to-transparent z-10 pointer-events-none" />
+                    {/* Gradient Fades with enhanced blur */}
+                    <div className="absolute inset-y-0 left-0 w-20 sm:w-32 bg-gradient-to-r from-white dark:from-[#020617] via-white/80 dark:via-[#020617]/80 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute inset-y-0 right-0 w-20 sm:w-32 bg-gradient-to-l from-white dark:from-[#020617] via-white/80 dark:via-[#020617]/80 to-transparent z-10 pointer-events-none" />
 
                     {/* Row 1: Left to Right */}
-                    <div className="flex overflow-hidden -rotate-1 hover:rotate-0 transition-transform duration-700">
+                    <motion.div 
+                        className="flex overflow-hidden -rotate-1 hover:rotate-0 transition-transform duration-700"
+                        whileHover={{ scale: 1.01 }}
+                    >
                         <motion.div
                             className="flex min-w-full gap-8 sm:gap-16 pr-8 sm:pr-16 items-center"
                             animate={{ x: "-50%" }}
@@ -119,10 +123,13 @@ export default function SocialProof() {
                                 <BrandLogo key={`${brand.name}-1-${i}`} brand={brand} />
                             ))}
                         </motion.div>
-                    </div>
+                    </motion.div>
 
                     {/* Row 2: Right to Left */}
-                    <div className="flex overflow-hidden rotate-1 hover:rotate-0 transition-transform duration-700">
+                    <motion.div 
+                        className="flex overflow-hidden rotate-1 hover:rotate-0 transition-transform duration-700"
+                        whileHover={{ scale: 1.01 }}
+                    >
                         <motion.div
                             className="flex min-w-full gap-8 sm:gap-16 pr-8 sm:pr-16 items-center"
                             animate={{ x: "0%" }}
@@ -137,7 +144,7 @@ export default function SocialProof() {
                                 <BrandLogo key={`${brand.name}-2-${i}`} brand={brand} />
                             ))}
                         </motion.div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
         </section>
@@ -147,15 +154,28 @@ export default function SocialProof() {
 function BrandLogo({ brand }: { brand: { name: string; logo: string } }) {
     return (
         <div className="flex-shrink-0 group">
-            <div className="relative p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-slate-200 dark:hover:border-white/10 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300">
-                <Image
-                    src={brand.logo}
-                    alt={brand.name}
-                    width={120}
-                    height={32}
-                    className="h-6 sm:h-8 w-auto max-w-[100px] sm:max-w-[120px] object-contain transition-all duration-300 grayscale group-hover:grayscale-0 group-hover:scale-110 opacity-60 group-hover:opacity-100"
+            <motion.div 
+                whileHover={{ scale: 1.05, y: -5 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="relative p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-slate-200 dark:hover:border-white/10 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300"
+            >
+                <motion.div
+                    whileHover={{ rotate: [0, -5, 5, -5, 0] }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <Image
+                        src={brand.logo}
+                        alt={brand.name}
+                        width={120}
+                        height={32}
+                        className="h-6 sm:h-8 w-auto max-w-[100px] sm:max-w-[120px] object-contain transition-all duration-300 grayscale group-hover:grayscale-0 group-hover:scale-110 opacity-60 group-hover:opacity-100"
+                    />
+                </motion.div>
+                {/* Glow effect on hover */}
+                <motion.div 
+                    className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/5 group-hover:to-purple-500/5 transition-colors duration-300 pointer-events-none"
                 />
-            </div>
+            </motion.div>
         </div>
     );
 }

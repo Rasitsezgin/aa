@@ -30,10 +30,12 @@
             "matches": [
                 "https://*.trendyol.com/*",
                 "https://*.amazon.com.tr/*",
-                "https://*.hepsiburada.com/*"
+                "https://*.hepsiburada.com/*",
+                "https://*.n11.com/*",
+                "https://*.ciceksepeti.com/*"
             ],
             "js": [
-                "src/content/index.tsx"
+                "src/content/index.ts"
             ]
         }
     ]

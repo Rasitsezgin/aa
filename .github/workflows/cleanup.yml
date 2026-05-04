@@ -1,0 +1,76 @@
+name: Server Cleanup
+
+on:
+  # Manuel çalıştırma (dispatch)
+  workflow_dispatch:
+    inputs:
+      cleanup_mode:
+        description: 'Temizlik modu'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - docker
+          - npm
+          - system
+          - project
+      target_server:
+        description: 'Hedef sunucu'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+  # Otomatik çalıştırma - Her Pazar gecesi 03:00'te
+  schedule:
+    - cron: '0 3 * * 0'
+
+jobs:
+  cleanup:
+    name: Server Cleanup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add host to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Run Cleanup Script
+        env:
+          CLEANUP_MODE: ${{ github.event.inputs.cleanup_mode || 'full' }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          echo "🧹 Starting server cleanup..."
+          echo "Mode: $CLEANUP_MODE"
+          echo "Target: ${{ github.event.inputs.target_server || 'production' }}"
+
+          # Cleanup scriptini sunucuya kopyala ve çalıştır
+          scp scripts/cleanup.sh $SERVER_USER@$SERVER_IP:/tmp/cleanup.sh
+          ssh $SERVER_USER@$SERVER_IP "chmod +x /tmp/cleanup.sh && sudo /tmp/cleanup.sh $CLEANUP_MODE"
+
+      - name: Cleanup Docker Images (GitHub Actions Runner)
+        if: github.event.inputs.cleanup_mode == 'full' || github.event_name == 'schedule'
+        run: |
+          echo "🐳 Cleaning up GitHub Actions runner Docker images..."
+          docker system df
+          docker builder prune -f
+          docker system prune -af --volumes
+          docker system df
+
+      - name: Notify
+        if: always()
+        run: |
+          echo "Cleanup completed with status: ${{ job.status }}"
+          echo "Timestamp: $(date)"

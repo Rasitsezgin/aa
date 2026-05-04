@@ -71,7 +71,7 @@ const chartPath = buildSmoothPath(chartPoints);
 const chartAreaPath = chartPath + ` L 100 100 L 0 100 Z`;
 
 // ────────────────────────────────────────────
-// FLOATING PARTICLES
+// FLOATING PARTICLES (Enhanced with glow and trails)
 // ────────────────────────────────────────────
 function FloatingParticles() {
     const [particles, setParticles] = useState<Array<{
@@ -82,18 +82,20 @@ function FloatingParticles() {
         duration: number;
         delay: number;
         opacity: number;
+        color: string;
     }>>([]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            setParticles(Array.from({ length: 30 }, (_, i) => ({
+            setParticles(Array.from({ length: 40 }, (_, i) => ({
                 id: i,
                 x: Math.random() * 100,
                 y: Math.random() * 100,
-                size: Math.random() * 3 + 1,
-                duration: Math.random() * 20 + 15,
+                size: Math.random() * 4 + 2,
+                duration: Math.random() * 25 + 20,
                 delay: Math.random() * 10,
-                opacity: Math.random() * 0.3 + 0.1,
+                opacity: Math.random() * 0.4 + 0.15,
+                color: ['bg-emerald-400', 'bg-blue-400', 'bg-purple-400', 'bg-teal-400'][Math.floor(Math.random() * 4)],
             })));
         }, 0);
 
@@ -107,7 +109,7 @@ function FloatingParticles() {
             {particles.map((p) => (
                 <motion.div
                     key={p.id}
-                    className="absolute rounded-full bg-emerald-400 dark:bg-emerald-500"
+                    className={`absolute rounded-full ${p.color} dark:${p.color.replace('400', '500')} blur-[1px]`}
                     style={{
                         left: `${p.x}%`,
                         top: `${p.y}%`,
@@ -115,9 +117,10 @@ function FloatingParticles() {
                         height: p.size,
                     }}
                     animate={{
-                        y: [-20, 20, -20],
-                        x: [-10, 10, -10],
-                        opacity: [p.opacity, p.opacity * 2, p.opacity],
+                        y: [-30, 30, -30],
+                        x: [-15, 15, -15],
+                        opacity: [p.opacity, p.opacity * 2.5, p.opacity],
+                        scale: [1, 1.3, 1],
                     }}
                     transition={{
                         duration: p.duration,
@@ -143,18 +146,27 @@ function FloatingNotification({ delay = 0 }: { delay?: number }) {
             className="absolute -right-2 xl:-right-4 bottom-20 xl:bottom-24 z-30 hidden lg:block"
         >
             <motion.div
-                animate={{ y: [0, -6, 0] }}
+                animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="flex items-center gap-3 px-4 py-3 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-2xl shadow-emerald-500/10"
+                className="flex items-center gap-3 px-4 py-3 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-2xl shadow-emerald-500/10 group hover:shadow-emerald-500/20 transition-shadow duration-300"
             >
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
-                    <TrendingUp size={16} className="text-emerald-500" />
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center shrink-0 border border-emerald-500/20">
+                    <motion.div
+                        animate={{ rotate: [0, 10, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                        <TrendingUp size={16} className="text-emerald-500" />
+                    </motion.div>
                 </div>
                 <div>
                     <div className="text-[11px] font-bold text-slate-900 dark:text-white">Satışlarınız %27 arttı</div>
                     <div className="text-[10px] text-slate-500">Son 7 gün • Trendyol</div>
                 </div>
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <motion.div 
+                    className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"
+                    animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                />
             </motion.div>
         </motion.div>
     );
@@ -169,17 +181,27 @@ function FloatingOrderNotification({ delay = 0 }: { delay?: number }) {
             className="absolute -left-2 xl:-left-6 top-28 xl:top-32 z-30 hidden lg:block"
         >
             <motion.div
-                animate={{ y: [0, -8, 0] }}
+                animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="flex items-center gap-3 px-4 py-3 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-2xl shadow-blue-500/10"
+                className="flex items-center gap-3 px-4 py-3 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-2xl shadow-blue-500/10 group hover:shadow-blue-500/20 transition-shadow duration-300"
             >
-                <div className="w-9 h-9 rounded-xl bg-blue-500/15 flex items-center justify-center shrink-0">
-                    <Package size={16} className="text-blue-500" />
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center shrink-0 border border-blue-500/20">
+                    <motion.div
+                        animate={{ rotate: [-15, 15, -15] }}
+                        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                        <Package size={16} className="text-blue-500" />
+                    </motion.div>
                 </div>
                 <div>
                     <div className="text-[11px] font-bold text-slate-900 dark:text-white">+48 yeni sipariş</div>
                     <div className="text-[10px] text-slate-500">Bugün • Tüm kanallar</div>
                 </div>
+                <motion.div 
+                    className="w-2 h-2 rounded-full bg-blue-500 shrink-0"
+                    animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
+                />
             </motion.div>
         </motion.div>
     );
@@ -375,7 +397,7 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
             className="relative min-h-screen min-h-[100svh] flex items-center overflow-hidden bg-[#fafbfc] dark:bg-[#030712] transition-colors duration-700 selection:bg-emerald-500/20 overflow-x-hidden"
         >
             {/* ═══════════════════════════════════════════════ */}
-            {/* BACKGROUND SYSTEM                              */}
+            {/* BACKGROUND SYSTEM (Enhanced with more dynamic effects) */}
             {/* ═══════════════════════════════════════════════ */}
 
             {/* Primary gradient mesh */}
@@ -383,63 +405,87 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
                 {/* Main aurora orb - top left */}
                 <motion.div
                     animate={{
-                        scale: [1, 1.3, 1.1, 1],
-                        opacity: [0.12, 0.22, 0.18, 0.12],
-                        x: [0, 80, 30, 0],
-                        y: [0, -50, 20, 0],
+                        scale: [1, 1.4, 1.2, 1],
+                        opacity: [0.15, 0.28, 0.22, 0.15],
+                        x: [0, 100, 40, 0],
+                        y: [0, -60, 30, 0],
                     }}
                     transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute -top-[30%] -left-[15%] w-[70vw] h-[70vw] rounded-full will-change-transform"
                     style={{
-                        background: "radial-gradient(circle, rgba(16,185,129,0.25) 0%, rgba(6,182,212,0.12) 40%, transparent 70%)",
-                        filter: "blur(60px)",
+                        background: "radial-gradient(circle, rgba(16,185,129,0.3) 0%, rgba(6,182,212,0.15) 40%, transparent 70%)",
+                        filter: "blur(70px)",
                         transform: "translate3d(0,0,0)",
                     }}
                 />
                 {/* Secondary orb - bottom right */}
                 <motion.div
                     animate={{
-                        scale: [1.1, 1.4, 1.2, 1.1],
-                        opacity: [0.08, 0.18, 0.12, 0.08],
-                        x: [0, -60, -20, 0],
-                        y: [0, 40, -30, 0],
+                        scale: [1.1, 1.5, 1.3, 1.1],
+                        opacity: [0.1, 0.22, 0.15, 0.1],
+                        x: [0, -80, -30, 0],
+                        y: [0, 50, -40, 0],
                     }}
                     transition={{ duration: 32, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute -bottom-[25%] -right-[15%] w-[65vw] h-[65vw] rounded-full will-change-transform"
                     style={{
-                        background: "radial-gradient(circle, rgba(59,130,246,0.2) 0%, rgba(139,92,246,0.1) 40%, transparent 70%)",
-                        filter: "blur(80px)",
+                        background: "radial-gradient(circle, rgba(59,130,246,0.25) 0%, rgba(139,92,246,0.12) 40%, transparent 70%)",
+                        filter: "blur(90px)",
                         transform: "translate3d(0,0,0)",
                     }}
                 />
                 {/* Tertiary orb - center */}
                 <motion.div
                     animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.05, 0.12, 0.05],
+                        scale: [1, 1.3, 1],
+                        opacity: [0.08, 0.18, 0.08],
                         rotate: [0, 180, 360],
                     }}
                     transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
                     className="absolute top-[15%] left-[40%] w-[50vw] h-[50vw] rounded-full will-change-transform"
                     style={{
-                        background: "radial-gradient(ellipse, rgba(168,85,247,0.12) 0%, transparent 60%)",
-                        filter: "blur(90px)",
+                        background: "radial-gradient(ellipse, rgba(168,85,247,0.15) 0%, transparent 60%)",
+                        filter: "blur(100px)",
+                        transform: "translate3d(0,0,0)",
+                    }}
+                />
+                {/* Quaternary orb - pink accent */}
+                <motion.div
+                    animate={{
+                        scale: [0.8, 1.2, 0.9, 0.8],
+                        opacity: [0.05, 0.12, 0.08, 0.05],
+                        x: [0, -40, 20, 0],
+                        y: [0, 30, -20, 0],
+                    }}
+                    transition={{ duration: 36, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute top-[40%] right-[10%] w-[40vw] h-[40vw] rounded-full will-change-transform"
+                    style={{
+                        background: "radial-gradient(circle, rgba(236,72,153,0.12) 0%, rgba(244,114,182,0.06) 40%, transparent 70%)",
+                        filter: "blur(80px)",
                         transform: "translate3d(0,0,0)",
                     }}
                 />
 
                 {/* Spotlight from top */}
-                <div
+                <motion.div
+                    animate={{
+                        opacity: [0.08, 0.12, 0.08],
+                    }}
+                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute top-0 left-1/2 -translate-x-1/2 w-[120vw] h-[60vh]"
                     style={{
-                        background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(16,185,129,0.08) 0%, transparent 100%)",
+                        background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(16,185,129,0.1) 0%, transparent 100%)",
                     }}
                 />
             </div>
 
-            {/* Grid pattern */}
-            <div
-                className="absolute inset-0 pointer-events-none opacity-[0.025] dark:opacity-[0.04]"
+            {/* Grid pattern with subtle animation */}
+            <motion.div
+                animate={{
+                    opacity: [0.025, 0.04, 0.025],
+                }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute inset-0 pointer-events-none dark:opacity-[0.04]"
                 style={{
                     backgroundImage: `linear-gradient(rgba(100,116,139,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(100,116,139,0.5) 1px, transparent 1px)`,
                     backgroundSize: "64px 64px",

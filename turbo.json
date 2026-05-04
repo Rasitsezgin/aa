@@ -1,17 +1,27 @@
 {
   "$schema": "https://turbo.build/json-schema.json",
   "globalDependencies": ["**/.env.local", "**/.env", "packages/database/prisma/schema.prisma"],
-  "globalEnv": ["NODE_ENV", "DATABASE_URL"],
-  "ui": "tui",
+  "globalEnv": [
+    "NODE_ENV",
+    "DATABASE_URL",
+    "NEXTAUTH_URL",
+    "NEXTAUTH_SECRET",
+    "NEXT_PUBLIC_API_URL",
+    "AUTH_URL",
+    "AUTH_SECRET"
+  ],
+  "ui": "stream",
   "tasks": {
     "dev": {
       "cache": false,
-      "interactive": true
+      "interactive": true,
+      "persistent": true
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "dist/**"],
-      "cache": true
+      "outputs": [".next/**", "dist/**", ".next/standalone/**"],
+      "cache": true,
+      "env": ["NODE_OPTIONS"]
     },
     "lint": {
       "outputs": []
@@ -20,6 +30,10 @@
       "dependsOn": ["build"],
       "outputs": ["coverage/**"],
       "cache": true
+    },
+    "db:generate": {
+      "cache": false,
+      "outputs": ["packages/database/node_modules/.prisma/client/**"]
     }
   }
 }

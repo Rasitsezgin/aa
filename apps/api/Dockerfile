@@ -27,8 +27,8 @@ COPY --from=pruner /app/out/full/ .
 # Generate Prisma Client
 RUN cd packages/database && npx prisma generate
 
-# Build the project (128MB less for ARM)
-ENV NODE_OPTIONS="--max-old-space-size=3968"
+# Build the project with safer memory settings
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npx turbo run build --filter=@pazaryonetimi/api
 
 FROM node:22-slim AS runner
@@ -39,6 +39,8 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV PRISMA_CLIENT_ENGINE_TYPE="library"
 ENV NODE_ENV=production
+# Runtime memory setting
+ENV NODE_OPTIONS="--max-old-space-size=3072"
 
 WORKDIR /app
 

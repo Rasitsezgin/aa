@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { Bot, Zap, Globe, ArrowRight, CheckCircle2, ShoppingBag, BarChart3, TrendingUp, Search, Code2 } from 'lucide-react';
 import { motion, useMotionTemplate, useMotionValue, useTransform } from 'framer-motion';
 
-// Combined 3D Tilt + Spotlight Component
+// Combined 3D Tilt + Spotlight Component (Enhanced)
 const SpotlightCard = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => {
     const divRef = useRef<HTMLDivElement>(null);
     const [isFocused, setIsFocused] = useState(false);
@@ -14,8 +14,8 @@ const SpotlightCard = ({ children, className = "" }: { children: React.ReactNode
     // Tilt Values (driven by drag)
     const x = useMotionValue(0);
     const y = useMotionValue(0);
-    const rotateX = useTransform(y, [-100, 100], [15, -15]); // Reduced rotation for cleaner feel
-    const rotateY = useTransform(x, [-100, 100], [-15, 15]);
+    const rotateX = useTransform(y, [-100, 100], [12, -12]); // Slightly reduced for smoother feel
+    const rotateY = useTransform(x, [-100, 100], [-12, 12]);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!divRef.current) return;
@@ -31,23 +31,33 @@ const SpotlightCard = ({ children, className = "" }: { children: React.ReactNode
             drag
             dragElastic={0.16}
             dragConstraints={{ top: 0, left: 0, right: 0, bottom: 0 }}
-            whileTap={{ cursor: "grabbing" }}
+            whileTap={{ cursor: "grabbing", scale: 0.98 }}
+            whileHover={{ scale: 1.02 }}
             onMouseMove={handleMouseMove}
             onMouseEnter={() => setIsFocused(true)}
             onMouseLeave={() => setIsFocused(false)}
             className={`relative overflow-hidden rounded-[32px] border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 backdrop-blur-xl transition-colors duration-500 hover:border-blue-300 dark:hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/10 dark:hover:shadow-blue-900/20 group ${className}`}
         >
-            {/* Spotlight Gradient */}
+            {/* Spotlight Gradient (Enhanced with larger radius) */}
             <motion.div
                 className="pointer-events-none absolute -inset-px opacity-0 transition duration-500 group-hover:opacity-100 z-10"
                 style={{
                     background: useMotionTemplate`
                         radial-gradient(
-                          650px circle at ${mouseX}px ${mouseY}px,
-                          rgba(59, 130, 246, 0.15),
+                          800px circle at ${mouseX}px ${mouseY}px,
+                          rgba(59, 130, 246, 0.18),
+                          rgba(139, 92, 246, 0.08),
                           transparent 80%
                         )
                       `,
+                }}
+            />
+
+            {/* Animated border glow on hover */}
+            <motion.div 
+                className="absolute inset-0 rounded-[32px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10"
+                style={{
+                    background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(139,92,246,0.05) 50%, rgba(236,72,153,0.1) 100%)',
                 }}
             />
 
@@ -198,59 +208,92 @@ export default function BentoGrid({ texts = HOMEPAGE_TEXTS.bento }: { texts?: ty
                         </SpotlightCard>
                     </div>
 
-                    {/* Card 2: Instant Sync */}
+                    {/* Card 2: Instant Sync (Enhanced) */}
                     <SpotlightCard className="p-8 flex flex-col justify-between group overflow-hidden bg-white/50 dark:bg-white/5 backdrop-blur-2xl">
-                        <div className="absolute -right-10 -top-10 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-orange-500/20 transition-colors" />
+                        <motion.div 
+                            animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                            className="absolute -right-10 -top-10 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"
+                        />
 
-                        <div className="w-14 h-14 rounded-xl bg-orange-100 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 flex items-center justify-center text-orange-600 dark:text-orange-400 mb-6">
+                        <motion.div 
+                            whileHover={{ rotate: [0, -10, 10, -10, 0] }}
+                            transition={{ duration: 0.5 }}
+                            className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-500/10 dark:to-amber-500/10 border border-orange-200 dark:border-orange-500/20 flex items-center justify-center text-orange-600 dark:text-orange-400 mb-6 shadow-lg shadow-orange-500/10"
+                        >
                             <Zap size={28} />
-                        </div>
+                        </motion.div>
                         <div className="relative z-10">
                             <h3 className="text-2xl font-bold mb-3 text-slate-900 dark:text-white">{texts.cards[1].title}</h3>
                             <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
                                 {texts.cards[1].description}
                             </p>
                         </div>
-                        {/* Network Pulse Animation */}
+                        {/* Network Pulse Animation (Enhanced) */}
                         <div className="mt-10 relative h-24 flex items-center justify-center gap-6">
                             {['amazon.png', 'trendyol.png', 'hepsiburada.png'].map((logo, i) => (
-                                <div key={i} className="relative z-10 w-12 h-12 rounded-full bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 flex items-center justify-center shadow-lg">
+                                <motion.div 
+                                    key={i} 
+                                    animate={{ y: [0, -5, 0] }}
+                                    transition={{ duration: 2, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
+                                    className="relative z-10 w-12 h-12 rounded-full bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 flex items-center justify-center shadow-lg"
+                                >
                                     <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse" />
-                                    {/* Ripple */}
-                                    <div className="absolute inset-0 rounded-full border border-orange-500/30 animate-ping" style={{ animationDelay: `${i * 0.3}s` }} />
-                                </div>
+                                    {/* Enhanced Ripple */}
+                                    <motion.div 
+                                        className="absolute inset-0 rounded-full border border-orange-500/30"
+                                        animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+                                        transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+                                    />
+                                </motion.div>
                             ))}
-                            {/* Connection Lines */}
+                            {/* Connection Lines with enhanced animation */}
                             <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-slate-100 dark:bg-white/5 -z-0">
                                 <motion.div
                                     animate={{ left: ['0%', '100%'], opacity: [0, 1, 0] }}
                                     transition={{ duration: 1.5, repeat: Infinity }}
-                                    className="absolute top-0 bottom-0 w-20 bg-gradient-to-r from-transparent via-orange-500 to-transparent"
+                                    className="absolute top-0 bottom-0 w-20 bg-gradient-to-r from-transparent via-orange-500 to-transparent shadow-[0_0_10px_rgba(249,115,22,0.5)]"
                                 />
                             </div>
                         </div>
                     </SpotlightCard>
 
-                    {/* Card 3: Global Sales */}
+                    {/* Card 3: Global Sales (Enhanced) */}
                     <SpotlightCard className="p-8 flex flex-col justify-between group overflow-hidden bg-white/50 dark:bg-white/5 backdrop-blur-2xl">
-                        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-purple-500/20 transition-colors" />
+                        <motion.div 
+                            animate={{ scale: [1, 1.15, 1], opacity: [0.1, 0.18, 0.1] }}
+                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                            className="absolute -right-10 -bottom-10 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"
+                        />
 
-                        <div className="w-14 h-14 rounded-xl bg-purple-100 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6">
+                        <motion.div 
+                            whileHover={{ rotate: [0, 10, -10, 10, 0] }}
+                            transition={{ duration: 0.5 }}
+                            className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-500/10 dark:to-pink-500/10 border border-purple-200 dark:border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6 shadow-lg shadow-purple-500/10"
+                        >
                             <Globe size={28} />
-                        </div>
+                        </motion.div>
                         <div className="relative z-10">
                             <h3 className="text-2xl font-bold mb-3 text-slate-900 dark:text-white">{texts.cards[2].title}</h3>
                             <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
                                 {texts.cards[2].description}
                             </p>
                         </div>
-                        {/* 3D Globe Visual with Currencies */}
+                        {/* 3D Globe Visual with Currencies (Enhanced) */}
                         <div className="mt-6 flex justify-center relative h-32">
-                            <div className="relative w-28 h-28 rounded-full border border-purple-200 dark:border-purple-500/20 flex items-center justify-center bg-purple-50/50 dark:bg-purple-900/10 backdrop-blur-sm shadow-xl">
-                                <div className="absolute inset-0 rounded-full border-t border-purple-500/50 animate-spin [animation-duration:8s]" />
+                            <motion.div 
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                                className="relative w-28 h-28 rounded-full border border-purple-200 dark:border-purple-500/20 flex items-center justify-center bg-purple-50/50 dark:bg-purple-900/10 backdrop-blur-sm shadow-xl"
+                            >
+                                <motion.div 
+                                    animate={{ rotate: -360 }}
+                                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                                    className="absolute inset-0 rounded-full border-t border-purple-500/50"
+                                />
                                 <div className="text-[10px] font-black tracking-widest text-purple-600 dark:text-purple-300">GLOBAL</div>
 
-                                {/* Orbiting Currencies */}
+                                {/* Orbiting Currencies with enhanced animation */}
                                 {[
                                     { s: '$', color: 'text-green-500', d: 0 },
                                     { s: '€', color: 'text-blue-500', d: 2 },
@@ -262,12 +305,15 @@ export default function BentoGrid({ texts = HOMEPAGE_TEXTS.bento }: { texts?: ty
                                         transition={{ duration: 6, repeat: Infinity, ease: "linear", delay: curr.d }}
                                         className="absolute inset-0"
                                     >
-                                        <div className={`absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-white dark:bg-slate-800 shadow-lg border border-slate-100 dark:border-slate-700 flex items-center justify-center font-bold text-xs ${curr.color}`}>
+                                        <motion.div 
+                                            whileHover={{ scale: 1.3 }}
+                                            className={`absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-white dark:bg-slate-800 shadow-lg border border-slate-100 dark:border-slate-700 flex items-center justify-center font-bold text-xs ${curr.color}`}
+                                        >
                                             {curr.s}
-                                        </div>
+                                        </motion.div>
                                     </motion.div>
                                 ))}
-                            </div>
+                            </motion.div>
                         </div>
                     </SpotlightCard>
 

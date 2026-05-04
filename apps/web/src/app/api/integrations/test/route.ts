@@ -52,16 +52,16 @@ export async function POST(req: NextRequest) {
                     break;
 
                 case 'hepsiburada':
-                    // Hepsiburada API connection test 
-                    const hbUsername = credentials.username;
-                    const hbPassword = credentials.password;
+                    // Hepsiburada API connection test
+                    const hbApiKey = credentials.apiKey;
+                    const hbApiSecret = credentials.apiSecret;
                     const merchantId = credentials.merchantId;
 
-                    if (!hbUsername || !hbPassword || !merchantId) {
+                    if (!hbApiKey || !hbApiSecret || !merchantId) {
                         return NextResponse.json({ error: "Eksik Hepsiburada bilgileri" }, { status: 400 });
                     }
 
-                    const hbAuth = Buffer.from(`${hbUsername}:${hbPassword}`).toString("base64");
+                    const hbAuth = Buffer.from(`${hbApiKey}:${hbApiSecret}`).toString("base64");
 
                     const hbRes = await fetch(`https://oms-api.hepsiburada.com/merchants/${merchantId}`, {
                         method: "GET",

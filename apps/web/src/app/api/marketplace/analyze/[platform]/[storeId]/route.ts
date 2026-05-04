@@ -57,8 +57,11 @@ async function scrapeAmazonStore(url: string): Promise<ScrapedStoreData | null> 
     const storeName = $('#bylineInfo').text().trim() ||
                      $('h1').text().trim() ||
                      $('.store-title').text().trim() ||
-                     $('[data-testid="store-title"]').text().trim() ||
-                     'Amazon Mağazası';
+                     $('[data-testid="store-title"]').text().trim();
+
+    if (!storeName) {
+        return null;
+    }
 
     const ratingText = $('.averageRating').text().trim() ||
                       $('.cr-widget-AverageCustomerRating').text().trim() ||
@@ -128,8 +131,11 @@ async function scrapeHepsiburadaStore(url: string): Promise<ScrapedStoreData | n
     const storeName = $('h1').text().trim() ||
                      $('.seller-name').text().trim() ||
                      $('[data-testid="store-name"]').text().trim() ||
-                     $('.store-title').text().trim() ||
-                     'Hepsiburada Mağazası';
+                     $('.store-title').text().trim();
+
+    if (!storeName) {
+        return null;
+    }
 
     const ratingText = $('.rating').text().trim() ||
                       $('.score').text().trim() ||
@@ -141,7 +147,7 @@ async function scrapeHepsiburadaStore(url: string): Promise<ScrapedStoreData | n
     const followerCount = parseInt(followerText.replace(/\D/g, '')) || 0;
 
     const productElements = $('.product-item, [data-testid="product-card"], .product-card');
-    const productCount = productElements.length || Math.floor(Math.random() * 50) + 10;
+    const productCount = productElements.length || 0;
 
     console.log(`[Scrape] Hepsiburada Store: ${storeName}, Rating: ${rating}, Products: ${productCount}`);
 
@@ -192,8 +198,8 @@ async function scrapeGenericStore(url: string, platform: string): Promise<Scrape
     const $ = cheerio.load(html);
     const storeName = $('h1').text().trim() ||
                      $('.store-name').text().trim() ||
-                     $('.seller-name').text().trim() ||
-                     'Mağaza';
+                     $('.seller-name').text().trim();
+    if (!storeName) return null;
     const ratingText = $('.rating, .score, .stars').first().text().trim();
     const rating = parseFloat(ratingText) || 0;
 

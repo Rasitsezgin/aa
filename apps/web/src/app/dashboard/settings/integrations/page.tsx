@@ -16,6 +16,8 @@ import { IntegrationStats, MiniStatsRow } from '@/components/integrations/Integr
 import { MarketplaceCard } from '@/components/integrations/MarketplaceCard';
 import { ConnectionWizard } from '@/components/integrations/ConnectionWizard';
 import { RealTimeStatusPanel } from '@/components/integrations/RealTimeStatusPanel';
+import { useSession } from 'next-auth/react';
+import apiClient from '@/lib/api-client';
 
 // Import shared types
 import type { MarketplaceConfig } from '@/types/integrations';
@@ -41,12 +43,12 @@ const MARKETPLACES: MarketplaceConfig[] = [
     id: 'hepsiburada', name: 'Hepsiburada', slug: 'hepsiburada', logo: '/images/pazaryeri/Hepsiburada.png',
     region: 'TURKEY', country: 'Türkiye', countryCode: 'TR', category: 'GENERAL',
     description: "Türkiye'nin lider e-ticaret platformlarından biri.", website: 'https://www.hepsiburada.com',
-    apiType: 'REST', authType: 'OAUTH2', sandboxAvailable: true,
+    apiType: 'REST', authType: 'API_KEY', sandboxAvailable: true,
     features: { productSync: true, orderSync: true, inventorySync: true, priceSync: true, shippingIntegration: true, returnManagement: true, analyticsApi: true, advertisingApi: true, fulfillmentService: true, multiWarehouse: true },
     requiredFields: [
       { key: 'merchantId', label: 'Merchant ID', type: 'text', required: true },
-      { key: 'username', label: 'Kullanıcı Adı', type: 'text', required: true },
-      { key: 'password', label: 'Şifre', type: 'password', required: true },
+      { key: 'apiKey', label: 'API Key', type: 'password', required: true },
+      { key: 'apiSecret', label: 'API Secret', type: 'password', required: true },
     ],
     minimumPlan: 'FREE', status: 'ACTIVE', popularity: 95, commissionRange: '%4 - %20',
     brandColor: '#FF6000', monthlyVisitors: '150M+', sellerCount: '100K+',
@@ -81,11 +83,11 @@ const MARKETPLACES: MarketplaceConfig[] = [
     id: 'amazon-tr', name: 'Amazon Türkiye', slug: 'amazon-tr', logo: '/images/pazaryeri/Amazon.png',
     region: 'TURKEY', country: 'Türkiye', countryCode: 'TR', category: 'GENERAL',
     description: "Amazon'un Türkiye operasyonu.", website: 'https://www.amazon.com.tr',
-    apiType: 'REST', authType: 'OAUTH2', sandboxAvailable: true,
+    apiType: 'REST', authType: 'API_KEY', sandboxAvailable: true,
     features: { productSync: true, orderSync: true, inventorySync: true, priceSync: true, shippingIntegration: true, returnManagement: true, analyticsApi: true, advertisingApi: true, fulfillmentService: true, multiWarehouse: true },
     requiredFields: [
-      { key: 'sellerId', label: 'Seller ID', type: 'text', required: true },
-      { key: 'mwsAuthToken', label: 'MWS Auth Token', type: 'password', required: true },
+      { key: 'apiKey', label: 'Seller URL/ID', type: 'text', required: true },
+      { key: 'apiSecret', label: 'SP-API Token/Secret', type: 'password', required: true },
     ],
     minimumPlan: 'STARTER', status: 'ACTIVE', popularity: 90, commissionRange: '%8 - %15',
     brandColor: '#FF9900', monthlyVisitors: '50M+', sellerCount: '20K+',
@@ -410,6 +412,10 @@ const MARKETPLACES: MarketplaceConfig[] = [
 type ViewType = 'grid' | 'list' | 'status';
 
 export default function IntegrationsPage() {
+  const { data: session } = useSession();
+  const tenantId = (session?.user as any)?.tenantId as string | undefined;
+  const accessToken = (session?.user as any)?.accessToken as string | undefined;
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -421,6 +427,26 @@ export default function IntegrationsPage() {
   const [userPlan] = useState('PROFESSIONAL');
   const [activeIntegrations, setActiveIntegrations] = useState<any[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
+
+  const resolvePlatformEnum = (marketplaceId: string) => {
+    switch (marketplaceId) {
+      case 'trendyol':
+        return 'TRENDYOL';
+      case 'hepsiburada':
+        return 'HEPSIBURADA';
+      case 'n11':
+        return 'N11';
+      case 'amazon-tr':
+      case 'amazon-us':
+      case 'amazon-uk':
+      case 'amazon-de':
+        return 'AMAZON';
+      case 'ciceksepeti':
+        return 'CICEKSEPETI';
+      default:
+        return marketplaceId.toUpperCase().replace('-', '_');
+    }
+  };
 
   const fetchActiveIntegrations = async () => {
     try {
@@ -456,7 +482,7 @@ export default function IntegrationsPage() {
   const combinedMarketplaces = useMemo(() => {
     return MARKETPLACES.map(mp => {
       // Platform enum matches e.g 'TRENDYOL', 'EBAY_US', etc.
-      const platformEnum = mp.id.toUpperCase().replace('-', '_');
+      const platformEnum = resolvePlatformEnum(mp.id);
       const integration = activeIntegrations.find(i => i.platform === platformEnum);
       if (integration) {
         return {
@@ -466,8 +492,6 @@ export default function IntegrationsPage() {
             isActive: integration.isActive,
             status: 'connected' as 'connected' | 'disconnected' | 'error' | 'syncing' | 'pending',
             lastSync: integration.updatedAt,
-            productCount: 1542,
-            orderCount: 325
           }
         };
       }
@@ -536,7 +560,15 @@ export default function IntegrationsPage() {
 
         {/* Stats */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-8">
-          <IntegrationStats totalIntegrations={MARKETPLACES.length} activeIntegrations={3} pendingIntegrations={2} totalProducts={15420} totalOrders={3256} totalRevenue={1250000} syncHealth={98.5} />
+          <IntegrationStats
+            totalIntegrations={MARKETPLACES.length}
+            activeIntegrations={activeIntegrations.filter(i => i.isActive).length}
+            pendingIntegrations={0}
+            totalProducts={0}
+            totalOrders={0}
+            totalRevenue={0}
+            syncHealth={0}
+          />
         </motion.div>
 
         {/* Search & Filters */}
@@ -585,7 +617,10 @@ export default function IntegrationsPage() {
 
         {/* Mini Stats */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mb-6">
-          <MiniStatsRow />
+          <MiniStatsRow
+            activeCount={activeIntegrations.filter(i => i.isActive).length}
+            platformCount={MARKETPLACES.length}
+          />
         </motion.div>
 
         {/* Content */}
@@ -644,22 +679,14 @@ export default function IntegrationsPage() {
             onClose={() => { setShowWizard(false); setSelectedMarketplace(null); }}
             onConnect={async (credentials) => {
               try {
-                const platformEnum = selectedMarketplace?.id.toUpperCase().replace('-', '_');
-                const res = await fetch('/api/integrations', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    platform: platformEnum,
-                    apiKey: credentials.apiKey || credentials.accessToken || credentials.mwsAuthToken || credentials.apiToken || credentials.oauthToken || credentials.consumerKey || credentials.appKey,
-                    apiSecret: credentials.apiSecret || credentials.sharedSecret || credentials.consumerSecret || credentials.clientSecret || credentials.appSecret || credentials.password || credentials.appToken,
-                    apiExtra: credentials
-                  })
-                });
-                if (res.ok) {
-                  await fetchActiveIntegrations();
-                  return true;
-                }
-                return false;
+                if (!tenantId || !selectedMarketplace) return false;
+                if (accessToken) apiClient.setAccessToken(accessToken);
+                apiClient.setTenantId(tenantId);
+
+                const platformEnum = resolvePlatformEnum(selectedMarketplace.id);
+                await apiClient.connectStore(platformEnum, credentials);
+                await fetchActiveIntegrations();
+                return true;
               } catch (e) {
                 console.error(e);
                 return false;

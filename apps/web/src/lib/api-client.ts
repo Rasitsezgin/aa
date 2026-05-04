@@ -390,11 +390,10 @@ class ApiClient {
 
   // Marketplace Endpoints
   async syncMarketplace(platform: string) {
-    return this.request('/marketplace/sync', {
+    return this.request(`/marketplace/sync/${platform}`, {
       method: 'POST',
       body: JSON.stringify({
         tenantId: this.tenantId,
-        platform,
       }),
     });
   }

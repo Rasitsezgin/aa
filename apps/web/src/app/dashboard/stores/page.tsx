@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Store as StoreIcon,
@@ -89,7 +90,8 @@ function getPlatformVisuals(platform: string) {
 }
 
 export default function StoresPage() {
-    const { stores, loading, error, fetchStores, connectStore, disconnectStore, syncStore } = useStores();
+    const router = useRouter();
+    const { stores, loading, error, fetchStores, disconnectStore, syncStore } = useStores();
 
     const [syncingStoreId, setSyncingStoreId] = useState<string | null>(null);
     const [confirmDialog, setConfirmDialog] = useState<{ type: 'connect' | 'disconnect'; storeId: string; platform: string } | null>(null);
@@ -125,9 +127,9 @@ export default function StoresPage() {
     // Confirm connect
     const handleConfirmConnect = useCallback(async () => {
         if (!confirmDialog || confirmDialog.type !== 'connect') return;
-        await connectStore(confirmDialog.platform, {});
         setConfirmDialog(null);
-    }, [confirmDialog, connectStore]);
+        router.push('/dashboard/settings/integrations');
+    }, [confirmDialog, router]);
 
     // Confirm disconnect
     const handleConfirmDisconnect = useCallback(async () => {

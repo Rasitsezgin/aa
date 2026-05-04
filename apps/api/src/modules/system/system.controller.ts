@@ -34,7 +34,9 @@ export class SystemController {
   }
 
   @Post('database/:action')
-  async databaseAction(@Param('action') action: 'backup' | 'migrate' | 'optimize') {
+  async databaseAction(
+    @Param('action') action: 'backup' | 'migrate' | 'optimize',
+  ) {
     return this.systemService.databaseAction(action);
   }
 

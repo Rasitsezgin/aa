@@ -69,8 +69,8 @@ export default function Testimonials() {
 
                 {/* Marquee Container */}
                 <div className="relative w-full -mx-4 sm:mx-0">
-                    <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-r from-white dark:from-[#02040a] to-transparent z-20 pointer-events-none" />
-                    <div className="absolute right-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-l from-white dark:from-[#02040a] to-transparent z-20 pointer-events-none" />
+                    <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-r from-white dark:from-[#02040a] via-white/80 dark:via-[#02040a]/80 to-transparent z-20 pointer-events-none" />
+                    <div className="absolute right-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-l from-white dark:from-[#02040a] via-white/80 dark:via-[#02040a]/80 to-transparent z-20 pointer-events-none" />
 
                     {/* Top Row - Right to Left */}
                     <motion.div
@@ -81,6 +81,7 @@ export default function Testimonials() {
                             ease: "linear",
                             duration: 60,
                         }}
+                        whileHover={{ animationPlayState: 'paused' }}
                     >
                         {marqueeTestimonials.map((t, i) => (
                             <TestimonialCard key={`row1-${i}`} data={t} index={i} />
@@ -96,6 +97,7 @@ export default function Testimonials() {
                             ease: "linear",
                             duration: 70,
                         }}
+                        whileHover={{ animationPlayState: 'paused' }}
                     >
                         {marqueeTestimonials.reverse().map((t, i) => (
                             <TestimonialCard key={`row2-${i}`} data={t} index={i} variant="alt" />
@@ -109,24 +111,42 @@ export default function Testimonials() {
 
 function TestimonialCard({ data, index, variant = 'default' }: { data: Testimonial; index: number; variant?: 'default' | 'alt' }) {
     return (
-        <div className="relative group w-[300px] sm:w-[380px] p-8 rounded-[32px] bg-white dark:bg-white/[0.03] backdrop-blur-xl border border-slate-100 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300">
+        <motion.div 
+            whileHover={{ scale: 1.03, y: -8 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="relative group w-[300px] sm:w-[380px] p-8 rounded-[32px] bg-white dark:bg-white/[0.03] backdrop-blur-xl border border-slate-100 dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none"
+        >
             {/* Glass Effect Gradient Overlay */}
-            <div className="absolute inset-0 rounded-[32px] bg-gradient-to-br from-white/50 to-transparent dark:from-white/[0.08] dark:to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
+            <motion.div 
+                className="absolute inset-0 rounded-[32px] bg-gradient-to-br from-white/50 to-transparent dark:from-white/[0.08] dark:to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{
+                    background: 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(168,85,247,0.05) 50%, transparent 100%)'
+                }}
+            />
 
-            {/* Quote Icon */}
-            <div className="absolute top-8 right-8 text-indigo-100 dark:text-indigo-500/20 group-hover:text-indigo-200 dark:group-hover:text-indigo-500/40 transition-colors">
+            {/* Animated Quote Icon */}
+            <motion.div 
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-8 right-8 text-indigo-100 dark:text-indigo-500/20 group-hover:text-indigo-200 dark:group-hover:text-indigo-500/40 transition-colors"
+            >
                 <Quote size={48} fill="currentColor" />
-            </div>
+            </motion.div>
 
             <div className="relative z-10 flex flex-col h-full">
-                {/* Rating */}
+                {/* Rating with hover animation */}
                 <div className="flex gap-1 mb-6">
                     {[...Array(5)].map((_, i) => (
-                        <Star
+                        <motion.div
                             key={i}
-                            size={16}
-                            className={`${i < data.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-200 dark:text-slate-700'}`}
-                        />
+                            whileHover={{ scale: 1.3, rotate: 15 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <Star
+                                size={16}
+                                className={`${i < data.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-200 dark:text-slate-700'}`}
+                            />
+                        </motion.div>
                     ))}
                 </div>
 
@@ -135,7 +155,11 @@ function TestimonialCard({ data, index, variant = 'default' }: { data: Testimoni
                 </p>
 
                 <div className="mt-auto flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-[2px]">
+                    <motion.div 
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        transition={{ duration: 0.3 }}
+                        className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-[2px] shadow-lg shadow-blue-500/20"
+                    >
                         <div className="w-full h-full rounded-[14px] bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden relative">
                             {data.avatarUrl ? (
                                 <Image src={data.avatarUrl} alt={data.name} fill className="object-cover" />
@@ -143,7 +167,7 @@ function TestimonialCard({ data, index, variant = 'default' }: { data: Testimoni
                                 <span className="font-bold text-indigo-600 dark:text-indigo-400 text-lg">{data.name.charAt(0)}</span>
                             )}
                         </div>
-                    </div>
+                    </motion.div>
                     <div>
                         <h4 className="font-bold text-slate-900 dark:text-white">{data.name}</h4>
                         <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide">
@@ -152,6 +176,6 @@ function TestimonialCard({ data, index, variant = 'default' }: { data: Testimoni
                     </div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
