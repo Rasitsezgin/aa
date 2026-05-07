@@ -210,6 +210,8 @@ model Tenant {
   warehouseTransfers WarehouseTransfer[]
 
   featureRequests FeatureRequest[]
+  despatchAdvices DespatchAdvice[]
+  auditLogs AuditLog[]
 }
 
 model TenantSettings {
@@ -290,6 +292,7 @@ model User {
   // Onboarding relations
   onboarding UserOnboarding?
   badges     UserBadge[]
+  auditLogs  AuditLog[]
 }
 
 model SystemConfig {
@@ -969,6 +972,7 @@ model Order {
   items          OrderItem[]
   invoice        Invoice?
   supportTickets SupportTicket[]
+  despatchAdvices DespatchAdvice[]
 
   orderDate DateTime @default(now())
   createdAt DateTime @default(now())
@@ -2122,32 +2126,6 @@ model ScheduledReport {
 }
 
 // ==================== API KEYS ====================
-
-model ApiKey {
-  id       String @id @default(uuid())
-  tenantId String
-  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  userId   String
-  user     User   @relation(fields: [userId], references: [id])
-
-  name   String
-  key    String  @unique
-  prefix String? // First 8 chars for display
-
-  permissions Json? // ["read", "write", "delete"]
-
-  isActive Boolean @default(true)
-
-  lastUsed  DateTime?
-  expiresAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([tenantId])
-  @@index([key])
-  @@index([userId])
-}
 
 // ==================== BULK ACTIONS ====================
 
@@ -8159,7 +8137,7 @@ model ApiKey {
   isActive Boolean      @default(true)
 
   // Rotation
-  rotatedToId String?
+  rotatedToId String? @unique
   rotatedTo   ApiKey?   @relation("ApiKeyRotation", fields: [rotatedToId], references: [id])
   rotatedFrom ApiKey?   @relation("ApiKeyRotation")
 
