@@ -11,7 +11,7 @@ import { CleanupService } from '../../common/services/cleanup.service';
 import { CacheService } from '../../common/cache.service';
 
 @Module({
-  imports: [DatabaseModule, AiModule],
+  imports: [DatabaseModule, AiModule, AnalyticsModule],
   controllers: [AdminController, AiAssistantController],
   providers: [AdminService, AdminGuard, AiAssistantService, CleanupService, CacheService],
   exports: [AdminService, AiAssistantService],
