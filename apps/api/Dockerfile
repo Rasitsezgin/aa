@@ -41,14 +41,11 @@ RUN cd packages/database && npx prisma generate
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npx turbo run build --filter=@pazaryonetimi/api
 
-# Prune dev dependencies
-RUN npm prune --production --legacy-peer-deps
-
 FROM node:22-slim AS runner
 RUN apt-get update && apt-get install -y \
     openssl \
     ca-certificates \
-    # Chromium dependencies for Puppeteer (even if using system chromium)
+    # Chromium dependencies for Puppeteer
     libnss3 \
     libatk1.0-0 \
     libatk-bridge2.0-0 \
@@ -75,10 +72,18 @@ WORKDIR /app
 RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 nestjs
 RUN mkdir -p /home/nestjs/.puppeteer_data && chown -R nestjs:nodejs /home/nestjs
 
-# Copy only production dependencies and artifacts
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/package-lock.json ./package-lock.json
-COPY --from=builder /app/node_modules ./node_modules
+# Copy pruned metadata and lockfile
+COPY --from=pruner /app/out/json/ .
+COPY --from=pruner /app/out/package-lock.json ./package-lock.json
+
+# Install production dependencies
+RUN npm install --omit=dev --legacy-peer-deps
+
+# Copy Prisma Client from builder
+COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# Copy built artifacts
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/packages ./packages
 
@@ -90,4 +95,5 @@ ENV NODE_PATH=/app/node_modules
 EXPOSE 3001
 
 CMD ["node", "apps/api/dist/main.js"]
+
 
