@@ -7,7 +7,7 @@ import { AiModule } from '../ai/ai.module';
 @Module({
   imports: [DatabaseModule], // Removed AiModule temporarily
   controllers: [AnalyticsController],
-  providers: [], // Temporarily removed AnalyticsService
-  exports: [],
+  providers: [AnalyticsService], // Temporarily removed AnalyticsService
+  exports: [AnalyticsService],
 })
 export class AnalyticsModule {}
