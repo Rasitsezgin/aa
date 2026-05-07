@@ -123,6 +123,11 @@ export const IntegrationStats: React.FC<IntegrationStatsProps> = ({
   totalRevenue = 0,
   syncHealth = 0,
 }) => {
+  const revenueDisplay = totalRevenue > 0
+    ? `₺${(totalRevenue / 1000).toFixed(0)}K`
+    : '₺0';
+  const syncHealthDisplay = syncHealth > 0 ? `%${syncHealth}` : '-';
+
   const stats = [
     {
       title: 'Aktif Entegrasyonlar',
@@ -140,25 +145,21 @@ export const IntegrationStats: React.FC<IntegrationStatsProps> = ({
     },
     {
       title: 'Toplam Sipariş',
-    const revenueDisplay = totalRevenue > 0
-      ? `₺${(totalRevenue / 1000).toFixed(0)}K`
-      : '₺0';
-    const syncHealthDisplay = syncHealth > 0 ? `%${syncHealth}` : '-';
-
+      value: totalOrders.toLocaleString('tr-TR'),
       icon: <ShoppingCart className="w-6 h-6 text-white" />,
       color: 'bg-purple-500',
       gradient: 'bg-gradient-to-br from-purple-500 to-purple-600',
     },
     {
       title: 'Toplam Ciro',
-      value: `₺${(totalRevenue / 1000).toFixed(0)}K`,
+      value: revenueDisplay,
       icon: <DollarSign className="w-6 h-6 text-white" />,
       color: 'bg-amber-500',
       gradient: 'bg-gradient-to-br from-amber-500 to-amber-600',
     },
     {
       title: 'Senkronizasyon Sağlığı',
-      value: `%${syncHealth}`,
+      value: syncHealthDisplay,
       icon: <Activity className="w-6 h-6 text-white" />,
       color: 'bg-cyan-500',
       gradient: 'bg-gradient-to-br from-cyan-500 to-cyan-600',
@@ -169,14 +170,14 @@ export const IntegrationStats: React.FC<IntegrationStatsProps> = ({
       icon: <Clock className="w-6 h-6 text-white" />,
       color: 'bg-orange-500',
       gradient: 'bg-gradient-to-br from-orange-500 to-orange-600',
-            value: revenueDisplay,
+    },
   ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
       {stats.map((stat, index) => (
         <StatCard
-            value: syncHealthDisplay,
+          key={stat.title}
           {...stat}
           delay={index * 0.1}
         />
@@ -258,52 +259,5 @@ export const MiniStatsRow: React.FC<MiniStatsRowProps> = ({
     </motion.div>
   );
 };
-    <div className="flex items-center gap-2">
-      <div className="p-1.5 rounded-lg bg-green-100 dark:bg-green-900/30">
-        <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
-      </div>
-      <span className="text-sm">
-        <span className="font-semibold text-gray-900 dark:text-white">0</span>
-        <span className="text-gray-500 dark:text-gray-400 ml-1">Aktif</span>
-      </span>
-    </div>
-    
-    <div className="h-4 w-px bg-gray-200 dark:bg-gray-700" />
-    
-    <div className="flex items-center gap-2">
-      <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-        <Globe className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-      </div>
-      <span className="text-sm">
-        <span className="font-semibold text-gray-900 dark:text-white">0</span>
-        <span className="text-gray-500 dark:text-gray-400 ml-1">Mevcut Platform</span>
-      </span>
-    </div>
-    
-    <div className="h-4 w-px bg-gray-200 dark:bg-gray-700" />
-    
-    <div className="flex items-center gap-2">
-      <div className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-        <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-      </div>
-      <span className="text-sm">
-        <span className="font-semibold text-gray-900 dark:text-white">0</span>
-        <span className="text-gray-500 dark:text-gray-400 ml-1">Senkronize Ürün</span>
-      </span>
-    </div>
-    
-    <div className="h-4 w-px bg-gray-200 dark:bg-gray-700" />
-    
-    <div className="flex items-center gap-2">
-      <div className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/30">
-        <Shield className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-      </div>
-      <span className="text-sm">
-        <span className="font-semibold text-gray-900 dark:text-white">0</span>
-        <span className="text-gray-500 dark:text-gray-400 ml-1">Uptime</span>
-      </span>
-    </div>
-  </motion.div>
-);
 
 export default IntegrationStats;
