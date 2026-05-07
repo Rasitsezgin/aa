@@ -98,6 +98,7 @@ ENV NODE_PATH=/app/node_modules
 EXPOSE 3001
 
 # Start the application with an automatic database sync
-CMD ["sh", "-c", "cd packages/database && npx prisma db push --skip-generate && cd ../.. && node apps/api/dist/main.js"]
+# Start the application with an automatic database sync and detailed logging
+CMD ["sh", "-c", "echo '>>> Starting Database Synchronization...'; cd packages/database && npx prisma db push --skip-generate; SYNC_CODE=$?; if [ $SYNC_CODE -eq 0 ]; then echo '>>> Database Synchronization successful.'; else echo '>>> Database Synchronization failed with exit code '$SYNC_CODE'. Check your DATABASE_URL.'; fi; cd ../.. && node apps/api/dist/main.js"]
 
 
