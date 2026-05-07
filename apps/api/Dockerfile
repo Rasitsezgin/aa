@@ -3,6 +3,30 @@ RUN apt-get update && apt-get install -y \
     libc6 \
     openssl \
     ca-certificates \
+    # Build tools and native dependencies (Common for Canvas/Puppeteer)
+    build-essential \
+    python3 \
+    pkg-config \
+    libpixman-1-dev \
+    libcairo2-dev \
+    libpango1.0-dev \
+    libjpeg-dev \
+    libgif-dev \
+    libpng-dev \
+    librsvg2-dev \
+    # Runtime libraries for Canvas/Puppeteer
+    libnss3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
     && rm -rf /var/lib/apt/lists/*
 RUN npm install -g turbo
 
@@ -13,12 +37,7 @@ RUN npx turbo prune --scope=@pazaryonetimi/api --docker
 
 FROM base AS builder
 WORKDIR /app
-# Install minimal build tools for native modules (mostly for napi-postinstall/unrs-resolver)
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3 \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+# Base already contains build tools
 
 # Copy pruned package files
 COPY --from=pruner /app/out/json/ .
@@ -41,24 +60,8 @@ RUN cd packages/database && npx prisma generate
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npx turbo run build --filter=@pazaryonetimi/api
 
-FROM node:22-slim AS runner
-RUN apt-get update && apt-get install -y \
-    openssl \
-    ca-certificates \
-    # Chromium dependencies for Puppeteer
-    libnss3 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libcups2 \
-    libdrm2 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxext6 \
-    libxfixes3 \
-    libxrandr2 \
-    libgbm1 \
-    libasound2 \
-    && rm -rf /var/lib/apt/lists/*
+FROM base AS runner
+# Base already contains runtime libraries
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium

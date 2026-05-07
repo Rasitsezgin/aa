@@ -3,18 +3,7 @@ RUN apt-get update && apt-get install -y \
     libc6 \
     openssl \
     ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-RUN npm install -g turbo
-
-FROM base AS pruner
-WORKDIR /app
-COPY . .
-RUN npx turbo prune --scope=@pazaryonetimi/web --docker
-
-FROM base AS builder
-WORKDIR /app
-# Install build tools for native modules (needed for canvas/fabric if used on server)
-RUN apt-get update && apt-get install -y \
+    # Build tools for native modules (Canvas/Gyp)
     build-essential \
     python3 \
     pkg-config \
@@ -25,7 +14,25 @@ RUN apt-get update && apt-get install -y \
     libgif-dev \
     libpng-dev \
     librsvg2-dev \
+    # Runtime libraries for graphics/canvas
+    libpixman-1-0 \
+    libcairo2 \
+    libpango-1.0-0 \
+    libjpeg62-turbo \
+    libgif7 \
+    libpng16-16 \
+    librsvg2-2 \
     && rm -rf /var/lib/apt/lists/*
+RUN npm install -g turbo
+
+FROM base AS pruner
+WORKDIR /app
+COPY . .
+RUN npx turbo prune --scope=@pazaryonetimi/web --docker
+
+FROM base AS builder
+WORKDIR /app
+# Base already contains build tools
 
 # Copy pruned package files
 COPY --from=pruner /app/out/json/ .
@@ -59,19 +66,8 @@ RUN npx turbo run build --filter=@pazaryonetimi/web
 # Prune dev dependencies
 RUN npm prune --production --legacy-peer-deps
 
-FROM node:22-slim AS runner
-RUN apt-get update && apt-get install -y \
-    openssl \
-    ca-certificates \
-    # Needed for runtime canvas if used
-    libpixman-1-0 \
-    libcairo2 \
-    libpango-1.0-0 \
-    libjpeg62-turbo \
-    libgif7 \
-    libpng16-16 \
-    librsvg2-2 \
-    && rm -rf /var/lib/apt/lists/*
+FROM base AS runner
+# Base already contains runtime libraries
 
 WORKDIR /app
 ENV NODE_ENV=production
