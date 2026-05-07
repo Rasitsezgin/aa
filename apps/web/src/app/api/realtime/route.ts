@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { createEventStream } from '@/lib/realtime';
 
-export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 // Server-Sent Events endpoint for real-time updates
 export async function GET(request: NextRequest) {
