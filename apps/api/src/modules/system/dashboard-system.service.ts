@@ -162,7 +162,7 @@ export class DashboardSystemService {
     return keys.map((k) => ({
       id: k.id,
       name: k.name,
-      key: k.prefix ? `${k.prefix}****` : k.key.substring(0, 8) + '****',
+      key: k.prefix ? `${k.prefix}****` : '****',
       permissions: k.permissions,
       createdAt: k.createdAt.toISOString(),
       lastUsed: k.lastUsed?.toISOString() || null,
@@ -180,6 +180,7 @@ export class DashboardSystemService {
     permissions: string[];
     tenantId: string;
     userId?: string;
+    scopes?: string[];
   }) {
     const rawKey = `pk_live_${crypto.randomBytes(24).toString('hex')}`;
     const prefix = rawKey.substring(0, 12);
@@ -201,9 +202,10 @@ export class DashboardSystemService {
         tenantId: data.tenantId,
         userId,
         name: data.name,
-        key: rawKey,
+        keyHash: rawKey,
         prefix,
         permissions: data.permissions,
+        scopes: data.scopes || [],
         isActive: true,
       },
     });

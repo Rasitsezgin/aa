@@ -1,4 +1,4 @@
-import { Queue, Worker, Job, QueueScheduler } from 'bullmq';
+import { Queue, Worker, Job } from 'bullmq';
 import IORedis from 'ioredis';
 
 // Redis connection
@@ -82,7 +82,7 @@ const processors: Record<JobType, (job: Job) => Promise<unknown>> = {
     const { tenantId, payload } = job.data as JobData;
     console.log(`[${job.id}] Syncing products for tenant ${tenantId}`);
     // Implement product sync logic
-    return { synced: payload.productIds?.length || 0 };
+    return { synced: (payload.productIds as string[])?.length || 0 };
   },
 
   'sync.orders': async (job) => {
