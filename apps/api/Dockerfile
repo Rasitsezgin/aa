@@ -94,6 +94,7 @@ USER nestjs
 ENV NODE_PATH=/app/node_modules
 EXPOSE 3001
 
-CMD ["node", "apps/api/dist/main.js"]
+# Start the application with an automatic database sync
+CMD ["sh", "-c", "cd packages/database && npx prisma db push --skip-generate && cd ../.. && node apps/api/dist/main.js"]
 
 
