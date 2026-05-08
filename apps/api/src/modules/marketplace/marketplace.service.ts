@@ -5,11 +5,13 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  Scope,
   UnprocessableEntityException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { ScrapingService } from '../scraping/scraping.service';
+import { OrdersService } from '../orders/orders.service';
 import { TrendyolBridge } from './trendyol.bridge';
 import { AmazonBridge } from './amazon.bridge';
 import { HepsiburadaBridge } from './hepsiburada.bridge';
@@ -92,6 +94,8 @@ export class MarketplaceService {
     private prisma: PrismaService,
     private scrapingService: ScrapingService,
     private encryption: EncryptionService,
+    @Inject(forwardRef(() => OrdersService))
+    private ordersService: OrdersService,
   ) {}
 
   async getBridgeForTenant(
@@ -424,10 +428,22 @@ export class MarketplaceService {
           });
           updated += 1;
         } else {
-          await this.prisma.order.create({
+          const createdOrder = await this.prisma.order.create({
             data: normalized.orderData,
+            include: { items: true },
           });
           created += 1;
+
+          // OTOMASYON: Eğer sipariş kargolanmış şekilde geldiyse fatura kes
+          if (createdOrder.status === 'SHIPPED') {
+            this.ordersService
+              .autoCreateInvoiceForOrder(createdOrder, tenantId)
+              .catch((err: Error) => {
+                this.logger.error(
+                  `Pazaryeri senkronizasyonunda otomatik fatura hatası: ${err.message}`,
+                );
+              });
+          }
         }
       } catch (error) {
         failed += 1;

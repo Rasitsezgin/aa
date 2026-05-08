@@ -3,9 +3,10 @@ import { MarketplaceService } from './marketplace.service';
 import { MarketplaceController } from './marketplace.controller';
 import { DatabaseModule } from '../../database/database.module';
 import { ScrapingModule } from '../scraping/scraping.module';
+import { OrdersModule } from '../orders/orders.module';
 
 @Module({
-  imports: [DatabaseModule, ScrapingModule],
+  imports: [DatabaseModule, ScrapingModule, OrdersModule],
   providers: [MarketplaceService],
   controllers: [MarketplaceController],
   exports: [MarketplaceService],

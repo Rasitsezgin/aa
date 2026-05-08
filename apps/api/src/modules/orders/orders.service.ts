@@ -1,5 +1,6 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { EInvoiceService } from '../e-invoice/e-invoice.service';
 
 export interface OrderItem {
   productId: string;
@@ -83,8 +84,12 @@ export interface OrderFilters {
 }
 
 @Injectable()
-export class OrdersService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(OrdersService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private eInvoiceService: EInvoiceService,
+  ) {}
 
   // Sipariş listesi
   async findAll(filters: OrderFilters) {
@@ -175,6 +180,15 @@ export class OrdersService {
       include: { items: true },
     });
 
+    // OTOMASYON: Sipariş kargoya verildiğinde otomatik fatura kes
+    if (updateData.status === 'SHIPPED') {
+      this.autoCreateInvoiceForOrder(updated, tenantId).catch((err) => {
+        this.logger.error(
+          `Otomatik fatura oluşturma hatası (Sipariş: ${id}): ${err.message}`,
+        );
+      });
+    }
+
     return updated;
   }
 
@@ -245,7 +259,7 @@ export class OrdersService {
       try {
         const trackingNumber =
           `TR${Date.now()}${Math.random().toString(36).substr(2, 5)}`.toUpperCase();
-        await this.prisma.order.update({
+        const updated = await this.prisma.order.update({
           where: { id },
           data: {
             status: 'SHIPPED',
@@ -253,7 +267,16 @@ export class OrdersService {
             shippingProvider,
             updatedAt: new Date(),
           },
+          include: { items: true },
         });
+
+        // OTOMASYON: Toplu kargolamada her biri için fatura tetikle
+        this.autoCreateInvoiceForOrder(updated, tenantId).catch((err) => {
+          this.logger.error(
+            `Toplu işlemde otomatik fatura hatası (Sipariş: ${id}): ${err.message}`,
+          );
+        });
+
         results.push({ id, status: 'SHIPPED', trackingNumber });
       } catch {
         failed++;
@@ -689,6 +712,58 @@ export class OrdersService {
       );
     }
     return { options: providers, recommended: providers[0] };
+  }
+
+  /**
+   * Sipariş bilgilerinden otomatik e-fatura oluştur
+   */
+  public async autoCreateInvoiceForOrder(order: any, tenantId: string) {
+    this.logger.log(`Sipariş için otomatik fatura tetiklendi: ${order.id}`);
+
+    // Zaten faturası var mı kontrol et
+    const existingInvoice = await this.prisma.invoice.findFirst({
+      where: { orderId: order.id },
+    });
+    if (existingInvoice) {
+      this.logger.warn(`Sipariş için zaten fatura mevcut: ${order.id}`);
+      return;
+    }
+
+    // Buyer bilgilerini hazırla (TCKN/VKN kontrolü ile)
+    const buyer = {
+      title: order.customerName,
+      taxNumber: '11111111111', // Varsayılan TCKN (Şahıs ise)
+      address: order.shippingAddress || 'Adres bilgisi yok',
+      city: order.city || 'İstanbul',
+      district: order.district || '',
+      email: order.customerEmail || '',
+    };
+
+    // Fatura kalemlerini hazırla
+    const invoiceItems = order.items.map((item: any) => ({
+      name: item.title,
+      quantity: item.quantity,
+      unit: 'ADET',
+      unitPrice: Number(item.unitPrice),
+      taxRate: 20, // Varsayılan KDV %20
+      discount: 0,
+    }));
+
+    // Fatura oluşturma isteğini gönder
+    try {
+      await this.eInvoiceService.createInvoice(tenantId, {
+        orderId: order.id,
+        type: 'SATIS',
+        scenario: 'TEMEL',
+        buyer,
+        items: invoiceItems,
+        currency: order.currency || 'TRY',
+        notes: `Pazaryeri Sipariş No: ${order.marketplaceOrderId || order.id}`,
+      });
+      this.logger.log(`Otomatik fatura başarıyla oluşturuldu: ${order.id}`);
+    } catch (error) {
+      throw new Error(`Fatura oluşturma servisi hatası: ${error.message}`);
+    }
   }
 
   private async sendAdminNotification(order: any, type: string) {
