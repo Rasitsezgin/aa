@@ -7,6 +7,9 @@ import * as crypto from 'crypto';
 import { EInvoiceIntegrator } from './integrators/integrator.interface';
 import { ParasutIntegrator } from './integrators/parasut.bridge';
 import { LogoIntegrator } from './integrators/logo.bridge';
+import { BirFaturaIntegrator } from './integrators/birfatura.bridge';
+import { EdmIntegrator } from './integrators/edm.bridge';
+import { MikroIntegrator, ZirveIntegrator } from './integrators/mikro-zirve.bridge';
 
 /**
  * E-Fatura Servisi (Çok Kiracılı)
@@ -29,8 +32,14 @@ export class EInvoiceService {
         return new ParasutIntegrator();
       case 'logo':
         return new LogoIntegrator();
-      // case 'foriba':
-      //   return new ForibaIntegrator();
+      case 'birfatura':
+        return new BirFaturaIntegrator();
+      case 'edm':
+        return new EdmIntegrator();
+      case 'mikro':
+        return new MikroIntegrator();
+      case 'zirve':
+        return new ZirveIntegrator();
       default:
         return new ParasutIntegrator(); // Default to Parasut
     }
