@@ -227,8 +227,57 @@ export const DynamicDashboard: React.FC<DynamicDashboardProps> = () => {
                 </div>
             </motion.div>
 
-            {/* AI Insights ve Aktivite */}
+            {/* Alt Bilgi Gridi - Finansal Analiz ve AI Bilgileri */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-white/10"
+                >
+                    <h3 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-green-500" />
+                        Kârlılık Analizi (Net)
+                    </h3>
+                    
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-slate-500">Brüt Ciro</span>
+                            <span className="font-bold">₺{stats?.totalRevenue?.toLocaleString()}</span>
+                        </div>
+                        <div className="h-px bg-slate-100 dark:bg-white/5" />
+                        
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center text-xs text-red-500/80">
+                                <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-red-400" /> Ürün Maliyeti</span>
+                                <span>- ₺{stats?.financialAnalytics?.totalProductCost?.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs text-red-500/80">
+                                <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-red-400" /> Komisyon</span>
+                                <span>- ₺{stats?.financialAnalytics?.totalCommission?.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs text-red-500/80">
+                                <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-red-400" /> Kargo</span>
+                                <span>- ₺{stats?.financialAnalytics?.totalShipping?.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs text-red-500/80">
+                                <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-red-400" /> KDV / Vergi</span>
+                                <span>- ₺{stats?.financialAnalytics?.totalTax?.toLocaleString()}</span>
+                            </div>
+                        </div>
+
+                        <div className="pt-4 mt-4 border-t-2 border-dashed border-slate-100 dark:border-white/5">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-black text-foreground">Net Kâr</span>
+                                <div className="text-right">
+                                    <div className="text-xl font-black text-green-500">₺{stats?.netProfit?.toLocaleString()}</div>
+                                    <div className="text-[10px] font-bold text-green-600 bg-green-50 dark:bg-green-500/10 px-2 py-0.5 rounded-full inline-block">
+                                        %{stats?.profitMargin} Marj
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
                 {/* AI Önerileri - Gerçek */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                     className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-xl border border-blue-200">

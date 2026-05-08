@@ -2,6 +2,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { AiService } from '../ai/ai.service';
+import { PricingOptimizationService } from '../pricing-optimization/pricing-optimization.service';
 
 export interface AiMetrics {
   totalPredictions: number;
@@ -21,6 +22,13 @@ export interface DashboardStats {
   averageOrderValue: number;
   totalCost: number;
   returnRate: number;
+  financialAnalytics?: {
+    totalProductCost: number;
+    totalShipping: number;
+    totalCommission: number;
+    totalTax: number;
+    netProfit: number;
+  };
   periodComparison: {
     revenueChange: number;
     ordersChange: number;
@@ -79,7 +87,7 @@ export class AnalyticsService {
 
   constructor(
     private prisma: PrismaService,
-    // private aiService: AiService, // Temporarily commented out
+    private pricingService: PricingOptimizationService,
   ) {}
 
   /**
@@ -162,6 +170,69 @@ export class AnalyticsService {
         costChange: -2.1,
       },
       aiMetrics,
+      financialAnalytics: {
+        totalProductCost: Math.round(revenue * 0.5), // Tahmini, ileride OrderItem costPrice ile toplanacak
+        totalShipping: orders * 45, // Tahmini
+        totalCommission: Math.round(revenue * 0.15), // Tahmini %15
+        totalTax: Math.round(revenue * 0.2), // Tahmini %20 KDV
+        netProfit,
+      },
+    };
+  }
+
+  /**
+   * Detaylı finansal analiz getir
+   */
+  async getFinancialAnalytics(tenantId: string, period: string = '30d') {
+    const days = period === '7d' ? 7 : 30;
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    const orders = await this.prisma.order.findMany({
+      where: {
+        tenantId,
+        orderDate: { gte: startDate },
+        status: { not: 'CANCELLED' },
+      },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: { costPrice: true }
+            }
+          }
+        }
+      }
+    });
+
+    let totalRevenue = 0;
+    let totalProductCost = 0;
+    let totalShipping = 0;
+    let totalCommission = 0;
+    let totalTax = 0;
+
+    orders.forEach(order => {
+      totalRevenue += Number(order.totalAmount);
+      totalShipping += Number(order.shippingCost);
+      totalCommission += Number(order.commissionAmount);
+      totalTax += Number(order.taxAmount);
+
+      order.items.forEach(item => {
+        const cost = Number(item.product?.costPrice || 0);
+        totalProductCost += cost * item.quantity;
+      });
+    });
+
+    const netProfit = totalRevenue - totalProductCost - totalShipping - totalCommission - totalTax;
+
+    return {
+      totalRevenue,
+      totalProductCost,
+      totalShipping,
+      totalCommission,
+      totalTax,
+      netProfit,
+      profitMargin: totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0
     };
   }
 
@@ -348,17 +419,35 @@ export class AnalyticsService {
     const products = await this.prisma.product.findMany({
       where: { tenantId },
       orderBy: { stock: 'asc' },
+      include: {
+        orderItems: {
+          where: {
+            order: {
+              orderDate: { gte: new Date(Date.now() - 14 * 86400000) },
+              status: { not: 'CANCELLED' }
+            }
+          },
+          select: { quantity: true }
+        }
+      }
     });
 
     const alerts: StockAlert[] = [];
 
     for (const product of products) {
-      let status: 'critical' | 'low' | 'normal' = 'normal';
-      let daysUntilStockout = Math.floor(product.stock / 3); // Günlük satış tahmini
+      // Satış Hızı Hesapla (Günlük Ortalama)
+      const totalSales14d = product.orderItems.reduce((sum, item) => sum + item.quantity, 0);
+      const dailyVelocity = totalSales14d / 14;
+      
+      let daysUntilStockout = 999;
+      if (dailyVelocity > 0) {
+        daysUntilStockout = Math.floor(product.stock / dailyVelocity);
+      }
 
-      if (product.stock <= 5) {
+      let status: 'critical' | 'low' | 'normal' = 'normal';
+      if (product.stock <= 3 || daysUntilStockout <= 2) {
         status = 'critical';
-      } else if (product.stock <= 20) {
+      } else if (product.stock <= 10 || daysUntilStockout <= 7) {
         status = 'low';
       }
 
@@ -369,7 +458,7 @@ export class AnalyticsService {
           sku: product.sku,
           currentStock: product.stock,
           status,
-          daysUntilStockout,
+          daysUntilStockout: daysUntilStockout > 999 ? 0 : daysUntilStockout,
         });
       }
     }
@@ -491,24 +580,24 @@ export class AnalyticsService {
       });
     }
 
-    // Fiyat optimizasyonu önerisi
-    const productForPricingInsight = [...products].sort((a, b) => {
-      const stockA = a.stock ?? 0;
-      const stockB = b.stock ?? 0;
-      return stockA - stockB;
-    })[0];
-    if (productForPricingInsight) {
-      insights.push({
-        id: `pricing-${productForPricingInsight.id}`,
-        type: 'pricing',
-        priority: 'high',
-        title: 'Fiyat Optimizasyonu Önerisi',
-        description: `${productForPricingInsight.title} ürününüzde fiyat konumlandırmasını tekrar değerlendirmenizi öneriyoruz.`,
-        impact: '+₺8,450',
-        confidence: 94,
-        actions: ['Fiyatı Güncelle', 'Detayları Gör'],
-        createdAt: new Date(),
-      });
+    // Gerçek Fiyat Optimizasyonu Önerileri
+    try {
+      const priceRecs = await this.pricingService.getPriceRecommendations(tenantId);
+      for (const rec of priceRecs.recommendations.slice(0, 2)) {
+        insights.push({
+          id: `pricing-${rec.productId}`,
+          type: 'pricing',
+          priority: Math.abs(rec.changePercent) > 10 ? 'critical' : 'high',
+          title: 'Akıllı Fiyat Önerisi',
+          description: `${rec.title}: ${rec.reason}. Önerilen: ₺${rec.recommendedPrice}`,
+          impact: `+₺${rec.profitImpact.toLocaleString('tr-TR')} / Ay`,
+          confidence: Math.round(rec.confidence * 100),
+          actions: ['Fiyatı Uygula', 'Rakip Analizi'],
+          createdAt: new Date(),
+        });
+      }
+    } catch (e) {
+      this.logger.error('Fiyat önerileri entegre edilemedi', e);
     }
 
     // SEO önerisi
@@ -542,6 +631,22 @@ export class AnalyticsService {
       actions: ['Ürün Araştır', 'Tedarikçi Bul'],
       createdAt: new Date(),
     });
+
+    // 4. Fiyatlandırma Fırsatları
+    try {
+      const priceRecs = await this.pricingService.getPriceRecommendations(tenantId);
+      priceRecs.recommendations.slice(0, 2).forEach(rec => {
+        insights.push({
+          type: 'Fiyat Optimizasyonu',
+          message: `${rec.sku}: ${rec.reason}. Önerilen: ₺${rec.recommendedPrice}`,
+          priority: Math.abs(rec.changePercent) > 10 ? 'HIGH' : 'NORMAL',
+          action: 'Fiyatı Güncelle',
+          link: `/products/${rec.productId}/pricing`
+        });
+      });
+    } catch (e) {
+      this.logger.error('Fiyat önerileri alınamadı', e);
+    }
 
     return insights;
   }
