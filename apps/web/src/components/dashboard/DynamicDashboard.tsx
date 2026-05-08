@@ -131,35 +131,101 @@ export const DynamicDashboard: React.FC<DynamicDashboardProps> = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-slate-200">
-                                    <th className="text-left p-2 font-medium">Sipariş</th>
-                                    <th className="text-left p-2 font-medium">Platform</th>
-                                    <th className="text-left p-2 font-medium">Tutar</th>
-                                    <th className="text-left p-2 font-medium">Durum</th>
+                                <tr className="border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
+                                    <th className="text-left p-2">Sipariş</th>
+                                    <th className="text-left p-2">Platform</th>
+                                    <th className="text-left p-2">Tutar</th>
+                                    <th className="text-left p-2">Durum</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {(orders || []).map((order: any, i: number) => (
-                                    <tr key={i} className="border-b border-slate-100">
-                                        <td className="p-2">#{order.id?.toString().slice(-6)}</td>
-                                        <td className="p-2">{order.platform || '-'}</td>
-                                        <td className="p-2">₺{order.total?.toLocaleString?.() || 0}</td>
+                                    <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                        <td className="p-2 font-medium text-foreground">#{order.id}</td>
                                         <td className="p-2">
-                                            <span className={`px-2 py-1 rounded text-xs ${
-                                                order.status === 'completed' ? 'bg-green-100 text-green-700' :
-                                                order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                'bg-blue-100 text-blue-700'
+                                            <span className="flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                                {order.platform}
+                                            </span>
+                                        </td>
+                                        <td className="p-2 font-bold text-foreground">₺{order.price?.toLocaleString()}</td>
+                                        <td className="p-2">
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                                order.status === 'Tamamlandı' ? 'bg-green-100 text-green-700' :
+                                                order.status === 'Kargoda' ? 'bg-blue-100 text-blue-700' :
+                                                order.status === 'İptal' ? 'bg-red-100 text-red-700' :
+                                                'bg-amber-100 text-amber-700'
                                             }`}>
                                                 {order.status}
                                             </span>
                                         </td>
                                     </tr>
                                 ))}
+                                {(!orders || orders.length === 0) && !ordersLoading && (
+                                    <tr>
+                                        <td colSpan={4} className="p-8 text-center text-slate-400 italic">Henüz sipariş bulunmuyor</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
                 </motion.div>
             </div>
+
+            {/* AI Pilot Kontrol Merkezi */}
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.98 }} 
+                animate={{ opacity: 1, scale: 1 }}
+                className="relative overflow-hidden p-8 rounded-2xl bg-slate-900 text-white shadow-2xl"
+            >
+                {/* Background Pattern */}
+                <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/20 to-transparent pointer-events-none" />
+                <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-4 gap-8 items-center">
+                    <div className="lg:col-span-2">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-primary rounded-lg shadow-lg shadow-primary/40">
+                                <Brain className="w-6 h-6 text-white" />
+                            </div>
+                            <h2 className="text-2xl font-black tracking-tight">AI-Pilot Kontrol Merkezi</h2>
+                        </div>
+                        <p className="text-slate-400 text-sm leading-relaxed mb-6 max-w-lg">
+                            Yapay zeka asistanınız mağazanızı 7/24 denetliyor. Bugün gerçekleştirilen otomatik aksiyonlar ve iyileştirmeler aşağıdadır.
+                        </p>
+                        <div className="flex flex-wrap gap-4">
+                            <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Doğruluk Oranı</div>
+                                <div className="text-xl font-black text-primary">%{stats?.aiMetrics?.accuracy || 94.5}</div>
+                            </div>
+                            <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Aktif Modeller</div>
+                                <div className="text-xl font-black text-purple-400">{stats?.aiMetrics?.activeModels || 4}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-2 grid grid-cols-2 gap-4">
+                        <div className="p-6 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                            <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center mb-4">
+                                <Activity className="w-5 h-5 text-green-400" />
+                            </div>
+                            <div className="text-3xl font-black mb-1">{stats?.aiMetrics?.automatedActions || 0}</div>
+                            <div className="text-xs text-slate-400 font-medium">Bugün Tamamlanan Otomatik İşlem</div>
+                        </div>
+                        <motion.div 
+                            whileHover={{ scale: 1.02 }}
+                            className="p-6 bg-primary/20 rounded-2xl border border-primary/30 cursor-pointer"
+                        >
+                            <div className="w-10 h-10 bg-primary/40 rounded-xl flex items-center justify-center mb-4">
+                                <DollarSign className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="text-3xl font-black mb-1">₺{stats?.aiMetrics?.savingsGenerated?.toLocaleString() || '0'}</div>
+                            <div className="text-xs text-slate-300 font-medium italic">AI Tarafından Sağlanan Tasarruf</div>
+                        </motion.div>
+                    </div>
+                </div>
+            </motion.div>
 
             {/* AI Insights ve Aktivite */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
