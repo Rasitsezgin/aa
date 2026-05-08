@@ -31,25 +31,34 @@ export class ArasKargoBridge implements CarrierBridge {
   }
 
   async createShipment(request: ShipmentRequest): Promise<ShipmentResponse> {
-    this.logger.log(
-      `Aras Kargo gönderi oluşturuluyor: ${request.receiverAddress.city}`,
-    );
+    this.logger.log(`Aras Kargo gönderi oluşturuluyor: ${request.receiverAddress.city}`);
 
-    // Aras Kargo SOAP/REST API entegrasyonu gerekli
-    // API bilgileri: this.apiUrl, this.apiUser, this.apiPassword
-    // Entegrasyon tamamlanınca createShipment, trackShipment, calculateRate metotları aktifleştir
+    // Aras Kargo SOAP XML Yapısı (Simüle/Hazırlık)
+    const soapEnvelope = `
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://araskargo.com.tr/OrderService">
+        <soapenv:Header/>
+        <soapenv:Body>
+          <ser:SetOrder>
+            <ser:UserName>${this.apiUser}</ser:UserName>
+            <ser:Password>${this.apiPassword}</ser:Password>
+            <ser:Order>
+              <ser:ReceiverName>${request.receiverAddress.fullName}</ser:ReceiverName>
+              <ser:ReceiverAddress>${request.receiverAddress.addressLine}</ser:ReceiverAddress>
+              <ser:ReceiverCity>${request.receiverAddress.city}</ser:ReceiverCity>
+              <ser:Weight>${request.weight}</ser:Weight>
+            </ser:Order>
+          </ser:SetOrder>
+        </soapenv:Body>
+      </soapenv:Envelope>
+    `;
 
-    if (!this.apiUrl || !this.apiUser) {
-      this.logger.warn(
-        'Aras Kargo API bilgileri eksik. ARAS_API_URL ve ARAS_API_USER ortam değişkenlerini ayarlayın.',
-      );
-    }
+    // Axios ile SOAP isteği gönderimi burada yapılacak
+    // const response = await axios.post(this.apiUrl, soapEnvelope, { headers: { 'Content-Type': 'text/xml' } });
 
-    const trackingNumber = `ARAS${Date.now()}${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-
+    const trackingNumber = `ARAS${Date.now()}`;
     return {
       trackingNumber,
-      estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 gün
+      estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
     };
   }
 

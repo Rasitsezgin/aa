@@ -28,12 +28,28 @@ export class PttKargoBridge implements CarrierBridge {
   }
 
   async createShipment(request: ShipmentRequest): Promise<ShipmentResponse> {
-    this.logger.log(
-      `PTT Kargo gönderi oluşturuluyor: ${request.receiverAddress.city}`,
-    );
+    this.logger.log(`PTT Kargo gönderi oluşturuluyor: ${request.receiverAddress.city}`);
 
-    const trackingNumber = `PTT${Date.now()}${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+    // PTT Kargo SOAP XML Yapısı (Simüle/Hazırlık)
+    const soapEnvelope = `
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ptt="http://ptt.gov.tr/kabul">
+        <soapenv:Header/>
+        <soapenv:Body>
+          <ptt:kabulEkle>
+            <ptt:kullanici>${this.apiUser}</ptt:kullanici>
+            <ptt:sifre>${this.apiPassword}</ptt:sifre>
+            <ptt:gonderi>
+              <ptt:alici_adi>${request.receiverAddress.fullName}</ptt:alici_adi>
+              <ptt:alici_adresi>${request.receiverAddress.addressLine}</ptt:alici_adresi>
+              <ptt:alici_il>${request.receiverAddress.city}</ptt:alici_il>
+              <ptt:agirlik>${request.weight}</ptt:agirlik>
+            </ptt:gonderi>
+          </ptt:kabulEkle>
+        </soapenv:Body>
+      </soapenv:Envelope>
+    `;
 
+    const trackingNumber = `PTT${Date.now()}`;
     return {
       trackingNumber,
       estimatedDelivery: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),

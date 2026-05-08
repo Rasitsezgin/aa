@@ -22,12 +22,25 @@ export class MngKargoBridge implements CarrierBridge {
   }
 
   async createShipment(request: ShipmentRequest): Promise<ShipmentResponse> {
-    this.logger.log(
-      `MNG Kargo gönderi oluşturuluyor: ${request.receiverAddress.city}`,
-    );
+    this.logger.log(`MNG Kargo gönderi oluşturuluyor: ${request.receiverAddress.city}`);
 
-    const trackingNumber = `MNG${Date.now()}${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+    // MNG Kargo SOAP XML Yapısı (Simüle/Hazırlık)
+    const soapEnvelope = `
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:mng="http://mngkargo.com.tr/SiparisService">
+        <soapenv:Header/>
+        <soapenv:Body>
+          <mng:SiparisGirisi>
+            <mng:pUser>${this.apiToken}</mng:pUser>
+            <mng:pSiparisNo>${Date.now()}</mng:pSiparisNo>
+            <mng:pAliciAdi>${request.receiverAddress.fullName}</mng:pAliciAdi>
+            <mng:pAliciAdres>${request.receiverAddress.addressLine}</mng:pAliciAdres>
+            <mng:pAliciSehir>${request.receiverAddress.city}</mng:pAliciSehir>
+          </mng:SiparisGirisi>
+        </soapenv:Body>
+      </soapenv:Envelope>
+    `;
 
+    const trackingNumber = `MNG${Date.now()}`;
     return {
       trackingNumber,
       estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),

@@ -4,6 +4,9 @@ import { ServiceType } from '@prisma/client';
 import { CreateEInvoiceDto, CancelEInvoiceDto } from './dto/e-invoice.dto';
 import { TenantCredentialsService } from '../tenant-credentials/tenant-credentials.service';
 import * as crypto from 'crypto';
+import { EInvoiceIntegrator } from './integrators/integrator.interface';
+import { ParasutIntegrator } from './integrators/parasut.bridge';
+import { LogoIntegrator } from './integrators/logo.bridge';
 
 /**
  * E-Fatura Servisi (Çok Kiracılı)
@@ -20,15 +23,26 @@ export class EInvoiceService {
     private readonly tenantCredentials: TenantCredentialsService,
   ) {}
 
+  private getIntegrator(provider: string): EInvoiceIntegrator {
+    switch (provider.toLowerCase()) {
+      case 'parasut':
+        return new ParasutIntegrator();
+      case 'logo':
+        return new LogoIntegrator();
+      // case 'foriba':
+      //   return new ForibaIntegrator();
+      default:
+        return new ParasutIntegrator(); // Default to Parasut
+    }
+  }
+
   /** Tenant'ın e-fatura entegratör bilgilerini getir */
   private async getEInvoiceConfig(tenantId: string) {
-    // Öncelik sırasıyla dene
     const types = [
       ServiceType.EINVOICE_FORIBA,
       ServiceType.EINVOICE_LOGO,
       ServiceType.EINVOICE_PARASUT,
       ServiceType.EINVOICE_EFINANS,
-      ServiceType.EINVOICE_OTHER,
     ];
 
     for (const st of types) {
@@ -42,18 +56,19 @@ export class EInvoiceService {
           [ServiceType.EINVOICE_LOGO]: 'logo',
           [ServiceType.EINVOICE_PARASUT]: 'parasut',
           [ServiceType.EINVOICE_EFINANS]: 'efinans',
-          [ServiceType.EINVOICE_OTHER]: 'other',
         };
         return {
-          provider: providerMap[st] || 'foriba',
-          apiUrl: creds.apiUrl,
-          apiKey: creds.apiKey,
-          apiSecret: creds.apiSecret,
+          provider: providerMap[st] || 'parasut',
+          apiUrl: creds.apiUrl || '',
+          apiKey: creds.apiKey || '',
+          apiSecret: creds.apiSecret || '',
+          username: creds.username,
+          password: creds.password,
         };
       }
     }
 
-    return { provider: 'foriba', apiUrl: '', apiKey: '', apiSecret: '' };
+    return null;
   }
 
   /** E-fatura oluştur ve gönder */
@@ -108,12 +123,25 @@ export class EInvoiceService {
      * Entegratör SDK kurulduğunda bu alan aktifleştirilecek.
      */
 
+    // Entegratör ayarlarını al
+    const config = await this.getEInvoiceConfig(tenantId);
+    let bridgeResponse: any = null;
+
+    if (config) {
+      const integrator = this.getIntegrator(config.provider);
+      bridgeResponse = await integrator.createInvoice(dto, config);
+      
+      if (!bridgeResponse.success) {
+        throw new BadRequestException(`Entegratör Hatası: ${bridgeResponse.error}`);
+      }
+    }
+
     // DB'ye kaydet
     const invoice = await this.prisma.invoice.create({
       data: {
         tenantId,
         orderId: dto.orderId,
-        invoiceNumber,
+        invoiceNumber: bridgeResponse?.invoiceNumber || invoiceNumber,
         type: dto.type || 'SATIS',
         scenario: dto.scenario || 'TEMEL',
         buyerTitle: dto.buyer.title,
@@ -128,28 +156,31 @@ export class EInvoiceService {
         totalAmount,
         currency: dto.currency || 'TRY',
         items: invoiceItems as any,
-        status: 'SENT',
-        gibInvoiceId,
+        status: bridgeResponse?.status || 'SENT',
+        gibInvoiceId: bridgeResponse?.gibInvoiceId || gibInvoiceId,
         gibEnvelopeId: `ENV${Date.now()}`,
         gibStatusCode: '1200',
         gibStatusDesc: 'Fatura başarıyla gönderildi',
         sentAt: new Date(),
+        url: bridgeResponse?.url,
+        xmlUrl: bridgeResponse?.xmlUrl,
         notes: dto.notes,
       },
     });
 
     this.logger.log(
-      `E-fatura gönderildi: ${invoiceNumber} (GIB ID: ${gibInvoiceId})`,
+      `E-fatura gönderildi: ${invoice.invoiceNumber} (GIB ID: ${invoice.gibInvoiceId})`,
     );
 
     return {
       success: true,
       invoiceId: invoice.id,
-      invoiceNumber,
-      gibInvoiceId,
-      status: 'SENT',
+      invoiceNumber: invoice.invoiceNumber,
+      gibInvoiceId: invoice.gibInvoiceId,
+      status: invoice.status,
       totalAmount,
-      currency: dto.currency || 'TRY',
+      currency: invoice.currency,
+      url: invoice.url,
     };
   }
 

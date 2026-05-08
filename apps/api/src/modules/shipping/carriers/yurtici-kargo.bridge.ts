@@ -29,12 +29,28 @@ export class YurticiKargoBridge implements CarrierBridge {
   }
 
   async createShipment(request: ShipmentRequest): Promise<ShipmentResponse> {
-    this.logger.log(
-      `Yurtiçi Kargo gönderi oluşturuluyor: ${request.receiverAddress.city}`,
-    );
+    this.logger.log(`Yurtiçi Kargo gönderi oluşturuluyor: ${request.receiverAddress.city}`);
 
-    const trackingNumber = `YK${Date.now()}${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+    // Yurtiçi Kargo SOAP XML Yapısı (Simüle/Hazırlık)
+    const soapEnvelope = `
+      <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ship="http://yurticikargo.com/ShippingOrderService">
+        <soapenv:Header/>
+        <soapenv:Body>
+          <ship:createShipment>
+            <ship:userName>${this.apiUser}</ship:userName>
+            <ship:password>${this.apiPassword}</ship:password>
+            <ship:shippingOrderVO>
+              <ship:cargoKey>${Date.now()}</ship:cargoKey>
+              <ship:receiverCustName>${request.receiverAddress.fullName}</ship:receiverCustName>
+              <ship:receiverAddress>${request.receiverAddress.addressLine}</ship:receiverAddress>
+              <ship:cityName>${request.receiverAddress.city}</ship:cityName>
+            </ship:shippingOrderVO>
+          </ship:createShipment>
+        </soapenv:Body>
+      </soapenv:Envelope>
+    `;
 
+    const trackingNumber = `YK${Date.now()}`;
     return {
       trackingNumber,
       estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
