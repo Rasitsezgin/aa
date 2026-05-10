@@ -1,9 +1,7 @@
 FROM node:22-slim AS base
-RUN apt-get update && apt-get install -y \
-    libc6 \
-    openssl \
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
-    # Build tools and native dependencies (Common for Canvas/Puppeteer)
     build-essential \
     python3 \
     pkg-config \
@@ -14,7 +12,6 @@ RUN apt-get update && apt-get install -y \
     libgif-dev \
     libpng-dev \
     librsvg2-dev \
-    # Runtime libraries for Canvas/Puppeteer
     libnss3 \
     libatk1.0-0 \
     libatk-bridge2.0-0 \
@@ -57,7 +54,7 @@ COPY --from=pruner /app/out/full/ .
 RUN cd packages/database && npx prisma generate
 
 # Build the project
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV NODE_OPTIONS="--max-old-space-size=3072"
 RUN npx turbo run build --filter=@pazaryonetimi/api
 
 FROM base AS runner
