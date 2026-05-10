@@ -47,9 +47,9 @@ export default function ComparisonTable() {
                     <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse min-w-[640px]">
                         <thead>
-                            <tr className="bg-slate-50/50 dark:bg-white/5">
+                            <tr className="bg-slate-50/80 dark:bg-white/[0.03] border-b border-slate-200 dark:border-white/10">
                                 <th className="p-4 md:p-8 text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Özellikler</th>
-                                <th className="p-4 md:p-8 text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tighter">Pazaryonetimi</th>
+                                <th className="p-4 md:p-8 text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tighter bg-blue-50/30 dark:bg-blue-500/[0.02]">Pazaryonetimi</th>
                                 <th className="p-4 md:p-8 text-sm font-bold text-slate-400 dark:text-slate-500">Standart Yazılımlar</th>
                             </tr>
                         </thead>
@@ -65,7 +65,7 @@ export default function ComparisonTable() {
                                     <td className="p-4 md:p-8">
                                         <div className="text-slate-700 dark:text-white font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{feature.name}</div>
                                     </td>
-                                    <td className="p-4 md:p-8 bg-blue-50/50 dark:bg-blue-500/5">
+                                    <td className="p-4 md:p-8 bg-blue-50/20 dark:bg-blue-500/[0.01]">
                                         <div className="flex items-center gap-3">
                                             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
                                                 <Check size={14} strokeWidth={3} />
@@ -74,9 +74,9 @@ export default function ComparisonTable() {
                                         </div>
                                     </td>
                                     <td className="p-4 md:p-8">
-                                        <div className="flex items-center gap-3 opacity-70 dark:opacity-50">
+                                        <div className="flex items-center gap-3 opacity-60 dark:opacity-40">
                                             <X size={16} className="text-red-500" />
-                                            <span className="text-slate-500">{feature.s}</span>
+                                            <span className="text-slate-500 dark:text-slate-400">{feature.s}</span>
                                         </div>
                                     </td>
                                 </motion.tr>

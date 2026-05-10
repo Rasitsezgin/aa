@@ -30,7 +30,7 @@ const CTASection = dynamic(() => import("@/components/CTASection"), { loading: (
 // New Feature Components
 const ScrollParticles = dynamic(() => import("@/components/landing/ScrollParticles").then(mod => ({ default: mod.ScrollParticles })), { loading: () => <CardSkeleton /> });
 const RealtimeCounter = dynamic(() => import("@/components/landing/RealtimeCounter").then(mod => ({ default: mod.RealtimeCounter })), { loading: () => <CardSkeleton /> });
-const AIExitIntent = dynamic(() => import("@/components/landing/AIExitIntent").then(mod => ({ default: mod.AIExitIntent })), { ssr: false });
+
 const ROICalculator2 = dynamic(() => import("@/components/landing/ROICalculator2").then(mod => ({ default: mod.ROICalculator2 })), { loading: () => <CardSkeleton /> });
 const CommandPaletteLanding = dynamic(() => import("@/components/landing/CommandPaletteLanding").then(mod => ({ default: mod.CommandPaletteLanding })), { ssr: false });
 
@@ -152,67 +152,26 @@ export default function LandingHomeClient() {
     <main className="min-h-screen bg-white dark:bg-[#020617] text-foreground relative selection:bg-blue-500/30 overflow-x-hidden">
 
       {/* ──────────────────────────────────────────────────────────────────────── */}
-      {/* GLOBAL BACKGROUND SYSTEM (Enhanced with more dynamic effects) */}
+      {/* GLOBAL BACKGROUND SYSTEM (Optimized with CSS Animations) */}
       {/* ──────────────────────────────────────────────────────────────────────── */}
-      <div className="fixed inset-0 pointer-events-none z-0">
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         {/* Base Gradient */}
         <div className="absolute inset-0 bg-white dark:bg-[#020617]" />
 
-        {/* Animated Aurora Blobs (Enhanced with more colors and movement) */}
-        <motion.div 
-          animate={{
-            scale: [1, 1.3, 1.1, 1],
-            x: [0, 100, 50, 0],
-            y: [0, -80, 40, 0],
-            opacity: [0.12, 0.2, 0.15, 0.12],
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen"
-        />
-        <motion.div 
-          animate={{
-            scale: [1.1, 1.4, 1.2, 1.1],
-            x: [0, -80, -40, 0],
-            y: [0, 60, -30, 0],
-            opacity: [0.1, 0.18, 0.13, 0.1],
-          }}
-          transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[20%] right-[-10%] w-[35%] h-[35%] bg-purple-500/10 dark:bg-purple-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen"
-        />
-        <motion.div 
-          animate={{
-            scale: [1, 1.25, 1.1, 1],
-            x: [0, 60, -30, 0],
-            y: [0, -50, 30, 0],
-            opacity: [0.1, 0.16, 0.12, 0.1],
-          }}
-          transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-emerald-500/10 dark:bg-emerald-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen"
-        />
-        {/* Additional pink accent blob */}
-        <motion.div 
-          animate={{
-            scale: [0.9, 1.2, 1, 0.9],
-            x: [0, -50, 25, 0],
-            y: [0, 40, -20, 0],
-            opacity: [0.06, 0.12, 0.08, 0.06],
-          }}
-          transition={{ duration: 32, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[40%] left-[30%] w-[30%] h-[30%] bg-pink-500/8 dark:bg-pink-600/8 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-screen"
-        />
-
-        {/* Global Grid Pattern with subtle animation */}
-        <motion.div 
-          animate={{ opacity: [0.35, 0.45, 0.35] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute inset-0 dark:opacity-[0.2]"
+        {/* CSS Animated Aurora Blobs (Lighter than Framer Motion) */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen animate-blob-slow" />
+        <div className="absolute top-[20%] right-[-10%] w-[35%] h-[35%] bg-purple-500/10 dark:bg-purple-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen animate-blob-slow animation-delay-2000" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-emerald-500/10 dark:bg-emerald-600/10 rounded-full blur-[120px] mix-blend-multiply dark:mix-blend-screen animate-blob-slow animation-delay-4000" />
+        
+        {/* Global Grid Pattern */}
+        <div className="absolute inset-0 dark:opacity-[0.1] opacity-[0.2]"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
           }}
         />
 
         {/* Noise overlay for texture */}
-        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
+        <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]"
           style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")' }}
         />
       </div>
@@ -246,22 +205,18 @@ export default function LandingHomeClient() {
 
           // Add scroll animation for other sections with alternating backgrounds
           return (
-            <motion.div
+            <div
               key={section.id}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
-              className={bgClass}
+              className={`${bgClass} transition-all duration-1000`}
             >
               <Component {...componentProps} />
-            </motion.div>
+            </div>
           );
         })}
       </div>
 
       {/* Global Components (Always Render) */}
-      <AIExitIntent features={features} />
+      {/* Popup'lar artık DynamicPopupSystem (Layout) üzerinden yönetiliyor */}
     </main>
   );
 }

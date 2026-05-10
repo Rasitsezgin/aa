@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
-import { 
+import {
     Store, Search, ArrowRight, ShoppingCart, Check, Clock, Zap, Users,
     Calculator, Truck, FileText, FileCode2, Globe, Sparkles, Activity,
     TrendingUp, Shield, Cpu, Database, ExternalLink, Filter, Grid3X3, List,
@@ -77,13 +77,13 @@ const categories = [
 
 const integrations: Integration[] = [
     // Pazaryeri - Popüler
-    { 
-        id: 'trendyol', 
-        name: 'Trendyol', 
-        category: 'pazaryeri', 
-        color: '#F27A1A', 
+    {
+        id: 'trendyol',
+        name: 'Trendyol',
+        category: 'pazaryeri',
+        color: '#F27A1A',
         gradient: 'from-orange-500 to-orange-600',
-        logo: 'T',
+        logo: '/images/pazaryeri/Trendyol.png',
         desc: 'Türkiye\'nin en büyük pazaryerinde otomatik ürün yükleme, stok senkronizasyonu, sipariş yönetimi ve fatura entegrasyonu. Gerçek zamanlı API bağlantısı.',
         shortDesc: 'Tam otomasyon - ürün, stok, sipariş, fatura',
         features: ['Otomatik Ürün Yükleme', 'Stok Senkronizasyonu', 'Sipariş Yönetimi', 'Fatura Entegrasyonu', 'Kampanya Yönetimi', 'Raporlama API'],
@@ -97,13 +97,13 @@ const integrations: Integration[] = [
         price: 'Ücretsiz',
         requirements: ['Trendyol Satıcı Hesabı', 'API Anahtarı', 'Mağaza Onayı']
     },
-    { 
-        id: 'hepsiburada', 
-        name: 'Hepsiburada', 
-        category: 'pazaryeri', 
-        color: '#FF6000', 
+    {
+        id: 'hepsiburada',
+        name: 'Hepsiburada',
+        category: 'pazaryeri',
+        color: '#FF6000',
         gradient: 'from-orange-600 to-red-500',
-        logo: 'H',
+        logo: '/images/pazaryeri/Hepsiburada.png',
         desc: 'Hepsiburada\'da çift yönlü entegrasyon ile ürünlerinizi otomatik yönetin, siparişleri anlık çekin, stokları senkronize edin.',
         shortDesc: 'Çift yönlü anlık senkronizasyon',
         features: ['Ürün Yönetimi', 'Stok Eşitleme', 'Sipariş İmport', 'Fatura Kesimi', 'Kargo Entegrasyonu', 'İade Yönetimi'],
@@ -117,13 +117,13 @@ const integrations: Integration[] = [
         price: 'Ücretsiz',
         requirements: ['Hepsiburada Satıcı Paneli', 'API Erişimi']
     },
-    { 
-        id: 'amazon-tr', 
-        name: 'Amazon.com.tr', 
-        category: 'pazaryeri', 
-        color: '#FF9900', 
+    {
+        id: 'amazon-tr',
+        name: 'Amazon.com.tr',
+        category: 'pazaryeri',
+        color: '#FF9900',
         gradient: 'from-yellow-500 to-orange-500',
-        logo: 'A',
+        logo: '/images/pazaryeri/Amazon.png',
         desc: 'Amazon Türkiye\'de global standartlarda entegrasyon. FBA (Fulfillment by Amazon) desteği, reklam API\'si ve detaylı raporlama.',
         shortDesc: 'Global standartlarda entegrasyon + FBA',
         features: ['FBA Desteği', 'Reklam API', 'Amazon Prime', 'Multi-Channel', 'A+ Content', 'Brand Analytics'],
@@ -137,13 +137,13 @@ const integrations: Integration[] = [
         price: 'Pro Plan',
         requirements: ['Professional Seller Account', 'MWS Access']
     },
-    { 
-        id: 'n11', 
-        name: 'N11', 
-        category: 'pazaryeri', 
-        color: '#A3248C', 
+    {
+        id: 'n11',
+        name: 'N11',
+        category: 'pazaryeri',
+        color: '#A3248C',
         gradient: 'from-purple-600 to-pink-600',
-        logo: 'n11',
+        logo: '/images/pazaryeri/N11.png',
         desc: 'N11 pazaryerinde toplu ürün yükleme, otomatik fiyatlandırma ve kampanya yönetimi. Hızlı ve güvenilir API entegrasyonu.',
         shortDesc: 'Toplu ürün yükleme & fiyat yönetimi',
         features: ['Toplu Ürün Aktarımı', 'Otomatik Fiyatlandırma', 'Kampanya Yönetimi', 'Sipariş Takibi', 'Stok Kontrolü', 'Raporlama'],
@@ -157,13 +157,13 @@ const integrations: Integration[] = [
         price: 'Ücretsiz',
         requirements: ['N11 Mağaza Hesabı', 'API Anahtarı']
     },
-    { 
-        id: 'ciceksepeti', 
-        name: 'Çiçeksepeti', 
-        category: 'pazaryeri', 
-        color: '#00C853', 
+    {
+        id: 'ciceksepeti',
+        name: 'Çiçeksepeti',
+        category: 'pazaryeri',
+        color: '#00C853',
         gradient: 'from-green-500 to-emerald-600',
-        logo: 'Ç',
+        logo: '/images/pazaryeri/ciceksepeti.png',
         desc: 'Çiçeksepeti Marketplace entegrasyonu. Hızlı teslimat entegrasyonu, hediye paketi seçenekleri ve özel kampanya yönetimi.',
         shortDesc: 'Marketplace + Hızlı Teslimat entegrasyonu',
         features: ['Marketplace API', 'Hızlı Teslimat', 'Hediye Paketi', 'Sipariş Otomasyonu', 'Stok Yönetimi', 'Fatura Entegrasyonu'],
@@ -177,13 +177,13 @@ const integrations: Integration[] = [
         price: 'Ücretsiz',
         requirements: ['Çiçeksepeti Satıcı Hesabı']
     },
-    { 
-        id: 'pttavm', 
-        name: 'PTT AVM', 
-        category: 'pazaryeri', 
-        color: '#D4AF37', 
+    {
+        id: 'pttavm',
+        name: 'PTT AVM',
+        category: 'pazaryeri',
+        color: '#D4AF37',
         gradient: 'from-yellow-600 to-amber-600',
-        logo: 'P',
+        logo: '/images/pazaryeri/Pazarama.png',
         desc: 'PTT AVM pazaryerinde yerel esnaf destekli satış. Kargo entegrasyonu ve ödeme sistemleri ile tam uyumlu çalışma.',
         shortDesc: 'Yerel esnaf dostu pazaryeri entegrasyonu',
         features: ['API Entegrasyonu', 'Kargo Takibi', 'Ödeme Sistemi', 'Sipariş Yönetimi', 'Stok Kontrolü', 'Fatura'],
@@ -198,13 +198,13 @@ const integrations: Integration[] = [
         requirements: ['PTT AVM Satıcı Hesabı']
     },
     // E-ticaret Altyapıları
-    { 
-        id: 'shopify', 
-        name: 'Shopify', 
-        category: 'eticaret', 
-        color: '#96BF48', 
+    {
+        id: 'shopify',
+        name: 'Shopify',
+        category: 'eticaret',
+        color: '#96BF48',
         gradient: 'from-green-600 to-emerald-700',
-        logo: 'S',
+        logo: '/images/pazaryeri/Shopify.png',
         desc: 'Shopify mağazanızı Türkiye pazaryerleriyle entegre edin. E-ihracat, global satış ve çoklu kanal yönetimi.',
         shortDesc: 'E-ihracat & Global satış entegrasyonu',
         features: ['GraphQL API', 'Multi-Channel', 'E-ihracat', 'Stok Senkronizasyonu', 'Sipariş İmport', 'Metafields Desteği'],
@@ -218,13 +218,13 @@ const integrations: Integration[] = [
         price: 'Ücretsiz',
         requirements: ['Shopify Mağazası', 'Admin API Access']
     },
-    { 
-        id: 'woocommerce', 
-        name: 'WooCommerce', 
-        category: 'eticaret', 
-        color: '#96588A', 
+    {
+        id: 'woocommerce',
+        name: 'WooCommerce',
+        category: 'eticaret',
+        color: '#96588A',
         gradient: 'from-purple-600 to-indigo-700',
-        logo: 'W',
+        logo: '/images/pazaryeri/WooCommerce.png',
         desc: 'WordPress sitenizdeki WooCommerce mağazanızı tüm pazaryerleriyle senkronize edin. Açık kaynak esneklği.',
         shortDesc: 'WordPress entegrasyonu - Açık kaynak',
         features: ['REST API', 'Webhook Desteği', 'Plugin Entegrasyonu', 'Özelleştirilebilir', 'Stok Senkronizasyonu', 'Sipariş Yönetimi'],
@@ -238,13 +238,13 @@ const integrations: Integration[] = [
         price: 'Ücretsiz',
         requirements: ['WooCommerce Kurulumu', 'API Keys']
     },
-    { 
-        id: 'ideasoft', 
-        name: 'IdeaSoft', 
-        category: 'eticaret', 
-        color: '#0066CC', 
+    {
+        id: 'ideasoft',
+        name: 'IdeaSoft',
+        category: 'eticaret',
+        color: '#0066CC',
         gradient: 'from-blue-600 to-blue-800',
-        logo: 'I',
+        logo: '/images/pazaryeri/ideasoft-logo.webp',
         desc: 'IdeaSoft e-ticaret altyapısı ile Türkiye\'nin lider pazaryerleri arasında çift yönlü anlık senkronizasyon.',
         shortDesc: 'Türkiye lideri altyapı entegrasyonu',
         features: ['Tam Entegrasyon', 'Anlık Senkron', 'Özel API', 'Stok Yönetimi', 'Sipariş Aktarımı', 'Fatura'],
@@ -258,13 +258,13 @@ const integrations: Integration[] = [
         price: 'Ücretsiz',
         requirements: ['IdeaSoft Mağaza', 'API Erişimi']
     },
-    { 
-        id: 'ticimax', 
-        name: 'Ticimax', 
-        category: 'eticaret', 
-        color: '#6366F1', 
+    {
+        id: 'ticimax',
+        name: 'Ticimax',
+        category: 'eticaret',
+        color: '#6366F1',
         gradient: 'from-indigo-600 to-purple-700',
-        logo: 'T',
+        logo: '/images/pazaryeri/ticimax.webp',
         desc: 'Ticimax altyapınızda sıfır kayıp garantisi ile stok ve sipariş yönetimi. Gerçek zamanlı senkronizasyon.',
         shortDesc: 'Sıfır kayıp garantili senkronizasyon',
         features: ['Gerçek Zamanlı', 'Stok Kontrolü', 'Sipariş Yönetimi', 'XML Çıktı', 'Fatura Entegrasyonu', 'Raporlama'],
@@ -279,13 +279,13 @@ const integrations: Integration[] = [
         requirements: ['Ticimax Panel', 'API Bilgileri']
     },
     // Muhasebe
-    { 
-        id: 'parasut', 
-        name: 'Paraşüt', 
-        category: 'muhasebe', 
-        color: '#0066FF', 
+    {
+        id: 'parasut',
+        name: 'Paraşüt',
+        category: 'muhasebe',
+        color: '#0066FF',
         gradient: 'from-blue-500 to-cyan-600',
-        logo: 'P',
+        logo: '/images/muhasebe/parasut.png',
         desc: 'Paraşüt ile otomatik e-fatura, e-arşiv fatura ve ön muhasebe entegrasyonu. Siparişler anında faturaya dönüşür.',
         shortDesc: 'Otomatik fatura & muhasebe entegrasyonu',
         features: ['E-Fatura', 'E-Arşiv', 'Otomatik Fatura', 'Cari Yönetimi', 'Banka Entegrasyonu', 'Raporlama'],
@@ -299,13 +299,33 @@ const integrations: Integration[] = [
         price: 'Ücretsiz',
         requirements: ['Paraşüt Hesabı', 'API Erişimi']
     },
-    { 
-        id: 'logo', 
-        name: 'Logo Tiger / Go', 
-        category: 'muhasebe', 
-        color: '#00A0B0', 
+    {
+        id: 'birfatura',
+        name: 'BirFatura',
+        category: 'muhasebe',
+        color: '#E11D48',
+        gradient: 'from-rose-500 to-red-600',
+        logo: '/images/muhasebe/birfatura.png',
+        desc: 'E-ticaret odaklı fatura yönetimi. Trendyol, Hepsiburada ve diğer kanallardan gelen siparişleri tek tıkla faturalandırın.',
+        shortDesc: 'E-ticaretçiler için hızlı fatura çözümü',
+        features: ['E-Fatura', 'E-Arşiv', 'Kargo Entegrasyonu', 'Toplu Yazdırma', 'Sipariş Yönetimi', 'GİB Uyumluluk'],
+        stats: { users: '4.5K+', syncTime: 'Anlık', uptime: '99.8%' },
+        rating: 4.7,
+        reviews: 1243,
+        isPopular: true,
+        isNew: true,
+        documentation: '/docs/birfatura',
+        setupTime: '3 dakika',
+        price: 'Ücretsiz',
+        requirements: ['BirFatura Hesabı', 'API Key']
+    },
+    {
+        id: 'logo',
+        name: 'Logo Tiger / Go',
+        category: 'muhasebe',
+        color: '#00A0B0',
         gradient: 'from-cyan-600 to-teal-700',
-        logo: 'L',
+        logo: '/images/muhasebe/logo.png',
         desc: 'Logo Tiger ve Go 3 ERP sistemleriyle kurumsal entegrasyon. Stok, cari, sipariş ve fatura yönetimi.',
         shortDesc: 'Kurumsal ERP entegrasyonu',
         features: ['ERP Entegrasyonu', 'Stok Yönetimi', 'Cari Yönetimi', 'Sipariş Aktarımı', 'Fatura', 'Raporlama'],
@@ -319,14 +339,74 @@ const integrations: Integration[] = [
         price: 'Enterprise',
         requirements: ['Logo ERP', 'Web Servis Erişimi']
     },
+    {
+        id: 'edm',
+        name: 'EDM Bilişim',
+        category: 'muhasebe',
+        color: '#2563EB',
+        gradient: 'from-blue-600 to-indigo-700',
+        logo: '/images/muhasebe/edm.png',
+        desc: 'EDM Bilişim e-fatura ve e-arşiv çözümleri. Kurumsal seviyede güvenilir ve hızlı fatura iletimi.',
+        shortDesc: 'Kurumsal e-fatura entegratörü',
+        features: ['E-Fatura', 'E-Arşiv', 'E-İrsaliye', 'Sınırsız Saklama', 'Hızlı İletim', '7/24 Destek'],
+        stats: { users: '2.8K+', syncTime: '< 1 dk', uptime: '99.9%' },
+        rating: 4.8,
+        reviews: 654,
+        isPopular: false,
+        isNew: true,
+        documentation: '/docs/edm',
+        setupTime: '10 dakika',
+        price: 'Kontör Bazlı',
+        requirements: ['EDM Üyeliği', 'Portal Bilgileri']
+    },
+    {
+        id: 'mikro',
+        name: 'Mikro Yazılım',
+        category: 'muhasebe',
+        color: '#1E3A8A',
+        gradient: 'from-blue-800 to-indigo-900',
+        logo: '/images/muhasebe/mikro.png',
+        desc: 'Mikro Yazılım ERP entegrasyonu. Karmaşık stok, sipariş ve finans operasyonlarını pazaryerleriyle tam uyumlu hale getirin.',
+        shortDesc: 'Güçlü ERP & muhasebe entegrasyonu',
+        features: ['ERP Senkronizasyonu', 'Gelişmiş Stok Takibi', 'Sipariş Otomasyonu', 'Cari Hesap Yönetimi', 'Maliyet Analizi', 'E-Dönüşüm'],
+        stats: { users: '3.1K+', syncTime: '< 3 dk', uptime: '99.8%' },
+        rating: 4.7,
+        reviews: 843,
+        isPopular: false,
+        isNew: true,
+        documentation: '/docs/mikro',
+        setupTime: '15 dakika',
+        price: 'Enterprise',
+        requirements: ['Mikro ERP Lisansı', 'SQL/API Erişimi']
+    },
+    {
+        id: 'zirve',
+        name: 'Zirve Yazılım',
+        category: 'muhasebe',
+        color: '#0369A1',
+        gradient: 'from-sky-700 to-blue-800',
+        logo: '/images/muhasebe/zirve.png',
+        desc: 'Zirve Yazılım ile e-ticaret satışlarınızı doğrudan ön muhasebe ve genel muhasebe kayıtlarına aktarın.',
+        shortDesc: 'Mali müşavir dostu muhasebe entegrasyonu',
+        features: ['Otomatik Kayıt', 'E-Fatura Aktarımı', 'Cari Eşleştirme', 'Stok Senkronu', 'Mali Müşavir Paneli', 'Hızlı Entegrasyon'],
+        stats: { users: '4.8K+', syncTime: '< 2 dk', uptime: '99.7%' },
+        rating: 4.8,
+        reviews: 1124,
+        isPopular: false,
+        isNew: true,
+        documentation: '/docs/zirve',
+        setupTime: '10 dakika',
+        price: 'Ücretsiz',
+        requirements: ['Zirve Programı', 'API Modülü']
+    },
     // Kargo
-    { 
-        id: 'yurtici', 
-        name: 'Yurtiçi Kargo', 
-        category: 'kargo', 
-        color: '#0047AB', 
+    {
+        id: 'yurtici',
+        name: 'Yurtiçi Kargo',
+        category: 'kargo',
+        color: '#0047AB',
         gradient: 'from-blue-700 to-blue-900',
-        logo: 'Y',
+        logo: '/images/kargo/yurtici.png',
         desc: 'Yurtiçi Kargo entegrasyonu ile toplu barkod yazdırma, otomatik kargo fişi oluşturma ve takip numarası aktarımı.',
         shortDesc: 'Toplu barkod & otomatik takip no',
         features: ['Toplu Barkod', 'Otomatik Fiş', 'Takip No', 'Şube Yönetimi', 'Teslimat Raporu', 'İade Yönetimi'],
@@ -340,13 +420,13 @@ const integrations: Integration[] = [
         price: 'Ücretsiz',
         requirements: ['Yurtiçi Kargo Sözleşmesi', 'API Bilgileri']
     },
-    { 
-        id: 'aras', 
-        name: 'Aras Kargo', 
-        category: 'kargo', 
-        color: '#E30613', 
+    {
+        id: 'aras',
+        name: 'Aras Kargo',
+        category: 'kargo',
+        color: '#E30613',
         gradient: 'from-red-600 to-red-800',
-        logo: 'A',
+        logo: '/images/kargo/aras.png',
         desc: 'Aras Kargo entegrasyonu ile anında kargo fişi oluşturma, durum sorgulama ve teslimat takibi.',
         shortDesc: 'Anında kargo fişi & durum takibi',
         features: ['Kargo Fişi', 'Durum Sorgulama', 'Takip', 'Teslimat', 'İade', 'Raporlama'],
@@ -360,13 +440,13 @@ const integrations: Integration[] = [
         price: 'Ücretsiz',
         requirements: ['Aras Kargo Sözleşmesi', 'Web API Erişimi']
     },
-    { 
-        id: 'mng', 
-        name: 'MNG Kargo', 
-        category: 'kargo', 
-        color: '#1E3A8A', 
+    {
+        id: 'mng',
+        name: 'MNG Kargo',
+        category: 'kargo',
+        color: '#1E3A8A',
         gradient: 'from-blue-800 to-slate-800',
-        logo: 'M',
+        logo: '/images/kargo/mng.png',
         desc: 'MNG Kargo ile şube teslimat, iade operasyonları ve gönderi takibi. Tam entegre kargo yönetimi.',
         shortDesc: 'Şube teslimat & iade operasyonları',
         features: ['Şube Teslimat', 'İade', 'Takip', 'Gönderi Yönetimi', 'Raporlama', 'Fiyatlandırma'],
@@ -381,13 +461,13 @@ const integrations: Integration[] = [
         requirements: ['MNG Kargo Sözleşmesi', 'API Bilgileri']
     },
     // E-Fatura
-    { 
-        id: 'gib', 
-        name: 'GİB E-Fatura / E-Arşiv', 
-        category: 'efatura', 
-        color: '#1F2937', 
+    {
+        id: 'gib',
+        name: 'GİB E-Fatura / E-Arşiv',
+        category: 'efatura',
+        color: '#1F2937',
         gradient: 'from-slate-700 to-slate-900',
-        logo: 'GİB',
+        logo: '/images/muhasebe/gib.png',
         desc: 'Gelir İdaresi Başkanlığı direkt entegrasyonu. 5000/30000 TL limitli faturaları doğrudan GİB\'e iletin.',
         shortDesc: 'Direkt GİB entegrasyonu - 5K/30K',
         features: ['E-Fatura', 'E-Arşiv', 'GİB Entegrasyonu', 'Otomatik İmza', 'Raporlama', 'Mali Mühür'],
@@ -401,11 +481,11 @@ const integrations: Integration[] = [
         price: 'Ücretsiz',
         requirements: ['GİB Portal Hesabı', 'Mali Mühür', 'E-Fatura Kaydı']
     },
-    { 
-        id: 'sovos', 
-        name: 'Sovos (Fit Solutions)', 
-        category: 'efatura', 
-        color: '#7C3AED', 
+    {
+        id: 'sovos',
+        name: 'Sovos (Fit Solutions)',
+        category: 'efatura',
+        color: '#7C3AED',
         gradient: 'from-violet-600 to-purple-700',
         logo: 'S',
         desc: 'Sovos özel entegratör üzerinden saniyeler içinde e-fatura kesme. Küresel uyumlu mali çözümler.',
@@ -422,11 +502,11 @@ const integrations: Integration[] = [
         requirements: ['Sovos Hesabı', 'Entegratör Sözleşmesi']
     },
     // XML / Dropshipping
-    { 
-        id: 'aktifbebek', 
-        name: 'Aktif Bebek', 
-        category: 'xml', 
-        color: '#EC4899', 
+    {
+        id: 'aktifbebek',
+        name: 'Aktif Bebek',
+        category: 'xml',
+        color: '#EC4899',
         gradient: 'from-pink-500 to-rose-600',
         logo: 'AB',
         desc: 'Binlerce bebek ürününü kar marjı ile XML\'den çekin, otomatik güncelleme ve stok takibi.',
@@ -442,11 +522,11 @@ const integrations: Integration[] = [
         price: 'Komisyon Bazlı',
         requirements: ['Aktif Bebek Bayiliği', 'XML Erişimi']
     },
-    { 
-        id: 'dropshipping', 
-        name: 'Genel XML Entegratör', 
-        category: 'xml', 
-        color: '#10B981', 
+    {
+        id: 'dropshipping',
+        name: 'Genel XML Entegratör',
+        category: 'xml',
+        color: '#10B981',
         gradient: 'from-emerald-500 to-teal-600',
         logo: 'XML',
         desc: 'Herhangi bir XML kaynağından ürün çekme, stok ve fiyat senkronizasyonu. Özelleştirilebilir yapı.',
@@ -502,9 +582,9 @@ export default function IntegrationsClient() {
 
     const filteredIntegrations = useMemo(() => {
         return integrations.filter(int => {
-            const matchesSearch = int.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                 int.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                 int.features.some(f => f.toLowerCase().includes(searchQuery.toLowerCase()));
+            const matchesSearch = int.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                int.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                int.features.some(f => f.toLowerCase().includes(searchQuery.toLowerCase()));
             const matchesCategory = activeCategory === 'all' || int.category === activeCategory;
             return matchesSearch && matchesCategory;
         });
@@ -519,7 +599,7 @@ export default function IntegrationsClient() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0B1121] dark:via-[#0F172A] dark:to-[#1E293B] flex flex-col pt-20 relative overflow-hidden transition-colors duration-500">
-            
+
             {/* Animated Background */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" style={{
@@ -527,29 +607,29 @@ export default function IntegrationsClient() {
                     backgroundSize: '32px 32px'
                 }} />
                 {/* Floating Orbs */}
-                <motion.div 
+                <motion.div
                     animate={{ x: [0, 100, 0], y: [0, -50, 0], scale: [1, 1.2, 1] }}
                     transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-orange-500/20 to-pink-500/20 rounded-full blur-[100px]" 
+                    className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-orange-500/20 to-pink-500/20 rounded-full blur-[100px]"
                 />
-                <motion.div 
+                <motion.div
                     animate={{ x: [0, -100, 0], y: [0, 100, 0], scale: [1, 1.3, 1] }}
                     transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-[100px]" 
+                    className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-[100px]"
                 />
-                <motion.div 
+                <motion.div
                     animate={{ x: [0, 50, 0], y: [0, -100, 0] }}
                     transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-primary/10 rounded-full blur-[120px]" 
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-primary/10 rounded-full blur-[120px]"
                 />
             </div>
 
             {/* ==================== HERO SECTION ==================== */}
             <section className="relative pt-16 pb-12 lg:pt-24 lg:pb-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    
+
                     {/* Live Stats Bar */}
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="mb-12"
@@ -557,7 +637,7 @@ export default function IntegrationsClient() {
                         <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-border shadow-xl p-4">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {globalStats.map((stat, idx) => (
-                                    <motion.div 
+                                    <motion.div
                                         key={stat.label}
                                         initial={{ opacity: 0, scale: 0.9 }}
                                         animate={{ opacity: 1, scale: 1 }}
@@ -580,18 +660,18 @@ export default function IntegrationsClient() {
 
                     {/* Hero Content */}
                     <div className="text-center mb-12">
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/20 to-purple-500/20 text-primary rounded-full text-sm font-bold mb-6 border border-primary/20"
                         >
-                            <Zap className="w-4 h-4" /> 
+                            <Zap className="w-4 h-4" />
                             <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
                                 32+ Entegrasyon • 99.9% Uptime
                             </span>
                         </motion.div>
-                        
-                        <motion.h1 
+
+                        <motion.h1
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
@@ -603,19 +683,19 @@ export default function IntegrationsClient() {
                             </span>{' '}
                             Birleştirin
                         </motion.h1>
-                        
-                        <motion.p 
+
+                        <motion.p
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
                             className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto mb-10 leading-relaxed"
                         >
-                            Trendyol, Amazon, Shopify, Paraşüt ve 30+ platform ile anlık senkronizasyon. 
+                            Trendyol, Amazon, Shopify, Paraşüt ve 30+ platform ile anlık senkronizasyon.
                             Stok, sipariş ve fatura yönetimini otomatikleştirin, saatlerce süren işleri saniyelere indirin.
                         </motion.p>
 
                         {/* Search Bar */}
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.3 }}
@@ -623,8 +703,8 @@ export default function IntegrationsClient() {
                         >
                             <div className="relative group">
                                 <Search className="w-6 h-6 text-slate-400 absolute left-6 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors" />
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Entegrasyon ara: Trendyol, Shopify, Paraşüt, kargo..."
@@ -633,7 +713,7 @@ export default function IntegrationsClient() {
                                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                                     <span className="text-xs text-slate-400 hidden sm:block">⌘K</span>
                                     {searchQuery && (
-                                        <button 
+                                        <button
                                             onClick={() => setSearchQuery('')}
                                             className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
                                         >
@@ -642,7 +722,7 @@ export default function IntegrationsClient() {
                                     )}
                                 </div>
                             </div>
-                            
+
                             {/* Quick Tags */}
                             <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
                                 <span className="text-xs text-slate-500">Popüler:</span>
@@ -674,7 +754,7 @@ export default function IntegrationsClient() {
                                 <p className="text-sm text-slate-500">Binlerce işletme tarafından aktif kullanılıyor</p>
                             </div>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {popularIntegrations.map((int, idx) => (
                                 <motion.div
@@ -686,7 +766,7 @@ export default function IntegrationsClient() {
                                     className="group relative bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10 transition-all cursor-pointer overflow-hidden"
                                 >
                                     <div className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${int.gradient} opacity-10 group-hover:opacity-20 blur-3xl transition-opacity`} />
-                                    
+
                                     <div className="flex items-start justify-between mb-4">
                                         <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${int.gradient} flex items-center justify-center text-white font-bold text-xl shadow-lg`}>
                                             {int.logo}
@@ -697,10 +777,10 @@ export default function IntegrationsClient() {
                                             </span>
                                         )}
                                     </div>
-                                    
+
                                     <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-1">{int.name}</h3>
                                     <p className="text-sm text-slate-500 mb-4 line-clamp-2">{int.shortDesc}</p>
-                                    
+
                                     <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
                                         <span className="flex items-center gap-1">
                                             <Users className="w-3 h-3" /> {int.stats.users}
@@ -709,7 +789,7 @@ export default function IntegrationsClient() {
                                             <Star className="w-3 h-3 text-yellow-500" /> {int.rating}
                                         </span>
                                     </div>
-                                    
+
                                     <div className="flex items-center justify-between pt-4 border-t border-border">
                                         <span className="text-xs font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-lg">
                                             {int.price}
@@ -727,7 +807,7 @@ export default function IntegrationsClient() {
             <section className="relative py-12 flex-1">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex flex-col lg:flex-row gap-8">
-                        
+
                         {/* Sidebar */}
                         <aside className="w-full lg:w-80 shrink-0">
                             <div className="sticky top-24 space-y-6">
@@ -743,21 +823,19 @@ export default function IntegrationsClient() {
                                             <button
                                                 key={cat.id}
                                                 onClick={() => setActiveCategory(cat.id)}
-                                                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl font-semibold text-sm transition-all ${
-                                                    activeCategory === cat.id 
-                                                    ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg shadow-primary/25' 
-                                                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                                                }`}
+                                                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl font-semibold text-sm transition-all ${activeCategory === cat.id
+                                                        ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg shadow-primary/25'
+                                                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                                    }`}
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <cat.icon className={`w-5 h-5 ${activeCategory === cat.id ? 'text-white' : 'text-slate-400'}`} />
                                                     {cat.name}
                                                 </div>
-                                                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                                    activeCategory === cat.id 
-                                                    ? 'bg-white/20 text-white' 
-                                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
-                                                }`}>
+                                                <span className={`text-xs px-2 py-0.5 rounded-full ${activeCategory === cat.id
+                                                        ? 'bg-white/20 text-white'
+                                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
+                                                    }`}>
                                                     {cat.count}
                                                 </span>
                                             </button>
@@ -770,7 +848,7 @@ export default function IntegrationsClient() {
                                     <div className="p-4 border-b border-border bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
                                         <div className="flex items-center justify-between">
                                             <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                                                <Activity className="w-4 h-4 text-emerald-500" /> 
+                                                <Activity className="w-4 h-4 text-emerald-500" />
                                                 Canlı Aktivite
                                             </h3>
                                             <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600">
@@ -779,24 +857,23 @@ export default function IntegrationsClient() {
                                             </span>
                                         </div>
                                     </div>
-                                    
+
                                     {/* Activity Filter */}
                                     <div className="flex gap-1 p-2 border-b border-border">
                                         {(['all', 'sync', 'order', 'success'] as const).map(f => (
                                             <button
                                                 key={f}
                                                 onClick={() => setActivityFilter(f)}
-                                                className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-colors ${
-                                                    activityFilter === f 
-                                                    ? 'bg-primary/10 text-primary' 
-                                                    : 'text-slate-400 hover:text-slate-600'
-                                                }`}
+                                                className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-colors ${activityFilter === f
+                                                        ? 'bg-primary/10 text-primary'
+                                                        : 'text-slate-400 hover:text-slate-600'
+                                                    }`}
                                             >
                                                 {f === 'all' ? 'Tümü' : f === 'sync' ? 'Senkron' : f === 'order' ? 'Sipariş' : 'Başarı'}
                                             </button>
                                         ))}
                                     </div>
-                                    
+
                                     <div className="p-3 space-y-2 max-h-80 overflow-y-auto">
                                         <AnimatePresence>
                                             {filteredActivity.map((item) => (
@@ -807,16 +884,15 @@ export default function IntegrationsClient() {
                                                     exit={{ opacity: 0, x: 20 }}
                                                     className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                                                 >
-                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                                                        item.type === 'success' ? 'bg-emerald-100 text-emerald-600' :
-                                                        item.type === 'order' ? 'bg-blue-100 text-blue-600' :
-                                                        item.type === 'sync' ? 'bg-purple-100 text-purple-600' :
-                                                        'bg-red-100 text-red-600'
-                                                    }`}>
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${item.type === 'success' ? 'bg-emerald-100 text-emerald-600' :
+                                                            item.type === 'order' ? 'bg-blue-100 text-blue-600' :
+                                                                item.type === 'sync' ? 'bg-purple-100 text-purple-600' :
+                                                                    'bg-red-100 text-red-600'
+                                                        }`}>
                                                         {item.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> :
-                                                         item.type === 'order' ? <ShoppingCart className="w-4 h-4" /> :
-                                                         item.type === 'sync' ? <RefreshCw className="w-4 h-4" /> :
-                                                         <AlertCircle className="w-4 h-4" />}
+                                                            item.type === 'order' ? <ShoppingCart className="w-4 h-4" /> :
+                                                                item.type === 'sync' ? <RefreshCw className="w-4 h-4" /> :
+                                                                    <AlertCircle className="w-4 h-4" />}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-xs text-slate-700 dark:text-slate-300 leading-snug">{item.message}</p>
@@ -845,7 +921,7 @@ export default function IntegrationsClient() {
                                         {searchQuery ? `"${searchQuery}" için sonuçlar` : 'Tüm entegrasyonları keşfedin'}
                                     </p>
                                 </div>
-                                
+
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => setViewMode('grid')}
@@ -881,16 +957,16 @@ export default function IntegrationsClient() {
                                     <p className="text-slate-500 mb-6 max-w-md mx-auto">
                                         "{searchQuery}" araması için entegrasyon bulamadık. Farklı bir anahtar kelime deneyin veya kategori seçin.
                                     </p>
-                                    <button 
-                                        onClick={() => {setSearchQuery(''); setActiveCategory('all');}}
+                                    <button
+                                        onClick={() => { setSearchQuery(''); setActiveCategory('all'); }}
                                         className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors"
                                     >
                                         Tüm Entegrasyonları Göster
                                     </button>
                                 </div>
                             ) : (
-                                <div className={viewMode === 'grid' 
-                                    ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" 
+                                <div className={viewMode === 'grid'
+                                    ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
                                     : "space-y-4"
                                 }>
                                     <AnimatePresence mode="popLayout">
@@ -903,17 +979,20 @@ export default function IntegrationsClient() {
                                                 transition={{ duration: 0.2, delay: idx * 0.05 }}
                                                 key={int.id}
                                                 onClick={() => setSelectedIntegration(int)}
-                                                className={`group relative bg-white dark:bg-slate-900 border border-border rounded-3xl hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/30 transition-all cursor-pointer overflow-hidden ${
-                                                    viewMode === 'list' ? 'flex items-center gap-6 p-4' : 'flex flex-col p-6'
-                                                }`}
+                                                className={`group relative bg-white dark:bg-slate-900 border border-border rounded-3xl hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/30 transition-all cursor-pointer overflow-hidden ${viewMode === 'list' ? 'flex items-center gap-6 p-4' : 'flex flex-col p-6'
+                                                    }`}
                                             >
                                                 {/* Background Gradient */}
                                                 <div className={`absolute ${viewMode === 'list' ? '-right-10 -top-10' : '-top-20 -right-20'} w-40 h-40 bg-gradient-to-br ${int.gradient} opacity-10 group-hover:opacity-20 blur-3xl transition-opacity`} />
-                                                
+
                                                 {/* Logo */}
                                                 <div className={`${viewMode === 'list' ? 'shrink-0' : ''} relative`}>
-                                                    <div className={`${viewMode === 'list' ? 'w-16 h-16 text-xl' : 'w-14 h-14 text-lg'} rounded-2xl bg-gradient-to-br ${int.gradient} flex items-center justify-center text-white font-bold shadow-lg group-hover:scale-110 transition-transform`}>
-                                                        {int.logo}
+                                                    <div className={`${viewMode === 'list' ? 'w-16 h-16 text-xl' : 'w-14 h-14 text-lg'} rounded-2xl bg-gradient-to-br ${int.gradient} flex items-center justify-center text-white font-bold shadow-lg group-hover:scale-110 transition-transform overflow-hidden`}>
+                                                        {int.logo.startsWith('/') ? (
+                                                            <img src={int.logo} alt={int.name} className="w-full h-full object-contain p-2 bg-white/10" />
+                                                        ) : (
+                                                            int.logo
+                                                        )}
                                                     </div>
                                                     {int.isNew && (
                                                         <span className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
@@ -921,7 +1000,7 @@ export default function IntegrationsClient() {
                                                         </span>
                                                     )}
                                                 </div>
-                                                
+
                                                 {/* Content */}
                                                 <div className={`flex-1 ${viewMode === 'list' ? '' : 'mt-4'}`}>
                                                     <div className="flex items-start justify-between mb-2">
@@ -939,15 +1018,15 @@ export default function IntegrationsClient() {
                                                             </span>
                                                         )}
                                                     </div>
-                                                    
+
                                                     <p className={`text-sm text-slate-600 dark:text-slate-400 mb-4 ${viewMode === 'list' ? 'line-clamp-1' : 'line-clamp-2'}`}>
                                                         {int.desc}
                                                     </p>
-                                                    
+
                                                     {/* Features Pills */}
                                                     <div className={`flex flex-wrap gap-1 mb-4 ${viewMode === 'list' ? 'hidden md:flex' : ''}`}>
                                                         {int.features.slice(0, viewMode === 'list' ? 3 : 4).map((feature, i) => (
-                                                            <span 
+                                                            <span
                                                                 key={i}
                                                                 className="px-2 py-1 text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-md"
                                                             >
@@ -961,7 +1040,7 @@ export default function IntegrationsClient() {
                                                         )}
                                                     </div>
                                                 </div>
-                                                
+
                                                 {/* Footer Stats */}
                                                 <div className={`${viewMode === 'list' ? 'shrink-0 text-right' : 'pt-4 border-t border-border mt-auto'}`}>
                                                     <div className={`flex ${viewMode === 'list' ? 'flex-col items-end gap-2' : 'items-center justify-between'}`}>
@@ -976,7 +1055,7 @@ export default function IntegrationsClient() {
                                                                 <Clock className="w-3 h-3" /> {int.setupTime}
                                                             </span>
                                                         </div>
-                                                        
+
                                                         <div className={`flex items-center gap-3 ${viewMode === 'list' ? '' : ''}`}>
                                                             <span className={`text-xs font-medium ${int.price === 'Ücretsiz' ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30' : 'text-blue-600 bg-blue-50 dark:bg-blue-900/30'} px-2 py-1 rounded-lg`}>
                                                                 {int.price}
@@ -1015,14 +1094,14 @@ export default function IntegrationsClient() {
                                     </h2>
                                     <p className="text-sm text-slate-500">Hangi entegrasyon sizin için uygun? Özellikleri karşılaştırın.</p>
                                 </div>
-                                <button 
+                                <button
                                     onClick={() => setIsComparisonOpen(false)}
                                     className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-border text-slate-500 hover:text-slate-700"
                                 >
                                     ×
                                 </button>
                             </div>
-                            
+
                             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-border shadow-xl overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
@@ -1099,7 +1178,7 @@ export default function IntegrationsClient() {
             {/* ==================== CTA SECTION ==================== */}
             <section className="relative py-16 mt-auto">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         className="relative bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 rounded-[2.5rem] p-8 md:p-12 overflow-hidden"
@@ -1109,7 +1188,7 @@ export default function IntegrationsClient() {
                             <div className="absolute top-0 right-0 w-96 h-96 bg-primary/30 rounded-full blur-[100px]" />
                             <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/30 rounded-full blur-[100px]" />
                         </div>
-                        
+
                         <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
                             <div className="text-center lg:text-left">
                                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-full text-sm font-bold mb-4">
@@ -1119,21 +1198,21 @@ export default function IntegrationsClient() {
                                     Tüm Entegrasyonları Şimdi Deneyin
                                 </h2>
                                 <p className="text-lg text-indigo-200 max-w-xl">
-                                    Kredi kartı gerekmez. 14 gün boyunca tüm özellikleri limitsiz kullanın. 
+                                    Kredi kartı gerekmez. 14 gün boyunca tüm özellikleri limitsiz kullanın.
                                     Beğenmezseniz tek kuruş ödemezsiniz.
                                 </p>
                             </div>
-                            
+
                             <div className="flex flex-col sm:flex-row gap-4">
-                                <Link 
-                                    href="/register" 
+                                <Link
+                                    href="/register"
                                     className="px-8 py-4 bg-white text-slate-900 rounded-2xl font-black hover:bg-slate-100 transition-all shadow-xl shadow-white/20 text-lg flex items-center justify-center gap-2 group"
                                 >
                                     Hemen Başlayın
                                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                 </Link>
-                                <Link 
-                                    href="/iletisim" 
+                                <Link
+                                    href="/iletisim"
                                     className="px-8 py-4 bg-white/10 text-white border-2 border-white/20 rounded-2xl font-bold hover:bg-white/20 transition-all text-lg flex items-center justify-center gap-2"
                                 >
                                     <Phone className="w-5 h-5" />
@@ -1164,13 +1243,13 @@ export default function IntegrationsClient() {
                         >
                             {/* Modal Header */}
                             <div className={`p-8 bg-gradient-to-br ${selectedIntegration.gradient} relative`}>
-                                <button 
+                                <button
                                     onClick={() => setSelectedIntegration(null)}
                                     className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition-colors"
                                 >
                                     ×
                                 </button>
-                                
+
                                 <div className="flex items-center gap-4">
                                     <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center text-3xl font-bold shadow-lg" style={{ color: selectedIntegration.color }}>
                                         {selectedIntegration.logo}
@@ -1180,7 +1259,7 @@ export default function IntegrationsClient() {
                                         <p className="text-white/80">{selectedIntegration.shortDesc}</p>
                                     </div>
                                 </div>
-                                
+
                                 {/* Quick Stats */}
                                 <div className="flex gap-6 mt-6">
                                     <div className="flex items-center gap-2 text-white/90">
@@ -1200,7 +1279,7 @@ export default function IntegrationsClient() {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             {/* Modal Content */}
                             <div className="p-8 space-y-6">
                                 {/* Description */}
@@ -1212,7 +1291,7 @@ export default function IntegrationsClient() {
                                         {selectedIntegration.desc}
                                     </p>
                                 </div>
-                                
+
                                 {/* Features */}
                                 <div>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
@@ -1229,7 +1308,7 @@ export default function IntegrationsClient() {
                                         ))}
                                     </div>
                                 </div>
-                                
+
                                 {/* Requirements */}
                                 <div>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
@@ -1244,17 +1323,17 @@ export default function IntegrationsClient() {
                                         ))}
                                     </ul>
                                 </div>
-                                
+
                                 {/* Actions */}
                                 <div className="flex gap-4 pt-4 border-t border-border">
-                                    <Link 
+                                    <Link
                                         href={`/register?integration=${selectedIntegration.id}`}
                                         className="flex-1 px-6 py-4 bg-primary text-white rounded-2xl font-bold text-center hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
                                     >
                                         <Plug className="w-5 h-5" />
                                         Entegrasyonu Ekle
                                     </Link>
-                                    <Link 
+                                    <Link
                                         href={selectedIntegration.documentation}
                                         className="px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl font-bold hover:bg-slate-200 transition-colors flex items-center gap-2"
                                     >

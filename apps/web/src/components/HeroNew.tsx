@@ -87,17 +87,17 @@ function FloatingParticles() {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            setParticles(Array.from({ length: 40 }, (_, i) => ({
+            setParticles(Array.from({ length: 15 }, (_, i) => ({
                 id: i,
                 x: Math.random() * 100,
                 y: Math.random() * 100,
                 size: Math.random() * 4 + 2,
-                duration: Math.random() * 25 + 20,
-                delay: Math.random() * 10,
-                opacity: Math.random() * 0.4 + 0.15,
-                color: ['bg-emerald-400', 'bg-blue-400', 'bg-purple-400', 'bg-teal-400'][Math.floor(Math.random() * 4)],
+                duration: Math.random() * 20 + 20,
+                delay: Math.random() * 5,
+                opacity: Math.random() * 0.2 + 0.1,
+                color: ['bg-emerald-400', 'bg-blue-400', 'bg-purple-400'][Math.floor(Math.random() * 3)],
             })));
-        }, 0);
+        }, 100);
 
         return () => clearTimeout(timer);
     }, []);
@@ -107,26 +107,16 @@ function FloatingParticles() {
     return (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {particles.map((p) => (
-                <motion.div
+                <div
                     key={p.id}
-                    className={`absolute rounded-full ${p.color} dark:${p.color.replace('400', '500')} blur-[1px]`}
+                    className={`absolute rounded-full ${p.color} blur-[2px] opacity-20`}
                     style={{
                         left: `${p.x}%`,
                         top: `${p.y}%`,
                         width: p.size,
                         height: p.size,
-                    }}
-                    animate={{
-                        y: [-30, 30, -30],
-                        x: [-15, 15, -15],
-                        opacity: [p.opacity, p.opacity * 2.5, p.opacity],
-                        scale: [1, 1.3, 1],
-                    }}
-                    transition={{
-                        duration: p.duration,
-                        repeat: Infinity,
-                        delay: p.delay,
-                        ease: "easeInOut",
+                        animation: `blob-float ${p.duration}s infinite alternate ease-in-out`,
+                        animationDelay: `${p.delay}s`,
                     }}
                 />
             ))}
@@ -375,18 +365,18 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
     };
 
     const fadeUp: Variants = {
-        hidden: { opacity: 0, y: 40, filter: "blur(10px)" },
+        hidden: { opacity: 0, y: 20 },
         visible: {
-            opacity: 1, y: 0, filter: "blur(0px)",
-            transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] },
+            opacity: 1, y: 0,
+            transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
         },
     };
 
     const scaleIn: Variants = {
-        hidden: { opacity: 0, scale: 0.85, filter: "blur(10px)" },
+        hidden: { opacity: 0, scale: 0.95 },
         visible: {
-            opacity: 1, scale: 1, filter: "blur(0px)",
-            transition: { duration: 1, ease: [0.22, 1, 0.36, 1] },
+            opacity: 1, scale: 1,
+            transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
         },
     };
 
@@ -397,95 +387,30 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
             className="relative min-h-screen min-h-[100svh] flex items-center overflow-hidden bg-[#fafbfc] dark:bg-[#030712] transition-colors duration-700 selection:bg-emerald-500/20 overflow-x-hidden"
         >
             {/* ═══════════════════════════════════════════════ */}
-            {/* BACKGROUND SYSTEM (Enhanced with more dynamic effects) */}
+            {/* BACKGROUND SYSTEM (Optimized with CSS) */}
             {/* ═══════════════════════════════════════════════ */}
 
-            {/* Primary gradient mesh */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {/* Main aurora orb - top left */}
-                <motion.div
-                    animate={{
-                        scale: [1, 1.4, 1.2, 1],
-                        opacity: [0.15, 0.28, 0.22, 0.15],
-                        x: [0, 100, 40, 0],
-                        y: [0, -60, 30, 0],
-                    }}
-                    transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -top-[30%] -left-[15%] w-[70vw] h-[70vw] rounded-full will-change-transform"
-                    style={{
-                        background: "radial-gradient(circle, rgba(16,185,129,0.3) 0%, rgba(6,182,212,0.15) 40%, transparent 70%)",
-                        filter: "blur(70px)",
-                        transform: "translate3d(0,0,0)",
-                    }}
+                {/* Main aurora orbs - CSS Animated */}
+                <div 
+                    className="absolute -top-[30%] -left-[15%] w-[70vw] h-[70vw] rounded-full blur-[70px] opacity-15 dark:opacity-20 animate-blob-slow"
+                    style={{ background: "radial-gradient(circle, rgba(16,185,129,0.3) 0%, rgba(6,182,212,0.15) 40%, transparent 70%)" }}
                 />
-                {/* Secondary orb - bottom right */}
-                <motion.div
-                    animate={{
-                        scale: [1.1, 1.5, 1.3, 1.1],
-                        opacity: [0.1, 0.22, 0.15, 0.1],
-                        x: [0, -80, -30, 0],
-                        y: [0, 50, -40, 0],
-                    }}
-                    transition={{ duration: 32, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -bottom-[25%] -right-[15%] w-[65vw] h-[65vw] rounded-full will-change-transform"
-                    style={{
-                        background: "radial-gradient(circle, rgba(59,130,246,0.25) 0%, rgba(139,92,246,0.12) 40%, transparent 70%)",
-                        filter: "blur(90px)",
-                        transform: "translate3d(0,0,0)",
-                    }}
+                <div 
+                    className="absolute -bottom-[25%] -right-[15%] w-[65vw] h-[65vw] rounded-full blur-[90px] opacity-10 dark:opacity-15 animate-blob-slow animation-delay-2000"
+                    style={{ background: "radial-gradient(circle, rgba(59,130,246,0.25) 0%, rgba(139,92,246,0.12) 40%, transparent 70%)" }}
                 />
-                {/* Tertiary orb - center */}
-                <motion.div
-                    animate={{
-                        scale: [1, 1.3, 1],
-                        opacity: [0.08, 0.18, 0.08],
-                        rotate: [0, 180, 360],
-                    }}
-                    transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                    className="absolute top-[15%] left-[40%] w-[50vw] h-[50vw] rounded-full will-change-transform"
-                    style={{
-                        background: "radial-gradient(ellipse, rgba(168,85,247,0.15) 0%, transparent 60%)",
-                        filter: "blur(100px)",
-                        transform: "translate3d(0,0,0)",
-                    }}
-                />
-                {/* Quaternary orb - pink accent */}
-                <motion.div
-                    animate={{
-                        scale: [0.8, 1.2, 0.9, 0.8],
-                        opacity: [0.05, 0.12, 0.08, 0.05],
-                        x: [0, -40, 20, 0],
-                        y: [0, 30, -20, 0],
-                    }}
-                    transition={{ duration: 36, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-[40%] right-[10%] w-[40vw] h-[40vw] rounded-full will-change-transform"
-                    style={{
-                        background: "radial-gradient(circle, rgba(236,72,153,0.12) 0%, rgba(244,114,182,0.06) 40%, transparent 70%)",
-                        filter: "blur(80px)",
-                        transform: "translate3d(0,0,0)",
-                    }}
-                />
-
+                
                 {/* Spotlight from top */}
-                <motion.div
-                    animate={{
-                        opacity: [0.08, 0.12, 0.08],
-                    }}
-                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-0 left-1/2 -translate-x-1/2 w-[120vw] h-[60vh]"
-                    style={{
-                        background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(16,185,129,0.1) 0%, transparent 100%)",
-                    }}
+                <div 
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-[120vw] h-[60vh] opacity-10"
+                    style={{ background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(16,185,129,0.1) 0%, transparent 100%)" }}
                 />
             </div>
 
-            {/* Grid pattern with subtle animation */}
-            <motion.div
-                animate={{
-                    opacity: [0.025, 0.04, 0.025],
-                }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute inset-0 pointer-events-none dark:opacity-[0.04]"
+            {/* Grid pattern */}
+            <div 
+                className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05]"
                 style={{
                     backgroundImage: `linear-gradient(rgba(100,116,139,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(100,116,139,0.5) 1px, transparent 1px)`,
                     backgroundSize: "64px 64px",
@@ -505,9 +430,10 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
             {/* Radial vignette */}
             <div className="absolute inset-0 pointer-events-none"
                 style={{
-                    background: "radial-gradient(ellipse 80% 60% at 50% 50%, transparent 40%, rgba(3,7,18,0.15) 100%)",
+                    background: "radial-gradient(ellipse 80% 60% at 50% 50%, transparent 40%, rgba(3,7,18,0.1) 100%)",
                 }}
             />
+
 
             {/* ═══════════════════════════════════════════════ */}
             {/* MAIN CONTENT                                   */}

@@ -36,10 +36,20 @@ const brands = [
     { name: "Salesforce", logo: "/images/pazaryeri/Salesforce.png" },
     { name: "Oracle Commerce", logo: "/images/pazaryeri/oracle-commerce-cloud.webp" },
     { name: "SAP Commerce", logo: "/images/pazaryeri/sap-commerce-cloud.webp" },
+    { name: "Paraşüt", logo: "/images/muhasebe/parasut.png" },
+    { name: "BirFatura", logo: "/images/muhasebe/birfatura.png" },
+    { name: "Logo Yazılım", logo: "/images/muhasebe/logo.png" },
+    { name: "EDM Bilişim", logo: "/images/muhasebe/edm.png" },
+    { name: "Mikro Yazılım", logo: "/images/muhasebe/mikro.png" },
+    { name: "Zirve Yazılım", logo: "/images/muhasebe/zirve.png" },
+    { name: "Yurtiçi Kargo", logo: "/images/kargo/yurtici.png" },
+    { name: "Aras Kargo", logo: "/images/kargo/aras.png" },
+    { name: "MNG Kargo", logo: "/images/kargo/mng.png" },
+    { name: "PTT Kargo", logo: "/images/kargo/ptt.png" },
 ];
 
-const row1 = brands.slice(0, 15);
-const row2 = brands.slice(15);
+const row1 = brands.slice(0, Math.ceil(brands.length / 2));
+const row2 = brands.slice(Math.ceil(brands.length / 2));
 
 export default function SocialProof() {
     return (
@@ -157,7 +167,7 @@ function BrandLogo({ brand }: { brand: { name: string; logo: string } }) {
             <motion.div 
                 whileHover={{ scale: 1.05, y: -5 }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="relative p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-slate-200 dark:hover:border-white/10 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300"
+                className="relative p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-slate-200 dark:hover:border-white/10 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300"
             >
                 <motion.div
                     whileHover={{ rotate: [0, -5, 5, -5, 0] }}
@@ -168,7 +178,7 @@ function BrandLogo({ brand }: { brand: { name: string; logo: string } }) {
                         alt={brand.name}
                         width={120}
                         height={32}
-                        className="h-6 sm:h-8 w-auto max-w-[100px] sm:max-w-[120px] object-contain transition-all duration-300 grayscale group-hover:grayscale-0 group-hover:scale-110 opacity-60 group-hover:opacity-100"
+                        className="h-6 sm:h-8 w-auto max-w-[100px] sm:max-w-[120px] object-contain transition-all duration-300 grayscale group-hover:grayscale-0 group-hover:scale-110 opacity-40 dark:opacity-70 group-hover:opacity-100 dark:group-hover:opacity-100"
                     />
                 </motion.div>
                 {/* Glow effect on hover */}

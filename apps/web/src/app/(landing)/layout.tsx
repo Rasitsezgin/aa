@@ -1,7 +1,8 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import FloatingCTA from "@/components/FloatingCTA";
-import ExitIntentPopup from "@/components/ExitIntentPopup";
+
+import DynamicPopupSystem from "@/components/DynamicPopupSystem";
 import LiveChatWidget from "@/components/LiveChatWidget";
 
 export default function LandingLayout({
@@ -17,7 +18,7 @@ export default function LandingLayout({
 
             {/* Floating Components */}
             <FloatingCTA />
-            <ExitIntentPopup delay={10000} />
+            <DynamicPopupSystem />
             <LiveChatWidget />
         </div>
     );

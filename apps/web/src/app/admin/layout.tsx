@@ -42,6 +42,7 @@ const navigation = [
     { name: 'İçerik', href: '/admin/blog', icon: FileText },
     { name: 'Forum', href: '/admin/forum', icon: MessageSquare },
     { name: 'Bildirimler', href: '/admin/notifications', icon: Bell },
+    { name: 'Popuplar', href: '/admin/popups', icon: Zap },
     { name: 'Entegrasyonlar', href: '/admin/integrations', icon: Globe },
     { name: 'Modüller', href: '/admin/modules', icon: Layers },
     { name: 'Güvenlik', href: '/admin/security', icon: ShieldIcon },

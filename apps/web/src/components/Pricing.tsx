@@ -44,7 +44,7 @@ export default function Pricing({ texts = HOMEPAGE_TEXTS.pricing }: { texts?: ty
                     {/* Toggle Switch */}
                     <div className="flex items-center justify-center gap-4">
                         <motion.span 
-                            animate={{ color: !isAnnual ? 'rgb(15,23,42)' : 'rgb(100,116,139)' }}
+                            animate={{ color: !isAnnual ? 'var(--foreground)' : 'var(--text-secondary)' }}
                             className={`text-sm font-bold transition-colors ${!isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}
                         >Aylık</motion.span>
                         <motion.button
@@ -60,7 +60,7 @@ export default function Pricing({ texts = HOMEPAGE_TEXTS.pricing }: { texts?: ty
                             />
                         </motion.button>
                         <motion.span 
-                            animate={{ color: isAnnual ? 'rgb(15,23,42)' : 'rgb(100,116,139)' }}
+                            animate={{ color: isAnnual ? 'var(--foreground)' : 'var(--text-secondary)' }}
                             className={`text-sm font-bold transition-colors ${isAnnual ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}
                         >
                             Yıllık <motion.span 
