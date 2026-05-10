@@ -12,13 +12,6 @@ RUN apt-get update && \
     libgif-dev \
     libpng-dev \
     librsvg2-dev \
-    libpixman-1-0 \
-    libcairo2 \
-    libpango-1.0-0 \
-    libjpeg62-turbo \
-    libgif7 \
-    libpng16-16 \
-    librsvg2-2 \
     && rm -rf /var/lib/apt/lists/*
 RUN npm install -g turbo
 
@@ -57,7 +50,7 @@ ENV DATABASE_URL=$DATABASE_URL
 RUN cd packages/database && npx prisma generate
 
 # Build the project
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV NODE_OPTIONS="--max-old-space-size=3072"
 RUN npx turbo run build --filter=@pazaryonetimi/web
 
 # Prune dev dependencies
