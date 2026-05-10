@@ -116,7 +116,6 @@ export const metadata: Metadata = {
     canonical: 'https://pazaryonetimi.com',
     languages: {
       'tr-TR': 'https://pazaryonetimi.com',
-      'en-US': 'https://pazaryonetimi.com/en',
     },
   },
   category: 'business',

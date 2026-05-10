@@ -35,7 +35,13 @@
         "chokidar": "3.6.0",
         "is-number": "7.0.0",
         "is-binary-path": "2.1.0",
-        "defaults": "1.0.4"
+        "defaults": "1.0.4",
+        "@nestjs/common": "^11.0.1",
+        "@nestjs/core": "^11.0.1",
+        "@nestjs/platform-express": "^11.0.1",
+        "@nestjs/schedule": "^5.0.0",
+        "prisma": "^6.4.1",
+        "@prisma/client": "^6.4.1"
     },
     "optionalDependencies": {
         "@next/swc-linux-arm64-gnu": "latest",
@@ -46,9 +52,7 @@
         "lightningcss-linux-arm64-musl": "latest"
     },
     "dependencies": {
-        "@nestjs/common": "^11.0.1",
-        "@nestjs/core": "^11.0.1",
-        "@prisma/adapter-pg": "^7.5.0",
+        "@prisma/adapter-pg": "^6.4.1",
         "@sentry/nextjs": "^10.49.0",
         "@upstash/redis": "^1.37.0",
         "ioredis": "^5.10.1",

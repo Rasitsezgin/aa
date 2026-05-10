@@ -2,16 +2,6 @@ FROM node:22-slim AS base
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
-    build-essential \
-    python3 \
-    pkg-config \
-    libpixman-1-dev \
-    libcairo2-dev \
-    libpango1.0-dev \
-    libjpeg-dev \
-    libgif-dev \
-    libpng-dev \
-    librsvg2-dev \
     libnss3 \
     libatk1.0-0 \
     libatk-bridge2.0-0 \
@@ -96,6 +86,6 @@ EXPOSE 3001
 
 # Start the application with an automatic database sync
 # Start the application with an automatic database sync and detailed logging
-CMD ["sh", "-c", "echo '>>> Starting Database Synchronization...'; cd packages/database && npx prisma db push; SYNC_CODE=$?; if [ $SYNC_CODE -eq 0 ]; then echo '>>> Database Synchronization successful.'; else echo '>>> Database Synchronization failed with exit code '$SYNC_CODE'. Check your DATABASE_URL.'; fi; cd ../.. && node apps/api/dist/main.js"]
+CMD ["sh", "-c", "cd packages/database && npx prisma db push --accept-data-loss && cd ../.. && node apps/api/dist/main.js"]
 
 

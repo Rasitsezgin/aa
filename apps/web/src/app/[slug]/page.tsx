@@ -44,6 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
 
     return {
+      metadataBase: new URL('https://pazaryonetimi.com'),
       title: page.metaTitle || page.title,
       description: page.metaDescription || page.description,
       keywords: page.metaKeywords,
@@ -53,9 +54,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           }
         : undefined,
       robots: page.noIndex ? { index: false, follow: false } : undefined,
-      alternates: page.canonicalUrl
-        ? { canonical: page.canonicalUrl }
-        : undefined,
+      alternates: {
+        canonical: page.canonicalUrl || `https://pazaryonetimi.com/${page.slug}`,
+      },
     };
   } catch (error) {
     console.error('[CMS] generateMetadata database error:', error);

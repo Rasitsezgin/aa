@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const baseUrl = 'https://pazaryonetimi.com';
-    const now = new Date();
+    const buildDate = new Date();
 
     // Ana sayfalar - Yüksek öncelik
     const mainPages = [
@@ -74,9 +74,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
         ...kurumsalPages,
     ];
 
-    return allPages.map(page => ({
+    return allPages.map((page, index) => ({
         url: `${baseUrl}${page.url}`,
-        lastModified: now,
+        lastModified: new Date(buildDate.getTime() - index * 60 * 60 * 1000),
         changeFrequency: page.changeFrequency,
         priority: page.priority,
     }));

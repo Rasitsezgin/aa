@@ -18,6 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
     }
 
     return {
+      metadataBase: new URL("https://pazaryonetimi.com"),
       title: page.metaTitle || page.title,
       description: page.metaDescription || page.description,
       keywords: page.metaKeywords,
