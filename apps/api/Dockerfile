@@ -40,8 +40,8 @@ RUN npm install --no-save napi-postinstall && \
 # Copy pruned source code
 COPY --from=pruner /app/out/full/ .
 
-# Generate Prisma Client from root to ensure it's available to all packages
-RUN npx -y prisma generate --schema=packages/database/prisma/schema.prisma
+# Generate Prisma Client using local binary to avoid auto-install attempts
+RUN ./node_modules/.bin/prisma generate --schema=packages/database/prisma/schema.prisma
 
 # Build the project
 ENV NODE_OPTIONS="--max-old-space-size=3072"
@@ -69,9 +69,10 @@ COPY --from=pruner /app/out/package-lock.json ./package-lock.json
 # Install production dependencies
 RUN npm install --omit=dev --legacy-peer-deps
 
-# Copy Prisma Client from builder
+# Copy Prisma Client and binaries from builder
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
 # Copy built artifacts
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
@@ -84,8 +85,7 @@ USER nestjs
 ENV NODE_PATH=/app/node_modules
 EXPOSE 3001
 
-# Start the application with an automatic database sync
-# Start the application with an automatic database sync and detailed logging
-CMD ["sh", "-c", "cd packages/database && npx prisma db push --accept-data-loss && npm run db:seed && cd ../.. && node apps/api/dist/main.js"]
+# Start the application with an automatic database sync and seeding
+CMD ["sh", "-c", "./node_modules/.bin/prisma db push --schema=packages/database/prisma/schema.prisma --accept-data-loss && cd packages/database && npm run db:seed && cd ../.. && node apps/api/dist/main.js"]
 
 

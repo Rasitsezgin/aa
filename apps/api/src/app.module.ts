@@ -1,9 +1,9 @@
-import { Module } from '@nestjs/common';
-import { DiscoveryModule } from '@nestjs/core';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { DiscoveryModule, APP_GUARD, Reflector } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
-import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
@@ -59,8 +59,6 @@ import { ScrapingModule } from './modules/scraping/scraping.module';
 import { SearchModule } from './modules/search/search.module';
 import { EmailModule } from './modules/email/email.module';
 import { AIAssistantModule } from './modules/ai-assistant/ai-assistant.module';
-import { MiddlewareConsumer, NestModule } from '@nestjs/common';
-import { ScheduleModule } from '@nestjs/schedule';
 import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
 import { CleanupService } from './common/services/cleanup.service';
 
@@ -163,6 +161,7 @@ function getBullConnection() {
   providers: [
     AppService,
     CleanupService,
+    Reflector,
     // Global JWT auth guard
     {
       provide: APP_GUARD,

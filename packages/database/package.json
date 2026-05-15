@@ -21,13 +21,13 @@
     "db:reset": "npx prisma db push --force-reset && npx tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "^6.4.1",
-    "@prisma/config": "^6.4.1",
+    "@prisma/client": "6.4.1",
+    "@prisma/config": "6.4.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.10.7",
     "bcryptjs": "^3.0.3",
     "dotenv": "^16.4.7",
-    "prisma": "^6.4.1",
+    "prisma": "6.4.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2"
   },
