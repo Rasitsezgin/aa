@@ -85,6 +85,8 @@ function getBullConnection() {
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
+    DiscoveryModule,
     ConfigModule.forRoot({ isGlobal: true }),
     // Redis Cache
     CacheModule.register({
@@ -92,9 +94,6 @@ function getBullConnection() {
       ttl: 300000, // 5 dakika default TTL
       max: 1000, // Maksimum 1000 öğe
     }),
-    DiscoveryModule,
-    // Schedule module for cron jobs
-    ScheduleModule.forRoot(),
     ...(schedulerEnabled
       ? [
           BullModule.forRootAsync({
@@ -161,7 +160,6 @@ function getBullConnection() {
   providers: [
     AppService,
     CleanupService,
-    Reflector,
     // Global JWT auth guard
     {
       provide: APP_GUARD,
