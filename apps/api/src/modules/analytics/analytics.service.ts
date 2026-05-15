@@ -128,7 +128,7 @@ export class AnalyticsService {
           _avg: { totalAmount: true },
         }),
         this.prisma.product.count({
-          where: { tenantId, isActive: true },
+          where: { tenantId, status: 'active' },
         }),
         this.getAiMetrics(tenantId),
       ]);
@@ -637,11 +637,15 @@ export class AnalyticsService {
       const priceRecs = await this.pricingService.getPriceRecommendations(tenantId);
       priceRecs.recommendations.slice(0, 2).forEach(rec => {
         insights.push({
-          type: 'Fiyat Optimizasyonu',
-          message: `${rec.sku}: ${rec.reason}. Önerilen: ₺${rec.recommendedPrice}`,
-          priority: Math.abs(rec.changePercent) > 10 ? 'HIGH' : 'NORMAL',
-          action: 'Fiyatı Güncelle',
-          link: `/products/${rec.productId}/pricing`
+          id: `pricing-opt-${rec.productId}`,
+          type: 'pricing',
+          priority: Math.abs(rec.changePercent) > 10 ? 'high' : 'medium',
+          title: 'Fiyat Optimizasyonu Önerisi',
+          description: `${rec.sku}: ${rec.reason}. Önerilen: ₺${rec.recommendedPrice}`,
+          impact: `Marj Etkisi: %${rec.changePercent}`,
+          confidence: 85,
+          actions: ['Fiyatı Güncelle'],
+          createdAt: new Date(),
         });
       });
     } catch (e) {

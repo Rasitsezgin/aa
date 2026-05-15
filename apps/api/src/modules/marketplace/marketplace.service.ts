@@ -8,6 +8,7 @@ import {
   UnprocessableEntityException,
   Inject,
   forwardRef,
+  Scope,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { ScrapingService } from '../scraping/scraping.service';

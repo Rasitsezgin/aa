@@ -84,6 +84,7 @@ export interface OrderFilters {
 }
 
 @Injectable()
+export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
 
   constructor(

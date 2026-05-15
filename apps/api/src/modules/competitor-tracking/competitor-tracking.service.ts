@@ -52,7 +52,7 @@ export class CompetitorTrackingService {
             where: { id: cp.id },
             data: { 
               price: newPrice,
-              lastChecked: new Date()
+              lastCheckedAt: new Date()
             }
           });
         } catch (error) {

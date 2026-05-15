@@ -71,8 +71,8 @@ export class EInvoiceService {
           apiUrl: creds.apiUrl || '',
           apiKey: creds.apiKey || '',
           apiSecret: creds.apiSecret || '',
-          username: creds.username,
-          password: creds.password,
+          username: (creds.apiExtra as any)?.username || '',
+          password: (creds.apiExtra as any)?.password || '',
         };
       }
     }
