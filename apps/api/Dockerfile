@@ -86,6 +86,6 @@ EXPOSE 3001
 
 # Start the application with an automatic database sync
 # Start the application with an automatic database sync and detailed logging
-CMD ["sh", "-c", "cd packages/database && npx prisma db push --accept-data-loss && cd ../.. && node apps/api/dist/main.js"]
+CMD ["sh", "-c", "cd packages/database && npx prisma db push --accept-data-loss && npm run db:seed && cd ../.. && node apps/api/dist/main.js"]
 
 
