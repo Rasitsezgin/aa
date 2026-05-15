@@ -39,6 +39,7 @@
     "@nestjs/throttler": "^6.5.0",
     "@nestjs/websockets": "^11.0.1",
     "@pazaryonetimi/database": "*",
+    "@prisma/client": "^6.4.1",
     "@sentry/nestjs": "^10.42.0",
     "@sentry/node": "^10.42.0",
     "@types/cheerio": "^0.22.35",

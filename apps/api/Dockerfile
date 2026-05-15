@@ -40,8 +40,8 @@ RUN npm install --no-save napi-postinstall && \
 # Copy pruned source code
 COPY --from=pruner /app/out/full/ .
 
-# Generate Prisma Client
-RUN cd packages/database && npx prisma generate
+# Generate Prisma Client from root to ensure it's available to all packages
+RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 
 # Build the project
 ENV NODE_OPTIONS="--max-old-space-size=3072"
