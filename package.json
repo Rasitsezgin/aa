@@ -19,6 +19,7 @@
     },
     "devDependencies": {
         "@prisma/config": "^7.4.2",
+        "prisma": "^6.4.1",
         "turbo": "latest"
     },
     "overrides": {
