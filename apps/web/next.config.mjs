@@ -11,6 +11,7 @@ const nextConfig = {
   },
   // Enable SWC minification for smaller bundles (default true, explicitly set)
   swcMinify: true,
+  serverExternalPackages: ['@pazaryonetimi/database', 'pg'],
   experimental: {
     // Package import optimization for better tree-shaking
     optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion'],
