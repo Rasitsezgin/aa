@@ -2,16 +2,6 @@ FROM node:22-slim AS base
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ca-certificates \
-    build-essential \
-    python3 \
-    pkg-config \
-    libpixman-1-dev \
-    libcairo2-dev \
-    libpango1.0-dev \
-    libjpeg-dev \
-    libgif-dev \
-    libpng-dev \
-    librsvg2-dev \
     && rm -rf /var/lib/apt/lists/*
 RUN npm install -g turbo
 
@@ -33,8 +23,7 @@ RUN npm install --legacy-peer-deps --ignore-scripts
 
 # Handle special native modules
 RUN npm install --no-save napi-postinstall && \
-    if [ -d node_modules/unrs-resolver ]; then npm rebuild unrs-resolver; fi && \
-    if [ -d node_modules/canvas ]; then npm rebuild canvas; fi
+    if [ -d node_modules/unrs-resolver ]; then npm rebuild unrs-resolver; fi
 
 # Copy pruned source code
 COPY --from=pruner /app/out/full/ .
@@ -47,7 +36,7 @@ ARG NEXTAUTH_SECRET
 ENV DATABASE_URL=$DATABASE_URL
 
 # Generate Prisma Client
-RUN cd packages/database && npx prisma generate
+RUN cd packages/database && npm run prisma:generate
 
 # Build the project
 ENV NODE_OPTIONS="--max-old-space-size=3072"

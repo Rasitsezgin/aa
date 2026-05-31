@@ -11,8 +11,8 @@
     }
   },
   "scripts": {
-    "build": "npx prisma generate && tsc",
-    "prisma:generate": "npx prisma generate",
+    "build": "prisma generate && tsc",
+    "prisma:generate": "prisma generate",
     "generate": "npm run prisma:generate",
     "db:push": "npx prisma db push",
     "db:migrate": "npx prisma migrate dev",
