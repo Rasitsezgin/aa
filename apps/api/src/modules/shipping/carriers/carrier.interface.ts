@@ -11,8 +11,10 @@ export interface ShipmentRequest {
 
 export interface AddressInfo {
   name: string;
+  fullName?: string;
   phone: string;
   address: string;
+  addressLine?: string;
   city: string;
   district: string;
   postalCode?: string;

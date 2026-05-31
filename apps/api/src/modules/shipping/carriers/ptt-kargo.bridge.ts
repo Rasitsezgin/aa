@@ -39,8 +39,8 @@ export class PttKargoBridge implements CarrierBridge {
             <ptt:kullanici>${this.apiUser}</ptt:kullanici>
             <ptt:sifre>${this.apiPassword}</ptt:sifre>
             <ptt:gonderi>
-              <ptt:alici_adi>${request.receiverAddress.fullName}</ptt:alici_adi>
-              <ptt:alici_adresi>${request.receiverAddress.addressLine}</ptt:alici_adresi>
+              <ptt:alici_adi>${request.receiverAddress.fullName || request.receiverAddress.name}</ptt:alici_adi>
+              <ptt:alici_adresi>${request.receiverAddress.addressLine || request.receiverAddress.address}</ptt:alici_adresi>
               <ptt:alici_il>${request.receiverAddress.city}</ptt:alici_il>
               <ptt:agirlik>${request.weight}</ptt:agirlik>
             </ptt:gonderi>

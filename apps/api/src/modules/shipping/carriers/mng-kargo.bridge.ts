@@ -32,8 +32,8 @@ export class MngKargoBridge implements CarrierBridge {
           <mng:SiparisGirisi>
             <mng:pUser>${this.apiToken}</mng:pUser>
             <mng:pSiparisNo>${Date.now()}</mng:pSiparisNo>
-            <mng:pAliciAdi>${request.receiverAddress.fullName}</mng:pAliciAdi>
-            <mng:pAliciAdres>${request.receiverAddress.addressLine}</mng:pAliciAdres>
+            <mng:pAliciAdi>${request.receiverAddress.fullName || request.receiverAddress.name}</mng:pAliciAdi>
+            <mng:pAliciAdres>${request.receiverAddress.addressLine || request.receiverAddress.address}</mng:pAliciAdres>
             <mng:pAliciSehir>${request.receiverAddress.city}</mng:pAliciSehir>
           </mng:SiparisGirisi>
         </soapenv:Body>

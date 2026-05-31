@@ -42,8 +42,8 @@ export class ArasKargoBridge implements CarrierBridge {
             <ser:UserName>${this.apiUser}</ser:UserName>
             <ser:Password>${this.apiPassword}</ser:Password>
             <ser:Order>
-              <ser:ReceiverName>${request.receiverAddress.fullName}</ser:ReceiverName>
-              <ser:ReceiverAddress>${request.receiverAddress.addressLine}</ser:ReceiverAddress>
+              <ser:ReceiverName>${request.receiverAddress.fullName || request.receiverAddress.name}</ser:ReceiverName>
+              <ser:ReceiverAddress>${request.receiverAddress.addressLine || request.receiverAddress.address}</ser:ReceiverAddress>
               <ser:ReceiverCity>${request.receiverAddress.city}</ser:ReceiverCity>
               <ser:Weight>${request.weight}</ser:Weight>
             </ser:Order>

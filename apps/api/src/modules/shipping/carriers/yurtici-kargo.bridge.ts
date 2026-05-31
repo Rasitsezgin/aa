@@ -41,8 +41,8 @@ export class YurticiKargoBridge implements CarrierBridge {
             <ship:password>${this.apiPassword}</ship:password>
             <ship:shippingOrderVO>
               <ship:cargoKey>${Date.now()}</ship:cargoKey>
-              <ship:receiverCustName>${request.receiverAddress.fullName}</ship:receiverCustName>
-              <ship:receiverAddress>${request.receiverAddress.addressLine}</ship:receiverAddress>
+              <ship:receiverCustName>${request.receiverAddress.fullName || request.receiverAddress.name}</ship:receiverCustName>
+              <ship:receiverAddress>${request.receiverAddress.addressLine || request.receiverAddress.address}</ship:receiverAddress>
               <ship:cityName>${request.receiverAddress.city}</ship:cityName>
             </ship:shippingOrderVO>
           </ship:createShipment>
