@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import PricingContent from '../../../components/admin/PricingContent';
-import { getPricingCatalog } from '@/actions/pricing-settings';
+import { getPricingCatalog } from '@/lib/pricing';
 
 export const dynamic = 'force-dynamic';
 

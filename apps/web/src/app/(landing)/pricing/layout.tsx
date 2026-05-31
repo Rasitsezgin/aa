@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/config/seo-metadata';
-import { getPricingCatalog } from '@/actions/pricing-settings';
+import { getPricingCatalog } from '@/lib/pricing';
 import { formatTryAmount } from '@/config/pricing-catalog';
 
 export const dynamic = 'force-dynamic';

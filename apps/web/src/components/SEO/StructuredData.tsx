@@ -1,6 +1,6 @@
 import Script from 'next/script';
 import { headers } from 'next/headers';
-import { getPricingCatalog } from '@/actions/pricing-settings';
+import { getPricingCatalog } from '@/lib/pricing';
 import { DEFAULT_PRICING_CATALOG, formatTryAmount } from '@/config/pricing-catalog';
 
 export default async function StructuredData() {
