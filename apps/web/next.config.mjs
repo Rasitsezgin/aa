@@ -6,11 +6,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  // Enable SWC minification for smaller bundles (default true, explicitly set)
-  swcMinify: true,
   serverExternalPackages: ['@pazaryonetimi/database', 'pg', 'bcryptjs'],
   experimental: {
     // Package import optimization for better tree-shaking
