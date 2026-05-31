@@ -68,9 +68,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 // Dinamik CMS sayfası
 export default async function CmsPage({ params }: PageProps) {
+  let page = null;
   try {
     const { slug } = await params;
-    const page = await prisma.page.findUnique({
+    page = await prisma.page.findUnique({
       where: {
         slug,
         isActive: true,
@@ -89,9 +90,13 @@ export default async function CmsPage({ params }: PageProps) {
         },
       },
     });
+  } catch (error) {
+    console.error('[CMS] CmsPage database error:', error);
+    notFound();
+  }
 
-    if (!page) {
-      notFound();
+  if (!page) {
+    notFound();
   }
 
   // Transform Prisma data to match expected types (convert null to undefined)
@@ -115,8 +120,4 @@ export default async function CmsPage({ params }: PageProps) {
       <CmsPageRenderer page={transformedPage} />
     </main>
   );
-  } catch (error) {
-    console.error('[CMS] CmsPage database error:', error);
-    notFound();
-  }
 }
