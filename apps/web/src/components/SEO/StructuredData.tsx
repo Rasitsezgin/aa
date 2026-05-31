@@ -222,8 +222,16 @@ export default async function StructuredData() {
     };
 
     // 5. BreadcrumbList Schema (Dynamic)
-    const headerList = await headers();
-    const pathname = headerList.get('x-pathname') || '/';
+    let pathname = '/';
+    const isBuildTime = process.env.NEXT_PHASE?.includes('build');
+    if (!isBuildTime) {
+        try {
+            const headerList = await headers();
+            pathname = headerList.get('x-pathname') || '/';
+        } catch {
+            // Fallback for static generation / build time
+        }
+    }
     const pathParts = pathname.split('/').filter(Boolean);
     
     const breadcrumbItems = [
