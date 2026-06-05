@@ -33,8 +33,8 @@ COPY --from=pruner /app/out/package-lock.json ./package-lock.json
 # Install all dependencies (including dev for building)
 RUN npm install --legacy-peer-deps --ignore-scripts
 
-# Handle special native modules if they exist
-RUN npm install --no-save napi-postinstall && \
+# Handle special native modules if they exist (--ignore-scripts: prisma schema not copied yet)
+RUN npm install --no-save napi-postinstall --ignore-scripts && \
     if [ -d node_modules/unrs-resolver ]; then npm rebuild unrs-resolver; fi
 
 # Copy pruned source code
@@ -66,8 +66,8 @@ RUN mkdir -p /home/nestjs/.puppeteer_data && chown -R nestjs:nodejs /home/nestjs
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/package-lock.json ./package-lock.json
 
-# Install production dependencies
-RUN npm install --omit=dev --legacy-peer-deps
+# Install production dependencies (--ignore-scripts: prisma runs after schema is copied)
+RUN npm install --omit=dev --legacy-peer-deps --ignore-scripts
 
 # Prisma CLI + runtime deps
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client

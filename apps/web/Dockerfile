@@ -21,8 +21,8 @@ COPY --from=pruner /app/out/package-lock.json ./package-lock.json
 # Install dependencies
 RUN npm install --legacy-peer-deps --ignore-scripts
 
-# Handle special native modules
-RUN npm install --no-save napi-postinstall && \
+# Handle special native modules (--ignore-scripts: prisma schema not copied yet)
+RUN npm install --no-save napi-postinstall --ignore-scripts && \
     if [ -d node_modules/unrs-resolver ]; then npm rebuild unrs-resolver; fi
 
 # Copy pruned source code
