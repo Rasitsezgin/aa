@@ -36,7 +36,7 @@ const apiCategories = [
         category: "Siparişler",
         icon: ShoppingCart,
         color: 'blue',
-        gradient: 'from-blue-500 to-cyan-500',
+        gradient: 'from-orange-500 to-amber-500',
         description: 'Sipariş yönetimi endpointleri',
         endpoints: [
             { method: "GET", path: "/api/v1/orders", description: "Tüm siparişleri listele", auth: true, rateLimit: "1000/dk" },
@@ -100,7 +100,7 @@ const apiCategories = [
         category: "Webhooks",
         icon: Webhook,
         color: 'indigo',
-        gradient: 'from-indigo-500 to-violet-500',
+        gradient: 'from-amber-500 to-violet-500',
         description: 'Webhook yönetimi',
         endpoints: [
             { method: "GET", path: "/api/v1/webhooks", description: "Tüm webhook'ları listele", auth: true, rateLimit: "500/dk" },
@@ -336,7 +336,7 @@ export default function APIDocsPage() {
     const getMethodColor = (method: string) => {
         switch (method) {
             case 'GET': return 'bg-emerald-500 text-white';
-            case 'POST': return 'bg-blue-500 text-white';
+            case 'POST': return 'bg-orange-500 text-white';
             case 'PUT': return 'bg-amber-500 text-white';
             case 'PATCH': return 'bg-purple-500 text-white';
             case 'DELETE': return 'bg-red-500 text-white';
@@ -366,7 +366,7 @@ export default function APIDocsPage() {
                     backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
                     backgroundSize: '32px 32px'
                 }} />
-                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-indigo-500/10 dark:bg-indigo-500/5 blur-[150px] rounded-full" />
+                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-orange-500/10 dark:bg-orange-500/5 blur-[150px] rounded-full" />
                 <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-500/10 dark:bg-purple-500/5 blur-[150px] rounded-full" />
                 {/* Code lines decoration */}
                 <div className="absolute top-40 left-10 text-slate-200 dark:text-slate-800 text-xs font-mono opacity-50 hidden lg:block">
@@ -386,15 +386,15 @@ export default function APIDocsPage() {
                     <motion.div 
                         initial={{ scale: 0.9 }}
                         animate={{ scale: 1 }}
-                        className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 border border-indigo-200 dark:border-indigo-800 rounded-full mb-6"
+                        className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/40 dark:to-amber-900/40 border border-orange-200 dark:border-orange-800 rounded-full mb-6"
                     >
-                        <Code className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                        <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300 tracking-wide">API Dokümantasyon v2.4</span>
+                        <Code className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                        <span className="text-sm font-bold text-orange-700 dark:text-orange-300 tracking-wide">API Dokümantasyon v2.4</span>
                     </motion.div>
                     
                     <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-slate-900 dark:text-white tracking-tight mb-6">
                         <span className="block">Güçlü &</span>
-                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-500 to-pink-500">
+                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-purple-500 to-pink-500">
                             Esnek API
                         </span>
                     </h1>
@@ -406,7 +406,7 @@ export default function APIDocsPage() {
 
                     {/* Action Buttons */}
                     <div className="flex flex-wrap justify-center gap-4 mb-10">
-                        <Link href="/dashboard/settings/api" className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/25">
+                        <Link href="/dashboard/settings/api" className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-500 transition-all shadow-lg shadow-orange-500/25">
                             <Key size={18} /> API Anahtarı Al
                         </Link>
                         <a href="https://api.pazaryonetimi.com/playground" target="_blank" className="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-white/10 border-2 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-white/20 transition-all">
@@ -427,7 +427,7 @@ export default function APIDocsPage() {
                             placeholder="Endpoint ara... (örn: /products, sipariş, stok)"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-14 pr-6 py-4 bg-white dark:bg-white/5 border-2 border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 dark:focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all shadow-lg shadow-slate-200/50 dark:shadow-none"
+                            className="w-full pl-14 pr-6 py-4 bg-white dark:bg-white/5 border-2 border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all shadow-lg shadow-slate-200/50 dark:shadow-none"
                         />
                         {searchQuery && (
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">
@@ -464,11 +464,11 @@ export default function APIDocsPage() {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="p-6 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800"
+                            className="p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border border-orange-200 dark:border-orange-800"
                         >
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
-                                    <Lock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center">
+                                    <Lock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                                 </div>
                                 <h3 className="font-bold text-slate-900 dark:text-white">Kimlik Doğrulama</h3>
                             </div>
@@ -480,7 +480,7 @@ export default function APIDocsPage() {
                                     Authorization: Bearer YOUR_API_KEY
                                 </code>
                             </div>
-                            <Link href="/dashboard/settings/api" className="mt-4 inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-medium text-sm hover:underline">
+                            <Link href="/dashboard/settings/api" className="mt-4 inline-flex items-center gap-2 text-orange-600 dark:text-orange-400 font-medium text-sm hover:underline">
                                 API Anahtarı Oluştur <ArrowRight size={14} />
                             </Link>
                         </motion.div>
@@ -596,7 +596,7 @@ export default function APIDocsPage() {
                                     <tab.icon size={16} />
                                     {tab.label}
                                     {tab.count && (
-                                        <span className="px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs rounded-full">
+                                        <span className="px-1.5 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs rounded-full">
                                             {tab.count}
                                         </span>
                                     )}
@@ -703,7 +703,7 @@ export default function APIDocsPage() {
                                         >
                                             <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-purple-500 flex items-center justify-center">
                                                         <sdk.icon className="w-6 h-6 text-white" />
                                                     </div>
                                                     <div>
@@ -712,7 +712,7 @@ export default function APIDocsPage() {
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400">v{sdk.version}</div>
+                                                    <div className="text-sm font-bold text-orange-600 dark:text-orange-400">v{sdk.version}</div>
                                                     <div className="text-xs text-slate-400">{sdk.downloads} indirme</div>
                                                 </div>
                                             </div>
@@ -741,10 +741,10 @@ export default function APIDocsPage() {
                                 animate={{ opacity: 1 }}
                                 className="space-y-6"
                             >
-                                <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800">
+                                <div className="p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border border-orange-200 dark:border-orange-800">
                                     <div className="flex items-start gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
-                                            <Webhook className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                                        <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center">
+                                            <Webhook className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-slate-900 dark:text-white mb-2">Webhook Nedir?</h3>
@@ -768,7 +768,7 @@ export default function APIDocsPage() {
                                             className="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:shadow-md transition-shadow"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <code className="px-3 py-1 bg-slate-100 dark:bg-slate-900/50 rounded-lg text-sm font-mono text-indigo-600 dark:text-indigo-400">
+                                                <code className="px-3 py-1 bg-slate-100 dark:bg-slate-900/50 rounded-lg text-sm font-mono text-orange-600 dark:text-orange-400">
                                                     {event.event}
                                                 </code>
                                             </div>
@@ -803,7 +803,7 @@ export default function APIDocsPage() {
                                             key={lang}
                                             onClick={() => setSelectedLang(lang)}
                                             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${selectedLang === lang
-                                                ? 'bg-indigo-600 text-white'
+                                                ? 'bg-orange-600 text-white'
                                                 : 'text-slate-400 hover:text-white'
                                             }`}
                                         >
@@ -834,7 +834,7 @@ export default function APIDocsPage() {
                                             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${responseTab === tab
                                                 ? tab === 'success' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                                                 : tab === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                                : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
                                                 : 'text-slate-400 hover:text-slate-700 dark:hover:text-white'
                                             }`}
                                         >
@@ -902,7 +902,7 @@ export default function APIDocsPage() {
                     className="mt-20 relative p-10 md:p-16 rounded-3xl overflow-hidden"
                 >
                     {/* Background */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-600 via-purple-600 to-pink-600" />
                     <div className="absolute inset-0 opacity-20" style={{
                         backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
                     }} />
@@ -917,7 +917,7 @@ export default function APIDocsPage() {
                             Demo talep edin veya doğrudan destek alın.
                         </p>
                         <div className="flex flex-wrap justify-center gap-4">
-                            <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition-colors shadow-lg">
+                            <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-orange-600 rounded-xl font-bold hover:bg-orange-50 transition-colors shadow-lg">
                                 <Send size={18} /> İletişime Geç
                             </Link>
                             <Link href="/destek" className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 text-white border border-white/20 rounded-xl font-bold hover:bg-white/20 transition-colors">

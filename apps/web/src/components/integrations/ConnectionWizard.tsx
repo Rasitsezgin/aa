@@ -87,7 +87,7 @@ const WizardInput: React.FC<{
           className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border rounded-xl transition-colors ${
             error
               ? 'border-red-500 focus:ring-red-500'
-              : 'border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500'
+              : 'border-gray-200 dark:border-gray-700 focus:border-orange-500 focus:ring-orange-500'
           }`}
         >
           <option value="">Seçiniz...</option>
@@ -128,7 +128,7 @@ const WizardInput: React.FC<{
           className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border rounded-xl transition-colors resize-none ${
             error
               ? 'border-red-500 focus:ring-red-500'
-              : 'border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500'
+              : 'border-gray-200 dark:border-gray-700 focus:border-orange-500 focus:ring-orange-500'
           }`}
         />
         {field.helpText && (
@@ -164,7 +164,7 @@ const WizardInput: React.FC<{
           className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border rounded-xl transition-colors pr-12 ${
             error
               ? 'border-red-500 focus:ring-red-500'
-              : 'border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500'
+              : 'border-gray-200 dark:border-gray-700 focus:border-orange-500 focus:ring-orange-500'
           }`}
         />
         {isPassword && (
@@ -208,7 +208,7 @@ const StepIndicator: React.FC<{ steps: typeof WIZARD_STEPS; currentStep: number 
             index < currentStep
               ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
               : index === currentStep
-                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
                 : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500'
           }`}
         >
@@ -379,7 +379,7 @@ export const ConnectionWizard: React.FC<ConnectionWizardProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto mb-8">
               <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-                <Globe className="w-6 h-6 mx-auto mb-2 text-blue-500" />
+                <Globe className="w-6 h-6 mx-auto mb-2 text-orange-500" />
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {marketplace.apiType} API
                 </p>
@@ -398,14 +398,14 @@ export const ConnectionWizard: React.FC<ConnectionWizardProps> = ({
               </div>
             </div>
 
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 max-w-lg mx-auto">
+            <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-800 max-w-lg mx-auto">
               <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <Info className="w-5 h-5 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
                 <div className="text-left">
-                  <p className="font-medium text-blue-800 dark:text-blue-200 mb-1">
+                  <p className="font-medium text-blue-800 dark:text-orange-200 mb-1">
                     Gerekli Bilgiler
                   </p>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <p className="text-sm text-orange-700 dark:text-orange-300">
                     Bu entegrasyon için {marketplace.name} satıcı panelinizden API bilgilerinizi
                     almanız gerekmektedir.
                   </p>
@@ -413,7 +413,7 @@ export const ConnectionWizard: React.FC<ConnectionWizardProps> = ({
                     href={marketplace.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                    className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-orange-600 dark:text-orange-400 hover:underline"
                   >
                     <ExternalLink className="w-4 h-4" />
                     Satıcı Paneline Git
@@ -498,7 +498,7 @@ export const ConnectionWizard: React.FC<ConnectionWizardProps> = ({
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                  className="w-20 h-20 mx-auto mb-6 rounded-full border-4 border-blue-200 border-t-blue-600 dark:border-blue-800 dark:border-t-blue-400"
+                  className="w-20 h-20 mx-auto mb-6 rounded-full border-4 border-orange-200 border-t-orange-600 dark:border-orange-800 dark:border-t-blue-400"
                 />
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                   Bağlantı Test Ediliyor
@@ -642,9 +642,9 @@ export const ConnectionWizard: React.FC<ConnectionWizardProps> = ({
               transition={{ delay: 0.7 }}
               className="grid grid-cols-2 gap-4 max-w-md mx-auto"
             >
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                <FileText className="w-6 h-6 mx-auto mb-2 text-blue-600 dark:text-blue-400" />
-                <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+              <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
+                <FileText className="w-6 h-6 mx-auto mb-2 text-orange-600 dark:text-orange-400" />
+                <p className="text-sm font-medium text-blue-800 dark:text-orange-200">
                   Ürünleri İçe Aktar
                 </p>
               </div>

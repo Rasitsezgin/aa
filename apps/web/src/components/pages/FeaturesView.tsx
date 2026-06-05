@@ -20,11 +20,11 @@ const FEATURES_DATA = {
     ],
     categories: [
         { id: 'ai', name: 'Yapay Zeka', icon: Brain, color: 'from-purple-500 to-pink-500' },
-        { id: 'inventory', name: 'Stok Yönetimi', icon: Package, color: 'from-blue-500 to-cyan-500' },
+        { id: 'inventory', name: 'Stok Yönetimi', icon: Package, color: 'from-orange-500 to-amber-500' },
         { id: 'pricing', name: 'Fiyatlandırma', icon: DollarSign, color: 'from-green-500 to-emerald-500' },
         { id: 'analytics', name: 'Analitik', icon: BarChart3, color: 'from-orange-500 to-amber-500' },
         { id: 'automation', name: 'Otomasyon', icon: Zap, color: 'from-red-500 to-rose-500' },
-        { id: 'integration', name: 'Entegrasyonlar', icon: Layers, color: 'from-indigo-500 to-violet-500' },
+        { id: 'integration', name: 'Entegrasyonlar', icon: Layers, color: 'from-amber-500 to-violet-500' },
     ],
     features: {
         ai: [
@@ -267,7 +267,7 @@ export default function FeaturesView({ data }: { data: any }) {
                     backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
                     backgroundSize: '32px 32px'
                 }} />
-                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-[150px]" />
+                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-orange-500/10 dark:bg-orange-500/5 rounded-full blur-[150px]" />
                 <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-500/10 dark:bg-purple-500/5 rounded-full blur-[150px]" />
             </div>
 
@@ -279,10 +279,10 @@ export default function FeaturesView({ data }: { data: any }) {
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-500/10 dark:to-purple-500/10 border border-blue-100 dark:border-blue-500/20 rounded-full mb-8"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-50 to-purple-50 dark:from-orange-500/10 dark:to-purple-500/10 border border-orange-100 dark:border-orange-500/20 rounded-full mb-8"
                         >
-                            <Sparkles size={16} className="text-blue-600 dark:text-blue-400" />
-                            <span className="text-sm font-bold text-blue-700 dark:text-blue-300">50.000+ Satıcı Tarafından Tercih Ediliyor</span>
+                            <Sparkles size={16} className="text-orange-600 dark:text-orange-400" />
+                            <span className="text-sm font-bold text-orange-700 dark:text-orange-300">50.000+ Satıcı Tarafından Tercih Ediliyor</span>
                         </motion.div>
 
                         {/* Title */}
@@ -293,7 +293,7 @@ export default function FeaturesView({ data }: { data: any }) {
                             className="text-5xl md:text-7xl lg:text-8xl font-black text-slate-900 dark:text-white tracking-tight mb-8 leading-[0.95]"
                         >
                             {hero.title}
-                            <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                            <span className="block bg-gradient-to-r from-orange-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                                 Tek Platformda.
                             </span>
                         </motion.h1>
@@ -315,14 +315,14 @@ export default function FeaturesView({ data }: { data: any }) {
                             transition={{ delay: 0.3 }}
                             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20"
                         >
-                            <Link href="/signup" className="group relative px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-lg overflow-hidden shadow-2xl hover:shadow-blue-500/25 transition-all hover:scale-105">
+                            <Link href="/signup" className="group relative px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-lg overflow-hidden shadow-2xl hover:shadow-orange-500/25 transition-all hover:scale-105">
                                 <span className="relative z-10 flex items-center gap-2">
                                     Ücretsiz Başla
                                     <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
                                 </span>
                             </Link>
                             <button className="group flex items-center gap-3 px-8 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10 transition-all">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-purple-500 flex items-center justify-center">
                                     <Play size={16} className="text-white ml-0.5" />
                                 </div>
                                 Demo İzle
@@ -337,8 +337,8 @@ export default function FeaturesView({ data }: { data: any }) {
                             className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
                         >
                             {FEATURES_DATA.stats.map((stat, i) => (
-                                <div key={i} className="p-6 bg-white dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10 hover:border-blue-200 dark:hover:border-blue-500/30 transition-all group">
-                                    <stat.icon className="w-8 h-8 text-blue-600 dark:text-blue-400 mb-4 group-hover:scale-110 transition-transform" />
+                                <div key={i} className="p-6 bg-white dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/10 hover:border-orange-200 dark:hover:border-orange-500/30 transition-all group">
+                                    <stat.icon className="w-8 h-8 text-orange-600 dark:text-orange-400 mb-4 group-hover:scale-110 transition-transform" />
                                     <div className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-1">{stat.value}</div>
                                     <div className="text-sm text-slate-500 dark:text-slate-400 font-medium">{stat.label}</div>
                                 </div>
@@ -372,7 +372,7 @@ export default function FeaturesView({ data }: { data: any }) {
                             viewport={{ once: true }}
                             className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-4"
                         >
-                            Her İhtiyaca <span className="text-blue-600">Bir Çözüm</span>
+                            Her İhtiyaca <span className="text-orange-600">Bir Çözüm</span>
                         </motion.h2>
                         <motion.p
                             initial={{ opacity: 0, y: 20 }}
@@ -419,7 +419,7 @@ export default function FeaturesView({ data }: { data: any }) {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: i * 0.1 }}
-                                    className="group relative p-8 bg-white dark:bg-white/[0.02] rounded-3xl border border-slate-100 dark:border-white/5 hover:border-blue-200 dark:hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500"
+                                    className="group relative p-8 bg-white dark:bg-white/[0.02] rounded-3xl border border-slate-100 dark:border-white/5 hover:border-orange-200 dark:hover:border-orange-500/30 hover:shadow-2xl hover:shadow-orange-500/10 transition-all duration-500"
                                 >
                                     {/* Glow Effect */}
                                     <div className={`absolute inset-0 bg-gradient-to-br ${FEATURES_DATA.categories.find(c => c.id === activeCategory)?.color} opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-500`} />
@@ -430,7 +430,7 @@ export default function FeaturesView({ data }: { data: any }) {
                                                 <feature.icon size={24} className="text-white" />
                                             </div>
                                             {'demo' in feature && feature.demo && (
-                                                <span className="px-3 py-1 bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 text-xs font-bold rounded-full">
+                                                <span className="px-3 py-1 bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 text-xs font-bold rounded-full">
                                                     Demo Mevcut
                                                 </span>
                                             )}
@@ -454,7 +454,7 @@ export default function FeaturesView({ data }: { data: any }) {
 
                                         {/* Learn More */}
                                         <div className="mt-6 pt-6 border-t border-slate-100 dark:border-white/5">
-                                            <button className="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400 hover:gap-3 transition-all">
+                                            <button className="flex items-center gap-2 text-sm font-bold text-orange-600 dark:text-orange-400 hover:gap-3 transition-all">
                                                 Daha Fazla Bilgi
                                                 <ChevronRight size={16} />
                                             </button>
@@ -477,7 +477,7 @@ export default function FeaturesView({ data }: { data: any }) {
                             viewport={{ once: true }}
                             className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-4"
                         >
-                            Tüm Pazaryerleri <span className="text-blue-600">Tek Çatı Altında</span>
+                            Tüm Pazaryerleri <span className="text-orange-600">Tek Çatı Altında</span>
                         </motion.h2>
                         <motion.p
                             initial={{ opacity: 0, y: 20 }}
@@ -498,7 +498,7 @@ export default function FeaturesView({ data }: { data: any }) {
                             {[...FEATURES_DATA.integrations, ...FEATURES_DATA.integrations].map((integration, i) => (
                                 <div
                                     key={i}
-                                    className="flex-shrink-0 w-48 h-24 bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center justify-center p-4 hover:border-blue-300 dark:hover:border-blue-500/30 hover:shadow-lg transition-all"
+                                    className="flex-shrink-0 w-48 h-24 bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center justify-center p-4 hover:border-orange-300 dark:hover:border-orange-500/30 hover:shadow-lg transition-all"
                                 >
                                     <Image
                                         src={integration.logo}
@@ -524,7 +524,7 @@ export default function FeaturesView({ data }: { data: any }) {
                             viewport={{ once: true }}
                             className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-4"
                         >
-                            Müşterilerimiz <span className="text-blue-600">Ne Diyor?</span>
+                            Müşterilerimiz <span className="text-orange-600">Ne Diyor?</span>
                         </motion.h2>
                     </div>
 
@@ -536,7 +536,7 @@ export default function FeaturesView({ data }: { data: any }) {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: i * 0.1 }}
-                                className="p-8 bg-white dark:bg-white/[0.02] rounded-3xl border border-slate-100 dark:border-white/5 hover:border-blue-200 dark:hover:border-blue-500/30 hover:shadow-xl transition-all"
+                                className="p-8 bg-white dark:bg-white/[0.02] rounded-3xl border border-slate-100 dark:border-white/5 hover:border-orange-200 dark:hover:border-orange-500/30 hover:shadow-xl transition-all"
                             >
                                 {/* Stars */}
                                 <div className="flex gap-1 mb-6">
@@ -552,7 +552,7 @@ export default function FeaturesView({ data }: { data: any }) {
 
                                 {/* Author */}
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-purple-500 flex items-center justify-center text-white font-bold">
                                         {testimonial.avatar}
                                     </div>
                                     <div>
@@ -576,7 +576,7 @@ export default function FeaturesView({ data }: { data: any }) {
                             viewport={{ once: true }}
                             className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-4"
                         >
-                            Standart vs <span className="text-blue-600">Premium</span>
+                            Standart vs <span className="text-orange-600">Premium</span>
                         </motion.h2>
                     </div>
 
@@ -584,7 +584,7 @@ export default function FeaturesView({ data }: { data: any }) {
                         <div className="grid grid-cols-3 p-8 border-b border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
                             <div className="col-span-1 text-sm font-bold text-slate-400 uppercase tracking-widest py-4">ÖZELLİKLER</div>
                             <div className="col-span-1 text-center text-xl font-black text-slate-900 dark:text-white">Standart</div>
-                            <div className="col-span-1 text-center text-xl font-black text-blue-600">Premium</div>
+                            <div className="col-span-1 text-center text-xl font-black text-orange-600">Premium</div>
                         </div>
                         {[
                             { name: 'Pazaryeri Entegrasyonu', standard: '2 Adet', premium: 'Sınırsız' },
@@ -600,12 +600,12 @@ export default function FeaturesView({ data }: { data: any }) {
                                 <div className="col-span-1 font-bold text-slate-700 dark:text-slate-300 flex items-center">{feat.name}</div>
                                 <div className="col-span-1 text-center font-medium text-slate-500 dark:text-slate-400 flex justify-center items-center">
                                     {typeof feat.standard === 'boolean' ? (
-                                        feat.standard ? <CheckCircle className="w-6 h-6 text-blue-500" /> : <span className="text-slate-300">—</span>
+                                        feat.standard ? <CheckCircle className="w-6 h-6 text-orange-500" /> : <span className="text-slate-300">—</span>
                                     ) : feat.standard}
                                 </div>
                                 <div className="col-span-1 text-center font-bold text-slate-900 dark:text-white flex justify-center items-center">
                                     {typeof feat.premium === 'boolean' ? (
-                                        feat.premium ? <CheckCircle className="w-6 h-6 text-blue-600" /> : <span>—</span>
+                                        feat.premium ? <CheckCircle className="w-6 h-6 text-orange-600" /> : <span>—</span>
                                     ) : feat.premium}
                                 </div>
                             </div>
@@ -621,17 +621,17 @@ export default function FeaturesView({ data }: { data: any }) {
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="relative overflow-hidden rounded-[3rem] bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 p-12 md:p-20 text-center"
+                        className="relative overflow-hidden rounded-[3rem] bg-gradient-to-br from-slate-900 via-orange-900 to-amber-900 p-12 md:p-20 text-center"
                     >
                         {/* Background Elements */}
                         <div className="absolute inset-0 opacity-30">
-                            <div className="absolute top-0 left-0 w-64 h-64 bg-blue-500 rounded-full blur-[100px]" />
+                            <div className="absolute top-0 left-0 w-64 h-64 bg-orange-500 rounded-full blur-[100px]" />
                             <div className="absolute bottom-0 right-0 w-64 h-64 bg-purple-500 rounded-full blur-[100px]" />
                         </div>
 
                         <div className="relative z-10">
                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full mb-8">
-                                <Rocket size={16} className="text-blue-400" />
+                                <Rocket size={16} className="text-orange-400" />
                                 <span className="text-sm font-bold text-white/80">14 Gün Ücretsiz Deneyin</span>
                             </div>
 

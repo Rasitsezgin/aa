@@ -42,8 +42,8 @@ export default function FAQ({ texts = HOMEPAGE_TEXTS.faq }: { texts?: typeof HOM
                     backgroundSize: '24px 24px'
                 }} />
                 {/* Ambient Glows */}
-                <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[400px] h-[600px] bg-blue-500/5 dark:bg-blue-500/10 blur-[150px] rounded-full" />
-                <div className="absolute top-1/4 right-0 w-[300px] h-[400px] bg-indigo-500/5 dark:bg-indigo-500/10 blur-[120px] rounded-full" />
+                <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[400px] h-[600px] bg-orange-500/5 dark:bg-orange-500/10 blur-[150px] rounded-full" />
+                <div className="absolute top-1/4 right-0 w-[300px] h-[400px] bg-orange-500/5 dark:bg-orange-500/10 blur-[120px] rounded-full" />
             </div>
 
             <div className="container mx-auto px-6 max-w-4xl relative z-10">
@@ -53,7 +53,7 @@ export default function FAQ({ texts = HOMEPAGE_TEXTS.faq }: { texts?: typeof HOM
                         whileInView={{ opacity: 1, y: 0 }}
                         className="inline-flex items-center gap-2 px-4 py-1.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full mb-6 shadow-sm dark:shadow-none"
                     >
-                        <HelpCircle size={14} className="text-blue-500" />
+                        <HelpCircle size={14} className="text-orange-500" />
                         <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-[0.2em]">{texts.badge}</span>
                     </motion.div>
                     <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-6 text-slate-900 dark:text-white">
@@ -70,8 +70,8 @@ export default function FAQ({ texts = HOMEPAGE_TEXTS.faq }: { texts?: typeof HOM
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                             className={`rounded-[24px] border transition-all duration-300 overflow-hidden ${openIndex === i
-                                ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30 shadow-xl shadow-blue-500/5'
-                                : 'bg-white dark:bg-slate-900/40 border-slate-200 dark:border-white/10 hover:border-blue-200 dark:hover:border-blue-500/30 hover:shadow-lg'
+                                ? 'bg-orange-50 dark:bg-orange-500/10 border-orange-200 dark:border-orange-500/30 shadow-xl shadow-orange-500/5'
+                                : 'bg-white dark:bg-slate-900/40 border-slate-200 dark:border-white/10 hover:border-orange-200 dark:hover:border-orange-500/30 hover:shadow-lg'
                                 }`}
                         >
                             <motion.button
@@ -81,15 +81,15 @@ export default function FAQ({ texts = HOMEPAGE_TEXTS.faq }: { texts?: typeof HOM
                             >
                                 <motion.span 
                                     animate={{ color: openIndex === i ? 'rgb(37,99,235)' : 'rgb(15,23,42)' }}
-                                    className={`font-bold text-lg transition-colors ${openIndex === i ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                                    className={`font-bold text-lg transition-colors ${openIndex === i ? 'text-orange-600 dark:text-orange-400' : 'text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400'
                                     }`}
                                 >{faq.q}</motion.span>
                                 <motion.div 
                                     animate={{ rotate: openIndex === i ? 180 : 0 }}
                                     transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                                     className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${openIndex === i
-                                        ? 'bg-blue-500 text-white'
-                                        : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/20'
+                                        ? 'bg-orange-500 text-white'
+                                        : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 group-hover:bg-orange-100 dark:group-hover:bg-orange-500/20'
                                         }`}
                                 >
                                     <Plus size={18} className={openIndex === i ? 'rotate-45' : ''} />
@@ -109,7 +109,7 @@ export default function FAQ({ texts = HOMEPAGE_TEXTS.faq }: { texts?: typeof HOM
                                             initial={{ opacity: 0, y: -10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.1, duration: 0.3 }}
-                                            className="px-8 pb-6 text-slate-600 dark:text-slate-300 leading-relaxed border-t border-blue-100 dark:border-blue-500/20 pt-4"
+                                            className="px-8 pb-6 text-slate-600 dark:text-slate-300 leading-relaxed border-t border-orange-100 dark:border-orange-500/20 pt-4"
                                         >
                                             {faq.a}
                                         </motion.div>

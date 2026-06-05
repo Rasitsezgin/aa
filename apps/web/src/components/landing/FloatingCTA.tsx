@@ -56,7 +56,7 @@ export function FloatingCTA() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full shadow-lg shadow-blue-500/30 font-bold text-sm hover:shadow-xl hover:shadow-blue-500/40 transition-shadow"
+              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-full shadow-lg shadow-orange-500/30 font-bold text-sm hover:shadow-xl hover:shadow-orange-500/40 transition-shadow"
             >
               <Zap className="w-4 h-4" />
               <span className="hidden sm:inline">Ücretsiz Dene</span>

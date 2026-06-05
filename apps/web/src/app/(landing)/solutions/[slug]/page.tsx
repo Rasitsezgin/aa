@@ -64,7 +64,7 @@ const solutions: Record<string, {
         metaDescription: 'Elektronik ürün satışına özel garanti takibi, seri numara yönetimi ve teknik özellik listeleme çözümleri.',
         heroTitle: 'Elektronik Ürün\nSatışında Mükemmellik',
         heroSubtitle: 'Garanti belgesi, seri numara takibi ve teknik özellik yönetimi ile elektronik e-ticaretinizi profesyonelleştirin.',
-        gradient: 'from-blue-600 via-cyan-600 to-teal-600',
+        gradient: 'from-orange-600 via-cyan-600 to-teal-600',
         icon: '💻',
         stats: [
             { label: 'Garanti Takibi', value: 'Otomatik' },
@@ -239,7 +239,7 @@ const solutions: Record<string, {
         metaDescription: 'B2B ve B2C satışı birlikte yönetin. Toptan fiyatlandırma, bayi yönetimi ve hacim bazlı indirim çözümleri.',
         heroTitle: 'B2B ve B2C\nBirlikte Yönetin',
         heroSubtitle: 'Toptan ve perakende satışınızı tek platformdan yönetin. Bayi portali, hacim indirimleri ve farklı fiyat listeleri ile toptancılığınızı dijitalleştirin.',
-        gradient: 'from-teal-600 via-cyan-600 to-blue-600',
+        gradient: 'from-teal-600 via-cyan-600 to-amber-600',
         icon: '🏭',
         stats: [
             { label: 'Fiyat Listesi', value: 'Sınırsız' },
@@ -274,7 +274,7 @@ const solutions: Record<string, {
         metaDescription: 'E-ticarete yeni başlayanlar için kolay kurulum, hazır şablonlar ve 7/24 destek.',
         heroTitle: 'Sıfırdan Başlayın,\nHızla Büyüyün',
         heroSubtitle: 'Karmaşık sistemlerle uğraşmadan, kolay kurulum ve kullanım ile e-ticaret dünyasına güçlü bir giriş yapın.',
-        gradient: 'from-blue-500 via-cyan-500 to-teal-500',
+        gradient: 'from-orange-500 via-cyan-500 to-teal-500',
         icon: '🚀',
         stats: [
             { label: 'Kurulum Süresi', value: '1 Gün' },

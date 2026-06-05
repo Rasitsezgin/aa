@@ -73,13 +73,13 @@ export function StepsSection({
               className="relative"
             >
               <div className="bg-slate-50 rounded-2xl p-8 h-full">
-                <div className="text-4xl font-bold text-blue-200 mb-4">{step.number}</div>
+                <div className="text-4xl font-bold text-orange-200 mb-4">{step.number}</div>
                 <h3 className="text-xl font-bold mb-2">{step.title}</h3>
                 <p className="text-slate-600">{step.description}</p>
               </div>
               {index < steps.length - 1 && (
                 <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                  <Check className="text-blue-500" size={24} />
+                  <Check className="text-orange-500" size={24} />
                 </div>
               )}
             </motion.div>

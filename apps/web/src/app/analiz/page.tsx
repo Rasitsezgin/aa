@@ -96,29 +96,29 @@ const PLATFORM_LOGOS: Record<string, { logo: string; name: string; color: string
     'N11': { logo: '/images/pazaryeri/N11.png', name: 'N11', color: 'from-purple-500 to-pink-500' },
     'CICEKSEPETI': { logo: '/images/pazaryeri/ciceksepeti.png', name: 'Çiçeksepeti', color: 'from-pink-500 to-red-500' },
     'ETSY': { logo: '/images/pazaryeri/Etsy.png', name: 'Etsy', color: 'from-orange-600 to-red-600' },
-    'EBAY': { logo: '/images/pazaryeri/EBay.png', name: 'eBay', color: 'from-blue-500 to-yellow-500' },
+    'EBAY': { logo: '/images/pazaryeri/EBay.png', name: 'eBay', color: 'from-orange-500 to-yellow-500' },
     'SHOPIFY': { logo: '/images/pazaryeri/Shopify.png', name: 'Shopify', color: 'from-green-500 to-emerald-500' },
     'WOOCOMMERCE': { logo: '/images/pazaryeri/WooCommerce.png', name: 'WooCommerce', color: 'from-purple-600 to-violet-600' },
     'TIKTOK': { logo: '/images/pazaryeri/tiktok-shop.png', name: 'TikTok Shop', color: 'from-slate-900 to-pink-500' },
-    'FACEBOOK': { logo: '/images/pazaryeri/facebook-marketplace.png', name: 'Facebook Marketplace', color: 'from-blue-600 to-blue-500' },
+    'FACEBOOK': { logo: '/images/pazaryeri/facebook-marketplace.png', name: 'Facebook Marketplace', color: 'from-orange-600 to-amber-500' },
     'INSTAGRAM': { logo: '/images/pazaryeri/Insta_Logo.webp', name: 'Instagram Shop', color: 'from-purple-500 via-pink-500 to-orange-500' },
     'PINTEREST': { logo: '/images/pazaryeri/pinterest.webp', name: 'Pinterest', color: 'from-red-600 to-red-500' },
-    'WALMART': { logo: '/images/pazaryeri/walmart.png', name: 'Walmart', color: 'from-blue-500 to-yellow-400' },
+    'WALMART': { logo: '/images/pazaryeri/walmart.png', name: 'Walmart', color: 'from-orange-500 to-yellow-400' },
     'SALESFORCE': { logo: '/images/pazaryeri/Salesforce.png', name: 'Salesforce Commerce', color: 'from-blue-400 to-cyan-500' },
     'MAGENTO': { logo: '/images/pazaryeri/magento.png', name: 'Magento', color: 'from-orange-500 to-red-500' },
     'PRESTASHOP': { logo: '/images/pazaryeri/prestashop.webp', name: 'PrestaShop', color: 'from-pink-500 to-purple-500' },
-    'OPENCART': { logo: '/images/pazaryeri/opencart.webp', name: 'OpenCart', color: 'from-blue-500 to-cyan-400' },
+    'OPENCART': { logo: '/images/pazaryeri/opencart.webp', name: 'OpenCart', color: 'from-orange-500 to-cyan-400' },
     'BIGCOMMERCE': { logo: '/images/pazaryeri/bigcommerce.webp', name: 'BigCommerce', color: 'from-slate-700 to-slate-900' },
     'VTEX': { logo: '/images/pazaryeri/VTEX_logo.png', name: 'VTEX', color: 'from-pink-500 to-red-500' },
-    'IDEASOFT': { logo: '/images/pazaryeri/ideasoft-logo.webp', name: 'IdeaSoft', color: 'from-blue-500 to-indigo-600' },
+    'IDEASOFT': { logo: '/images/pazaryeri/ideasoft-logo.webp', name: 'IdeaSoft', color: 'from-orange-500 to-amber-600' },
     'IKAS': { logo: '/images/pazaryeri/ikas.png', name: 'ikas', color: 'from-purple-600 to-pink-500' },
-    'TICIMAX': { logo: '/images/pazaryeri/ticimax.webp', name: 'Ticimax', color: 'from-blue-600 to-purple-600' },
+    'TICIMAX': { logo: '/images/pazaryeri/ticimax.webp', name: 'Ticimax', color: 'from-orange-600 to-purple-600' },
     'TSOFT': { logo: '/images/pazaryeri/tsoft.webp', name: 'T-Soft', color: 'from-red-500 to-orange-500' },
     'FAPRIKA': { logo: '/images/pazaryeri/faprika.png', name: 'Faprika', color: 'from-orange-500 to-amber-500' },
     'PLATINMARKET': { logo: '/images/pazaryeri/platinmarketlogo.png', name: 'PlatinMarket', color: 'from-yellow-500 to-amber-600' },
-    'AKINON': { logo: '/images/pazaryeri/akinon.webp', name: 'Akinon', color: 'from-indigo-500 to-purple-600' },
-    'INVEON': { logo: '/images/pazaryeri/inveon.webp', name: 'Inveon', color: 'from-blue-500 to-cyan-500' },
-    'SAP': { logo: '/images/pazaryeri/sap-commerce-cloud.webp', name: 'SAP Commerce Cloud', color: 'from-blue-600 to-cyan-500' },
+    'AKINON': { logo: '/images/pazaryeri/akinon.webp', name: 'Akinon', color: 'from-amber-500 to-purple-600' },
+    'INVEON': { logo: '/images/pazaryeri/inveon.webp', name: 'Inveon', color: 'from-orange-500 to-amber-500' },
+    'SAP': { logo: '/images/pazaryeri/sap-commerce-cloud.webp', name: 'SAP Commerce Cloud', color: 'from-orange-600 to-cyan-500' },
     'ORACLE': { logo: '/images/pazaryeri/oracle-commerce-cloud.webp', name: 'Oracle Commerce', color: 'from-red-500 to-red-600' },
 };
 
@@ -126,9 +126,9 @@ const PLATFORM_LOGOS: Record<string, { logo: string; name: string; color: string
 const THEME = {
     glass: "backdrop-blur-xl bg-white/80 dark:bg-white/5 border border-slate-200 dark:border-white/10",
     glassLight: "backdrop-blur-xl bg-slate-50/80 border border-slate-200 dark:bg-white/5 dark:border-white/10",
-    gradientText: "bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500",
+    gradientText: "bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400",
     card: "bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-none",
-    cardHover: "hover:shadow-xl hover:shadow-blue-500/5 dark:hover:shadow-blue-500/10 hover:border-blue-500/20 dark:hover:border-blue-500/20 transition-all duration-300",
+    cardHover: "hover:shadow-xl hover:shadow-orange-500/5 dark:hover:shadow-orange-500/10 hover:border-orange-500/20 dark:hover:border-orange-500/20 transition-all duration-300",
 };
 
 // --- Premium Badge Component ---
@@ -137,7 +137,7 @@ const PremiumBadge = ({ plan = "PRO" }: { plan?: string }) => (
         whileHover={{ scale: 1.05 }}
         className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${plan === 'ENTERPRISE'
             ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30'
-            : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/30'
+            : 'bg-gradient-to-r from-orange-500 to-purple-500 text-white shadow-lg shadow-orange-500/30'
             }`}
     >
         <Crown size={12} />
@@ -152,15 +152,15 @@ const PremiumUpgradeCTA = ({ feature, plan = "PRO", compact = false }: { feature
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl border border-blue-500/20"
+                className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl border border-orange-500/20"
             >
                 <div className="flex items-center gap-3">
-                    <Lock className="text-blue-500" size={18} />
+                    <Lock className="text-orange-500" size={18} />
                     <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{feature}</span>
                 </div>
                 <Link
                     href="/checkout?plan=pro"
-                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg text-xs font-bold hover:shadow-lg transition-all"
+                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-purple-600 text-white rounded-lg text-xs font-bold hover:shadow-lg transition-all"
                 >
                     Kilidi Aç
                 </Link>
@@ -174,11 +174,11 @@ const PremiumUpgradeCTA = ({ feature, plan = "PRO", compact = false }: { feature
             animate={{ opacity: 1, y: 0 }}
             className={`${THEME.card} rounded-3xl p-8 relative overflow-hidden`}
         >
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5" />
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-purple-500/5 to-pink-500/5" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl" />
 
             <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-xl shadow-blue-500/30">
+                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-orange-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-xl shadow-orange-500/30">
                     <Lock className="text-white" size={32} />
                 </div>
 
@@ -193,7 +193,7 @@ const PremiumUpgradeCTA = ({ feature, plan = "PRO", compact = false }: { feature
                     <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                         <Link
                             href="/checkout?plan=pro"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-bold text-sm hover:shadow-xl hover:shadow-blue-500/30 transition-all"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-purple-600 text-white rounded-xl font-bold text-sm hover:shadow-xl hover:shadow-orange-500/30 transition-all"
                         >
                             <Rocket size={16} />
                             {plan} Paketine Yükselt
@@ -229,7 +229,7 @@ const GaugeChart = ({ value, size = "lg" }: { value: number; size?: "sm" | "md" 
 
     const getColor = (score: number) => {
         if (score >= 80) return { ring: 'text-green-500', bg: 'from-green-500 to-emerald-400', label: 'Mükemmel' };
-        if (score >= 60) return { ring: 'text-blue-500', bg: 'from-blue-500 to-cyan-400', label: 'İyi' };
+        if (score >= 60) return { ring: 'text-orange-500', bg: 'from-orange-500 to-cyan-400', label: 'İyi' };
         if (score >= 40) return { ring: 'text-yellow-500', bg: 'from-yellow-500 to-amber-400', label: 'Orta' };
         return { ring: 'text-red-500', bg: 'from-red-500 to-orange-400', label: 'Kritik' };
     };
@@ -364,7 +364,7 @@ const StoreHeaderCard = ({
         >
             {/* Background Decorations */}
             <div className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${platformInfo.color} opacity-5 rounded-full blur-3xl`} />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/5 rounded-full blur-2xl" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-orange-500/5 rounded-full blur-2xl" />
 
             <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                 {/* Store Info */}
@@ -456,8 +456,8 @@ const StoreHeaderCard = ({
                                     icon: Users,
                                     label: 'Takipçi',
                                     value: hasNumericValue(storeData.metrics?.followers) ? storeData.metrics?.followers.toLocaleString('tr-TR') : '--',
-                                    color: 'text-blue-500',
-                                    bg: 'bg-blue-50 dark:bg-blue-500/10',
+                                    color: 'text-orange-500',
+                                    bg: 'bg-orange-50 dark:bg-orange-500/10',
                                     source: getMetricSourceLabel(storeData.dataSources, 'followers')
                                 },
                                 {
@@ -604,14 +604,14 @@ const AIAdvisorCard = ({
             className={`${THEME.card} rounded-[32px] p-6 md:p-8 relative overflow-hidden`}
         >
             {/* Animated Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5" />
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-purple-500/5 to-pink-500/5" />
             <motion.div
                 animate={{
                     x: [0, 50, 0],
                     y: [0, -30, 0],
                 }}
                 transition={{ repeat: Infinity, duration: 15, ease: "easeInOut" }}
-                className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"
+                className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl"
             />
 
             <div className="relative z-10">
@@ -620,7 +620,7 @@ const AIAdvisorCard = ({
                     <div className="relative shrink-0">
                         <motion.div
                             whileHover={{ scale: 1.05 }}
-                            className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 flex items-center justify-center relative overflow-hidden shadow-2xl shadow-purple-500/30"
+                            className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-gradient-to-br from-orange-600 via-purple-600 to-pink-600 flex items-center justify-center relative overflow-hidden shadow-2xl shadow-purple-500/30"
                         >
                             <motion.div
                                 animate={{ rotate: 360 }}
@@ -674,7 +674,7 @@ const AIAdvisorCard = ({
                                 {/* AI Model Badge */}
                                 <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                                     <span className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10">
-                                        <Cpu size={12} className="text-blue-500" />
+                                        <Cpu size={12} className="text-orange-500" />
                                         {aiModel}
                                     </span>
                                     <span className="flex items-center gap-1.5">
@@ -703,7 +703,7 @@ const AIAdvisorCard = ({
                                                         initial={{ opacity: 0, x: -10 }}
                                                         animate={{ opacity: 1, x: 0 }}
                                                         transition={{ delay: i * 0.1 }}
-                                                        className="flex items-start gap-2 p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/5 hover:border-blue-300 dark:hover:border-blue-500/30 transition-colors group cursor-pointer"
+                                                        className="flex items-start gap-2 p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/5 hover:border-orange-300 dark:hover:border-orange-500/30 transition-colors group cursor-pointer"
                                                     >
                                                         <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                                                             <CheckCircle size={12} className="text-green-600 dark:text-green-400" />
@@ -721,7 +721,7 @@ const AIAdvisorCard = ({
                                 {suggestions.length > 3 && (
                                     <button
                                         onClick={() => setIsExpanded(!isExpanded)}
-                                        className="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                                        className="flex items-center gap-2 text-sm font-bold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
                                     >
                                         {isExpanded ? 'Daha az göster' : `+${suggestions.length - 3} öneri daha`}
                                         <ChevronDown size={16} className={`transform transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
@@ -759,7 +759,7 @@ const MetricCard = ({
     onClick?: () => void;
 }) => {
     const colorClasses: Record<string, string> = {
-        blue: 'from-blue-500 to-cyan-500',
+        blue: 'from-orange-500 to-amber-500',
         green: 'from-green-500 to-emerald-500',
         purple: 'from-purple-500 to-pink-500',
         orange: 'from-orange-500 to-amber-500',
@@ -849,7 +849,7 @@ const SalesTrendChart = ({ isPremium = false, turnover }: { isPremium?: boolean;
                             <span className="text-slate-600 dark:text-slate-400">Satış</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-400" />
+                            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-orange-500 to-cyan-400" />
                             <span className="text-slate-600 dark:text-slate-400">Sipariş</span>
                         </div>
                     </div>
@@ -969,7 +969,7 @@ const CategoryPerformance = ({ storeName = 'Mağaza', isPremium = false, product
     if (!products || products.length === 0) return null;
 
     const categories = [
-        { name: products[0].name.split(' ')[0] || 'Genel', sales: 40, revenue: `${formatNumber(25000)}₺`, growth: '+12%', color: 'from-blue-500 to-cyan-400' },
+        { name: products[0].name.split(' ')[0] || 'Genel', sales: 40, revenue: `${formatNumber(25000)}₺`, growth: '+12%', color: 'from-orange-500 to-cyan-400' },
         { name: products[1]?.name.split(' ')[0] || 'Diğer', sales: 30, revenue: `${formatNumber(18000)}₺`, growth: '+8%', color: 'from-green-500 to-emerald-400' },
         { name: products[2]?.name.split(' ')[0] || 'Yeni', sales: 20, revenue: `${formatNumber(12000)}₺`, growth: '+15%', color: 'from-purple-500 to-pink-400' },
         { name: 'Diğer', sales: 10, revenue: `${formatNumber(5000)}₺`, growth: '+5%', color: 'from-orange-500 to-amber-400' },
@@ -985,7 +985,7 @@ const CategoryPerformance = ({ storeName = 'Mağaza', isPremium = false, product
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                            <Layers className="text-blue-500" size={24} />
+                            <Layers className="text-orange-500" size={24} />
                             Kategori Performansı
                         </h3>
                         <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Satış dağılımı</p>
@@ -1037,7 +1037,7 @@ const RecentActivityTimeline = ({ storeName = 'Mağaza', products = [] }: { stor
         { type: 'sale', message: `Yeni sipariş: ${products[0].name.slice(0, 30)}...`, time: '2 dk önce', icon: ShoppingBag, color: 'bg-green-500' },
         { type: 'review', message: `"${products[1]?.name || products[0].name}" için 5 yıldızlı yorum`, time: '15 dk önce', icon: Star, color: 'bg-yellow-500' },
         { type: 'stock', message: `Düşük stok: ${products[Math.min(products.length - 1, 2)].name.slice(0, 20)}...`, time: '1 saat önce', icon: AlertTriangle, color: 'bg-orange-500' },
-        { type: 'visitor', message: `${350} yeni ziyaretçi (son 1 saat)`, time: '1 saat önce', icon: Eye, color: 'bg-blue-500' },
+        { type: 'visitor', message: `${350} yeni ziyaretçi (son 1 saat)`, time: '1 saat önce', icon: Eye, color: 'bg-orange-500' },
         { type: 'competitor', message: 'Rakip fiyat değişikliği algılandı', time: '2 saat önce', icon: Activity, color: 'bg-purple-500' },
         { type: 'sale', message: `Yeni sipariş: ${products[Math.min(products.length - 1, 3)]?.name.slice(0, 30)}...`, time: '3 saat önce', icon: ShoppingBag, color: 'bg-green-500' },
     ];
@@ -1046,7 +1046,7 @@ const RecentActivityTimeline = ({ storeName = 'Mağaza', products = [] }: { stor
         <div className={`${THEME.card} rounded-[32px] p-6 relative overflow-hidden`}>
             <div className="relative z-10">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                    <Activity className="text-blue-500" size={20} />
+                    <Activity className="text-orange-500" size={20} />
                     Son Aktiviteler
                 </h3>
 
@@ -1071,7 +1071,7 @@ const RecentActivityTimeline = ({ storeName = 'Mağaza', products = [] }: { stor
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/10">
-                    <Link href="#" className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
+                    <Link href="#" className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
                         Tüm aktiviteleri gör <ArrowUpRight size={12} />
                     </Link>
                 </div>
@@ -1085,7 +1085,7 @@ const QuickActionsPanel = ({ platform }: { platform: string }) => {
     const platformInfo = PLATFORM_LOGOS[platform] || PLATFORM_LOGOS['TRENDYOL'];
 
     const actions = [
-        { label: 'Ürün Ekle', icon: Package, color: 'from-blue-500 to-cyan-500', href: '#' },
+        { label: 'Ürün Ekle', icon: Package, color: 'from-orange-500 to-amber-500', href: '#' },
         { label: 'Fiyat Güncelle', icon: DollarSign, color: 'from-green-500 to-emerald-500', href: '#' },
         { label: 'Kampanya Oluştur', icon: Tag, color: 'from-orange-500 to-amber-500', href: '#' },
         { label: 'Stok Yönet', icon: Layers, color: 'from-purple-500 to-pink-500', href: '#' },
@@ -1188,7 +1188,7 @@ const RawEvidencePanel = ({ storeData }: { storeData: StoreData | null }) => {
         <div className={`${THEME.card} rounded-[32px] p-6`}>
             <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <FileJson className="text-blue-500" size={20} />
+                    <FileJson className="text-orange-500" size={20} />
                     Raw Evidence
                 </h3>
                 <button
@@ -1203,9 +1203,9 @@ const RawEvidencePanel = ({ storeData }: { storeData: StoreData | null }) => {
             </div>
 
             {showConfidenceHelp && (
-                <div className="mb-3 p-3 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20">
-                    <p className="text-xs font-bold text-blue-800 dark:text-blue-200 mb-1">Confidence hesaplama yöntemi</p>
-                    <p className="text-xs text-blue-700 dark:text-blue-200 leading-relaxed">
+                <div className="mb-3 p-3 rounded-xl bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20">
+                    <p className="text-xs font-bold text-blue-800 dark:text-orange-200 mb-1">Confidence hesaplama yöntemi</p>
+                    <p className="text-xs text-orange-700 dark:text-orange-200 leading-relaxed">
                         Skor, metrik kaynaklarına göre ağırlıklı hesaplanır: Gerçek veri = %100, Hesaplanmış = %70, Tahmini = %35, Veri yok = %0.
                         Toplam değer, tüm metriklerin ağırlıklı ortalamasıdır.
                     </p>
@@ -1298,7 +1298,7 @@ const PerformanceAlerts = ({ score }: { score: number | null }) => {
     const typeColors = {
         critical: 'bg-red-100 dark:bg-red-500/10 border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400',
         warning: 'bg-yellow-100 dark:bg-yellow-500/10 border-yellow-200 dark:border-yellow-500/20 text-yellow-700 dark:text-yellow-400',
-        info: 'bg-blue-100 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400',
+        info: 'bg-orange-100 dark:bg-orange-500/10 border-orange-200 dark:border-orange-500/20 text-orange-700 dark:text-orange-400',
         success: 'bg-green-100 dark:bg-green-500/10 border-green-200 dark:border-green-500/20 text-green-700 dark:text-green-400',
     };
 
@@ -1354,7 +1354,7 @@ const SEOAnalysisPanel = ({ metrics, dataSources, isPremium = false }: { metrics
     ];
 
     const colorMap: Record<string, string> = {
-        blue: 'from-blue-500 to-cyan-500',
+        blue: 'from-orange-500 to-amber-500',
         purple: 'from-purple-500 to-pink-500',
         green: 'from-green-500 to-emerald-500',
         orange: 'from-orange-500 to-amber-500',
@@ -1367,7 +1367,7 @@ const SEOAnalysisPanel = ({ metrics, dataSources, isPremium = false }: { metrics
 
     return (
         <div className={`${THEME.card} rounded-[32px] p-6 md:p-8 relative overflow-hidden`}>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/10 to-purple-500/10 rounded-full blur-3xl" />
             <div className="relative z-10">
                 <div className="flex items-center justify-between mb-6">
                     <div>
@@ -1377,7 +1377,7 @@ const SEOAnalysisPanel = ({ metrics, dataSources, isPremium = false }: { metrics
                         </p>
                     </div>
                     {!isPremium && (
-                        <Link href="/checkout?plan=pro" className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl text-xs font-bold hover:shadow-lg transition-all">
+                        <Link href="/checkout?plan=pro" className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-purple-600 text-white rounded-xl text-xs font-bold hover:shadow-lg transition-all">
                             <Lock size={12} />
                             Tümünü Aç
                         </Link>
@@ -1396,7 +1396,7 @@ const SEOAnalysisPanel = ({ metrics, dataSources, isPremium = false }: { metrics
                                 transition={{ delay: i * 0.1 }}
                                 className={`p-5 rounded-2xl border transition-all relative overflow-hidden ${isLocked
                                     ? 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10'
-                                    : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 hover:border-blue-300 dark:hover:border-blue-500/30 group'
+                                    : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 hover:border-orange-300 dark:hover:border-orange-500/30 group'
                                     }`}
                             >
                                 {isLocked && (
@@ -1443,7 +1443,7 @@ const SEOAnalysisPanel = ({ metrics, dataSources, isPremium = false }: { metrics
                                             animate={{ width: isLocked ? '0%' : `${metric.score}%` }}
                                             transition={{ delay: 0.3 + i * 0.1, duration: 0.8 }}
                                             className={`h-full rounded-full bg-gradient-to-r ${metric.score >= 80 ? 'from-green-500 to-emerald-400' :
-                                                metric.score >= 60 ? 'from-blue-500 to-cyan-400' :
+                                                metric.score >= 60 ? 'from-orange-500 to-cyan-400' :
                                                     metric.score >= 40 ? 'from-yellow-500 to-amber-400' :
                                                         'from-red-500 to-orange-400'
                                                 }`}
@@ -1451,7 +1451,7 @@ const SEOAnalysisPanel = ({ metrics, dataSources, isPremium = false }: { metrics
                                     </div>
                                     <span className={`text-lg font-black min-w-[3rem] text-right ${isLocked ? 'text-slate-300 dark:text-slate-600' :
                                         metric.score >= 80 ? 'text-green-500' :
-                                            metric.score >= 60 ? 'text-blue-500' :
+                                            metric.score >= 60 ? 'text-orange-500' :
                                                 metric.score >= 40 ? 'text-yellow-500' :
                                                     'text-red-500'
                                         }`}>
@@ -1469,11 +1469,11 @@ const SEOAnalysisPanel = ({ metrics, dataSources, isPremium = false }: { metrics
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 }}
-                        className="mt-6 p-4 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl border border-blue-500/20"
+                        className="mt-6 p-4 bg-gradient-to-r from-orange-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl border border-orange-500/20"
                     >
                         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-purple-600 flex items-center justify-center">
                                     <Sparkles className="text-white" size={18} />
                                 </div>
                                 <div>
@@ -1483,7 +1483,7 @@ const SEOAnalysisPanel = ({ metrics, dataSources, isPremium = false }: { metrics
                             </div>
                             <Link
                                 href="/checkout?plan=pro"
-                                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl text-sm font-bold hover:shadow-xl hover:shadow-blue-500/30 transition-all whitespace-nowrap"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-purple-600 text-white rounded-xl text-sm font-bold hover:shadow-xl hover:shadow-orange-500/30 transition-all whitespace-nowrap"
                             >
                                 <Crown size={14} />
                                 PRO ile Kilidi Aç
@@ -1520,7 +1520,7 @@ const ProductGrid = ({ products, isPremium = false }: { products: StoreProduct[]
                         </p>
                     </div>
                     {!isPremium && (
-                        <Link href="/checkout?plan=pro" className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl text-xs font-bold hover:shadow-lg transition-all">
+                        <Link href="/checkout?plan=pro" className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-purple-600 text-white rounded-xl text-xs font-bold hover:shadow-lg transition-all">
                             <Lock size={12} />
                             Tümünü Gör
                         </Link>
@@ -1539,7 +1539,7 @@ const ProductGrid = ({ products, isPremium = false }: { products: StoreProduct[]
                                 transition={{ delay: i * 0.1 }}
                                 className={`flex items-center gap-4 p-4 rounded-2xl border transition-all relative overflow-hidden ${isLocked
                                     ? 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10'
-                                    : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 hover:border-blue-300 dark:hover:border-blue-500/30 group'
+                                    : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 hover:border-orange-300 dark:hover:border-orange-500/30 group'
                                     }`}
                             >
                                 {isLocked && (
@@ -1557,7 +1557,7 @@ const ProductGrid = ({ products, isPremium = false }: { products: StoreProduct[]
                                 <div className="flex-1 min-w-0">
                                     <h4 className={`text-sm font-bold truncate ${isLocked ? 'text-slate-400' : 'text-slate-900 dark:text-white'}`}>{product.name}</h4>
                                     <div className="flex items-center gap-3 mt-1.5">
-                                        <span className={`text-lg font-black ${isLocked ? 'text-slate-300 dark:text-slate-600' : 'text-blue-600 dark:text-blue-400'}`}>{isLocked ? '***' : `${product.price}₺`}</span>
+                                        <span className={`text-lg font-black ${isLocked ? 'text-slate-300 dark:text-slate-600' : 'text-orange-600 dark:text-orange-400'}`}>{isLocked ? '***' : `${product.price}₺`}</span>
                                         <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                                             <Star size={12} className={isLocked ? 'text-slate-300' : 'fill-yellow-400 text-yellow-400'} />
                                             {isLocked ? '?.?' : product.rating}
@@ -1698,11 +1698,11 @@ const ComparisonWidget = ({ storeName = 'Mağaza', score = 75 }: { storeName?: s
 
     return (
         <div className={`${THEME.card} rounded-[32px] p-6 md:p-8 relative overflow-hidden`}>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/10 to-purple-500/10 rounded-full blur-3xl" />
 
             <div className="relative z-10">
                 <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                    <BarChart3 className="text-blue-500" size={24} />
+                    <BarChart3 className="text-orange-500" size={24} />
                     Rakip Karşılaştırması
                 </h3>
 
@@ -1732,7 +1732,7 @@ const ComparisonWidget = ({ storeName = 'Mağaza', score = 75 }: { storeName?: s
                                     initial={{ width: 0 }}
                                     animate={{ width: `${(metric.your / (Math.max(metric.your, metric.competitor) + 10)) * 100}%` }}
                                     transition={{ delay: 0.3 + i * 0.1, duration: 0.8 }}
-                                    className="bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full"
+                                    className="bg-gradient-to-r from-orange-500 to-cyan-400 rounded-full"
                                 />
                                 <motion.div
                                     initial={{ width: 0 }}
@@ -1766,7 +1766,7 @@ const MarketingRecommendations = ({ score, storeName = 'Mağaza' }: { score: num
             impact: 'Yüksek',
             action: 'Başlıkları Düzenle',
             icon: FileText,
-            color: 'from-blue-500 to-cyan-400'
+            color: 'from-orange-500 to-cyan-400'
         },
         {
             title: 'Kampanya Stratejisi',
@@ -1843,7 +1843,7 @@ const AnomalyDetection = () => {
     const severityColors = {
         critical: 'bg-red-100 dark:bg-red-500/10 border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400',
         warning: 'bg-yellow-100 dark:bg-yellow-500/10 border-yellow-200 dark:border-yellow-500/20 text-yellow-700 dark:text-yellow-400',
-        info: 'bg-blue-100 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400',
+        info: 'bg-orange-100 dark:bg-orange-500/10 border-orange-200 dark:border-orange-500/20 text-orange-700 dark:text-orange-400',
     };
 
     return (
@@ -1924,9 +1924,9 @@ const PriceSimulator = () => {
                             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase mb-1">Yeni Fiyat</p>
                             <p className="text-xl font-black text-green-600 dark:text-green-400">₺{newPrice.toFixed(2)}</p>
                         </div>
-                        <div className="p-3 bg-gradient-to-br from-blue-50 dark:from-blue-500/10 to-cyan-50 dark:to-cyan-500/10 rounded-xl border border-blue-200 dark:border-blue-500/20">
+                        <div className="p-3 bg-gradient-to-br from-orange-50 dark:from-orange-500/10 to-cyan-50 dark:to-cyan-500/10 rounded-xl border border-orange-200 dark:border-orange-500/20">
                             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase mb-1">Tasarruf</p>
-                            <p className="text-xl font-black text-blue-600 dark:text-blue-400">₺{(currentPrice - newPrice).toFixed(2)}</p>
+                            <p className="text-xl font-black text-orange-600 dark:text-orange-400">₺{(currentPrice - newPrice).toFixed(2)}</p>
                         </div>
                     </div>
 
@@ -2023,7 +2023,7 @@ const ExportReports = ({ domain, score }: { domain: string; score: number }) => 
     return (
         <div className={`${THEME.card} rounded-[32px] p-6 md:p-8`}>
             <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                <Download className="text-blue-500" size={24} />
+                <Download className="text-orange-500" size={24} />
                 Raporlar & Export
             </h3>
 
@@ -2064,12 +2064,12 @@ const ExportReports = ({ domain, score }: { domain: string; score: number }) => 
                     whileHover={{ scale: 1.02 }}
                     className={`${THEME.card} ${THEME.cardHover} p-6 rounded-2xl flex flex-col items-center justify-center text-center`}
                 >
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mb-3 shadow-lg">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center mb-3 shadow-lg">
                         <Mail className="text-white" size={24} />
                     </div>
                     <h4 className="font-bold text-slate-900 dark:text-white mb-1">Email Gönder</h4>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Raporu e-posta ile al</p>
-                    <span className="px-4 py-2 bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold">
+                    <span className="px-4 py-2 bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-lg text-xs font-bold">
                         Gönder
                     </span>
                 </motion.button>
@@ -2131,7 +2131,7 @@ const MobilePreview = ({ storeData, score, platform, isLoading, url }: {
                 <div className="w-full h-full bg-white overflow-hidden">
                     {isLoading ? (
                         <div className="flex items-center justify-center h-full bg-slate-50">
-                            <Loader2 className="animate-spin text-blue-500" size={28} />
+                            <Loader2 className="animate-spin text-orange-500" size={28} />
                         </div>
                     ) : (
                         <div className="h-full flex flex-col">
@@ -2217,7 +2217,7 @@ const MobilePreview = ({ storeData, score, platform, isLoading, url }: {
                             </div>
 
                             {/* SEO Score Bar */}
-                            <div className="p-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-t border-slate-200">
+                            <div className="p-2 bg-gradient-to-r from-orange-500/10 to-purple-500/10 border-t border-slate-200">
                                 <div className="flex items-center justify-between mb-1">
                                     <span className="text-[9px] font-bold text-slate-600 flex items-center gap-1">
                                         <Sparkles size={10} className="text-purple-500" />
@@ -2544,7 +2544,7 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
             <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-[#020617] relative overflow-hidden">
                 {/* Background */}
                 <div className="absolute inset-0 bg-grid-slate-100 dark:bg-grid-white/[0.02] bg-[size:50px_50px]" />
-                <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-orange-500/10 dark:bg-orange-500/20 rounded-full blur-[120px] animate-pulse" />
                 <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/10 dark:bg-purple-500/10 rounded-full blur-[120px] animate-pulse" />
 
                 <div className="relative z-10 text-center space-y-12 px-4">
@@ -2558,7 +2558,7 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
                         <motion.div
                             animate={{ rotate: -360 }}
                             transition={{ repeat: Infinity, duration: 4, ease: 'linear' }}
-                            className="absolute inset-4 border-4 border-blue-500/40 border-t-transparent rounded-full"
+                            className="absolute inset-4 border-4 border-orange-500/40 border-t-transparent rounded-full"
                         />
                         <motion.div
                             animate={{ rotate: 360 }}
@@ -2566,7 +2566,7 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
                             className="absolute inset-8 border-4 border-purple-500/40 border-t-transparent rounded-full"
                         />
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <Brain size={48} className="text-blue-500 animate-pulse" aria-hidden="true" />
+                            <Brain size={48} className="text-orange-500 animate-pulse" aria-hidden="true" />
                         </div>
                     </div>
 
@@ -2608,7 +2608,7 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
                     <div className="space-y-3">
                         <Link
                             href="/"
-                            className="block w-full py-4 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
+                            className="block w-full py-4 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-500 transition-colors"
                         >
                             Ana Sayfaya Dön
                         </Link>
@@ -2647,11 +2647,11 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
     })();
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#020617] transition-colors duration-300">
+        <div className="landing-brand min-h-screen bg-slate-50 dark:bg-[#020617] transition-colors duration-300">
             {/* Background */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute top-0 left-0 w-full h-[1000px] opacity-30 dark:opacity-20">
-                    <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/20 rounded-full blur-[120px]" />
+                    <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-orange-500/20 rounded-full blur-[120px]" />
                     <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px]" />
                 </div>
             </div>
@@ -2693,7 +2693,7 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
                                     setShowMoreTabs(false);
                                 }}
                                 className={`flex flex-col items-center justify-center gap-1 px-2 py-3 md:px-3 md:py-3 rounded-xl text-[10px] md:text-xs font-bold transition-all border ${activeTab === tab.id
-                                    ? 'bg-blue-500 border-blue-500 text-white shadow-lg shadow-blue-500/30'
+                                    ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/30'
                                     : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10'
                                     }`}
                             >
@@ -2712,7 +2712,7 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
                                 onClick={() => setShowMoreTabs(!showMoreTabs)}
                                 whileHover={{ scale: 1.02 }}
                                 className={`w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all border ${showMoreTabs
-                                    ? 'bg-blue-500 border-blue-500 text-white shadow-lg shadow-blue-500/30'
+                                    ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/30'
                                     : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10'
                                     }`}
                             >
@@ -2759,7 +2759,7 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
                                                         { bg: 'from-purple-500/10 to-pink-500/10', border: 'border-purple-200 dark:border-purple-500/20', icon: 'text-purple-600 dark:text-purple-400', hover: 'hover:from-purple-500/20 hover:to-pink-500/20' },
                                                         { bg: 'from-orange-500/10 to-amber-500/10', border: 'border-orange-200 dark:border-orange-500/20', icon: 'text-orange-600 dark:text-orange-400', hover: 'hover:from-orange-500/20 hover:to-amber-500/20' },
                                                         { bg: 'from-green-500/10 to-emerald-500/10', border: 'border-green-200 dark:border-green-500/20', icon: 'text-green-600 dark:text-green-400', hover: 'hover:from-green-500/20 hover:to-emerald-500/20' },
-                                                        { bg: 'from-blue-500/10 to-cyan-500/10', border: 'border-blue-200 dark:border-blue-500/20', icon: 'text-blue-600 dark:text-blue-400', hover: 'hover:from-blue-500/20 hover:to-cyan-500/20' },
+                                                        { bg: 'from-orange-500/10 to-cyan-500/10', border: 'border-orange-200 dark:border-orange-500/20', icon: 'text-orange-600 dark:text-orange-400', hover: 'hover:from-orange-500/20 hover:to-cyan-500/20' },
                                                     ];
                                                     const color = tabColors[idx % tabColors.length];
 
@@ -2773,7 +2773,7 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
                                                                 setShowMoreTabs(false);
                                                             }}
                                                             className={`relative group flex flex-col items-center gap-2 px-4 py-4 rounded-2xl border-2 transition-all ${activeTab === tab.id
-                                                                ? 'bg-gradient-to-br from-blue-500 to-purple-600 border-blue-500 shadow-lg shadow-blue-500/40 text-white'
+                                                                ? 'bg-gradient-to-br from-orange-500 to-purple-600 border-orange-500 shadow-lg shadow-orange-500/40 text-white'
                                                                 : `bg-gradient-to-br ${color.bg} ${color.border} border-2 text-slate-600 dark:text-slate-300 ${color.hover}`
                                                                 }`}
                                                         >
@@ -2810,9 +2810,9 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
 
                                             {/* Footer Info */}
                                             {userPlan === 'FREE' && (
-                                                <div className="px-4 py-3 border-t border-slate-200 dark:border-white/5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-500/10 dark:to-purple-500/10">
+                                                <div className="px-4 py-3 border-t border-slate-200 dark:border-white/5 bg-gradient-to-r from-orange-50 to-purple-50 dark:from-orange-500/10 dark:to-purple-500/10">
                                                     <p className="text-[11px] text-slate-600 dark:text-slate-300 text-center">
-                                                        🔒 Premium sekmelerine erişmek için <span className="font-bold text-blue-600 dark:text-blue-400">PRO planına</span> yükseltin
+                                                        🔒 Premium sekmelerine erişmek için <span className="font-bold text-orange-600 dark:text-orange-400">PRO planına</span> yükseltin
                                                     </p>
                                                 </div>
                                             )}
@@ -2906,7 +2906,7 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: i * 0.1 }}
-                                                className="flex items-start gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/5 hover:border-blue-300 dark:hover:border-blue-500/30 transition-colors"
+                                                className="flex items-start gap-4 p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/5 hover:border-orange-300 dark:hover:border-orange-500/30 transition-colors"
                                             >
                                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${item.impact === 'Yüksek'
                                                     ? 'bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400'
@@ -3014,7 +3014,7 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
                                 </p>
 
                                 {/* Premium Benefits */}
-                                <div className="text-left mb-6 p-4 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-2xl border border-blue-500/10">
+                                <div className="text-left mb-6 p-4 bg-gradient-to-br from-orange-500/5 to-purple-500/5 rounded-2xl border border-orange-500/10">
                                     <p className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3">PRO ile açılacak özellikler:</p>
                                     <ul className="space-y-2">
                                         {['Detaylı rakip analizi', 'Fiyat optimizasyonu', 'Satış tahminleri', 'AI önerileri'].map((item, i) => (
@@ -3028,7 +3028,7 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
 
                                 <Link
                                     href="/checkout?plan=pro"
-                                    className="block w-full px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-bold text-center hover:shadow-xl hover:shadow-blue-500/30 transition-all mb-3"
+                                    className="block w-full px-6 py-4 bg-gradient-to-r from-orange-500 to-purple-600 text-white rounded-xl font-bold text-center hover:shadow-xl hover:shadow-orange-500/30 transition-all mb-3"
                                 >
                                     <Crown className="inline-block mr-2" size={18} />
                                     PRO&apos;ya Yükselt - ₺299/ay
@@ -3084,8 +3084,8 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
                             {/* Info Card */}
                             <div className={`${THEME.card} rounded-[32px] p-6`}>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                                        <Info size={18} className="text-blue-600 dark:text-blue-400" />
+                                    <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+                                        <Info size={18} className="text-orange-600 dark:text-orange-400" />
                                     </div>
                                     <div>
                                         <h4 className="font-bold text-slate-900 dark:text-white mb-1">Nasıl Çalışır?</h4>
@@ -3111,7 +3111,7 @@ export default function AnalysisPage() {
     return (
         <Suspense fallback={
             <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#020617]">
-                <Loader2 className="animate-spin text-blue-500" size={40} />
+                <Loader2 className="animate-spin text-orange-500" size={40} />
             </div>
         }>
             <AnalysisContent initialUrl={url} />

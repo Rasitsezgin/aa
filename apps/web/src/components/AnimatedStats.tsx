@@ -14,8 +14,8 @@ const stats = [
         suffix: "+",
         label: "Aktif Mağaza",
         description: "Her gün büyüyen topluluğumuz",
-        color: "from-blue-500 to-cyan-500",
-        bgColor: "bg-blue-50 dark:bg-blue-500/10"
+        color: "from-orange-500 to-amber-500",
+        bgColor: "bg-orange-50 dark:bg-orange-500/10"
     },
     {
         icon: Package,
@@ -95,7 +95,7 @@ export default function AnimatedStats() {
                     backgroundSize: '32px 32px'
                 }} />
                 <div className="absolute top-0 left-1/3 w-[600px] h-[600px] bg-green-500/5 rounded-full blur-[150px]" />
-                <div className="absolute bottom-0 right-1/3 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[150px]" />
+                <div className="absolute bottom-0 right-1/3 w-[400px] h-[400px] bg-orange-500/5 rounded-full blur-[150px]" />
             </div>
 
             <div className="container mx-auto px-4 sm:px-6 relative z-10">
@@ -150,7 +150,7 @@ export default function AnimatedStats() {
                             <div className="relative p-4 sm:p-8 bg-white dark:bg-white/5 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-white/10 hover:border-transparent transition-all h-full">
                                 {/* Icon */}
                                 <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${stat.bgColor} flex items-center justify-center mb-3 sm:mb-6`}>
-                                    <stat.icon className="w-5 h-5 sm:w-7 sm:h-7" style={{ color: stat.color.includes('blue') ? '#3b82f6' : stat.color.includes('purple') ? '#a855f7' : stat.color.includes('green') ? '#22c55e' : '#f97316' }} />
+                                    <stat.icon className="w-5 h-5 sm:w-7 sm:h-7" style={{ color: stat.color.includes('blue') ? '#ea580c' : stat.color.includes('purple') ? '#a855f7' : stat.color.includes('green') ? '#22c55e' : '#f97316' }} />
                                 </div>
 
                                 {/* Value */}

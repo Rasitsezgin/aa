@@ -225,7 +225,7 @@ export default function SignupPage() {
                         <h1 className="text-4xl md:text-5xl font-black mb-4 text-slate-900 dark:text-white">
                             E-ticaretinizi
                             <br />
-                            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                            <span className="bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
                                 Bir Üst Seviyeye
                             </span>
                             <br />
@@ -247,7 +247,7 @@ export default function SignupPage() {
                                     transition={{ delay: 0.1 + index * 0.1 }}
                                     className="p-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10"
                                 >
-                                    <benefit.icon className="w-8 h-8 text-blue-600 dark:text-blue-400 mb-2" />
+                                    <benefit.icon className="w-8 h-8 text-orange-600 dark:text-orange-400 mb-2" />
                                     <h3 className="font-bold text-slate-900 dark:text-white">{benefit.title}</h3>
                                     <p className="text-sm text-slate-600 dark:text-slate-400">{benefit.description}</p>
                                 </motion.div>
@@ -290,13 +290,13 @@ export default function SignupPage() {
                                     <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
                                         Adım {step} / 2
                                     </span>
-                                    <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                                    <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
                                         {step === 1 ? 'Hesap Bilgileri' : 'Plan Seçimi'}
                                     </span>
                                 </div>
                                 <div className="h-2 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
                                     <motion.div
-                                        className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"
+                                        className="h-full bg-gradient-to-r from-orange-600 to-amber-600 rounded-full"
                                         initial={{ width: '50%' }}
                                         animate={{ width: step === 1 ? '50%' : '100%' }}
                                         transition={{ duration: 0.3 }}
@@ -336,7 +336,7 @@ export default function SignupPage() {
                                         className="space-y-5"
                                     >
                                         <div className="text-center mb-6">
-                                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/25">
+                                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-600 to-amber-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-600/25">
                                                 <Rocket className="w-7 h-7 text-white" />
                                             </div>
                                             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
@@ -361,7 +361,7 @@ export default function SignupPage() {
                                                         value={formData.firstName}
                                                         onChange={handleInputChange}
                                                         placeholder="Ahmet"
-                                                        className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                        className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                                                         required
                                                     />
                                                 </div>
@@ -376,7 +376,7 @@ export default function SignupPage() {
                                                     value={formData.lastName}
                                                     onChange={handleInputChange}
                                                     placeholder="Yılmaz"
-                                                    className="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                    className="w-full px-4 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                                                     required
                                                 />
                                             </div>
@@ -395,7 +395,7 @@ export default function SignupPage() {
                                                     value={formData.email}
                                                     onChange={handleInputChange}
                                                     placeholder="ahmet@sirketiniz.com"
-                                                    className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                    className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                                                     required
                                                 />
                                             </div>
@@ -414,7 +414,7 @@ export default function SignupPage() {
                                                     value={formData.phone}
                                                     onChange={handleInputChange}
                                                     placeholder="0532 123 45 67"
-                                                    className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                    className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                                                     required
                                                 />
                                             </div>
@@ -433,7 +433,7 @@ export default function SignupPage() {
                                                     value={formData.company}
                                                     onChange={handleInputChange}
                                                     placeholder="Şirketiniz A.Ş."
-                                                    className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                    className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                                                     required
                                                 />
                                             </div>
@@ -452,7 +452,7 @@ export default function SignupPage() {
                                                     value={formData.password}
                                                     onChange={handleInputChange}
                                                     placeholder="Min. 8 karakter"
-                                                    className="w-full pl-12 pr-12 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                    className="w-full pl-12 pr-12 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                                                     required
                                                     minLength={8}
                                                 />
@@ -479,7 +479,7 @@ export default function SignupPage() {
                                                     value={formData.subdomain}
                                                     onChange={handleInputChange}
                                                     placeholder="magazaniz"
-                                                    className="w-full pl-12 pr-40 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                    className="w-full pl-12 pr-40 py-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                                                     required
                                                 />
                                                 <span className="absolute right-4 text-sm text-slate-500 dark:text-slate-400">
@@ -496,12 +496,12 @@ export default function SignupPage() {
                                                     name="acceptTerms"
                                                     checked={formData.acceptTerms}
                                                     onChange={handleInputChange}
-                                                    className="w-5 h-5 rounded border-slate-300 dark:border-white/20 text-blue-600 focus:ring-blue-500 mt-0.5"
+                                                    className="w-5 h-5 rounded border-slate-300 dark:border-white/20 text-orange-600 focus:ring-orange-500 mt-0.5"
                                                     required
                                                 />
                                                 <span className="text-sm text-slate-600 dark:text-slate-400">
-                                                    <Link href="/terms" className="text-blue-600 hover:underline">Kullanım Şartları</Link> ve{' '}
-                                                    <Link href="/privacy" className="text-blue-600 hover:underline">Gizlilik Politikası</Link>&apos;nı kabul ediyorum.
+                                                    <Link href="/terms" className="text-orange-600 hover:underline">Kullanım Şartları</Link> ve{' '}
+                                                    <Link href="/privacy" className="text-orange-600 hover:underline">Gizlilik Politikası</Link>&apos;nı kabul ediyorum.
                                                 </span>
                                             </label>
                                             <label className="flex items-start gap-3 cursor-pointer">
@@ -510,7 +510,7 @@ export default function SignupPage() {
                                                     name="acceptMarketing"
                                                     checked={formData.acceptMarketing}
                                                     onChange={handleInputChange}
-                                                    className="w-5 h-5 rounded border-slate-300 dark:border-white/20 text-blue-600 focus:ring-blue-500 mt-0.5"
+                                                    className="w-5 h-5 rounded border-slate-300 dark:border-white/20 text-orange-600 focus:ring-orange-500 mt-0.5"
                                                 />
                                                 <span className="text-sm text-slate-600 dark:text-slate-400">
                                                     E-ticaret ipuçları ve ürün güncellemeleri almak istiyorum.
@@ -521,7 +521,7 @@ export default function SignupPage() {
                                         <button
                                             type="submit"
                                             disabled={isLoading}
-                                            className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-lg hover:shadow-lg hover:shadow-blue-600/25 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0"
+                                            className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-white font-bold text-lg hover:shadow-lg hover:shadow-orange-600/25 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:translate-y-0"
                                         >
                                             {isLoading ? (
                                                 <>
@@ -560,7 +560,7 @@ export default function SignupPage() {
                                                 <label
                                                     key={plan.id}
                                                     className={`block p-4 rounded-2xl border-2 cursor-pointer transition-all ${selectedPlan === plan.id
-                                                        ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                                                        ? 'border-orange-600 bg-orange-50 dark:bg-orange-900/20'
                                                         : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
                                                         }`}
                                                 >
@@ -572,7 +572,7 @@ export default function SignupPage() {
                                                                 value={plan.id}
                                                                 checked={selectedPlan === plan.id}
                                                                 onChange={(e) => setSelectedPlan(e.target.value)}
-                                                                className="w-5 h-5 text-blue-600 border-slate-300 dark:border-white/20 focus:ring-blue-500"
+                                                                className="w-5 h-5 text-orange-600 border-slate-300 dark:border-white/20 focus:ring-orange-500"
                                                             />
                                                             <div>
                                                                 <div className="flex items-center gap-2">
@@ -580,7 +580,7 @@ export default function SignupPage() {
                                                                         {plan.name}
                                                                     </span>
                                                                     {plan.popular && (
-                                                                        <span className="px-2 py-0.5 text-xs font-bold bg-blue-600 text-white rounded-full">
+                                                                        <span className="px-2 py-0.5 text-xs font-bold bg-orange-600 text-white rounded-full">
                                                                             Popüler
                                                                         </span>
                                                                     )}
@@ -646,7 +646,7 @@ export default function SignupPage() {
                                     <span className="text-slate-600 dark:text-slate-400">
                                         Zaten hesabınız var mı?{' '}
                                     </span>
-                                    <Link href="/login" className="text-blue-600 dark:text-blue-400 font-semibold hover:underline">
+                                    <Link href="/login" className="text-orange-600 dark:text-orange-400 font-semibold hover:underline">
                                         Giriş Yap
                                     </Link>
                                 </div>
@@ -660,7 +660,7 @@ export default function SignupPage() {
                                     key={index}
                                     className="p-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10"
                                 >
-                                    <benefit.icon className="w-6 h-6 text-blue-600 dark:text-blue-400 mb-2" />
+                                    <benefit.icon className="w-6 h-6 text-orange-600 dark:text-orange-400 mb-2" />
                                     <h3 className="font-bold text-sm text-slate-900 dark:text-white">{benefit.title}</h3>
                                     <p className="text-xs text-slate-600 dark:text-slate-400">{benefit.description}</p>
                                 </div>

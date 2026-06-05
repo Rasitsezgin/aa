@@ -381,7 +381,7 @@ export function SpecialOfferSection({ offer }: SpecialOfferSectionProps) {
                         className="relative z-10 mt-6 flex justify-center gap-2"
                       >
                         <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">⭐ Özel Fırsat</span>
-                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">🎁 Sürpriz Hediye</span>
+                        <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">🎁 Sürpriz Hediye</span>
                         <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">🚀 Hızlı Teslimat</span>
                       </motion.div>
                     </motion.div>

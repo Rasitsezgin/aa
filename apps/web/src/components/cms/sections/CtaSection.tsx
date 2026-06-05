@@ -17,7 +17,7 @@ interface CtaSectionProps {
 export function CtaSection({
   title,
   subtitle,
-  bgColor = "bg-blue-600",
+  bgColor = "bg-orange-600",
   textColor = "text-white",
   padding = "py-20",
   container = "container",
@@ -42,7 +42,7 @@ export function CtaSection({
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href={ctaBlock?.url || "/signup"}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold hover:bg-blue-50 transition-colors"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-orange-600 rounded-xl font-semibold hover:bg-orange-50 transition-colors"
             >
               {ctaBlock?.label || "Ücretsiz Deneme Başlat"}
               <ArrowRight size={20} />

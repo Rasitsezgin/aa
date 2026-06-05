@@ -49,7 +49,7 @@ export function StatsSection({
               transition={{ delay: index * 0.1 }}
               className="text-center"
             >
-              <div className="text-3xl md:text-4xl font-bold text-blue-400">{stat.value}</div>
+              <div className="text-3xl md:text-4xl font-bold text-orange-400">{stat.value}</div>
               <div className="text-sm text-slate-400 mt-1">{stat.label}</div>
             </motion.div>
           ))}

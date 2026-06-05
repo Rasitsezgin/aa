@@ -49,7 +49,7 @@ export default function RoiCalculator() {
                 }} />
                 {/* Ambient Glows */}
                 <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-green-500/10 dark:bg-green-500/10 blur-[150px] rounded-full" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 dark:bg-blue-500/10 blur-[150px] rounded-full" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-orange-500/10 dark:bg-orange-500/10 blur-[150px] rounded-full" />
             </div>
 
             <div className="container mx-auto px-4 sm:px-6 relative z-10">
@@ -107,7 +107,7 @@ export default function RoiCalculator() {
                     {/* RIGHT: Results */}
                     <div className="relative">
                         {/* Glow Behind */}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-green-500/20 to-blue-500/20 blur-3xl opacity-30 rounded-[48px] transform rotate-3" />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-green-500/20 to-amber-500/20 blur-3xl opacity-30 rounded-[48px] transform rotate-3" />
 
                         <div className="relative bg-white dark:bg-[#0F172A] border border-slate-100 dark:border-slate-800 p-8 sm:p-10 rounded-[40px] shadow-2xl overflow-hidden group">
 
@@ -127,7 +127,7 @@ export default function RoiCalculator() {
                             {/* Detailed Stats Grid */}
                             <div className="grid grid-cols-2 gap-4 mb-8">
                                 <div className="bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 relative group overflow-hidden">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3">
+                                    <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center mb-3">
                                         <Clock size={16} />
                                     </div>
                                     <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">AYLIK TASARRUF</div>
@@ -188,7 +188,7 @@ function SliderInput({ label, value, setValue, min, max, step, unit, icon: Icon,
     const percentage = ((value - min) / (max - min)) * 100;
 
     const colorClasses = {
-        blue: "from-blue-500 to-indigo-500",
+        blue: "from-orange-500 to-amber-500",
         green: "from-green-500 to-emerald-500",
         purple: "from-purple-500 to-violet-500",
     }[color as "blue" | "green" | "purple"];

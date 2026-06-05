@@ -18,7 +18,7 @@ const categories = [
         description: "Platform kullanımına hızlı başlangıç yapın",
         articles: 12,
         color: "blue",
-        gradient: "from-blue-500 to-cyan-500",
+        gradient: "from-orange-500 to-amber-500",
         popular: ["Hesap oluşturma", "İlk mağaza kurulumu", "Dashboard kullanımı"]
     },
     {
@@ -54,7 +54,7 @@ const categories = [
         description: "Satış analizi ve performans takibi",
         articles: 15,
         color: "cyan",
-        gradient: "from-cyan-500 to-blue-500",
+        gradient: "from-cyan-500 to-amber-500",
         popular: ["Satış raporları", "Performans metrikleri", "Dışa aktarma"]
     },
     {
@@ -81,7 +81,7 @@ const categories = [
         description: "Profil, bildirimler ve tercihler",
         articles: 14,
         color: "indigo",
-        gradient: "from-indigo-500 to-violet-500",
+        gradient: "from-amber-500 to-violet-500",
         popular: ["Bildirim ayarları", "Ekip yönetimi", "Entegrasyon ayarları"]
     },
 ];
@@ -268,7 +268,7 @@ const supportChannels = [
         description: "Uzman ekibimizle anlık sohbet",
         icon: MessageCircle,
         color: "blue",
-        gradient: "from-blue-500 to-indigo-500",
+        gradient: "from-orange-500 to-amber-500",
         availability: "7/24 Aktif",
         responseTime: "< 2 dakika",
         action: "Sohbet Başlat",
@@ -325,7 +325,7 @@ export default function DestekPage() {
                     backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
                     backgroundSize: '32px 32px'
                 }} />
-                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-blue-500/10 dark:bg-blue-500/5 blur-[150px] rounded-full" />
+                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-orange-500/10 dark:bg-orange-500/5 blur-[150px] rounded-full" />
                 <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-500/10 dark:bg-purple-500/5 blur-[150px] rounded-full" />
             </div>
 
@@ -339,15 +339,15 @@ export default function DestekPage() {
                     <motion.div 
                         initial={{ scale: 0.9 }}
                         animate={{ scale: 1 }}
-                        className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 border border-blue-200 dark:border-blue-800 rounded-full mb-6"
+                        className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/40 dark:to-amber-900/40 border border-orange-200 dark:border-orange-800 rounded-full mb-6"
                     >
-                        <Headphones className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                        <span className="text-sm font-bold text-blue-700 dark:text-blue-300 tracking-wide">Yardım Merkezi</span>
+                        <Headphones className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                        <span className="text-sm font-bold text-orange-700 dark:text-orange-300 tracking-wide">Yardım Merkezi</span>
                     </motion.div>
                     
                     <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-slate-900 dark:text-white tracking-tight mb-6">
                         <span className="block">Size Nasıl</span>
-                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500">
+                        <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-purple-500">
                             Yardımcı Olabiliriz?
                         </span>
                     </h1>
@@ -373,9 +373,9 @@ export default function DestekPage() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onFocus={() => setSearchFocused(true)}
                                 onBlur={() => setSearchFocused(false)}
-                                className="w-full pl-16 pr-6 py-5 bg-white dark:bg-white/5 border-2 border-slate-200 dark:border-white/10 rounded-2xl text-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-xl shadow-slate-200/50 dark:shadow-none"
+                                className="w-full pl-16 pr-6 py-5 bg-white dark:bg-white/5 border-2 border-slate-200 dark:border-white/10 rounded-2xl text-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all shadow-xl shadow-slate-200/50 dark:shadow-none"
                             />
-                            <button className="absolute right-3 top-1/2 -translate-y-1/2 px-4 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
+                            <button className="absolute right-3 top-1/2 -translate-y-1/2 px-4 py-2 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-500 transition-colors flex items-center gap-2">
                                 Ara <ArrowRight size={16} />
                             </button>
                         </div>
@@ -411,8 +411,8 @@ export default function DestekPage() {
                             transition={{ delay: 0.2 + i * 0.05 }}
                             className="p-5 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-center"
                         >
-                            <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-3">
-                                <stat.icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-3">
+                                <stat.icon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                             </div>
                             <div className="text-2xl font-black text-slate-900 dark:text-white mb-1">{stat.value}</div>
                             <div className="text-sm text-slate-500 dark:text-slate-400">{stat.label}</div>
@@ -441,8 +441,8 @@ export default function DestekPage() {
                                 transition={{ delay: i * 0.1 }}
                                 className={`relative p-6 rounded-2xl border transition-all hover:shadow-xl ${
                                     channel.highlight 
-                                        ? 'bg-gradient-to-br from-blue-600 to-indigo-600 border-transparent text-white' 
-                                        : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/30'
+                                        ? 'bg-gradient-to-br from-orange-600 to-amber-600 border-transparent text-white' 
+                                        : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/30'
                                 }`}
                             >
                                 {channel.highlight && (
@@ -463,16 +463,16 @@ export default function DestekPage() {
                                 <h3 className={`font-bold text-lg mb-1 ${channel.highlight ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                                     {channel.title}
                                 </h3>
-                                <p className={`text-sm mb-4 ${channel.highlight ? 'text-blue-100' : 'text-slate-500 dark:text-slate-400'}`}>
+                                <p className={`text-sm mb-4 ${channel.highlight ? 'text-orange-100' : 'text-slate-500 dark:text-slate-400'}`}>
                                     {channel.description}
                                 </p>
                                 
                                 <div className="space-y-2 mb-4">
-                                    <div className={`flex items-center gap-2 text-xs ${channel.highlight ? 'text-blue-100' : 'text-slate-500'}`}>
+                                    <div className={`flex items-center gap-2 text-xs ${channel.highlight ? 'text-orange-100' : 'text-slate-500'}`}>
                                         <Clock size={12} />
                                         {channel.availability}
                                     </div>
-                                    <div className={`flex items-center gap-2 text-xs ${channel.highlight ? 'text-blue-100' : 'text-slate-500'}`}>
+                                    <div className={`flex items-center gap-2 text-xs ${channel.highlight ? 'text-orange-100' : 'text-slate-500'}`}>
                                         <Zap size={12} />
                                         Yanıt: {channel.responseTime}
                                     </div>
@@ -480,7 +480,7 @@ export default function DestekPage() {
                                 
                                 <button className={`w-full py-2.5 rounded-xl font-bold text-sm transition-all ${
                                     channel.highlight 
-                                        ? 'bg-white text-blue-600 hover:bg-blue-50' 
+                                        ? 'bg-white text-orange-600 hover:bg-orange-50' 
                                         : 'bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-white/20'
                                 }`}>
                                     {channel.action}
@@ -501,7 +501,7 @@ export default function DestekPage() {
                         <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
                             Yardım Konuları
                         </h2>
-                        <Link href="/destek/tum-konular" className="text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1 hover:underline">
+                        <Link href="/destek/tum-konular" className="text-orange-600 dark:text-orange-400 font-medium flex items-center gap-1 hover:underline">
                             Tümünü Gör <ChevronRight size={16} />
                         </Link>
                     </div>
@@ -516,21 +516,21 @@ export default function DestekPage() {
                                 transition={{ delay: index * 0.05 }}
                             >
                                 <Link href={`/destek/${category.title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 've')}`} className="block group h-full">
-                                    <div className="p-5 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/30 transition-all hover:shadow-xl h-full">
+                                    <div className="p-5 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/30 transition-all hover:shadow-xl h-full">
                                         <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${category.gradient} flex items-center justify-center mb-4`}>
                                             <category.icon className="w-5 h-5 text-white" />
                                         </div>
-                                        <h3 className="font-bold text-slate-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                        <h3 className="font-bold text-slate-900 dark:text-white mb-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                                             {category.title}
                                         </h3>
                                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
                                             {category.description}
                                         </p>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs font-medium text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                                            <span className="text-xs font-medium text-orange-600 dark:text-orange-400 flex items-center gap-1">
                                                 <FileText size={12} /> {category.articles} makale
                                             </span>
-                                            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                                            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" />
                                         </div>
                                     </div>
                                 </Link>
@@ -549,10 +549,10 @@ export default function DestekPage() {
                     >
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <Book className="text-blue-500" size={20} />
+                                <Book className="text-orange-500" size={20} />
                                 En Çok Okunan Makaleler
                             </h2>
-                            <Link href="/destek/makaleler" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                            <Link href="/destek/makaleler" className="text-sm text-orange-600 dark:text-orange-400 hover:underline">
                                 Tümü
                             </Link>
                         </div>
@@ -565,10 +565,10 @@ export default function DestekPage() {
                                     className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors group"
                                 >
                                     <div className="w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center flex-shrink-0">
-                                        <article.icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                        <article.icon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="font-medium text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
+                                        <h4 className="font-medium text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-1">
                                             {article.title}
                                         </h4>
                                         <div className="flex items-center gap-3 mt-1">
@@ -582,7 +582,7 @@ export default function DestekPage() {
                                         </div>
                                     </div>
                                     <div className="text-xs text-slate-400">{article.views}</div>
-                                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" />
                                 </Link>
                             ))}
                         </div>
@@ -599,7 +599,7 @@ export default function DestekPage() {
                                 <Video className="text-purple-500" size={20} />
                                 Video Eğitimler
                             </h2>
-                            <Link href="/destek/videolar" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                            <Link href="/destek/videolar" className="text-sm text-orange-600 dark:text-orange-400 hover:underline">
                                 Tümü
                             </Link>
                         </div>
@@ -623,7 +623,7 @@ export default function DestekPage() {
                                             {video.duration}
                                         </div>
                                     </div>
-                                    <h4 className="text-sm font-medium text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+                                    <h4 className="text-sm font-medium text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-2">
                                         {video.title}
                                     </h4>
                                     <p className="text-xs text-slate-500 mt-1">{video.views} görüntüleme</p>
@@ -660,7 +660,7 @@ export default function DestekPage() {
                                 }}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all ${
                                     activeFaqCategory === cat.id
-                                        ? 'bg-blue-600 text-white'
+                                        ? 'bg-orange-600 text-white'
                                         : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
                                 }`}
                             >
@@ -718,7 +718,7 @@ export default function DestekPage() {
                     </div>
 
                     <div className="text-center mt-8">
-                        <Link href="/faq" className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-medium hover:underline">
+                        <Link href="/faq" className="inline-flex items-center gap-2 text-orange-600 dark:text-orange-400 font-medium hover:underline">
                             Tüm Soruları Görüntüle <ExternalLink size={16} />
                         </Link>
                     </div>
@@ -732,7 +732,7 @@ export default function DestekPage() {
                     className="relative p-10 md:p-16 rounded-3xl overflow-hidden"
                 >
                     {/* Background */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-600 via-amber-600 to-purple-700" />
                     <div className="absolute inset-0 opacity-30" style={{
                         backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
                         backgroundSize: '24px 24px'
@@ -743,7 +743,7 @@ export default function DestekPage() {
                             <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
                                 Aradığınızı Bulamadınız mı?
                             </h2>
-                            <p className="text-lg text-blue-100 mb-6">
+                            <p className="text-lg text-orange-100 mb-6">
                                 Destek ekibimize doğrudan mesaj gönderin, en kısa sürede size dönüş yapalım.
                             </p>
                             <div className="flex items-center gap-4 text-white/80 text-sm">
@@ -770,7 +770,7 @@ export default function DestekPage() {
                                     rows={3}
                                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:border-white/40 resize-none"
                                 />
-                                <button className="w-full py-3 bg-white text-blue-600 rounded-xl font-bold hover:bg-blue-50 transition-colors flex items-center justify-center gap-2">
+                                <button className="w-full py-3 bg-white text-orange-600 rounded-xl font-bold hover:bg-orange-50 transition-colors flex items-center justify-center gap-2">
                                     <Send size={18} /> Mesaj Gönder
                                 </button>
                             </div>

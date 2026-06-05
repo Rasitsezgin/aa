@@ -90,7 +90,7 @@ export default function NewTopicPage() {
                 <ArrowLeft className="w-5 h-5" />
               </Link>
               <h1 className="text-xl font-bold flex items-center gap-2">
-                <Plus className="w-5 h-5 text-indigo-600" />
+                <Plus className="w-5 h-5 text-orange-600" />
                 Yeni Konu Aç
               </h1>
             </div>
@@ -111,7 +111,7 @@ export default function NewTopicPage() {
               <button
                 onClick={() => handleSubmit(false)}
                 disabled={!title.trim() || !content.trim() || !selectedBoard}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="w-4 h-4" /> Gönder
               </button>
@@ -130,7 +130,7 @@ export default function NewTopicPage() {
               <div className="relative">
                 <button
                   onClick={() => setShowBoardDropdown(!showBoardDropdown)}
-                  className="w-full flex items-center justify-between px-4 py-3 border border-slate-200 rounded-lg hover:border-indigo-300"
+                  className="w-full flex items-center justify-between px-4 py-3 border border-slate-200 rounded-lg hover:border-orange-300"
                 >
                   {selectedBoard ? (
                     <div>
@@ -170,7 +170,7 @@ export default function NewTopicPage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Başlık girin..."
-                className="w-full px-4 py-3 text-lg border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-4 py-3 text-lg border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500"
                 maxLength={100}
               />
               <p className="text-xs text-slate-400 mt-1 text-right">{title.length}/100</p>
@@ -190,8 +190,8 @@ export default function NewTopicPage() {
                     onClick={() => setTopicType(type.id as any)}
                     className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-colors ${
                       topicType === type.id
-                        ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                        : "border-slate-200 hover:border-indigo-300"
+                        ? "border-orange-500 bg-orange-50 text-orange-700"
+                        : "border-slate-200 hover:border-orange-300"
                     }`}
                   >
                     <type.icon className="w-4 h-4" />
@@ -273,12 +273,12 @@ export default function NewTopicPage() {
                 {tags.map((tag) => (
                   <span
                     key={tag}
-                    className="flex items-center gap-1 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm"
+                    className="flex items-center gap-1 px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm"
                   >
                     #{tag}
                     <button
                       onClick={() => removeTag(tag)}
-                      className="hover:text-indigo-900"
+                      className="hover:text-orange-900"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -304,11 +304,11 @@ export default function NewTopicPage() {
             </div>
 
             {/* Guidelines */}
-            <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl p-4 text-white">
+            <div className="bg-gradient-to-br from-amber-600 to-purple-600 rounded-xl p-4 text-white">
               <h3 className="font-bold mb-3 flex items-center gap-2">
                 <HelpCircle className="w-5 h-5" /> Kurallar
               </h3>
-              <ul className="space-y-2 text-sm text-indigo-100">
+              <ul className="space-y-2 text-sm text-orange-100">
                 <li>• Arama yapmadan önce benzer konuları kontrol edin</li>
                 <li>• Açıklayıcı başlıklar kullanın</li>
                 <li>• Spam ve reklam yapmayın</li>

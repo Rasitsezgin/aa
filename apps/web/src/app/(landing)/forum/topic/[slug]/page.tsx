@@ -155,7 +155,7 @@ export default function ForumTopicPage() {
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-2 text-sm text-slate-500">
-            <Link href="/forum" className="hover:text-indigo-600">Forum</Link>
+            <Link href="/forum" className="hover:text-orange-600">Forum</Link>
             <ChevronLeft className="w-4 h-4 rotate-180" />
             {topic ? (
               <>
@@ -261,7 +261,7 @@ export default function ForumTopicPage() {
                   <div className="text-center">
                     <div className="relative inline-block">
                       <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center text-white text-xl font-bold ${
-                        post.author.isStaff ? "bg-gradient-to-br from-red-500 to-orange-500" : "bg-gradient-to-br from-indigo-500 to-purple-600"
+                        post.author.isStaff ? "bg-gradient-to-br from-red-500 to-orange-500" : "bg-gradient-to-br from-amber-500 to-purple-600"
                       }`}>
                         {post.author.name.charAt(0).toUpperCase()}
                       </div>
@@ -269,7 +269,7 @@ export default function ForumTopicPage() {
                         <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
                       )}
                     </div>
-                    <Link href={`/forum/user/${post.author.id}`} className="block font-semibold text-slate-900 mt-3 hover:text-indigo-600">
+                    <Link href={`/forum/user/${post.author.id}`} className="block font-semibold text-slate-900 mt-3 hover:text-orange-600">
                       {post.author.name}
                     </Link>
                     {post.author.title && (
@@ -313,7 +313,7 @@ export default function ForumTopicPage() {
                   {/* Mobile Author */}
                   <div className="sm:hidden flex items-center gap-3 mb-4">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
-                      post.author.isStaff ? "bg-red-500" : "bg-indigo-500"
+                      post.author.isStaff ? "bg-red-500" : "bg-orange-500"
                     }`}>
                       {post.author.name.charAt(0)}
                     </div>
@@ -326,7 +326,7 @@ export default function ForumTopicPage() {
                   {/* Post Meta */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2 text-sm text-slate-500">
-                      <Link href={`#post-${post.postNumber}`} className="font-medium text-slate-700 hover:text-indigo-600">
+                      <Link href={`#post-${post.postNumber}`} className="font-medium text-slate-700 hover:text-orange-600">
                         #{post.postNumber}
                       </Link>
                       <span>•</span>
@@ -425,11 +425,11 @@ export default function ForumTopicPage() {
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
                 placeholder="Cevabınızı buraya yazın..."
-                className="w-full h-32 px-4 py-3 border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full h-32 px-4 py-3 border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-orange-500"
               />
               <div className="flex justify-between items-center">
                 <p className="text-sm text-slate-500">BBCode ve Markdown desteklenir</p>
-                <button className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
+                <button className="flex items-center gap-2 px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 font-medium">
                   <Send className="w-4 h-4" /> Gönder
                 </button>
               </div>
@@ -447,7 +447,7 @@ export default function ForumTopicPage() {
               key={i}
               className={`w-10 h-10 rounded-lg font-medium ${
                 page === 1
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-orange-600 text-white"
                   : "hover:bg-slate-200 text-slate-700"
               }`}
             >

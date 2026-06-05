@@ -29,7 +29,7 @@ export default function LandingError({
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                     <button
                         onClick={reset}
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white rounded-xl font-semibold transition-colors"
                     >
                         <RefreshCw size={16} />
                         Tekrar Dene

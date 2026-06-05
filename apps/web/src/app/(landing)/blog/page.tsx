@@ -19,7 +19,7 @@ export default async function BlogPage() {
     <section className="min-h-screen pt-28 pb-20 bg-white dark:bg-[#03060f]">
       <div className="container mx-auto px-6">
         <div className="max-w-3xl mb-12">
-          <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-blue-100/70 text-blue-700 text-xs font-black uppercase tracking-widest mb-4">
+          <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-orange-100/70 text-orange-700 text-xs font-black uppercase tracking-widest mb-4">
             Blog
           </div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
@@ -40,10 +40,10 @@ export default async function BlogPage() {
               <Link
                 key={post.id}
                 href={`/blog/${post.slug}`}
-                className="group rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/40 p-6 hover:border-blue-400/60 transition-all"
+                className="group rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/40 p-6 hover:border-orange-400/60 transition-all"
               >
-                <div className="text-xs font-black uppercase tracking-widest text-blue-600 mb-3">Yazi</div>
-                <h2 className="text-xl font-black text-slate-900 dark:text-white line-clamp-2 group-hover:text-blue-600 transition-colors">
+                <div className="text-xs font-black uppercase tracking-widest text-orange-600 mb-3">Yazi</div>
+                <h2 className="text-xl font-black text-slate-900 dark:text-white line-clamp-2 group-hover:text-orange-600 transition-colors">
                   {post.title}
                 </h2>
                 <p className="mt-3 text-sm text-slate-600 dark:text-slate-400 line-clamp-4">{post.excerpt}</p>
@@ -53,7 +53,7 @@ export default async function BlogPage() {
                   <span className="inline-flex items-center gap-1"><Clock size={13} /> {post.readTimeMinutes} dk</span>
                 </div>
 
-                <div className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-blue-600">
+                <div className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-orange-600">
                   Yaziyi oku <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>

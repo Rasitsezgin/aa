@@ -1057,7 +1057,7 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                     <h3>8.4. Başvuru Formu</h3>
                     <p>İlgili Kişi Başvuru Formu'nu doldurarak yukarıdaki kanallardan iletebilirsiniz.</p>
                     
-                    <p class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800 mt-4">
+                    <p class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-200 dark:border-orange-800 mt-4">
                         <strong>Not:</strong> Başvurularınız 30 gün içinde ücretsiz olarak sonuçlandırılacaktır. İşlemin ayrıca bir maliyet gerektirmesi hâlinde, Kurul tarafından belirlenen tarifedeki ücret alınabilir.
                     </p>
                 `
@@ -1438,7 +1438,7 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                         <li>Öncelikli destek</li>
                     </ul>
                     
-                    <p class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-800 mt-4">
+                    <p class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-200 dark:border-orange-800 mt-4">
                         <strong>Not:</strong> Güncel fiyatlar ve paket detayları için <a href="/fiyatlandirma">fiyatlandırma sayfamızı</a> ziyaret ediniz.
                     </p>
                 `
@@ -1716,7 +1716,7 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                 content: `
                     <p class="text-lg leading-relaxed">Pazaryonetimi, 2020 yılında e-ticaret satıcılarının karşılaştığı karmaşık operasyonel zorlukları çözmek amacıyla kuruldu. Kurucularımız, yıllarca e-ticaret sektöründe çalışırken satıcıların birden fazla pazaryerini yönetmekte yaşadığı zorlukları bizzat deneyimledi.</p>
                     
-                    <blockquote class="border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 py-4 px-6 my-6 rounded-r-xl">
+                    <blockquote class="border-l-4 border-orange-500 bg-orange-50 dark:bg-orange-900/20 py-4 px-6 my-6 rounded-r-xl">
                         <p class="italic text-lg">"Her pazaryeri için ayrı panel, ayrı stok takibi, ayrı sipariş yönetimi... Bu kaos içinde verimli olmak imkansızdı. Biz bunu değiştirmek istedik."</p>
                         <cite class="block mt-2 text-sm font-semibold">— Ahmet Yılmaz, Kurucu & CEO</cite>
                     </blockquote>
@@ -1724,8 +1724,8 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                     <p>İlk günden itibaren vizyonumuz netti: <strong>E-ticaret satıcılarına tek bir platform üzerinden tüm operasyonlarını yönetebilecekleri, yapay zeka destekli akıllı bir çözüm sunmak.</strong></p>
                     
                     <div class="grid md:grid-cols-3 gap-6 my-8">
-                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-2xl text-center">
-                            <div class="text-4xl font-black text-blue-600 mb-2">2020</div>
+                        <div class="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 p-6 rounded-2xl text-center">
+                            <div class="text-4xl font-black text-orange-600 mb-2">2020</div>
                             <div class="text-sm text-slate-600 dark:text-slate-400">Kuruluş Yılı</div>
                         </div>
                         <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-2xl text-center">
@@ -1742,9 +1742,9 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
             {
                 title: 'Misyonumuz',
                 content: `
-                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 rounded-2xl my-4">
+                    <div class="bg-gradient-to-r from-orange-600 to-amber-600 text-white p-8 rounded-2xl my-4">
                         <h3 class="text-2xl font-bold mb-4">🎯 Misyonumuz</h3>
-                        <p class="text-lg text-blue-100">E-ticaret satıcılarının operasyonel yükünü minimize ederek, işlerini büyütmeye odaklanmalarını sağlamak. Teknoloji ve yapay zeka gücünü herkes için erişilebilir kılmak.</p>
+                        <p class="text-lg text-orange-100">E-ticaret satıcılarının operasyonel yükünü minimize ederek, işlerini büyütmeye odaklanmalarını sağlamak. Teknoloji ve yapay zeka gücünü herkes için erişilebilir kılmak.</p>
                     </div>
                     
                     <p class="mt-6">Bu misyonu gerçekleştirmek için:</p>
@@ -1818,12 +1818,12 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                     
                     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden group hover:shadow-xl transition-all">
-                            <div class="aspect-square bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center">
+                            <div class="aspect-square bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 flex items-center justify-center">
                                 <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop" alt="Ahmet Yılmaz" class="w-full h-full object-cover" />
                             </div>
                             <div class="p-5">
                                 <h4 class="font-bold text-lg">Ahmet Yılmaz</h4>
-                                <p class="text-blue-600 dark:text-blue-400 text-sm font-medium">Kurucu & CEO</p>
+                                <p class="text-orange-600 dark:text-orange-400 text-sm font-medium">Kurucu & CEO</p>
                                 <p class="text-sm text-slate-600 dark:text-slate-400 mt-2">15 yıl e-ticaret deneyimi. Daha önce Hepsiburada'da Ürün Direktörü olarak görev yaptı.</p>
                             </div>
                         </div>
@@ -1862,7 +1862,7 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                         </div>
                         
                         <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden group hover:shadow-xl transition-all">
-                            <div class="aspect-square bg-gradient-to-br from-cyan-100 to-blue-100 dark:from-cyan-900/30 dark:to-blue-900/30 flex items-center justify-center">
+                            <div class="aspect-square bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center">
                                 <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop" alt="Can Özkan" class="w-full h-full object-cover" />
                             </div>
                             <div class="p-5">
@@ -1891,22 +1891,22 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                     <p class="mb-8">Kuruluşumuzdan bugüne kadar kat ettiğimiz yol ve önemli kilometre taşları:</p>
                     
                     <div class="relative">
-                        <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-600 via-purple-600 to-pink-600"></div>
+                        <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-orange-600 via-purple-600 to-pink-600"></div>
                         
                         <div class="space-y-8">
                             <div class="relative pl-12">
-                                <div class="absolute left-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">1</div>
-                                <div class="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl border border-blue-200 dark:border-blue-800">
-                                    <div class="text-blue-600 dark:text-blue-400 font-bold mb-1">2020 Q1</div>
+                                <div class="absolute left-0 w-8 h-8 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold text-sm">1</div>
+                                <div class="bg-orange-50 dark:bg-orange-900/20 p-6 rounded-2xl border border-orange-200 dark:border-orange-800">
+                                    <div class="text-orange-600 dark:text-orange-400 font-bold mb-1">2020 Q1</div>
                                     <h4 class="font-bold text-lg mb-2">Kuruluş</h4>
                                     <p class="text-slate-600 dark:text-slate-400">3 kurucu ortak ve 500.000 TL başlangıç sermayesi ile yola çıkıldı. İlk MVP 3 ayda geliştirildi.</p>
                                 </div>
                             </div>
                             
                             <div class="relative pl-12">
-                                <div class="absolute left-0 w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
-                                <div class="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-2xl border border-indigo-200 dark:border-indigo-800">
-                                    <div class="text-indigo-600 dark:text-indigo-400 font-bold mb-1">2020 Q4</div>
+                                <div class="absolute left-0 w-8 h-8 bg-orange-600 rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
+                                <div class="bg-orange-50 dark:bg-orange-900/20 p-6 rounded-2xl border border-orange-200 dark:border-orange-800">
+                                    <div class="text-orange-600 dark:text-orange-400 font-bold mb-1">2020 Q4</div>
                                     <h4 class="font-bold text-lg mb-2">İlk 1000 Kullanıcı</h4>
                                     <p class="text-slate-600 dark:text-slate-400">Beta sürümünde ilk 1000 aktif satıcıya ulaşıldı. Trendyol ve Hepsiburada entegrasyonları tamamlandı.</p>
                                 </div>
@@ -1958,9 +1958,9 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                             </div>
                             
                             <div class="relative pl-12">
-                                <div class="absolute left-0 w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">🎯</div>
-                                <div class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-6 rounded-2xl border border-blue-200 dark:border-purple-800">
-                                    <div class="text-blue-600 dark:text-blue-400 font-bold mb-1">2026 - Bugün</div>
+                                <div class="absolute left-0 w-8 h-8 bg-gradient-to-r from-orange-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">🎯</div>
+                                <div class="bg-gradient-to-r from-orange-50 to-purple-50 dark:from-orange-900/20 dark:to-amber-900/20 p-6 rounded-2xl border border-orange-200 dark:border-purple-800">
+                                    <div class="text-orange-600 dark:text-orange-400 font-bold mb-1">2026 - Bugün</div>
                                     <h4 class="font-bold text-lg mb-2">25.000+ Aktif Satıcı</h4>
                                     <p class="text-slate-600 dark:text-slate-400">150+ çalışan, 7 pazaryeri entegrasyonu, aylık 2 milyon+ işlenen sipariş. Avrupa lansmanı için geri sayım başladı.</p>
                                 </div>
@@ -1973,9 +1973,9 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                 title: 'Rakamlarla Pazaryonetimi',
                 content: `
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
-                        <div class="bg-gradient-to-br from-blue-600 to-blue-700 text-white p-6 rounded-2xl text-center">
+                        <div class="bg-gradient-to-br from-orange-600 to-amber-700 text-white p-6 rounded-2xl text-center">
                             <div class="text-4xl font-black mb-1">25K+</div>
-                            <div class="text-blue-200 text-sm">Aktif Satıcı</div>
+                            <div class="text-orange-200 text-sm">Aktif Satıcı</div>
                         </div>
                         <div class="bg-gradient-to-br from-green-600 to-green-700 text-white p-6 rounded-2xl text-center">
                             <div class="text-4xl font-black mb-1">2M+</div>
@@ -1997,9 +1997,9 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                             <div class="text-4xl font-black mb-1">99.9%</div>
                             <div class="text-cyan-200 text-sm">Uptime</div>
                         </div>
-                        <div class="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white p-6 rounded-2xl text-center">
+                        <div class="bg-gradient-to-br from-amber-600 to-amber-700 text-white p-6 rounded-2xl text-center">
                             <div class="text-4xl font-black mb-1">4.9/5</div>
-                            <div class="text-indigo-200 text-sm">Müşteri Puanı</div>
+                            <div class="text-amber-200 text-sm">Müşteri Puanı</div>
                         </div>
                         <div class="bg-gradient-to-br from-rose-600 to-rose-700 text-white p-6 rounded-2xl text-center">
                             <div class="text-4xl font-black mb-1">$50M+</div>
@@ -2015,7 +2015,7 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                                 <div class="text-sm text-slate-600 dark:text-slate-400">Yıllık Gelir Büyümesi</div>
                             </div>
                             <div>
-                                <div class="text-3xl font-black text-blue-600">+120%</div>
+                                <div class="text-3xl font-black text-orange-600">+120%</div>
                                 <div class="text-sm text-slate-600 dark:text-slate-400">Yeni Müşteri Kazanımı</div>
                             </div>
                             <div>
@@ -2057,7 +2057,7 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                 content: `
                     <div class="grid md:grid-cols-2 gap-6">
                         <div class="bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
-                            <div class="aspect-video bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30">
+                            <div class="aspect-video bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30">
                                 <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&h=300&fit=crop" alt="İstanbul Ofis" class="w-full h-full object-cover" />
                             </div>
                             <div class="p-6">
@@ -2105,7 +2105,7 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                     <p class="mb-6">Pazaryonetimi hakkında ulusal ve uluslararası basında çıkan haberler:</p>
                     
                     <div class="space-y-4">
-                        <a href="#" class="block bg-white dark:bg-white/5 p-5 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/30 transition-colors">
+                        <a href="#" class="block bg-white dark:bg-white/5 p-5 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/30 transition-colors">
                             <div class="flex items-center gap-4">
                                 <div class="w-20 h-12 bg-slate-100 dark:bg-white/10 rounded-lg flex items-center justify-center font-bold text-slate-500">TechCrunch</div>
                                 <div class="flex-1">
@@ -2115,7 +2115,7 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                             </div>
                         </a>
                         
-                        <a href="#" class="block bg-white dark:bg-white/5 p-5 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/30 transition-colors">
+                        <a href="#" class="block bg-white dark:bg-white/5 p-5 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/30 transition-colors">
                             <div class="flex items-center gap-4">
                                 <div class="w-20 h-12 bg-slate-100 dark:bg-white/10 rounded-lg flex items-center justify-center font-bold text-slate-500">Forbes TR</div>
                                 <div class="flex-1">
@@ -2125,7 +2125,7 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                             </div>
                         </a>
                         
-                        <a href="#" class="block bg-white dark:bg-white/5 p-5 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/30 transition-colors">
+                        <a href="#" class="block bg-white dark:bg-white/5 p-5 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/30 transition-colors">
                             <div class="flex items-center gap-4">
                                 <div class="w-20 h-12 bg-slate-100 dark:bg-white/10 rounded-lg flex items-center justify-center font-bold text-slate-500">Webrazzi</div>
                                 <div class="flex-1">
@@ -2135,7 +2135,7 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                             </div>
                         </a>
                         
-                        <a href="#" class="block bg-white dark:bg-white/5 p-5 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/30 transition-colors">
+                        <a href="#" class="block bg-white dark:bg-white/5 p-5 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/30 transition-colors">
                             <div class="flex items-center gap-4">
                                 <div class="w-20 h-12 bg-slate-100 dark:bg-white/10 rounded-lg flex items-center justify-center font-bold text-slate-500">Bloomberg HT</div>
                                 <div class="flex-1">
@@ -2151,7 +2151,7 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                 title: 'İletişim',
                 content: `
                     <div class="grid md:grid-cols-2 gap-6">
-                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-2xl border border-blue-200 dark:border-blue-800">
+                        <div class="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 p-6 rounded-2xl border border-orange-200 dark:border-orange-800">
                             <h4 class="font-bold text-lg mb-4">📧 Genel İletişim</h4>
                             <div class="space-y-2 text-sm">
                                 <p><strong>E-posta:</strong> info@pazaryonetimi.com</p>
@@ -2219,7 +2219,7 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                     <p>Pazaryonetimi'nde çalışmak, sadece bir iş değil, e-ticaret dünyasını dönüştüren bir misyonun parçası olmak demek.</p>
                     
                     <div class="grid md:grid-cols-3 gap-4 my-6">
-                        <div class="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-xl text-center">
+                        <div class="bg-orange-50 dark:bg-orange-900/20 p-5 rounded-xl text-center">
                             <div class="text-3xl mb-2">🚀</div>
                             <h4 class="font-bold">Hızlı Büyüme</h4>
                             <p class="text-sm text-slate-600 dark:text-slate-400">Yılda %180+ büyüyen bir şirkette kariyer fırsatları</p>
@@ -2279,7 +2279,7 @@ export const LEGAL_PAGES: Record<string, LegalPage> = {
                         </div>
                     </div>
                     
-                    <p class="mt-6">Tüm pozisyonlar için: <a href="mailto:kariyer@pazaryonetimi.com" class="text-blue-600 hover:underline">kariyer@pazaryonetimi.com</a></p>
+                    <p class="mt-6">Tüm pozisyonlar için: <a href="mailto:kariyer@pazaryonetimi.com" class="text-orange-600 hover:underline">kariyer@pazaryonetimi.com</a></p>
                 `
             }
         ]

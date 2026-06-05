@@ -297,7 +297,7 @@ const videoTestimonials = [
 
 // Toplam metrikler
 const totalMetrics = [
-    { value: "25,000+", label: "Mutlu Satıcı", icon: Users, color: "from-blue-500 to-cyan-500" },
+    { value: "25,000+", label: "Mutlu Satıcı", icon: Users, color: "from-orange-500 to-amber-500" },
     { value: "₺5B+", label: "İşlenen GMV", icon: TrendingUp, color: "from-emerald-500 to-green-500" },
     { value: "2M+", label: "Aylık Sipariş", icon: ShoppingBag, color: "from-purple-500 to-pink-500" },
     { value: "%180", label: "Ortalama Büyüme", icon: BarChart3, color: "from-orange-500 to-red-500" },
@@ -329,7 +329,7 @@ export default function BasariHikayeleriPage() {
                     backgroundSize: '32px 32px'
                 }} />
                 <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-emerald-500/10 dark:bg-emerald-500/5 blur-[150px] rounded-full" />
-                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-500/5 blur-[150px] rounded-full" />
+                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-orange-500/10 dark:bg-orange-500/5 blur-[150px] rounded-full" />
             </div>
 
             <div className="container mx-auto px-6 relative z-10">
@@ -559,7 +559,7 @@ export default function BasariHikayeleriPage() {
                                             {story.results.map((result, i) => {
                                                 const colorClasses: Record<string, string> = {
                                                     emerald: 'from-emerald-500 to-green-500 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400',
-                                                    blue: 'from-blue-500 to-cyan-500 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400',
+                                                    blue: 'from-orange-500 to-amber-500 bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 text-orange-600 dark:text-orange-400',
                                                     purple: 'from-purple-500 to-pink-500 bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400',
                                                     yellow: 'from-yellow-500 to-amber-500 bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-600 dark:text-yellow-400',
                                                     amber: 'from-amber-500 to-orange-500 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400',

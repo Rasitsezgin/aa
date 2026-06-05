@@ -28,7 +28,7 @@ const PRICING_DATA = {
             desc: 'E-ticarete yeni başlayanlar için ideal başlangıç paketi.',
             price: { monthly: 299, yearly: 239 },
             icon: Rocket,
-            color: 'from-blue-500 to-cyan-500',
+            color: 'from-orange-500 to-amber-500',
             popular: false,
             features: [
                 { name: '2 Pazaryeri Entegrasyonu', included: true },
@@ -251,7 +251,7 @@ export default function PricingClient() {
                     backgroundSize: '32px 32px'
                 }} />
                 <div className="absolute top-0 left-1/3 w-[800px] h-[800px] bg-green-500/10 dark:bg-green-500/5 rounded-full blur-[150px]" />
-                <div className="absolute bottom-0 right-1/3 w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-[150px]" />
+                <div className="absolute bottom-0 right-1/3 w-[600px] h-[600px] bg-orange-500/10 dark:bg-orange-500/5 rounded-full blur-[150px]" />
             </div>
 
             {/* Hero Section */}

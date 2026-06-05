@@ -104,7 +104,7 @@ export const ROICalculator2 = ({ features }: ROICalculator2Props) => {
     return (
         <div className="bg-surface rounded-3xl border border-border overflow-hidden">
             {/* Header */}
-            <div className="p-6 border-b border-border bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-500/5 dark:to-purple-500/5">
+            <div className="p-6 border-b border-border bg-gradient-to-r from-orange-50/50 to-purple-50/50 dark:from-orange-500/5 dark:to-purple-500/5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <motion.div 
@@ -141,11 +141,11 @@ export const ROICalculator2 = ({ features }: ROICalculator2Props) => {
                                 className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10"
                             >
                                 <label className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
-                                    <div className="p-1.5 bg-blue-100 dark:bg-blue-500/20 rounded-lg">
-                                        <Package className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                    <div className="p-1.5 bg-orange-100 dark:bg-orange-500/20 rounded-lg">
+                                        <Package className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                                     </div>
                                     Aylık Sipariş
-                                    <span className="ml-auto text-lg font-black text-blue-600">{formatNumber(currentOrders)}</span>
+                                    <span className="ml-auto text-lg font-black text-orange-600">{formatNumber(currentOrders)}</span>
                                 </label>
                                 <div className="relative">
                                     <input
@@ -154,7 +154,7 @@ export const ROICalculator2 = ({ features }: ROICalculator2Props) => {
                                         max="1000"
                                         value={currentOrders}
                                         onChange={(e) => setCurrentOrders(parseInt(e.target.value))}
-                                        className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                        className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
                                     />
                                     <div className="flex justify-between text-[10px] text-slate-400 mt-1.5">
                                         <span>10</span>
@@ -336,24 +336,24 @@ export const ROICalculator2 = ({ features }: ROICalculator2Props) => {
                                     animate={{ scale: 1, opacity: 1 }}
                                     whileHover={{ scale: 1.02, y: -4 }}
                                     transition={{ delay: 0.2 }}
-                                    className="p-5 bg-gradient-to-br from-blue-500/10 to-cyan-500/5 border border-blue-200 dark:border-blue-500/20 rounded-2xl shadow-lg shadow-blue-500/10"
+                                    className="p-5 bg-gradient-to-br from-orange-500/10 to-cyan-500/5 border border-orange-200 dark:border-orange-500/20 rounded-2xl shadow-lg shadow-orange-500/10"
                                 >
                                     <div className="flex items-center justify-between mb-3">
-                                        <div className="p-2 bg-blue-100 dark:bg-blue-500/20 rounded-xl">
-                                            <Timer className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                        <div className="p-2 bg-orange-100 dark:bg-orange-500/20 rounded-xl">
+                                            <Timer className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                                         </div>
-                                        <span className="text-xs text-blue-600 font-black bg-blue-100 dark:bg-blue-500/20 px-2 py-1 rounded-full">-70%</span>
+                                        <span className="text-xs text-orange-600 font-black bg-orange-100 dark:bg-orange-500/20 px-2 py-1 rounded-full">-70%</span>
                                     </div>
-                                    <div className="text-2xl font-black text-blue-600 dark:text-blue-400">
+                                    <div className="text-2xl font-black text-orange-600 dark:text-orange-400">
                                         {formatNumber(results.timeSavings)} saat
                                     </div>
                                     <div className="text-xs text-slate-500 mt-1">Zaman Tasarrufu</div>
-                                    <div className="mt-3 h-2 bg-blue-100 dark:bg-blue-500/20 rounded-full overflow-hidden">
+                                    <div className="mt-3 h-2 bg-orange-100 dark:bg-orange-500/20 rounded-full overflow-hidden">
                                         <motion.div 
                                             initial={{ width: 0 }}
                                             animate={{ width: '70%' }}
                                             transition={{ delay: 0.7, duration: 1 }}
-                                            className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full" 
+                                            className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full" 
                                         />
                                     </div>
                                 </motion.div>
@@ -414,8 +414,8 @@ export const ROICalculator2 = ({ features }: ROICalculator2Props) => {
                                             type="monotone"
                                             dataKey="projected"
                                             stackId="2"
-                                            stroke="#3b82f6"
-                                            fill="#3b82f6"
+                                            stroke="#ea580c"
+                                            fill="#ea580c"
                                             fillOpacity={0.6}
                                             name="Projeksiyon"
                                         />

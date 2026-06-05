@@ -9,7 +9,7 @@ export default function FeaturesShowcase() {
             title: "Yapay Zeka SEO",
             desc: "Ürünlerinizin başlık ve açıklamalarını Gemini API ile anlık optimize eder.",
             icon: Bot,
-            color: "from-blue-500/20 to-cyan-500/20"
+            color: "from-orange-500/20 to-cyan-500/20"
         },
         {
             title: "Rakip Takibi",
@@ -33,7 +33,7 @@ export default function FeaturesShowcase() {
             title: "Global Vizyon",
             desc: "Dünyanın her yerine yerel dilde ve para biriminde satış yapın.",
             icon: Globe,
-            color: "from-indigo-500/20 to-blue-500/20"
+            color: "from-amber-500/20 to-amber-500/20"
         },
         {
             title: "Maksimum Güvenlik",

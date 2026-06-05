@@ -33,7 +33,7 @@
     },
     "db:generate": {
       "cache": false,
-      "outputs": ["packages/database/node_modules/.prisma/client/**"]
+      "outputs": ["packages/database/generated/client/**"]
     }
   }
 }

@@ -76,7 +76,7 @@ const features: Record<string, Feature> = {
         title: 'Stok Yönetimi',
         heroTitle: 'Hatasız ve Akıllı\nStok Yönetimi',
         heroSubtitle: 'Tüm pazaryerlerinde anlık senkronizasyon. Stoksuz kalmaya ve hatalı gönderimlere son verin.',
-        gradient: 'from-blue-600 via-cyan-600 to-teal-600',
+        gradient: 'from-orange-600 via-cyan-600 to-teal-600',
         icon: Package,
         stats: [
             { label: 'Stok Tutarlılığı', value: '%99.9' },
@@ -146,7 +146,7 @@ const features: Record<string, Feature> = {
         title: 'Analitik',
         heroTitle: 'Veriye Dayalı\nKararlar Alın',
         heroSubtitle: 'Satışlarınızı, karlılığınızı ve müşteri davranışlarını detaylı grafiklerle analiz edin. Tahminlere değil, verilere güvenin.',
-        gradient: 'from-blue-600 via-indigo-600 to-violet-600',
+        gradient: 'from-orange-600 via-amber-600 to-violet-600',
         icon: BarChart3,
         stats: [
             { label: 'Metrik Sayısı', value: '50+' },

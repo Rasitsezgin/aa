@@ -173,7 +173,7 @@ function BlockRenderer({ block }: { block: Block }) {
             href={block.content.url}
             className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
               block.content.variant === "primary"
-                ? "bg-blue-600 text-white hover:bg-blue-700"
+                ? "bg-orange-600 text-white hover:bg-orange-500"
                 : block.content.variant === "secondary"
                 ? "bg-slate-200 text-slate-800 hover:bg-slate-300"
                 : "border-2 border-current text-current hover:bg-slate-100"

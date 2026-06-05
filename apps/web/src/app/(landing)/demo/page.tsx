@@ -195,7 +195,7 @@ export default function DemoPage() {
                     backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
                     backgroundSize: '32px 32px'
                 }} />
-                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-blue-500/10 dark:bg-blue-500/20 blur-[180px] rounded-full" />
+                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-orange-500/10 dark:bg-orange-500/20 blur-[180px] rounded-full" />
                 <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-500/10 dark:bg-purple-500/20 blur-[150px] rounded-full" />
             </div>
 
@@ -210,22 +210,22 @@ export default function DemoPage() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.1 }}
-                        className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/40 dark:to-purple-900/40 border border-blue-200/50 dark:border-blue-700/50 rounded-full mb-8"
+                        className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-orange-100 to-purple-100 dark:from-orange-900/40 dark:to-amber-900/40 border border-orange-200/50 dark:border-orange-700/50 rounded-full mb-8"
                     >
-                        <Video size={16} className="text-blue-600 dark:text-blue-400" />
-                        <span className="text-sm font-bold text-blue-700 dark:text-blue-300 tracking-wide">ÜCRETSİZ DEMO</span>
+                        <Video size={16} className="text-orange-600 dark:text-orange-400" />
+                        <span className="text-sm font-bold text-orange-700 dark:text-orange-300 tracking-wide">ÜCRETSİZ DEMO</span>
                     </motion.div>
 
                     <h1 className="text-5xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-6">
                         Pazaryonetimi&apos;ni{' '}
-                        <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        <span className="bg-gradient-to-r from-orange-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                             Keşfedin
                         </span>
                     </h1>
 
                     <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
                         30 dakikalık ücretsiz demo ile platformumuzu tanıyın.
-                        <span className="text-blue-600 dark:text-blue-400 font-semibold"> Hiçbir taahhüt yok.</span>
+                        <span className="text-orange-600 dark:text-orange-400 font-semibold"> Hiçbir taahhüt yok.</span>
                     </p>
                 </motion.div>
 
@@ -249,8 +249,8 @@ export default function DemoPage() {
                                         transition={{ delay: 0.3 + i * 0.1 }}
                                         className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10"
                                     >
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 flex items-center justify-center flex-shrink-0">
-                                            <benefit.icon size={24} className="text-blue-600 dark:text-blue-400" />
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500/10 to-purple-500/10 dark:from-orange-500/20 dark:to-purple-500/20 flex items-center justify-center flex-shrink-0">
+                                            <benefit.icon size={24} className="text-orange-600 dark:text-orange-400" />
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-slate-900 dark:text-white">{benefit.title}</h3>
@@ -262,9 +262,9 @@ export default function DemoPage() {
                         </div>
 
                         {/* Features List */}
-                        <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200/50 dark:border-blue-700/30">
+                        <div className="p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-purple-50 dark:from-orange-900/20 dark:to-amber-900/20 border border-orange-200/50 dark:border-orange-700/30">
                             <h3 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                                <Sparkles size={18} className="text-blue-600 dark:text-blue-400" />
+                                <Sparkles size={18} className="text-orange-600 dark:text-orange-400" />
                                 Demo&apos;da Görecekleriniz
                             </h3>
                             <div className="space-y-2">
@@ -315,7 +315,7 @@ export default function DemoPage() {
                     >
                         <div className="p-8 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-xl">
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-purple-600 flex items-center justify-center">
                                     <Calendar size={24} className="text-white" />
                                 </div>
                                 <div>
@@ -338,7 +338,7 @@ export default function DemoPage() {
                                                 required
                                                 value={formData.firstName}
                                                 onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                                                className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                                className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                                                 placeholder="Adınız"
                                             />
                                         </div>
@@ -352,7 +352,7 @@ export default function DemoPage() {
                                             required
                                             value={formData.lastName}
                                             onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                                            className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                            className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                                             placeholder="Soyadınız"
                                         />
                                     </div>
@@ -371,7 +371,7 @@ export default function DemoPage() {
                                                 required
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                                className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                                                 placeholder="ornek@sirket.com"
                                             />
                                         </div>
@@ -387,7 +387,7 @@ export default function DemoPage() {
                                                 required
                                                 value={formData.phone}
                                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                                className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                                                 placeholder="+90 5XX XXX XX XX"
                                             />
                                         </div>
@@ -407,7 +407,7 @@ export default function DemoPage() {
                                                 required
                                                 value={formData.company}
                                                 onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                                className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                                className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                                                 placeholder="Şirket adınız"
                                             />
                                         </div>
@@ -422,7 +422,7 @@ export default function DemoPage() {
                                                 required
                                                 value={formData.role}
                                                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                                className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none"
+                                                className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 appearance-none"
                                             >
                                                 <option value="">Seçiniz</option>
                                                 {roleOptions.map(role => (
@@ -445,7 +445,7 @@ export default function DemoPage() {
                                                 type="button"
                                                 onClick={() => setFormData({ ...formData, employees: option })}
                                                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formData.employees === option
-                                                        ? 'bg-blue-600 text-white'
+                                                        ? 'bg-orange-600 text-white'
                                                         : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
                                                     }`}
                                             >
@@ -467,7 +467,7 @@ export default function DemoPage() {
                                                 type="button"
                                                 onClick={() => handleMarketplaceToggle(mp.id)}
                                                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${formData.marketplaces.includes(mp.id)
-                                                        ? 'bg-blue-600 text-white'
+                                                        ? 'bg-orange-600 text-white'
                                                         : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
                                                     }`}
                                             >
@@ -490,7 +490,7 @@ export default function DemoPage() {
                                                 type="button"
                                                 onClick={() => setFormData({ ...formData, preferredTime: time })}
                                                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${formData.preferredTime === time
-                                                        ? 'bg-blue-600 text-white'
+                                                        ? 'bg-orange-600 text-white'
                                                         : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
                                                     }`}
                                             >
@@ -510,7 +510,7 @@ export default function DemoPage() {
                                         value={formData.message}
                                         onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                                         rows={3}
-                                        className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
+                                        className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 resize-none"
                                         placeholder="Demo'da özellikle görmek istediğiniz özellikler..."
                                     />
                                 </div>
@@ -519,7 +519,7 @@ export default function DemoPage() {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                                    className="w-full py-4 px-6 bg-gradient-to-r from-orange-600 to-purple-600 text-white rounded-xl font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
                                     {isSubmitting ? (
                                         <>
@@ -537,7 +537,7 @@ export default function DemoPage() {
                                 {/* Privacy Note */}
                                 <p className="text-xs text-center text-slate-500 dark:text-slate-400">
                                     Formu göndererek{' '}
-                                    <Link href="/privacy" className="text-blue-600 dark:text-blue-400 hover:underline">
+                                    <Link href="/privacy" className="text-orange-600 dark:text-orange-400 hover:underline">
                                         Gizlilik Politikası
                                     </Link>
                                     &apos;nı kabul etmiş olursunuz.

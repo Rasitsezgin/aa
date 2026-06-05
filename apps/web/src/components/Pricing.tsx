@@ -22,8 +22,7 @@ export default function Pricing({ texts = HOMEPAGE_TEXTS.pricing }: { texts?: ty
                     backgroundSize: '24px 24px'
                 }} />
                 {/* Ambient Glows */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-blue-500/5 dark:bg-blue-500/10 blur-[150px] rounded-full" />
-                <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-purple-500/5 dark:bg-purple-500/10 blur-[120px] rounded-full" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-orange-500/5 dark:bg-orange-500/10 blur-[150px] rounded-full" />
             </div>
 
             <div className="container mx-auto px-6 max-w-5xl relative z-10">
@@ -54,7 +53,7 @@ export default function Pricing({ texts = HOMEPAGE_TEXTS.pricing }: { texts?: ty
                             className="w-16 h-8 bg-slate-200 dark:bg-white/10 rounded-full p-1 relative transition-colors hover:bg-slate-300 dark:hover:bg-white/20"
                         >
                             <motion.div
-                                className="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-lg shadow-blue-500/30"
+                                className="w-6 h-6 bg-gradient-to-br from-orange-500 to-amber-600 rounded-full shadow-lg shadow-orange-500/30"
                                 animate={{ x: isAnnual ? 32 : 0 }}
                                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                             />
@@ -79,13 +78,13 @@ export default function Pricing({ texts = HOMEPAGE_TEXTS.pricing }: { texts?: ty
                         whileInView={{ opacity: 1, y: 0 }}
                         whileHover={{ scale: 1.02, y: -8 }}
                         transition={{ delay: 0.1, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                        className="p-10 rounded-[32px] border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/40 backdrop-blur-xl hover:shadow-2xl dark:hover:shadow-blue-500/5 transition-all duration-500 relative group overflow-hidden"
+                        className="p-10 rounded-[32px] border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/40 backdrop-blur-xl hover:shadow-2xl dark:hover:shadow-orange-500/5 transition-all duration-500 relative group overflow-hidden"
                     >
                         {/* Subtle hover gradient */}
                         <motion.div 
-                        className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                        className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                         style={{
-                            background: 'linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(99,102,241,0.04) 50%, transparent 100%)'
+                            background: 'linear-gradient(135deg, rgba(234,88,12,0.08) 0%, rgba(245,158,11,0.04) 50%, transparent 100%)'
                         }}
                         />
 
@@ -123,7 +122,7 @@ export default function Pricing({ texts = HOMEPAGE_TEXTS.pricing }: { texts?: ty
                                         whileHover={{ scale: 1.2, rotate: 10 }}
                                         className="w-5 h-5 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center"
                                     >
-                                        <Check size={12} className="text-blue-500" />
+                                        <Check size={12} className="text-orange-600" />
                                     </motion.div>
                                     {i}
                                 </motion.li>
@@ -137,26 +136,26 @@ export default function Pricing({ texts = HOMEPAGE_TEXTS.pricing }: { texts?: ty
                         whileInView={{ opacity: 1, y: 0 }}
                         whileHover={{ scale: 1.03, y: -10 }}
                         transition={{ delay: 0.2, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                        className="p-10 rounded-[32px] border-2 border-blue-500/30 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-500/10 dark:to-indigo-500/10 backdrop-blur-xl relative group hover:border-blue-500/50 shadow-2xl shadow-blue-500/10 dark:shadow-blue-500/5 transition-all duration-500 overflow-hidden"
+                        className="p-10 rounded-[32px] border-2 border-orange-500/30 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-500/10 dark:to-amber-500/10 backdrop-blur-xl relative group hover:border-orange-500/50 shadow-2xl shadow-orange-500/10 dark:shadow-orange-500/5 transition-all duration-500 overflow-hidden"
                     >
                         {/* Animated Glow effect */}
                         <motion.div 
                             animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
                             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                            className="absolute -top-20 -right-20 w-40 h-40 bg-blue-500/20 blur-3xl rounded-full"
+                            className="absolute -top-20 -right-20 w-40 h-40 bg-orange-500/20 blur-3xl rounded-full"
                         />
                         <motion.div 
                             animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
                             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                            className="absolute -bottom-20 -left-20 w-40 h-40 bg-indigo-500/20 blur-3xl rounded-full"
+                            className="absolute -bottom-20 -left-20 w-40 h-40 bg-amber-500/20 blur-3xl rounded-full"
                         />
 
                         <motion.div 
                             animate={{ scale: [1, 1.05, 1] }}
                             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                            className="absolute top-0 right-0 px-4 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-[10px] font-black uppercase tracking-widest text-white rounded-bl-2xl shadow-lg shadow-blue-500/30"
+                            className="absolute top-0 right-0 px-4 py-1.5 bg-gradient-to-r from-orange-600 to-amber-600 text-[10px] font-black uppercase tracking-widest text-white rounded-bl-2xl shadow-lg shadow-orange-500/30"
                         >Önerilen</motion.div>
-                        <h3 className="text-xl font-bold mb-2 text-blue-600 dark:text-blue-400 relative z-10">{texts.plans[1].name}</h3>
+                        <h3 className="text-xl font-bold mb-2 text-orange-600 dark:text-orange-400 relative z-10">{texts.plans[1].name}</h3>
                         <div className="flex items-end gap-1 mb-6 h-12 relative z-10">
                             <AnimatePresence mode='wait'>
                                 <motion.div
@@ -173,9 +172,9 @@ export default function Pricing({ texts = HOMEPAGE_TEXTS.pricing }: { texts?: ty
                         </div>
                         <p className="text-slate-600 dark:text-slate-400 mb-8 text-sm h-10 relative z-10">{texts.plans[1].description}</p>
                         <motion.button 
-                            whileHover={{ scale: 1.03, boxShadow: "0 20px 40px -10px rgba(59,130,246,0.4)" }}
+                            whileHover={{ scale: 1.03, boxShadow: "0 20px 40px -10px rgba(234,88,12,0.35)" }}
                             whileTap={{ scale: 0.97 }}
-                            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all font-bold mb-8 text-white shadow-lg shadow-blue-500/30 relative z-10"
+                            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 transition-all font-bold mb-8 text-white shadow-lg shadow-orange-500/30 relative z-10"
                         >Ücretsiz Dene</motion.button>
                         <ul className="space-y-4 relative z-10">
                             {texts.plans[1].features.map((i, idx) => (
@@ -188,9 +187,9 @@ export default function Pricing({ texts = HOMEPAGE_TEXTS.pricing }: { texts?: ty
                                 >
                                     <motion.div 
                                         whileHover={{ scale: 1.2, rotate: 10 }}
-                                        className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center"
+                                        className="w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-500/20 flex items-center justify-center"
                                     >
-                                        <Check size={12} className="text-blue-600 dark:text-blue-400" />
+                                        <Check size={12} className="text-orange-600 dark:text-orange-400" />
                                     </motion.div>
                                     {i}
                                 </motion.li>

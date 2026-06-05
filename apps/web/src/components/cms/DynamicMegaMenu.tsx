@@ -75,10 +75,10 @@ export function DynamicMegaMenu({ location = "header", className = "" }: Dynamic
 
     const baseClasses = isMobile
       ? "block py-3 px-4 text-sm font-medium border-b border-slate-100"
-      : "flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors hover:text-blue-600";
+      : "flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors hover:text-orange-600";
 
     const highlightedClasses = isHighlighted
-      ? `text-${item.highlightColor || 'blue-600'} font-semibold`
+      ? `text-${item.highlightColor || 'orange-600'} font-semibold`
       : "text-slate-700";
 
     if (item.type === "DIVIDER") {
@@ -140,7 +140,7 @@ export function DynamicMegaMenu({ location = "header", className = "" }: Dynamic
                       <Link
                         key={child.id}
                         href={child.url || "#"}
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-blue-600"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-orange-600"
                         onClick={() => isMobile && setMobileMenuOpen(false)}
                       >
                         {getIcon(child.icon)}
@@ -206,7 +206,7 @@ export function DynamicMegaMenu({ location = "header", className = "" }: Dynamic
                         <li key={child.id}>
                           <Link
                             href={child.url || "#"}
-                            className="text-sm text-slate-600 hover:text-blue-600 flex items-center gap-2"
+                            className="text-sm text-slate-600 hover:text-orange-600 flex items-center gap-2"
                           >
                             {getIcon(child.icon)}
                             {child.label}
@@ -218,7 +218,7 @@ export function DynamicMegaMenu({ location = "header", className = "" }: Dynamic
                 ) : (
                   <Link
                     href={column.url || "#"}
-                    className="flex items-center gap-2 text-slate-700 hover:text-blue-600"
+                    className="flex items-center gap-2 text-slate-700 hover:text-orange-600"
                   >
                     {getIcon(column.icon)}
                     <span className="font-medium">{column.label}</span>
@@ -235,7 +235,7 @@ export function DynamicMegaMenu({ location = "header", className = "" }: Dynamic
   if (isLoading) {
     return (
       <div className={`h-16 flex items-center ${className}`}>
-        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-orange-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }

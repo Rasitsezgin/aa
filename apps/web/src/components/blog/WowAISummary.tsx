@@ -20,8 +20,8 @@ export default function WowAISummary({ summaryPoints }: WowAISummaryProps) {
 
     return (
         <div className="my-10 relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl opacity-20 group-hover:opacity-40 blur transition duration-500" />
-            <div className="relative bg-white dark:bg-[#0A0F1C] rounded-xl border border-blue-100 dark:border-blue-900/30 overflow-hidden shadow-xl">
+            <div className="absolute -inset-1 bg-gradient-to-r from-orange-600 via-purple-600 to-pink-600 rounded-2xl opacity-20 group-hover:opacity-40 blur transition duration-500" />
+            <div className="relative bg-white dark:bg-[#0A0F1C] rounded-xl border border-orange-100 dark:border-blue-900/30 overflow-hidden shadow-xl">
 
                 {/* Header */}
                 <div
@@ -29,14 +29,14 @@ export default function WowAISummary({ summaryPoints }: WowAISummaryProps) {
                     className="flex items-center justify-between p-4 cursor-pointer bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                 >
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-600 to-purple-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
                             <Bot size={20} className="text-white" />
                         </div>
                         <div>
                             <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 AI Özeti
                                 {!isGenerated && (
-                                    <span className="inline-flex gap-1 items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 animate-pulse">
+                                    <span className="inline-flex gap-1 items-center px-2 py-0.5 rounded text-[10px] font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 animate-pulse">
                                         Oluşturuluyor...
                                     </span>
                                 )}

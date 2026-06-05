@@ -76,7 +76,7 @@ export const AnalyticsDashboard = ({ features }: AnalyticsDashboardProps) => {
             change: 8.3,
             trend: 'up',
             icon: ShoppingCart,
-            color: 'from-blue-500 to-cyan-500'
+            color: 'from-orange-500 to-amber-500'
         },
         {
             title: 'Aktif Kullanıcılar',
@@ -108,7 +108,7 @@ export const AnalyticsDashboard = ({ features }: AnalyticsDashboardProps) => {
     ];
 
     const categoryData = [
-        { name: 'Elektronik', value: 35, color: '#3b82f6' },
+        { name: 'Elektronik', value: 35, color: '#ea580c' },
         { name: 'Moda', value: 28, color: '#8b5cf6' },
         { name: 'Ev Yaşam', value: 20, color: '#10b981' },
         { name: 'Spor', value: 12, color: '#f59e0b' },
@@ -160,7 +160,7 @@ export const AnalyticsDashboard = ({ features }: AnalyticsDashboardProps) => {
             <div className="p-6 border-b border-border">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl">
+                        <div className="p-2 bg-gradient-to-r from-amber-500 to-purple-500 rounded-xl">
                             <BarChart3 className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -265,8 +265,8 @@ export const AnalyticsDashboard = ({ features }: AnalyticsDashboardProps) => {
                                     <Area
                                         type="monotone"
                                         dataKey="value"
-                                        stroke="#3b82f6"
-                                        fill="#3b82f6"
+                                        stroke="#ea580c"
+                                        fill="#ea580c"
                                         fillOpacity={0.3}
                                         name="Bu Hafta"
                                     />
@@ -340,7 +340,7 @@ export const AnalyticsDashboard = ({ features }: AnalyticsDashboardProps) => {
                                             borderRadius: '8px'
                                         }}
                                     />
-                                    <Bar dataKey="value" fill="#3b82f6" name="Gelir" />
+                                    <Bar dataKey="value" fill="#ea580c" name="Gelir" />
                                     <Bar dataKey="orders" fill="#8b5cf6" name="Sipariş" />
                                 </BarChart>
                             </ResponsiveContainer>
@@ -350,9 +350,9 @@ export const AnalyticsDashboard = ({ features }: AnalyticsDashboardProps) => {
 
                 {/* Real-time Feed */}
                 {showRealTime && realTimeData.length > 0 && (
-                    <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-xl border border-blue-200 dark:border-blue-800/50">
+                    <div className="p-6 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 rounded-xl border border-orange-200 dark:border-orange-800/50">
                         <h4 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                            <Activity className="w-5 h-5 text-blue-600" />
+                            <Activity className="w-5 h-5 text-orange-600" />
                             Canlı Veri Akışı
                         </h4>
                         <div className="space-y-2">
@@ -371,7 +371,7 @@ export const AnalyticsDashboard = ({ features }: AnalyticsDashboardProps) => {
                                         </div>
                                         <div className="text-xs">
                                             <span className="text-slate-600">Sipariş: </span>
-                                            <span className="font-bold text-blue-600">{data.orders}</span>
+                                            <span className="font-bold text-orange-600">{data.orders}</span>
                                         </div>
                                         <div className="text-xs">
                                             <span className="text-slate-600">Kullanıcı: </span>

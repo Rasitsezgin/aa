@@ -59,11 +59,11 @@ export const AIPersonalization = ({ features }: AIPersonalizationProps) => {
 
     const industries = [
         { id: 'fashion', name: 'Moda & Tekstil', icon: '👗', color: 'from-pink-500 to-rose-500' },
-        { id: 'electronics', name: 'Elektronik', icon: '📱', color: 'from-blue-500 to-cyan-500' },
+        { id: 'electronics', name: 'Elektronik', icon: '📱', color: 'from-orange-500 to-amber-500' },
         { id: 'home', name: 'Ev & Yaşam', icon: '🏠', color: 'from-emerald-500 to-green-500' },
         { id: 'beauty', name: 'Kozmetik', icon: '💄', color: 'from-purple-500 to-pink-500' },
         { id: 'sports', name: 'Spor & Outdoor', icon: '⚽', color: 'from-orange-500 to-red-500' },
-        { id: 'books', name: 'Kitap & Medya', icon: '📚', color: 'from-indigo-500 to-purple-500' }
+        { id: 'books', name: 'Kitap & Medya', icon: '📚', color: 'from-amber-500 to-purple-500' }
     ];
 
     const companySizes = [
@@ -160,7 +160,7 @@ export const AIPersonalization = ({ features }: AIPersonalizationProps) => {
             {/* Header */}
             <div className="p-6 border-b border-border">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl">
+                    <div className="p-2 bg-gradient-to-r from-orange-500 to-purple-500 rounded-xl">
                         <Brain className="w-5 h-5 text-white" />
                     </div>
                     <div>
@@ -265,7 +265,7 @@ export const AIPersonalization = ({ features }: AIPersonalizationProps) => {
                             className="space-y-6"
                         >
                             {/* User Profile Summary */}
-                            <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-2xl border border-blue-200 dark:border-blue-800/50">
+                            <div className="p-6 bg-gradient-to-r from-orange-50 to-purple-50 dark:from-orange-950/20 dark:to-purple-950/20 rounded-2xl border border-orange-200 dark:border-orange-800/50">
                                 <div className="flex items-center justify-between mb-4">
                                     <h4 className="text-lg font-bold text-foreground">Profiliniz Oluşturuldu!</h4>
                                     <div className="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">

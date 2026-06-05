@@ -18,7 +18,7 @@ interface HeroSectionProps {
 export function HeroSection({
   title,
   subtitle,
-  bgColor = "bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900",
+  bgColor = "bg-gradient-to-br from-slate-900 via-slate-800 to-orange-900",
   bgImage,
   textColor = "text-white",
   padding = "py-20 lg:py-32",
@@ -51,7 +51,7 @@ export function HeroSection({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/20 text-blue-300 text-sm font-medium mb-6">
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/20 text-orange-300 text-sm font-medium mb-6">
               <Sparkles size={16} />
               AI Destekli Platform
             </span>
@@ -68,7 +68,7 @@ export function HeroSection({
               {ctaBlock ? (
                 <Link
                   href={ctaBlock.url || "/signup"}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-orange-600 hover:bg-orange-500 text-white rounded-xl font-semibold transition-all"
                 >
                   {ctaBlock.label || "Ücretsiz Başla"}
                   <ArrowRight size={20} />
@@ -77,7 +77,7 @@ export function HeroSection({
                 <>
                   <Link
                     href="/signup"
-                    className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all"
+                    className="inline-flex items-center gap-2 px-8 py-4 bg-orange-600 hover:bg-orange-500 text-white rounded-xl font-semibold transition-all"
                   >
                     Ücretsiz Başla
                     <ArrowRight size={20} />

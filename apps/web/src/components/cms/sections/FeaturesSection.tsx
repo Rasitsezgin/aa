@@ -98,8 +98,8 @@ export function FeaturesSection({
                 transition={{ delay: index * 0.1 }}
                 className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-lg transition-shadow"
               >
-                <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
-                  <Icon className="w-7 h-7 text-blue-600" />
+                <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center mb-6">
+                  <Icon className="w-7 h-7 text-orange-600" />
                 </div>
                 <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
                 <p className="text-slate-600">{feature.description}</p>

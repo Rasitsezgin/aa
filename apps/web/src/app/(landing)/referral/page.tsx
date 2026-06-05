@@ -23,7 +23,7 @@ const tiers = [
     {
         name: 'Pro',
         icon: Medal,
-        color: 'from-blue-500 to-indigo-600',
+        color: 'from-orange-500 to-amber-600',
         referrals: '6-20',
         reward: '₺2,500',
         perReferral: '₺125',
@@ -123,8 +123,8 @@ export default function ReferralPage() {
 
     const shareOptions = [
         { name: 'Twitter', icon: Twitter, color: 'bg-sky-500', url: `https://twitter.com/intent/tweet?text=Pazaryonetimi%20ile%20e-ticaret%20yönetimimi%20kolaylaştırdım!%20${referralLink}` },
-        { name: 'Facebook', icon: Facebook, color: 'bg-blue-600', url: `https://www.facebook.com/sharer/sharer.php?u=${referralLink}` },
-        { name: 'LinkedIn', icon: Linkedin, color: 'bg-blue-700', url: `https://www.linkedin.com/shareArticle?mini=true&url=${referralLink}` },
+        { name: 'Facebook', icon: Facebook, color: 'bg-orange-600', url: `https://www.facebook.com/sharer/sharer.php?u=${referralLink}` },
+        { name: 'LinkedIn', icon: Linkedin, color: 'bg-orange-600', url: `https://www.linkedin.com/shareArticle?mini=true&url=${referralLink}` },
         { name: 'WhatsApp', icon: MessageCircle, color: 'bg-green-500', url: `https://wa.me/?text=Pazaryonetimi%20ile%20e-ticaret%20yönetimimi%20kolaylaştırdım!%20${referralLink}` },
     ];
 

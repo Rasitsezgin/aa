@@ -134,7 +134,7 @@ export const MicroAnimations = ({ features }: MicroAnimationsProps) => {
     return (
         <div ref={containerRef} className="relative py-20 overflow-hidden">
             {/* Background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20" />
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 dark:from-orange-950/20 dark:via-amber-950/20 dark:to-orange-900/20" />
 
             {/* Particle Trail Effect */}
             {particleTrails && (
@@ -255,7 +255,7 @@ export const MicroAnimations = ({ features }: MicroAnimationsProps) => {
                 {/* Interactive Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
                     {[
-                        { icon: MousePointer, title: 'Hover Effects', desc: 'Mouse hareketlerine tepki veren akıllı animasyonlar', color: 'from-blue-500 to-cyan-500' },
+                        { icon: MousePointer, title: 'Hover Effects', desc: 'Mouse hareketlerine tepki veren akıllı animasyonlar', color: 'from-orange-500 to-amber-500' },
                         { icon: Eye, title: 'Scroll Reveal', desc: 'Scroll ile tetiklenen reveal animasyonları', color: 'from-purple-500 to-pink-500' },
                         { icon: Lightbulb, title: 'Smart Transitions', desc: 'Akıllı geçişler ve morphing efektler', color: 'from-emerald-500 to-green-500' }
                     ].map((item, index) => (

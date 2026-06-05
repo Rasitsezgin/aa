@@ -40,8 +40,8 @@ RUN npm install --no-save napi-postinstall && \
 # Copy pruned source code
 COPY --from=pruner /app/out/full/ .
 
-# Generate Prisma Client using local binary to avoid auto-install attempts
-RUN ./node_modules/.bin/prisma generate --schema=packages/database/prisma/schema.prisma
+# Prisma client + database package build (dist/generated/client)
+RUN npm run db:generate && npm run build --workspace=@pazaryonetimi/database
 
 # Build the project
 ENV NODE_OPTIONS="--max-old-space-size=3072"
@@ -69,14 +69,13 @@ COPY --from=pruner /app/out/package-lock.json ./package-lock.json
 # Install production dependencies
 RUN npm install --omit=dev --legacy-peer-deps
 
-# Copy Prisma Client and binaries from builder
+# Prisma CLI + runtime deps
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 
-# Copy built artifacts
+# Copy built artifacts (includes packages/database/dist + generated/client)
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/packages/database ./packages/database
 
 # Fix permissions
 RUN chown -R nestjs:nodejs /app

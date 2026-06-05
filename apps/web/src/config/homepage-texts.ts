@@ -1,48 +1,48 @@
 export const HOMEPAGE_TEXTS = {
     hero: {
-        badge: "Gemini 1.5 AI Motoru Yayında",
-        badgeLabel: "YENİ",
-        titlePrefix: " için",
-        titleSuffix: "AI Destekli Yönetim.",
-        subtitlePrefix: "Pazaryonetimi, tüm pazaryeri operasyonlarınızı tek bir merkezden,",
-        subtitleHighlight: " yapay zeka desteğiyle",
-        subtitleSuffix: " otonom olarak yönetmenizi sağlar.",
+        badge: "Stok ve siparişleriniz 200ms'de senkron",
+        badgeLabel: "CANLI",
+        titlePrefix: "için",
+        titleSuffix: "tek panelden yönetin.",
+        subtitlePrefix: "Trendyol'dan Amazon'a tüm kanallarınızı tek merkezden bağlayın.",
+        subtitleHighlight: " Çifte satış riski olmadan",
+        subtitleSuffix: " stok, sipariş ve kargoyu gerçek zamanlı yönetin.",
         analyzerPlaceholder: "Mağaza linkinizi yapıştırın...",
-        analyzerButton: "AI ile Analiz Et",
-        analyzerNote: "* Analiz tamamen ücretsizdir ve kredi kartı gerektirmez.",
+        analyzerButton: "Ücretsiz Analiz Et",
+        analyzerNote: "* Analiz ücretsizdir, kredi kartı gerekmez.",
         stats: [
             { text: "Kurulum 2 dk" },
-            { text: "SSL Güvenlik" },
+            { text: "KVKK Uyumlu" },
             { text: "200ms Senkron" }
         ]
     },
     bento: {
-        title: "Her Şey Dahil",
-        titleHighlight: "Ekosistem.",
-        subtitle: "Modern e-ticaretin ihtiyacı olan tüm araçlar, tek bir süper uygulamada birleşti. Yönetimi basitleştirin, satışları artırın.",
+        title: "Operasyonunuz",
+        titleHighlight: "Tek Panelde.",
+        subtitle: "Stok senkronizasyonu, sipariş yönetimi ve kargo entegrasyonu — ihtiyacınız olan her şey tek ekranda.",
         cards: [
             {
-                id: 'ai-seo',
-                title: "Gemini AI SEO",
-                description: "Ürünlerinizi sadece listelemeyin, onları satış makinelerine dönüştürün. Yapay zeka motorumuz başlık, açıklama ve anahtar kelimelerinizi pazaryeri algoritmalarına göre saniyesinde optimize eder.",
-                features: ['Otomatik Anahtar Kelime Analizi', 'Rakip Fiyat Takibi', 'Satış Odaklı Açıklama Yazımı']
-            },
-            {
                 id: 'sync',
-                title: "Anlık Senkronizasyon",
-                description: "Stok değişimleri 200ms içinde tüm platformlara yansır. Çifte satış riskini sıfıra indirin."
+                title: "Anlık Stok Senkronizasyonu",
+                description: "Bir kanalda stok değiştiğinde 200ms içinde tüm pazaryerlerine yansır. Çifte satış ve stok fazlası sipariş riskini ortadan kaldırın.",
+                features: ['Çoklu Kanal Eşleme', 'Otomatik Stok Düşümü', 'Gerçek Zamanlı Uyarılar']
             },
             {
-                id: 'global',
-                title: "Global Satış",
-                description: "Tek tıkla Amazon Europe ve Etsy'de satışa başlayın. Döviz kazancınızı katlayın."
+                id: 'orders',
+                title: "Sipariş & Kargo",
+                description: "Gelen siparişleri tek listede toplayın, Aras ve diğer kargo firmalarıyla etiket basımını otomatikleştirin."
+            },
+            {
+                id: 'ai-seo',
+                title: "AI Destekli SEO",
+                description: "Ürün başlık ve açıklamalarınızı pazaryeri algoritmalarına göre optimize edin. Satış odaklı içerik üretin."
             }
         ]
     },
     pricing: {
         badge: "Şeffaf Fiyatlandırma",
         title: "Basit, Şeffaf Fiyatlandırma.",
-        subtitle: "Gizli ücret yok. Kredi kartı gerekmez. İşletmeniz büyüdükçe paketinizi yükseltin.",
+        subtitle: "Gizli ücret yok. Kredi kartı gerekmez. 14 gün ücretsiz deneyin.",
         plans: [
             {
                 id: 'starter',
@@ -58,7 +58,7 @@ export const HOMEPAGE_TEXTS = {
                 priceMonthly: "1.299",
                 priceAnnual: "999",
                 description: "Büyüyen işletmeler ve power-seller'lar için tam donanım.",
-                features: ['Sınırsız Pazaryeri', 'Sınırsız Ürün', 'Gemini AI SEO Motoru', '7/24 Öncelikli Destek', 'Rakip Fiyat Analizi']
+                features: ['Sınırsız Pazaryeri', 'Sınırsız Ürün', 'AI SEO Motoru', '7/24 Öncelikli Destek', 'Rakip Fiyat Analizi']
             }
         ]
     },

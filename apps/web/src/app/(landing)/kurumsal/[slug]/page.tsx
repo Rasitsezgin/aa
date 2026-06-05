@@ -92,7 +92,7 @@ export default function LegalPage() {
                                     })}
                                 </nav>
                             </div>
-                            <div className="mt-6 bg-gradient-to-br from-primary/10 to-blue-500/10 rounded-2xl border border-primary/20 p-6">
+                            <div className="mt-6 bg-gradient-to-br from-primary/10 to-amber-500/10 rounded-2xl border border-primary/20 p-6">
                                 <h4 className="font-bold text-slate-900 dark:text-white mb-2">Sorularınız mı var?</h4>
                                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">Yasal konularda destek almak için bizimle iletişime geçin.</p>
                                 <div className="space-y-2 text-sm">

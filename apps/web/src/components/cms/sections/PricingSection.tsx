@@ -100,12 +100,12 @@ export function PricingSection({
               transition={{ delay: index * 0.1 }}
               className={`rounded-2xl p-8 ${
                 plan.popular
-                  ? "bg-slate-900 text-white ring-4 ring-blue-500"
+                  ? "bg-slate-900 text-white ring-4 ring-orange-500"
                   : "bg-slate-50 border border-slate-200"
               }`}
             >
               {plan.popular && (
-                <span className="inline-block px-3 py-1 bg-blue-500 text-white text-sm rounded-full mb-4">
+                <span className="inline-block px-3 py-1 bg-orange-500 text-white text-sm rounded-full mb-4">
                   En Popüler
                 </span>
               )}
@@ -124,7 +124,7 @@ export function PricingSection({
               <ul className="space-y-3 mb-8">
                 {plan.features.map((feature: string, i: number) => (
                   <li key={i} className="flex items-center gap-2">
-                    <Check size={16} className={plan.popular ? "text-blue-400" : "text-green-500"} />
+                    <Check size={16} className={plan.popular ? "text-orange-400" : "text-green-500"} />
                     <span className="text-sm">{feature}</span>
                   </li>
                 ))}
@@ -133,7 +133,7 @@ export function PricingSection({
                 href="/signup"
                 className={`block text-center py-3 rounded-lg font-semibold transition-colors ${
                   plan.popular
-                    ? "bg-blue-600 hover:bg-blue-700 text-white"
+                    ? "bg-orange-600 hover:bg-orange-500 text-white"
                     : "bg-slate-900 hover:bg-slate-800 text-white"
                 }`}
               >

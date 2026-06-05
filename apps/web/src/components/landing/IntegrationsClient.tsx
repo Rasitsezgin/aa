@@ -1,1351 +1,787 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence, useAnimation } from 'framer-motion';
-import {
-    Store, Search, ArrowRight, ShoppingCart, Check, Clock, Zap, Users,
-    Calculator, Truck, FileText, FileCode2, Globe, Sparkles, Activity,
-    TrendingUp, Shield, Cpu, Database, ExternalLink, Filter, Grid3X3, List,
-    Star, Download, Lock, RefreshCw, BarChart3, Layers, Plug, Mail,
-    Phone, MessageCircle, Plus, CheckCircle2, AlertCircle, Play,
-    ChevronRight, ChevronDown, BadgeCheck, Timer, Copy, Settings
-} from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence, useMotionTemplate, useMotionValue } from 'framer-motion';
 import Link from 'next/link';
+import {
+    Search, ArrowRight, Zap, Star, Clock, Users, Plug, X,
+    CheckCircle2, Shield, ExternalLink, Sparkles, RefreshCw,
+    Package, ShoppingCart, FileText, ChevronRight,
+} from 'lucide-react';
+import {
+    integrations,
+    categoryMeta,
+    type Integration,
+    type CategoryId,
+} from './integrations-data';
 
-// ==================== TYPES ====================
-type CategoryId = 'all' | 'pazaryeri' | 'eticaret' | 'muhasebe' | 'kargo' | 'efatura' | 'xml' | 'dropshipping' | 'reklam';
-
-interface Feature {
-    icon: React.ReactNode;
-    label: string;
-    value: string;
-}
-
-interface Stat {
-    label: string;
-    value: string;
-    change: string;
-    icon: React.ReactNode;
-}
-
-interface ActivityItem {
-    id: string;
-    type: 'sync' | 'order' | 'error' | 'success';
-    message: string;
-    time: string;
-    integration: string;
-}
-
-interface Integration {
-    id: string;
-    name: string;
-    category: CategoryId;
-    color: string;
-    gradient: string;
-    logo: string;
-    desc: string;
-    shortDesc: string;
-    features: string[];
-    stats: {
-        users: string;
-        syncTime: string;
-        uptime: string;
+// ─── Logo ─────────────────────────────────────────────
+function IntegrationLogo({ item, size = 'md' }: { item: Integration; size?: 'sm' | 'md' | 'lg' | 'xl' }) {
+    const [imgFailed, setImgFailed] = useState(false);
+    const dims = {
+        sm: 'w-10 h-10 text-xs',
+        md: 'w-14 h-14 text-base',
+        lg: 'w-16 h-16 text-lg',
+        xl: 'w-20 h-20 text-xl',
     };
-    rating: number;
-    reviews: number;
-    isPopular: boolean;
-    isNew: boolean;
-    documentation: string;
-    setupTime: string;
-    price: string;
-    requirements: string[];
-    connected?: boolean;
-    lastSync?: string;
-}
-
-// ==================== DATA ====================
-const categories = [
-    { id: 'all' as const, name: 'Tüm Entegrasyonlar', icon: Layers, count: 32 },
-    { id: 'pazaryeri' as const, name: 'Pazaryerleri', icon: Store, count: 12 },
-    { id: 'eticaret' as const, name: 'E-ticaret', icon: ShoppingCart, count: 8 },
-    { id: 'muhasebe' as const, name: 'Muhasebe', icon: Calculator, count: 6 },
-    { id: 'kargo' as const, name: 'Kargo & Lojistik', icon: Truck, count: 5 },
-    { id: 'efatura' as const, name: 'E-Fatura & E-Arşiv', icon: FileText, count: 4 },
-    { id: 'xml' as const, name: 'XML & Dropshipping', icon: FileCode2, count: 7 },
-    { id: 'reklam' as const, name: 'Reklam & Pazarlama', icon: TrendingUp, count: 3 },
-];
-
-const integrations: Integration[] = [
-    // Pazaryeri - Popüler
-    {
-        id: 'trendyol',
-        name: 'Trendyol',
-        category: 'pazaryeri',
-        color: '#F27A1A',
-        gradient: 'from-orange-500 to-orange-600',
-        logo: '/images/pazaryeri/Trendyol.png',
-        desc: 'Türkiye\'nin en büyük pazaryerinde otomatik ürün yükleme, stok senkronizasyonu, sipariş yönetimi ve fatura entegrasyonu. Gerçek zamanlı API bağlantısı.',
-        shortDesc: 'Tam otomasyon - ürün, stok, sipariş, fatura',
-        features: ['Otomatik Ürün Yükleme', 'Stok Senkronizasyonu', 'Sipariş Yönetimi', 'Fatura Entegrasyonu', 'Kampanya Yönetimi', 'Raporlama API'],
-        stats: { users: '12.5K+', syncTime: '< 2 dk', uptime: '99.9%' },
-        rating: 4.9,
-        reviews: 2847,
-        isPopular: true,
-        isNew: false,
-        documentation: '/docs/trendyol',
-        setupTime: '5 dakika',
-        price: 'Ücretsiz',
-        requirements: ['Trendyol Satıcı Hesabı', 'API Anahtarı', 'Mağaza Onayı']
-    },
-    {
-        id: 'hepsiburada',
-        name: 'Hepsiburada',
-        category: 'pazaryeri',
-        color: '#FF6000',
-        gradient: 'from-orange-600 to-red-500',
-        logo: '/images/pazaryeri/Hepsiburada.png',
-        desc: 'Hepsiburada\'da çift yönlü entegrasyon ile ürünlerinizi otomatik yönetin, siparişleri anlık çekin, stokları senkronize edin.',
-        shortDesc: 'Çift yönlü anlık senkronizasyon',
-        features: ['Ürün Yönetimi', 'Stok Eşitleme', 'Sipariş İmport', 'Fatura Kesimi', 'Kargo Entegrasyonu', 'İade Yönetimi'],
-        stats: { users: '8.2K+', syncTime: '< 3 dk', uptime: '99.8%' },
-        rating: 4.8,
-        reviews: 1923,
-        isPopular: true,
-        isNew: false,
-        documentation: '/docs/hepsiburada',
-        setupTime: '5 dakika',
-        price: 'Ücretsiz',
-        requirements: ['Hepsiburada Satıcı Paneli', 'API Erişimi']
-    },
-    {
-        id: 'amazon-tr',
-        name: 'Amazon.com.tr',
-        category: 'pazaryeri',
-        color: '#FF9900',
-        gradient: 'from-yellow-500 to-orange-500',
-        logo: '/images/pazaryeri/Amazon.png',
-        desc: 'Amazon Türkiye\'de global standartlarda entegrasyon. FBA (Fulfillment by Amazon) desteği, reklam API\'si ve detaylı raporlama.',
-        shortDesc: 'Global standartlarda entegrasyon + FBA',
-        features: ['FBA Desteği', 'Reklam API', 'Amazon Prime', 'Multi-Channel', 'A+ Content', 'Brand Analytics'],
-        stats: { users: '3.1K+', syncTime: '< 5 dk', uptime: '99.9%' },
-        rating: 4.9,
-        reviews: 856,
-        isPopular: true,
-        isNew: false,
-        documentation: '/docs/amazon-tr',
-        setupTime: '10 dakika',
-        price: 'Pro Plan',
-        requirements: ['Professional Seller Account', 'MWS Access']
-    },
-    {
-        id: 'n11',
-        name: 'N11',
-        category: 'pazaryeri',
-        color: '#A3248C',
-        gradient: 'from-purple-600 to-pink-600',
-        logo: '/images/pazaryeri/N11.png',
-        desc: 'N11 pazaryerinde toplu ürün yükleme, otomatik fiyatlandırma ve kampanya yönetimi. Hızlı ve güvenilir API entegrasyonu.',
-        shortDesc: 'Toplu ürün yükleme & fiyat yönetimi',
-        features: ['Toplu Ürün Aktarımı', 'Otomatik Fiyatlandırma', 'Kampanya Yönetimi', 'Sipariş Takibi', 'Stok Kontrolü', 'Raporlama'],
-        stats: { users: '9.8K+', syncTime: '< 2 dk', uptime: '99.7%' },
-        rating: 4.7,
-        reviews: 1634,
-        isPopular: false,
-        isNew: false,
-        documentation: '/docs/n11',
-        setupTime: '5 dakika',
-        price: 'Ücretsiz',
-        requirements: ['N11 Mağaza Hesabı', 'API Anahtarı']
-    },
-    {
-        id: 'ciceksepeti',
-        name: 'Çiçeksepeti',
-        category: 'pazaryeri',
-        color: '#00C853',
-        gradient: 'from-green-500 to-emerald-600',
-        logo: '/images/pazaryeri/ciceksepeti.png',
-        desc: 'Çiçeksepeti Marketplace entegrasyonu. Hızlı teslimat entegrasyonu, hediye paketi seçenekleri ve özel kampanya yönetimi.',
-        shortDesc: 'Marketplace + Hızlı Teslimat entegrasyonu',
-        features: ['Marketplace API', 'Hızlı Teslimat', 'Hediye Paketi', 'Sipariş Otomasyonu', 'Stok Yönetimi', 'Fatura Entegrasyonu'],
-        stats: { users: '4.5K+', syncTime: '< 3 dk', uptime: '99.8%' },
-        rating: 4.6,
-        reviews: 987,
-        isPopular: false,
-        isNew: false,
-        documentation: '/docs/ciceksepeti',
-        setupTime: '5 dakika',
-        price: 'Ücretsiz',
-        requirements: ['Çiçeksepeti Satıcı Hesabı']
-    },
-    {
-        id: 'pttavm',
-        name: 'PTT AVM',
-        category: 'pazaryeri',
-        color: '#D4AF37',
-        gradient: 'from-yellow-600 to-amber-600',
-        logo: '/images/pazaryeri/Pazarama.png',
-        desc: 'PTT AVM pazaryerinde yerel esnaf destekli satış. Kargo entegrasyonu ve ödeme sistemleri ile tam uyumlu çalışma.',
-        shortDesc: 'Yerel esnaf dostu pazaryeri entegrasyonu',
-        features: ['API Entegrasyonu', 'Kargo Takibi', 'Ödeme Sistemi', 'Sipariş Yönetimi', 'Stok Kontrolü', 'Fatura'],
-        stats: { users: '2.1K+', syncTime: '< 4 dk', uptime: '99.5%' },
-        rating: 4.5,
-        reviews: 432,
-        isPopular: false,
-        isNew: false,
-        documentation: '/docs/pttavm',
-        setupTime: '7 dakika',
-        price: 'Ücretsiz',
-        requirements: ['PTT AVM Satıcı Hesabı']
-    },
-    // E-ticaret Altyapıları
-    {
-        id: 'shopify',
-        name: 'Shopify',
-        category: 'eticaret',
-        color: '#96BF48',
-        gradient: 'from-green-600 to-emerald-700',
-        logo: '/images/pazaryeri/Shopify.png',
-        desc: 'Shopify mağazanızı Türkiye pazaryerleriyle entegre edin. E-ihracat, global satış ve çoklu kanal yönetimi.',
-        shortDesc: 'E-ihracat & Global satış entegrasyonu',
-        features: ['GraphQL API', 'Multi-Channel', 'E-ihracat', 'Stok Senkronizasyonu', 'Sipariş İmport', 'Metafields Desteği'],
-        stats: { users: '5.3K+', syncTime: '< 1 dk', uptime: '99.9%' },
-        rating: 4.9,
-        reviews: 1234,
-        isPopular: true,
-        isNew: false,
-        documentation: '/docs/shopify',
-        setupTime: '3 dakika',
-        price: 'Ücretsiz',
-        requirements: ['Shopify Mağazası', 'Admin API Access']
-    },
-    {
-        id: 'woocommerce',
-        name: 'WooCommerce',
-        category: 'eticaret',
-        color: '#96588A',
-        gradient: 'from-purple-600 to-indigo-700',
-        logo: '/images/pazaryeri/WooCommerce.png',
-        desc: 'WordPress sitenizdeki WooCommerce mağazanızı tüm pazaryerleriyle senkronize edin. Açık kaynak esneklği.',
-        shortDesc: 'WordPress entegrasyonu - Açık kaynak',
-        features: ['REST API', 'Webhook Desteği', 'Plugin Entegrasyonu', 'Özelleştirilebilir', 'Stok Senkronizasyonu', 'Sipariş Yönetimi'],
-        stats: { users: '6.7K+', syncTime: '< 2 dk', uptime: '99.8%' },
-        rating: 4.8,
-        reviews: 1876,
-        isPopular: true,
-        isNew: false,
-        documentation: '/docs/woocommerce',
-        setupTime: '5 dakika',
-        price: 'Ücretsiz',
-        requirements: ['WooCommerce Kurulumu', 'API Keys']
-    },
-    {
-        id: 'ideasoft',
-        name: 'IdeaSoft',
-        category: 'eticaret',
-        color: '#0066CC',
-        gradient: 'from-blue-600 to-blue-800',
-        logo: '/images/pazaryeri/ideasoft-logo.webp',
-        desc: 'IdeaSoft e-ticaret altyapısı ile Türkiye\'nin lider pazaryerleri arasında çift yönlü anlık senkronizasyon.',
-        shortDesc: 'Türkiye lideri altyapı entegrasyonu',
-        features: ['Tam Entegrasyon', 'Anlık Senkron', 'Özel API', 'Stok Yönetimi', 'Sipariş Aktarımı', 'Fatura'],
-        stats: { users: '7.2K+', syncTime: '< 1 dk', uptime: '99.9%' },
-        rating: 4.8,
-        reviews: 2134,
-        isPopular: true,
-        isNew: false,
-        documentation: '/docs/ideasoft',
-        setupTime: '5 dakika',
-        price: 'Ücretsiz',
-        requirements: ['IdeaSoft Mağaza', 'API Erişimi']
-    },
-    {
-        id: 'ticimax',
-        name: 'Ticimax',
-        category: 'eticaret',
-        color: '#6366F1',
-        gradient: 'from-indigo-600 to-purple-700',
-        logo: '/images/pazaryeri/ticimax.webp',
-        desc: 'Ticimax altyapınızda sıfır kayıp garantisi ile stok ve sipariş yönetimi. Gerçek zamanlı senkronizasyon.',
-        shortDesc: 'Sıfır kayıp garantili senkronizasyon',
-        features: ['Gerçek Zamanlı', 'Stok Kontrolü', 'Sipariş Yönetimi', 'XML Çıktı', 'Fatura Entegrasyonu', 'Raporlama'],
-        stats: { users: '4.8K+', syncTime: '< 2 dk', uptime: '99.8%' },
-        rating: 4.7,
-        reviews: 1234,
-        isPopular: false,
-        isNew: false,
-        documentation: '/docs/ticimax',
-        setupTime: '5 dakika',
-        price: 'Ücretsiz',
-        requirements: ['Ticimax Panel', 'API Bilgileri']
-    },
-    // Muhasebe
-    {
-        id: 'parasut',
-        name: 'Paraşüt',
-        category: 'muhasebe',
-        color: '#0066FF',
-        gradient: 'from-blue-500 to-cyan-600',
-        logo: '/images/muhasebe/parasut.png',
-        desc: 'Paraşüt ile otomatik e-fatura, e-arşiv fatura ve ön muhasebe entegrasyonu. Siparişler anında faturaya dönüşür.',
-        shortDesc: 'Otomatik fatura & muhasebe entegrasyonu',
-        features: ['E-Fatura', 'E-Arşiv', 'Otomatik Fatura', 'Cari Yönetimi', 'Banka Entegrasyonu', 'Raporlama'],
-        stats: { users: '6.1K+', syncTime: 'Anlık', uptime: '99.9%' },
-        rating: 4.9,
-        reviews: 2156,
-        isPopular: true,
-        isNew: false,
-        documentation: '/docs/parasut',
-        setupTime: '5 dakika',
-        price: 'Ücretsiz',
-        requirements: ['Paraşüt Hesabı', 'API Erişimi']
-    },
-    {
-        id: 'birfatura',
-        name: 'BirFatura',
-        category: 'muhasebe',
-        color: '#E11D48',
-        gradient: 'from-rose-500 to-red-600',
-        logo: '/images/muhasebe/birfatura.png',
-        desc: 'E-ticaret odaklı fatura yönetimi. Trendyol, Hepsiburada ve diğer kanallardan gelen siparişleri tek tıkla faturalandırın.',
-        shortDesc: 'E-ticaretçiler için hızlı fatura çözümü',
-        features: ['E-Fatura', 'E-Arşiv', 'Kargo Entegrasyonu', 'Toplu Yazdırma', 'Sipariş Yönetimi', 'GİB Uyumluluk'],
-        stats: { users: '4.5K+', syncTime: 'Anlık', uptime: '99.8%' },
-        rating: 4.7,
-        reviews: 1243,
-        isPopular: true,
-        isNew: true,
-        documentation: '/docs/birfatura',
-        setupTime: '3 dakika',
-        price: 'Ücretsiz',
-        requirements: ['BirFatura Hesabı', 'API Key']
-    },
-    {
-        id: 'logo',
-        name: 'Logo Tiger / Go',
-        category: 'muhasebe',
-        color: '#00A0B0',
-        gradient: 'from-cyan-600 to-teal-700',
-        logo: '/images/muhasebe/logo.png',
-        desc: 'Logo Tiger ve Go 3 ERP sistemleriyle kurumsal entegrasyon. Stok, cari, sipariş ve fatura yönetimi.',
-        shortDesc: 'Kurumsal ERP entegrasyonu',
-        features: ['ERP Entegrasyonu', 'Stok Yönetimi', 'Cari Yönetimi', 'Sipariş Aktarımı', 'Fatura', 'Raporlama'],
-        stats: { users: '3.4K+', syncTime: '< 5 dk', uptime: '99.7%' },
-        rating: 4.8,
-        reviews: 987,
-        isPopular: false,
-        isNew: false,
-        documentation: '/docs/logo',
-        setupTime: '15 dakika',
-        price: 'Enterprise',
-        requirements: ['Logo ERP', 'Web Servis Erişimi']
-    },
-    {
-        id: 'edm',
-        name: 'EDM Bilişim',
-        category: 'muhasebe',
-        color: '#2563EB',
-        gradient: 'from-blue-600 to-indigo-700',
-        logo: '/images/muhasebe/edm.png',
-        desc: 'EDM Bilişim e-fatura ve e-arşiv çözümleri. Kurumsal seviyede güvenilir ve hızlı fatura iletimi.',
-        shortDesc: 'Kurumsal e-fatura entegratörü',
-        features: ['E-Fatura', 'E-Arşiv', 'E-İrsaliye', 'Sınırsız Saklama', 'Hızlı İletim', '7/24 Destek'],
-        stats: { users: '2.8K+', syncTime: '< 1 dk', uptime: '99.9%' },
-        rating: 4.8,
-        reviews: 654,
-        isPopular: false,
-        isNew: true,
-        documentation: '/docs/edm',
-        setupTime: '10 dakika',
-        price: 'Kontör Bazlı',
-        requirements: ['EDM Üyeliği', 'Portal Bilgileri']
-    },
-    {
-        id: 'mikro',
-        name: 'Mikro Yazılım',
-        category: 'muhasebe',
-        color: '#1E3A8A',
-        gradient: 'from-blue-800 to-indigo-900',
-        logo: '/images/muhasebe/mikro.png',
-        desc: 'Mikro Yazılım ERP entegrasyonu. Karmaşık stok, sipariş ve finans operasyonlarını pazaryerleriyle tam uyumlu hale getirin.',
-        shortDesc: 'Güçlü ERP & muhasebe entegrasyonu',
-        features: ['ERP Senkronizasyonu', 'Gelişmiş Stok Takibi', 'Sipariş Otomasyonu', 'Cari Hesap Yönetimi', 'Maliyet Analizi', 'E-Dönüşüm'],
-        stats: { users: '3.1K+', syncTime: '< 3 dk', uptime: '99.8%' },
-        rating: 4.7,
-        reviews: 843,
-        isPopular: false,
-        isNew: true,
-        documentation: '/docs/mikro',
-        setupTime: '15 dakika',
-        price: 'Enterprise',
-        requirements: ['Mikro ERP Lisansı', 'SQL/API Erişimi']
-    },
-    {
-        id: 'zirve',
-        name: 'Zirve Yazılım',
-        category: 'muhasebe',
-        color: '#0369A1',
-        gradient: 'from-sky-700 to-blue-800',
-        logo: '/images/muhasebe/zirve.png',
-        desc: 'Zirve Yazılım ile e-ticaret satışlarınızı doğrudan ön muhasebe ve genel muhasebe kayıtlarına aktarın.',
-        shortDesc: 'Mali müşavir dostu muhasebe entegrasyonu',
-        features: ['Otomatik Kayıt', 'E-Fatura Aktarımı', 'Cari Eşleştirme', 'Stok Senkronu', 'Mali Müşavir Paneli', 'Hızlı Entegrasyon'],
-        stats: { users: '4.8K+', syncTime: '< 2 dk', uptime: '99.7%' },
-        rating: 4.8,
-        reviews: 1124,
-        isPopular: false,
-        isNew: true,
-        documentation: '/docs/zirve',
-        setupTime: '10 dakika',
-        price: 'Ücretsiz',
-        requirements: ['Zirve Programı', 'API Modülü']
-    },
-    // Kargo
-    {
-        id: 'yurtici',
-        name: 'Yurtiçi Kargo',
-        category: 'kargo',
-        color: '#0047AB',
-        gradient: 'from-blue-700 to-blue-900',
-        logo: '/images/kargo/yurtici.png',
-        desc: 'Yurtiçi Kargo entegrasyonu ile toplu barkod yazdırma, otomatik kargo fişi oluşturma ve takip numarası aktarımı.',
-        shortDesc: 'Toplu barkod & otomatik takip no',
-        features: ['Toplu Barkod', 'Otomatik Fiş', 'Takip No', 'Şube Yönetimi', 'Teslimat Raporu', 'İade Yönetimi'],
-        stats: { users: '8.9K+', syncTime: 'Anlık', uptime: '99.8%' },
-        rating: 4.7,
-        reviews: 1876,
-        isPopular: true,
-        isNew: false,
-        documentation: '/docs/yurtici',
-        setupTime: '10 dakika',
-        price: 'Ücretsiz',
-        requirements: ['Yurtiçi Kargo Sözleşmesi', 'API Bilgileri']
-    },
-    {
-        id: 'aras',
-        name: 'Aras Kargo',
-        category: 'kargo',
-        color: '#E30613',
-        gradient: 'from-red-600 to-red-800',
-        logo: '/images/kargo/aras.png',
-        desc: 'Aras Kargo entegrasyonu ile anında kargo fişi oluşturma, durum sorgulama ve teslimat takibi.',
-        shortDesc: 'Anında kargo fişi & durum takibi',
-        features: ['Kargo Fişi', 'Durum Sorgulama', 'Takip', 'Teslimat', 'İade', 'Raporlama'],
-        stats: { users: '7.5K+', syncTime: 'Anlık', uptime: '99.7%' },
-        rating: 4.6,
-        reviews: 1432,
-        isPopular: true,
-        isNew: false,
-        documentation: '/docs/aras',
-        setupTime: '10 dakika',
-        price: 'Ücretsiz',
-        requirements: ['Aras Kargo Sözleşmesi', 'Web API Erişimi']
-    },
-    {
-        id: 'mng',
-        name: 'MNG Kargo',
-        category: 'kargo',
-        color: '#1E3A8A',
-        gradient: 'from-blue-800 to-slate-800',
-        logo: '/images/kargo/mng.png',
-        desc: 'MNG Kargo ile şube teslimat, iade operasyonları ve gönderi takibi. Tam entegre kargo yönetimi.',
-        shortDesc: 'Şube teslimat & iade operasyonları',
-        features: ['Şube Teslimat', 'İade', 'Takip', 'Gönderi Yönetimi', 'Raporlama', 'Fiyatlandırma'],
-        stats: { users: '6.2K+', syncTime: 'Anlık', uptime: '99.6%' },
-        rating: 4.5,
-        reviews: 1123,
-        isPopular: false,
-        isNew: false,
-        documentation: '/docs/mng',
-        setupTime: '10 dakika',
-        price: 'Ücretsiz',
-        requirements: ['MNG Kargo Sözleşmesi', 'API Bilgileri']
-    },
-    // E-Fatura
-    {
-        id: 'gib',
-        name: 'GİB E-Fatura / E-Arşiv',
-        category: 'efatura',
-        color: '#1F2937',
-        gradient: 'from-slate-700 to-slate-900',
-        logo: '/images/muhasebe/gib.png',
-        desc: 'Gelir İdaresi Başkanlığı direkt entegrasyonu. 5000/30000 TL limitli faturaları doğrudan GİB\'e iletin.',
-        shortDesc: 'Direkt GİB entegrasyonu - 5K/30K',
-        features: ['E-Fatura', 'E-Arşiv', 'GİB Entegrasyonu', 'Otomatik İmza', 'Raporlama', 'Mali Mühür'],
-        stats: { users: '15.2K+', syncTime: '< 30 sn', uptime: '99.9%' },
-        rating: 4.9,
-        reviews: 3421,
-        isPopular: true,
-        isNew: false,
-        documentation: '/docs/gib',
-        setupTime: '20 dakika',
-        price: 'Ücretsiz',
-        requirements: ['GİB Portal Hesabı', 'Mali Mühür', 'E-Fatura Kaydı']
-    },
-    {
-        id: 'sovos',
-        name: 'Sovos (Fit Solutions)',
-        category: 'efatura',
-        color: '#7C3AED',
-        gradient: 'from-violet-600 to-purple-700',
-        logo: 'S',
-        desc: 'Sovos özel entegratör üzerinden saniyeler içinde e-fatura kesme. Küresel uyumlu mali çözümler.',
-        shortDesc: 'Özel entegratör - Saniyeler içinde',
-        features: ['E-Fatura', 'E-Arşiv', 'E-Defter', 'E-Belge', 'Raporlama', 'Global Compliance'],
-        stats: { users: '4.3K+', syncTime: '< 1 dk', uptime: '99.9%' },
-        rating: 4.8,
-        reviews: 876,
-        isPopular: false,
-        isNew: false,
-        documentation: '/docs/sovos',
-        setupTime: '15 dakika',
-        price: 'Entegratör Ücreti',
-        requirements: ['Sovos Hesabı', 'Entegratör Sözleşmesi']
-    },
-    // XML / Dropshipping
-    {
-        id: 'aktifbebek',
-        name: 'Aktif Bebek',
-        category: 'xml',
-        color: '#EC4899',
-        gradient: 'from-pink-500 to-rose-600',
-        logo: 'AB',
-        desc: 'Binlerce bebek ürününü kar marjı ile XML\'den çekin, otomatik güncelleme ve stok takibi.',
-        shortDesc: 'Bebek ürünleri - 50K+ ürün',
-        features: ['XML Ürün Çekme', 'Otomatik Güncelleme', 'Stok Takibi', 'Fiyat Yönetimi', 'Kargo Entegrasyonu', 'Raporlama'],
-        stats: { users: '2.1K+', syncTime: '< 15 dk', uptime: '99.5%' },
-        rating: 4.6,
-        reviews: 543,
-        isPopular: false,
-        isNew: false,
-        documentation: '/docs/aktifbebek',
-        setupTime: '10 dakika',
-        price: 'Komisyon Bazlı',
-        requirements: ['Aktif Bebek Bayiliği', 'XML Erişimi']
-    },
-    {
-        id: 'dropshipping',
-        name: 'Genel XML Entegratör',
-        category: 'xml',
-        color: '#10B981',
-        gradient: 'from-emerald-500 to-teal-600',
-        logo: 'XML',
-        desc: 'Herhangi bir XML kaynağından ürün çekme, stok ve fiyat senkronizasyonu. Özelleştirilebilir yapı.',
-        shortDesc: 'Özelleştirilebilir XML entegratör',
-        features: ['XML Çekme', 'Stok Senkronizasyonu', 'Fiyat Yönetimi', 'Kategori Eşleme', 'Otomatik Güncelleme', 'Multi-Source'],
-        stats: { users: '5.4K+', syncTime: 'Özelleştirilebilir', uptime: '99.7%' },
-        rating: 4.5,
-        reviews: 876,
-        isPopular: false,
-        isNew: true,
-        documentation: '/docs/xml',
-        setupTime: '30 dakika',
-        price: 'Ücretsiz',
-        requirements: ['XML URL', 'Yapılandırma']
-    },
-];
-
-const globalStats: Stat[] = [
-    { label: 'Aktif Entegrasyon', value: '32', change: '+5 yeni', icon: <Plug className="w-5 h-5" /> },
-    { label: 'Senkronize Ürün', value: '45.2M+', change: '+2.1M bu ay', icon: <Database className="w-5 h-5" /> },
-    { label: 'İşlenen Sipariş', value: '1.8M+', change: '+180K bu ay', icon: <ShoppingCart className="w-5 h-5" /> },
-    { label: 'Aktif Kullanıcı', value: '12.5K+', change: '+1.2K yeni', icon: <Users className="w-5 h-5" /> },
-];
-
-const recentActivity: ActivityItem[] = [
-    { id: '1', type: 'success', message: 'Trendyol - 1,247 ürün senkronize edildi', time: '2 dk önce', integration: 'trendyol' },
-    { id: '2', type: 'order', message: 'Amazon - 43 yeni sipariş alındı', time: '5 dk önce', integration: 'amazon-tr' },
-    { id: '3', type: 'sync', message: 'Hepsiburada - Stok güncellemesi tamamlandı', time: '8 dk önce', integration: 'hepsiburada' },
-    { id: '4', type: 'success', message: 'Paraşüt - 156 fatura oluşturuldu', time: '12 dk önce', integration: 'parasut' },
-    { id: '5', type: 'sync', message: 'Shopify - 892 ürün güncellendi', time: '15 dk önce', integration: 'shopify' },
-    { id: '6', type: 'order', message: 'N11 - 27 yeni sipariş', time: '18 dk önce', integration: 'n11' },
-];
-
-const comparisonFeatures = [
-    { name: 'Otomatik Ürün Yükleme', pazaryeri: true, eticaret: true, muhasebe: false, kargo: false, efatura: false },
-    { name: 'Stok Senkronizasyonu', pazaryeri: true, eticaret: true, muhasebe: false, kargo: false, efatura: false },
-    { name: 'Sipariş İmport / Yönetimi', pazaryeri: true, eticaret: true, muhasebe: false, kargo: true, efatura: false },
-    { name: 'Fatura Otomasyonu', pazaryeri: false, eticaret: false, muhasebe: true, kargo: false, efatura: true },
-    { name: 'Kargo Barkodu / Fişi', pazaryeri: false, eticaret: false, muhasebe: false, kargo: true, efatura: false },
-    { name: 'E-Fatura / E-Arşiv', pazaryeri: false, eticaret: false, muhasebe: true, kargo: false, efatura: true },
-    { name: 'Kampanya Yönetimi', pazaryeri: true, eticaret: true, muhasebe: false, kargo: false, efatura: false },
-    { name: 'Raporlama & Analitik', pazaryeri: true, eticaret: true, muhasebe: true, kargo: true, efatura: true },
-];
-
-// ==================== COMPONENT ====================
-export default function IntegrationsClient() {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [activeCategory, setActiveCategory] = useState<CategoryId>('all');
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
-    const [isComparisonOpen, setIsComparisonOpen] = useState(false);
-    const [activityFilter, setActivityFilter] = useState<'all' | 'sync' | 'order' | 'success'>('all');
-
-    const filteredIntegrations = useMemo(() => {
-        return integrations.filter(int => {
-            const matchesSearch = int.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                int.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                int.features.some(f => f.toLowerCase().includes(searchQuery.toLowerCase()));
-            const matchesCategory = activeCategory === 'all' || int.category === activeCategory;
-            return matchesSearch && matchesCategory;
-        });
-    }, [searchQuery, activeCategory]);
-
-    const filteredActivity = useMemo(() => {
-        if (activityFilter === 'all') return recentActivity;
-        return recentActivity.filter(a => a.type === activityFilter);
-    }, [activityFilter]);
-
-    const popularIntegrations = useMemo(() => integrations.filter(i => i.isPopular).slice(0, 4), []);
+    const isImage = item.logo.startsWith('/') && !imgFailed;
+    const initials = item.logo.length <= 3 && !item.logo.startsWith('/')
+        ? item.logo
+        : item.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-[#0B1121] dark:via-[#0F172A] dark:to-[#1E293B] flex flex-col pt-20 relative overflow-hidden transition-colors duration-500">
-
-            {/* Animated Background */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" style={{
-                    backgroundImage: `radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)`,
-                    backgroundSize: '32px 32px'
-                }} />
-                {/* Floating Orbs */}
-                <motion.div
-                    animate={{ x: [0, 100, 0], y: [0, -50, 0], scale: [1, 1.2, 1] }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-orange-500/20 to-pink-500/20 rounded-full blur-[100px]"
+        <div
+            className={`${dims[size]} rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-lg shadow-black/10 overflow-hidden shrink-0 ring-2 ring-white/30 dark:ring-white/10`}
+            style={!isImage ? { backgroundColor: item.color } : undefined}
+        >
+            {isImage ? (
+                <img
+                    src={item.logo}
+                    alt={item.name}
+                    className="w-full h-full object-contain p-2 bg-white"
+                    onError={() => setImgFailed(true)}
                 />
-                <motion.div
-                    animate={{ x: [0, -100, 0], y: [0, 100, 0], scale: [1, 1.3, 1] }}
-                    transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-[100px]"
-                />
-                <motion.div
-                    animate={{ x: [0, 50, 0], y: [0, -100, 0] }}
-                    transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-primary/10 rounded-full blur-[120px]"
-                />
-            </div>
+            ) : (
+                <span className="font-black text-white tracking-tight drop-shadow-sm">{initials}</span>
+            )}
+        </div>
+    );
+}
 
-            {/* ==================== HERO SECTION ==================== */}
-            <section className="relative pt-16 pb-12 lg:pt-24 lg:pb-16">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+// ─── Spotlight card wrapper ───────────────────────────
+function SpotlightCard({ children, className = '', onClick }: {
+    children: React.ReactNode;
+    className?: string;
+    onClick?: () => void;
+}) {
+    const ref = useRef<HTMLDivElement>(null);
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
 
-                    {/* Live Stats Bar */}
-                    <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-12"
-                    >
-                        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-border shadow-xl p-4">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {globalStats.map((stat, idx) => (
-                                    <motion.div
-                                        key={stat.label}
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: idx * 0.1 }}
-                                        className="flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border border-border"
-                                    >
-                                        <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                                            {stat.icon}
-                                        </div>
-                                        <div>
-                                            <div className="text-2xl font-black text-slate-900 dark:text-white">{stat.value}</div>
-                                            <div className="text-xs text-slate-500">{stat.label}</div>
-                                            <div className="text-[10px] font-medium text-emerald-500">{stat.change}</div>
-                                        </div>
-                                    </motion.div>
-                                ))}
+    const handleMove = (e: React.MouseEvent) => {
+        if (!ref.current) return;
+        const rect = ref.current.getBoundingClientRect();
+        mouseX.set(e.clientX - rect.left);
+        mouseY.set(e.clientY - rect.top);
+    };
+
+    return (
+        <motion.div
+            ref={ref}
+            onMouseMove={handleMove}
+            onClick={onClick}
+            whileHover={{ y: -4 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+            className={`group relative overflow-hidden rounded-[1.75rem] border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-slate-900/70 backdrop-blur-sm transition-shadow duration-500 hover:shadow-2xl hover:shadow-orange-500/10 hover:border-orange-200/80 dark:hover:border-orange-500/25 ${className}`}
+        >
+            <motion.div
+                className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"
+                style={{
+                    background: useMotionTemplate`radial-gradient(500px circle at ${mouseX}px ${mouseY}px, rgba(234,88,12,0.12), transparent 70%)`,
+                }}
+            />
+            <div className="relative z-10 h-full">{children}</div>
+        </motion.div>
+    );
+}
+
+// ─── Integration card ───────────────────────────────
+function IntegrationCard({ item, onSelect }: { item: Integration; onSelect: (item: Integration) => void }) {
+    const categoryName = categoryMeta.find((c) => c.id === item.category)?.name ?? '';
+
+    return (
+        <motion.article layout initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }}>
+            <SpotlightCard onClick={() => onSelect(item)} className="flex flex-col h-full cursor-pointer">
+                <div className={`absolute left-0 top-6 bottom-6 w-1 rounded-r-full bg-gradient-to-b ${item.gradient} opacity-60 group-hover:opacity-100 transition-opacity`} />
+                <div className={`absolute -top-20 -right-20 w-48 h-48 bg-gradient-to-br ${item.gradient} opacity-[0.06] group-hover:opacity-[0.12] blur-3xl transition-opacity pointer-events-none`} />
+
+                <div className="p-6 pl-7 flex flex-col h-full">
+                    <div className="flex items-start justify-between gap-3 mb-5">
+                        <IntegrationLogo item={item} />
+                        <div className="flex flex-col items-end gap-1.5">
+                            {item.isPopular && (
+                                <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-300 rounded-full border border-orange-200/60 dark:border-orange-500/20">
+                                    Popüler
+                                </span>
+                            )}
+                            {item.isNew && (
+                                <span className="px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 rounded-full border border-emerald-200/60 dark:border-emerald-500/20">
+                                    Yeni
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-1">{categoryName}</p>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors tracking-tight">
+                        {item.name}
+                    </h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 line-clamp-2 leading-relaxed flex-1">
+                        {item.shortDesc}
+                    </p>
+
+                    <div className="flex flex-wrap gap-1.5 mt-5">
+                        {item.features.slice(0, 3).map((f) => (
+                            <span key={f} className="px-2.5 py-1 text-[10px] font-semibold bg-slate-100/80 dark:bg-white/5 text-slate-600 dark:text-slate-400 rounded-lg">
+                                {f}
+                            </span>
+                        ))}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-5 mt-5 border-t border-slate-100/80 dark:border-white/10">
+                        <div className="flex items-center gap-4 text-xs font-medium text-slate-500">
+                            <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />{item.rating}</span>
+                            <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{item.setupTime}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg ${item.price === 'Ücretsiz' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400'}`}>
+                                {item.price}
+                            </span>
+                            <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-gradient-to-br group-hover:from-orange-600 group-hover:to-amber-500 group-hover:text-white transition-all duration-300">
+                                <ArrowRight className="w-4 h-4" />
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
+                </div>
+            </SpotlightCard>
+        </motion.article>
+    );
+}
 
-                    {/* Hero Content */}
-                    <div className="text-center mb-12">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/20 to-purple-500/20 text-primary rounded-full text-sm font-bold mb-6 border border-primary/20"
-                        >
-                            <Zap className="w-4 h-4" />
-                            <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                                32+ Entegrasyon • 99.9% Uptime
+// ─── Featured popular card ────────────────────────────
+function FeaturedStat({ label, value, icon: Icon }: { label: string; value: string; icon: React.ElementType }) {
+    return (
+        <div className="rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 px-3 py-2.5">
+            <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/55 mb-0.5">
+                <Icon size={11} />{label}
+            </div>
+            <div className="text-sm font-black text-white">{value}</div>
+        </div>
+    );
+}
+
+function FeaturedCard({ item, rank, onSelect }: { item: Integration; rank: number; onSelect: (item: Integration) => void }) {
+    const isHero = rank === 0;
+    const categoryName = categoryMeta.find((c) => c.id === item.category)?.name ?? '';
+    const featureCount = isHero ? 4 : 3;
+
+    return (
+        <motion.button
+            type="button"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: rank * 0.08 }}
+            onClick={() => onSelect(item)}
+            className={`group relative overflow-hidden rounded-3xl text-left transition-transform hover:scale-[1.01] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60 ${isHero ? 'md:col-span-2 md:row-span-2 min-h-[280px] md:min-h-0' : 'min-h-[300px]'}`}
+        >
+            <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient}`} />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.28),transparent_45%)]" />
+            <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors" />
+
+            <div className={`relative flex h-full ${isHero ? 'flex-col md:flex-row' : 'flex-col'}`}>
+                {/* Sol / ana içerik */}
+                <div className={`flex flex-col flex-1 p-6 md:p-7 ${isHero ? 'md:pr-4' : ''}`}>
+                    <div className="flex items-start justify-between gap-3 mb-5">
+                        <IntegrationLogo item={item} size={isHero ? 'xl' : 'lg'} />
+                        <div className="flex flex-wrap items-center justify-end gap-1.5">
+                            <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-white/20 text-white rounded-full">
+                                Popüler
                             </span>
-                        </motion.div>
+                            <span className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full ${item.price === 'Ücretsiz' ? 'bg-emerald-400/25 text-emerald-100' : 'bg-white/20 text-white'}`}>
+                                {item.price}
+                            </span>
+                            <span className="px-2 py-0.5 text-[9px] font-black text-white/50 rounded-full border border-white/15">#{rank + 1}</span>
+                        </div>
+                    </div>
 
-                        <motion.h1
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="text-4xl md:text-6xl lg:text-7xl font-black text-slate-900 dark:text-white mb-6 tracking-tight leading-tight"
-                        >
-                            Tüm Satış Kanallarınızı{' '}
-                            <span className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                                Tek Platformda
-                            </span>{' '}
-                            Birleştirin
-                        </motion.h1>
+                    <p className="text-white/65 text-[10px] font-bold uppercase tracking-[0.2em] mb-1">{categoryName}</p>
+                    <h3 className={`font-black text-white tracking-tight leading-tight ${isHero ? 'text-2xl md:text-3xl' : 'text-xl'}`}>
+                        {item.name}
+                    </h3>
+                    <p className={`text-white/85 mt-2 leading-relaxed ${isHero ? 'text-sm md:text-[15px] line-clamp-3' : 'text-sm line-clamp-2'}`}>
+                        {item.shortDesc}
+                    </p>
 
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto mb-10 leading-relaxed"
-                        >
-                            Trendyol, Amazon, Shopify, Paraşüt ve 30+ platform ile anlık senkronizasyon.
-                            Stok, sipariş ve fatura yönetimini otomatikleştirin, saatlerce süren işleri saniyelere indirin.
-                        </motion.p>
+                    <div className="flex flex-wrap gap-1.5 mt-4">
+                        {item.features.slice(0, featureCount).map((f) => (
+                            <span key={f} className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold bg-white/15 backdrop-blur-sm text-white/95 rounded-lg border border-white/10">
+                                <CheckCircle2 size={10} className="text-white/70 shrink-0" />
+                                {f}
+                            </span>
+                        ))}
+                    </div>
 
-                        {/* Search Bar */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.3 }}
-                            className="max-w-3xl mx-auto relative"
-                        >
-                            <div className="relative group">
-                                <Search className="w-6 h-6 text-slate-400 absolute left-6 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors" />
-                                <input
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Entegrasyon ara: Trendyol, Shopify, Paraşüt, kargo..."
-                                    className="w-full bg-white dark:bg-slate-900 border-2 border-border rounded-3xl pl-16 pr-32 py-6 text-lg font-medium shadow-2xl shadow-primary/5 focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-slate-400"
-                                />
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                                    <span className="text-xs text-slate-400 hidden sm:block">⌘K</span>
-                                    {searchQuery && (
-                                        <button
-                                            onClick={() => setSearchQuery('')}
-                                            className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
-                                        >
-                                            ×
-                                        </button>
-                                    )}
+                    <div className={`grid gap-2 mt-5 ${isHero ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2'}`}>
+                        <FeaturedStat label="Satıcı" value={item.stats.users} icon={Users} />
+                        <FeaturedStat label="Puan" value={`${item.rating} / 5`} icon={Star} />
+                        <FeaturedStat label="Kurulum" value={item.setupTime} icon={Clock} />
+                        {isHero && <FeaturedStat label="Senkron" value={item.stats.syncTime} icon={RefreshCw} />}
+                        <FeaturedStat label="Uptime" value={item.stats.uptime} icon={Shield} />
+                        {!isHero && (
+                            <FeaturedStat
+                                label="Yorum"
+                                value={item.reviews >= 1000 ? `${(item.reviews / 1000).toFixed(1)}K+` : `${item.reviews}+`}
+                                icon={Sparkles}
+                            />
+                        )}
+                    </div>
+
+                    <div className="flex items-center justify-between mt-auto pt-5 border-t border-white/15">
+                        <span className="text-xs text-white/70 font-medium">
+                            {item.reviews.toLocaleString('tr-TR')} değerlendirme
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-white group-hover:gap-2.5 transition-all">
+                            Detayları gör <ChevronRight size={14} />
+                        </span>
+                    </div>
+                </div>
+
+                {/* Sağ panel — sadece hero kart */}
+                {isHero && (
+                    <div className="hidden md:flex flex-col justify-center w-[42%] shrink-0 p-6 pl-2 pr-7 pb-7">
+                        <div className="rounded-2xl bg-white/12 backdrop-blur-md border border-white/20 p-5 space-y-4 shadow-inner">
+                            <div className="flex items-center justify-between">
+                                <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white/60">Senkron özeti</p>
+                                <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-200">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                    Canlı
+                                </span>
+                            </div>
+
+                            <div className="space-y-3">
+                                {[
+                                    { label: 'Stok eşitleme', pct: 98 },
+                                    { label: 'Sipariş aktarımı', pct: 100 },
+                                    { label: 'Fatura otomasyonu', pct: 94 },
+                                ].map((bar) => (
+                                    <div key={bar.label}>
+                                        <div className="flex justify-between text-[11px] text-white/80 mb-1">
+                                            <span>{bar.label}</span>
+                                            <span className="font-bold">{bar.pct}%</span>
+                                        </div>
+                                        <div className="h-1.5 rounded-full bg-white/15 overflow-hidden">
+                                            <div
+                                                className="h-full rounded-full bg-gradient-to-r from-white/90 to-white/50"
+                                                style={{ width: `${bar.pct}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 pt-1">
+                                <div className="rounded-xl bg-white/10 px-3 py-2.5 border border-white/10">
+                                    <p className="text-[10px] text-white/55 uppercase font-bold">Günlük sipariş</p>
+                                    <p className="text-lg font-black text-white mt-0.5">2.4K+</p>
+                                </div>
+                                <div className="rounded-xl bg-white/10 px-3 py-2.5 border border-white/10">
+                                    <p className="text-[10px] text-white/55 uppercase font-bold">Senkron ürün</p>
+                                    <p className="text-lg font-black text-white mt-0.5">180K+</p>
                                 </div>
                             </div>
 
-                            {/* Quick Tags */}
-                            <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
-                                <span className="text-xs text-slate-500">Popüler:</span>
-                                {['Trendyol', 'Shopify', 'Paraşüt', 'Amazon', 'XML'].map(tag => (
-                                    <button
-                                        key={tag}
-                                        onClick={() => setSearchQuery(tag)}
-                                        className="px-3 py-1 text-xs font-medium bg-white dark:bg-slate-800 border border-border rounded-full hover:border-primary/50 hover:text-primary transition-colors"
-                                    >
-                                        {tag}
-                                    </button>
-                                ))}
-                            </div>
-                        </motion.div>
-                    </div>
-                </div>
-            </section>
-
-            {/* ==================== POPULAR INTEGRATIONS ==================== */}
-            {!searchQuery && activeCategory === 'all' && (
-                <section className="relative py-12">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex items-center gap-3 mb-8">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-white">
-                                <Star className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <h2 className="text-2xl font-black text-slate-900 dark:text-white">En Popüler Entegrasyonlar</h2>
-                                <p className="text-sm text-slate-500">Binlerce işletme tarafından aktif kullanılıyor</p>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/20 border border-emerald-400/25 text-[11px] font-semibold text-emerald-100">
+                                <CheckCircle2 size={13} className="shrink-0" />
+                                Anlık çift yönlü senkronizasyon aktif
                             </div>
                         </div>
+                    </div>
+                )}
+            </div>
+        </motion.button>
+    );
+}
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {popularIntegrations.map((int, idx) => (
-                                <motion.div
-                                    key={int.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: idx * 0.1 }}
-                                    onClick={() => setSelectedIntegration(int)}
-                                    className="group relative bg-white dark:bg-slate-900 rounded-3xl p-6 border border-border hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10 transition-all cursor-pointer overflow-hidden"
-                                >
-                                    <div className={`absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br ${int.gradient} opacity-10 group-hover:opacity-20 blur-3xl transition-opacity`} />
+// ─── Detail modal ─────────────────────────────────────
+function IntegrationModal({ item, onClose }: { item: Integration; onClose: () => void }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[450] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-md"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="integration-modal-title"
+            onClick={onClose}
+        >
+            <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 24 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-2xl max-h-[92vh] sm:max-h-[90vh] overflow-y-auto rounded-t-[2rem] sm:rounded-[2rem] bg-white dark:bg-slate-900 shadow-2xl border border-slate-200/80 dark:border-white/10"
+            >
+                <div className={`relative p-8 sm:p-10 bg-gradient-to-br ${item.gradient} overflow-hidden`}>
+                    <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%220.08%22/%3E%3C/svg%3E')] opacity-40" />
+                    <div className="absolute inset-0 bg-black/15" />
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors z-10 backdrop-blur-sm"
+                        aria-label="Kapat"
+                    >
+                        <X size={18} />
+                    </button>
+                    <div className="relative flex items-center gap-5">
+                        <IntegrationLogo item={item} size="lg" />
+                        <div className="min-w-0">
+                            <h2 id="integration-modal-title" className="text-2xl sm:text-3xl font-black text-white tracking-tight">{item.name}</h2>
+                            <p className="text-white/85 text-sm mt-1.5">{item.shortDesc}</p>
+                        </div>
+                    </div>
+                    <div className="relative flex flex-wrap gap-3 mt-7">
+                        {[
+                            { icon: Users, label: item.stats.users },
+                            { icon: Star, label: `${item.rating} puan`, star: true },
+                            { icon: Shield, label: item.stats.uptime },
+                            { icon: Clock, label: item.setupTime },
+                        ].map(({ icon: Icon, label, star }) => (
+                            <span key={label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur text-sm text-white font-medium">
+                                <Icon size={14} className={star ? 'fill-amber-300 text-amber-300' : ''} />{label}
+                            </span>
+                        ))}
+                    </div>
+                </div>
 
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${int.gradient} flex items-center justify-center text-white font-bold text-xl shadow-lg`}>
-                                            {int.logo}
-                                        </div>
-                                        {int.isPopular && (
-                                            <span className="px-2 py-1 bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] font-bold rounded-lg">
-                                                POPÜLER
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-1">{int.name}</h3>
-                                    <p className="text-sm text-slate-500 mb-4 line-clamp-2">{int.shortDesc}</p>
-
-                                    <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
-                                        <span className="flex items-center gap-1">
-                                            <Users className="w-3 h-3" /> {int.stats.users}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <Star className="w-3 h-3 text-yellow-500" /> {int.rating}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex items-center justify-between pt-4 border-t border-border">
-                                        <span className="text-xs font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-lg">
-                                            {int.price}
-                                        </span>
-                                        <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                                    </div>
-                                </motion.div>
+                <div className="p-8 sm:p-10 space-y-8">
+                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-[15px]">{item.desc}</p>
+                    <div>
+                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Özellikler</h3>
+                        <div className="grid sm:grid-cols-2 gap-2.5">
+                            {item.features.map((f) => (
+                                <div key={f} className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-slate-50 dark:bg-white/5 text-sm text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-white/5">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                                    {f}
+                                </div>
                             ))}
                         </div>
                     </div>
-                </section>
-            )}
-
-            {/* ==================== MAIN CONTENT ==================== */}
-            <section className="relative py-12 flex-1">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-col lg:flex-row gap-8">
-
-                        {/* Sidebar */}
-                        <aside className="w-full lg:w-80 shrink-0">
-                            <div className="sticky top-24 space-y-6">
-                                {/* Categories */}
-                                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-border shadow-lg overflow-hidden">
-                                    <div className="p-4 border-b border-border bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900">
-                                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                                            <Filter className="w-4 h-4" /> Kategoriler
-                                        </h3>
-                                    </div>
-                                    <div className="p-2 space-y-1">
-                                        {categories.map(cat => (
-                                            <button
-                                                key={cat.id}
-                                                onClick={() => setActiveCategory(cat.id)}
-                                                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl font-semibold text-sm transition-all ${activeCategory === cat.id
-                                                        ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg shadow-primary/25'
-                                                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                                                    }`}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <cat.icon className={`w-5 h-5 ${activeCategory === cat.id ? 'text-white' : 'text-slate-400'}`} />
-                                                    {cat.name}
-                                                </div>
-                                                <span className={`text-xs px-2 py-0.5 rounded-full ${activeCategory === cat.id
-                                                        ? 'bg-white/20 text-white'
-                                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
-                                                    }`}>
-                                                    {cat.count}
-                                                </span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Live Activity Feed */}
-                                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-border shadow-lg overflow-hidden">
-                                    <div className="p-4 border-b border-border bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
-                                        <div className="flex items-center justify-between">
-                                            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                                                <Activity className="w-4 h-4 text-emerald-500" />
-                                                Canlı Aktivite
-                                            </h3>
-                                            <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600">
-                                                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                                                CANLI
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Activity Filter */}
-                                    <div className="flex gap-1 p-2 border-b border-border">
-                                        {(['all', 'sync', 'order', 'success'] as const).map(f => (
-                                            <button
-                                                key={f}
-                                                onClick={() => setActivityFilter(f)}
-                                                className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-colors ${activityFilter === f
-                                                        ? 'bg-primary/10 text-primary'
-                                                        : 'text-slate-400 hover:text-slate-600'
-                                                    }`}
-                                            >
-                                                {f === 'all' ? 'Tümü' : f === 'sync' ? 'Senkron' : f === 'order' ? 'Sipariş' : 'Başarı'}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <div className="p-3 space-y-2 max-h-80 overflow-y-auto">
-                                        <AnimatePresence>
-                                            {filteredActivity.map((item) => (
-                                                <motion.div
-                                                    key={item.id}
-                                                    initial={{ opacity: 0, x: -20 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    exit={{ opacity: 0, x: 20 }}
-                                                    className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                                                >
-                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${item.type === 'success' ? 'bg-emerald-100 text-emerald-600' :
-                                                            item.type === 'order' ? 'bg-blue-100 text-blue-600' :
-                                                                item.type === 'sync' ? 'bg-purple-100 text-purple-600' :
-                                                                    'bg-red-100 text-red-600'
-                                                        }`}>
-                                                        {item.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> :
-                                                            item.type === 'order' ? <ShoppingCart className="w-4 h-4" /> :
-                                                                item.type === 'sync' ? <RefreshCw className="w-4 h-4" /> :
-                                                                    <AlertCircle className="w-4 h-4" />}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-snug">{item.message}</p>
-                                                        <p className="text-[10px] text-slate-400 mt-1">{item.time}</p>
-                                                    </div>
-                                                </motion.div>
-                                            ))}
-                                        </AnimatePresence>
-                                    </div>
-                                </div>
-                            </div>
-                        </aside>
-
-                        {/* Main Grid */}
-                        <main className="flex-1">
-                            {/* Header */}
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                                <div>
-                                    <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-                                        {categories.find(c => c.id === activeCategory)?.name}
-                                        <span className="text-lg text-slate-400 font-normal">
-                                            ({filteredIntegrations.length})
-                                        </span>
-                                    </h2>
-                                    <p className="text-sm text-slate-500 mt-1">
-                                        {searchQuery ? `"${searchQuery}" için sonuçlar` : 'Tüm entegrasyonları keşfedin'}
-                                    </p>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => setViewMode('grid')}
-                                        className={`p-2 rounded-xl transition-colors ${viewMode === 'grid' ? 'bg-primary text-white' : 'bg-white dark:bg-slate-800 text-slate-500 border border-border'}`}
-                                    >
-                                        <Grid3X3 className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => setViewMode('list')}
-                                        className={`p-2 rounded-xl transition-colors ${viewMode === 'list' ? 'bg-primary text-white' : 'bg-white dark:bg-slate-800 text-slate-500 border border-border'}`}
-                                    >
-                                        <List className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => setIsComparisonOpen(!isComparisonOpen)}
-                                        className="px-4 py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-border font-medium text-sm hover:border-primary/50 transition-colors"
-                                    >
-                                        <BarChart3 className="w-4 h-4 inline mr-2" />
-                                        Karşılaştır
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Integration Grid/List */}
-                            {filteredIntegrations.length === 0 ? (
-                                <div className="bg-white dark:bg-slate-900 border border-border rounded-3xl p-16 text-center">
-                                    <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
-                                        <Search className="w-10 h-10 text-slate-400" />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-                                        Sonuç bulunamadı
-                                    </h3>
-                                    <p className="text-slate-500 mb-6 max-w-md mx-auto">
-                                        "{searchQuery}" araması için entegrasyon bulamadık. Farklı bir anahtar kelime deneyin veya kategori seçin.
-                                    </p>
-                                    <button
-                                        onClick={() => { setSearchQuery(''); setActiveCategory('all'); }}
-                                        className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors"
-                                    >
-                                        Tüm Entegrasyonları Göster
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className={viewMode === 'grid'
-                                    ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
-                                    : "space-y-4"
-                                }>
-                                    <AnimatePresence mode="popLayout">
-                                        {filteredIntegrations.map((int, idx) => (
-                                            <motion.div
-                                                layout
-                                                initial={{ opacity: 0, scale: 0.9 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.9 }}
-                                                transition={{ duration: 0.2, delay: idx * 0.05 }}
-                                                key={int.id}
-                                                onClick={() => setSelectedIntegration(int)}
-                                                className={`group relative bg-white dark:bg-slate-900 border border-border rounded-3xl hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/30 transition-all cursor-pointer overflow-hidden ${viewMode === 'list' ? 'flex items-center gap-6 p-4' : 'flex flex-col p-6'
-                                                    }`}
-                                            >
-                                                {/* Background Gradient */}
-                                                <div className={`absolute ${viewMode === 'list' ? '-right-10 -top-10' : '-top-20 -right-20'} w-40 h-40 bg-gradient-to-br ${int.gradient} opacity-10 group-hover:opacity-20 blur-3xl transition-opacity`} />
-
-                                                {/* Logo */}
-                                                <div className={`${viewMode === 'list' ? 'shrink-0' : ''} relative`}>
-                                                    <div className={`${viewMode === 'list' ? 'w-16 h-16 text-xl' : 'w-14 h-14 text-lg'} rounded-2xl bg-gradient-to-br ${int.gradient} flex items-center justify-center text-white font-bold shadow-lg group-hover:scale-110 transition-transform overflow-hidden`}>
-                                                        {int.logo.startsWith('/') ? (
-                                                            <img src={int.logo} alt={int.name} className="w-full h-full object-contain p-2 bg-white/10" />
-                                                        ) : (
-                                                            int.logo
-                                                        )}
-                                                    </div>
-                                                    {int.isNew && (
-                                                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
-                                                            <Sparkles className="w-3 h-3 text-white" />
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                {/* Content */}
-                                                <div className={`flex-1 ${viewMode === 'list' ? '' : 'mt-4'}`}>
-                                                    <div className="flex items-start justify-between mb-2">
-                                                        <div>
-                                                            <h3 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-primary transition-colors">
-                                                                {int.name}
-                                                            </h3>
-                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                                                {categories.find(c => c.id === int.category)?.name}
-                                                            </span>
-                                                        </div>
-                                                        {int.isPopular && (
-                                                            <span className="hidden sm:flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-orange-500/20 to-pink-500/20 text-orange-600 text-[10px] font-bold rounded-lg">
-                                                                <Star className="w-3 h-3" /> POPÜLER
-                                                            </span>
-                                                        )}
-                                                    </div>
-
-                                                    <p className={`text-sm text-slate-600 dark:text-slate-400 mb-4 ${viewMode === 'list' ? 'line-clamp-1' : 'line-clamp-2'}`}>
-                                                        {int.desc}
-                                                    </p>
-
-                                                    {/* Features Pills */}
-                                                    <div className={`flex flex-wrap gap-1 mb-4 ${viewMode === 'list' ? 'hidden md:flex' : ''}`}>
-                                                        {int.features.slice(0, viewMode === 'list' ? 3 : 4).map((feature, i) => (
-                                                            <span
-                                                                key={i}
-                                                                className="px-2 py-1 text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-md"
-                                                            >
-                                                                {feature}
-                                                            </span>
-                                                        ))}
-                                                        {int.features.length > (viewMode === 'list' ? 3 : 4) && (
-                                                            <span className="px-2 py-1 text-[10px] font-medium text-primary">
-                                                                +{int.features.length - (viewMode === 'list' ? 3 : 4)}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {/* Footer Stats */}
-                                                <div className={`${viewMode === 'list' ? 'shrink-0 text-right' : 'pt-4 border-t border-border mt-auto'}`}>
-                                                    <div className={`flex ${viewMode === 'list' ? 'flex-col items-end gap-2' : 'items-center justify-between'}`}>
-                                                        <div className="flex items-center gap-4 text-xs text-slate-500">
-                                                            <span className="flex items-center gap-1">
-                                                                <Users className="w-3 h-3" /> {int.stats.users}
-                                                            </span>
-                                                            <span className="flex items-center gap-1">
-                                                                <Star className="w-3 h-3 text-yellow-500" /> {int.rating}
-                                                            </span>
-                                                            <span className="flex items-center gap-1">
-                                                                <Clock className="w-3 h-3" /> {int.setupTime}
-                                                            </span>
-                                                        </div>
-
-                                                        <div className={`flex items-center gap-3 ${viewMode === 'list' ? '' : ''}`}>
-                                                            <span className={`text-xs font-medium ${int.price === 'Ücretsiz' ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30' : 'text-blue-600 bg-blue-50 dark:bg-blue-900/30'} px-2 py-1 rounded-lg`}>
-                                                                {int.price}
-                                                            </span>
-                                                            <div className="w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-all group-hover:translate-x-1">
-                                                                <ChevronRight className="w-4 h-4" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </motion.div>
-                                        ))}
-                                    </AnimatePresence>
-                                </div>
-                            )}
-                        </main>
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                        <Link
+                            href="/signup"
+                            onClick={onClose}
+                            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-500 text-white font-bold hover:shadow-xl hover:shadow-orange-500/25 transition-all"
+                        >
+                            <Plug size={18} /> Bağlan
+                        </Link>
+                        <Link
+                            href={item.documentation}
+                            onClick={onClose}
+                            className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
+                        >
+                            <ExternalLink size={18} /> Dokümantasyon
+                        </Link>
                     </div>
                 </div>
-            </section>
+            </motion.div>
+        </motion.div>
+    );
+}
 
-            {/* ==================== COMPARISON TABLE ==================== */}
-            <AnimatePresence>
-                {isComparisonOpen && (
-                    <motion.section
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="relative py-12 bg-slate-50/50 dark:bg-slate-900/50 border-y border-border"
+// ─── Logo marquee ─────────────────────────────────────
+function LogoMarquee({ items }: { items: Integration[] }) {
+    const doubled = [...items, ...items];
+    return (
+        <div className="relative overflow-hidden py-2">
+            <div className="absolute left-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-r from-[#FAFAF9] dark:from-[#0B1120] to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-20 sm:w-32 bg-gradient-to-l from-[#FAFAF9] dark:from-[#0B1120] to-transparent z-10 pointer-events-none" />
+            <div className="flex gap-4 animate-integrations-marquee w-max">
+                {doubled.map((item, i) => (
+                    <div
+                        key={`${item.id}-${i}`}
+                        className="flex items-center gap-3 shrink-0 px-4 py-2.5 rounded-2xl bg-white/80 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 backdrop-blur-sm shadow-sm"
                     >
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="flex items-center justify-between mb-8">
-                                <div>
-                                    <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-                                        <BarChart3 className="w-6 h-6 text-primary" />
-                                        Entegrasyon Karşılaştırması
-                                    </h2>
-                                    <p className="text-sm text-slate-500">Hangi entegrasyon sizin için uygun? Özellikleri karşılaştırın.</p>
-                                </div>
-                                <button
-                                    onClick={() => setIsComparisonOpen(false)}
-                                    className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-border text-slate-500 hover:text-slate-700"
-                                >
-                                    ×
-                                </button>
-                            </div>
+                        <IntegrationLogo item={item} size="sm" />
+                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">{item.name}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
 
-                            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-border shadow-xl overflow-hidden">
-                                <div className="overflow-x-auto">
-                                    <table className="w-full">
-                                        <thead>
-                                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-border">
-                                                <th className="text-left p-4 text-sm font-bold text-slate-900 dark:text-white">Özellik</th>
-                                                <th className="text-center p-4 text-sm font-bold text-slate-700 dark:text-slate-300">
-                                                    <Store className="w-4 h-4 inline mr-1" /> Pazaryeri
-                                                </th>
-                                                <th className="text-center p-4 text-sm font-bold text-slate-700 dark:text-slate-300">
-                                                    <ShoppingCart className="w-4 h-4 inline mr-1" /> E-ticaret
-                                                </th>
-                                                <th className="text-center p-4 text-sm font-bold text-slate-700 dark:text-slate-300">
-                                                    <Calculator className="w-4 h-4 inline mr-1" /> Muhasebe
-                                                </th>
-                                                <th className="text-center p-4 text-sm font-bold text-slate-700 dark:text-slate-300">
-                                                    <Truck className="w-4 h-4 inline mr-1" /> Kargo
-                                                </th>
-                                                <th className="text-center p-4 text-sm font-bold text-slate-700 dark:text-slate-300">
-                                                    <FileText className="w-4 h-4 inline mr-1" /> E-Fatura
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {comparisonFeatures.map((feature, idx) => (
-                                                <tr key={feature.name} className={idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/50 dark:bg-slate-800/30'}>
-                                                    <td className="p-4 text-sm font-medium text-slate-700 dark:text-slate-300">{feature.name}</td>
-                                                    <td className="p-4 text-center">
-                                                        {feature.pazaryeri ? (
-                                                            <CheckCircle2 className="w-5 h-5 text-emerald-500 mx-auto" />
-                                                        ) : (
-                                                            <span className="w-5 h-5 block mx-auto rounded-full bg-slate-200 dark:bg-slate-700" />
-                                                        )}
-                                                    </td>
-                                                    <td className="p-4 text-center">
-                                                        {feature.eticaret ? (
-                                                            <CheckCircle2 className="w-5 h-5 text-emerald-500 mx-auto" />
-                                                        ) : (
-                                                            <span className="w-5 h-5 block mx-auto rounded-full bg-slate-200 dark:bg-slate-700" />
-                                                        )}
-                                                    </td>
-                                                    <td className="p-4 text-center">
-                                                        {feature.muhasebe ? (
-                                                            <CheckCircle2 className="w-5 h-5 text-emerald-500 mx-auto" />
-                                                        ) : (
-                                                            <span className="w-5 h-5 block mx-auto rounded-full bg-slate-200 dark:bg-slate-700" />
-                                                        )}
-                                                    </td>
-                                                    <td className="p-4 text-center">
-                                                        {feature.kargo ? (
-                                                            <CheckCircle2 className="w-5 h-5 text-emerald-500 mx-auto" />
-                                                        ) : (
-                                                            <span className="w-5 h-5 block mx-auto rounded-full bg-slate-200 dark:bg-slate-700" />
-                                                        )}
-                                                    </td>
-                                                    <td className="p-4 text-center">
-                                                        {feature.efatura ? (
-                                                            <CheckCircle2 className="w-5 h-5 text-emerald-500 mx-auto" />
-                                                        ) : (
-                                                            <span className="w-5 h-5 block mx-auto rounded-full bg-slate-200 dark:bg-slate-700" />
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.section>
-                )}
-            </AnimatePresence>
+// ─── Hero hub visual ──────────────────────────────────
+function HeroHub({ items }: { items: Integration[] }) {
+    const orbit = items.slice(0, 8);
 
-            {/* ==================== CTA SECTION ==================== */}
-            <section className="relative py-16 mt-auto">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        className="relative bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 rounded-[2.5rem] p-8 md:p-12 overflow-hidden"
-                    >
-                        {/* Background Effects */}
-                        <div className="absolute inset-0 opacity-30">
-                            <div className="absolute top-0 right-0 w-96 h-96 bg-primary/30 rounded-full blur-[100px]" />
-                            <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/30 rounded-full blur-[100px]" />
-                        </div>
+    return (
+        <div className="relative w-full max-w-sm lg:max-w-md mx-auto aspect-square overflow-hidden isolate">
+            <div className="absolute inset-5 sm:inset-6 [--orbit:6.75rem] sm:[--orbit:7.75rem] lg:[--orbit:8.5rem]">
+                <div className="absolute inset-[6%] rounded-full border border-dashed border-orange-300/40 dark:border-orange-500/20 animate-[spin_80s_linear_infinite]" />
+                <div className="absolute inset-[22%] rounded-full border border-orange-200/30 dark:border-orange-500/10" />
+                <div className="absolute inset-[30%] rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/10 blur-2xl" />
 
-                        <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
-                            <div className="text-center lg:text-left">
-                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-white rounded-full text-sm font-bold mb-4">
-                                    <Sparkles className="w-4 h-4" /> 14 Gün Ücretsiz Deneme
-                                </div>
-                                <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-                                    Tüm Entegrasyonları Şimdi Deneyin
-                                </h2>
-                                <p className="text-lg text-indigo-200 max-w-xl">
-                                    Kredi kartı gerekmez. 14 gün boyunca tüm özellikleri limitsiz kullanın.
-                                    Beğenmezseniz tek kuruş ödemezsiniz.
-                                </p>
-                            </div>
-
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <Link
-                                    href="/register"
-                                    className="px-8 py-4 bg-white text-slate-900 rounded-2xl font-black hover:bg-slate-100 transition-all shadow-xl shadow-white/20 text-lg flex items-center justify-center gap-2 group"
-                                >
-                                    Hemen Başlayın
-                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                </Link>
-                                <Link
-                                    href="/iletisim"
-                                    className="px-8 py-4 bg-white/10 text-white border-2 border-white/20 rounded-2xl font-bold hover:bg-white/20 transition-all text-lg flex items-center justify-center gap-2"
-                                >
-                                    <Phone className="w-5 h-5" />
-                                    Satış Ekibiyle Konuşun
-                                </Link>
-                            </div>
-                        </div>
-                    </motion.div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="relative z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-[1.75rem] bg-gradient-to-br from-orange-600 to-amber-500 shadow-2xl shadow-orange-500/30 flex flex-col items-center justify-center text-white ring-4 ring-white/20 dark:ring-white/10">
+                        <Plug className="w-9 h-9 sm:w-10 sm:h-10 mb-1" />
+                        <span className="text-[10px] font-black uppercase tracking-wider opacity-90">Merkez</span>
+                    </div>
                 </div>
-            </section>
 
-            {/* ==================== DETAIL MODAL ==================== */}
-            <AnimatePresence>
-                {selectedIntegration && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setSelectedIntegration(null)}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                    >
+                {orbit.map((item, i) => {
+                    const angle = (i / orbit.length) * 360 - 90;
+                    return (
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            onClick={e => e.stopPropagation()}
-                            className="bg-white dark:bg-slate-900 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+                            key={item.id}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.3 + i * 0.06 }}
+                            className="absolute left-1/2 top-1/2 z-20"
+                            style={{
+                                transform: `translate(-50%, -50%) rotate(${angle}deg) translateY(calc(-1 * var(--orbit))) rotate(-${angle}deg)`,
+                            }}
                         >
-                            {/* Modal Header */}
-                            <div className={`p-8 bg-gradient-to-br ${selectedIntegration.gradient} relative`}>
-                                <button
-                                    onClick={() => setSelectedIntegration(null)}
-                                    className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition-colors"
-                                >
-                                    ×
-                                </button>
-
-                                <div className="flex items-center gap-4">
-                                    <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center text-3xl font-bold shadow-lg" style={{ color: selectedIntegration.color }}>
-                                        {selectedIntegration.logo}
-                                    </div>
-                                    <div>
-                                        <h2 className="text-3xl font-black text-white">{selectedIntegration.name}</h2>
-                                        <p className="text-white/80">{selectedIntegration.shortDesc}</p>
-                                    </div>
-                                </div>
-
-                                {/* Quick Stats */}
-                                <div className="flex gap-6 mt-6">
-                                    <div className="flex items-center gap-2 text-white/90">
-                                        <Users className="w-5 h-5" />
-                                        <span className="font-bold">{selectedIntegration.stats.users}</span>
-                                        <span className="text-sm text-white/60">kullanıcı</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-white/90">
-                                        <Star className="w-5 h-5 text-yellow-300" />
-                                        <span className="font-bold">{selectedIntegration.rating}</span>
-                                        <span className="text-sm text-white/60">({selectedIntegration.reviews} yorum)</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-white/90">
-                                        <Shield className="w-5 h-5 text-emerald-300" />
-                                        <span className="font-bold">{selectedIntegration.stats.uptime}</span>
-                                        <span className="text-sm text-white/60">uptime</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Modal Content */}
-                            <div className="p-8 space-y-6">
-                                {/* Description */}
-                                <div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                                        <Sparkles className="w-5 h-5 text-primary" /> Entegrasyon Hakkında
-                                    </h3>
-                                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                        {selectedIntegration.desc}
-                                    </p>
-                                </div>
-
-                                {/* Features */}
-                                <div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                                        <CheckCircle2 className="w-5 h-5 text-emerald-500" /> Özellikler
-                                    </h3>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {selectedIntegration.features.map((feature, idx) => (
-                                            <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                                <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center">
-                                                    <Check className="w-4 h-4" />
-                                                </div>
-                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{feature}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Requirements */}
-                                <div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                                        <Shield className="w-5 h-5 text-orange-500" /> Gereksinimler
-                                    </h3>
-                                    <ul className="space-y-2">
-                                        {selectedIntegration.requirements.map((req, idx) => (
-                                            <li key={idx} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                                                <BadgeCheck className="w-4 h-4 text-primary" />
-                                                {req}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex gap-4 pt-4 border-t border-border">
-                                    <Link
-                                        href={`/register?integration=${selectedIntegration.id}`}
-                                        className="flex-1 px-6 py-4 bg-primary text-white rounded-2xl font-bold text-center hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <Plug className="w-5 h-5" />
-                                        Entegrasyonu Ekle
-                                    </Link>
-                                    <Link
-                                        href={selectedIntegration.documentation}
-                                        className="px-6 py-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl font-bold hover:bg-slate-200 transition-colors flex items-center gap-2"
-                                    >
-                                        <ExternalLink className="w-5 h-5" />
-                                        Dokümantasyon
-                                    </Link>
-                                </div>
+                            <div className="p-1 rounded-2xl bg-white dark:bg-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-white/10">
+                                <IntegrationLogo item={item} size="sm" />
                             </div>
                         </motion.div>
-                    </motion.div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+// ─── Main page ────────────────────────────────────────
+export default function IntegrationsClient() {
+    const [search, setSearch] = useState('');
+    const [category, setCategory] = useState<CategoryId>('all');
+    const [selected, setSelected] = useState<Integration | null>(null);
+    const [portalReady, setPortalReady] = useState(false);
+
+    useEffect(() => {
+        setPortalReady(true);
+    }, []);
+
+    useEffect(() => {
+        if (!selected) return;
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = prev;
+        };
+    }, [selected]);
+
+    const counts = useMemo(() => {
+        const map: Record<string, number> = { all: integrations.length };
+        for (const item of integrations) {
+            map[item.category] = (map[item.category] || 0) + 1;
+        }
+        return map;
+    }, []);
+
+    const filtered = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        return integrations.filter((item) => {
+            const matchCat = category === 'all' || item.category === category;
+            const matchSearch = !q ||
+                item.name.toLowerCase().includes(q) ||
+                item.shortDesc.toLowerCase().includes(q) ||
+                item.features.some((f) => f.toLowerCase().includes(q));
+            return matchCat && matchSearch;
+        });
+    }, [search, category]);
+
+    const popular = useMemo(() => integrations.filter((i) => i.isPopular).slice(0, 3), []);
+
+    const flowSteps = [
+        { icon: Plug, title: 'Bağlan', desc: 'API anahtarınızı 5 dakikada ekleyin' },
+        { icon: RefreshCw, title: 'Senkronize et', desc: 'Stok ve ürünler otomatik güncellenir' },
+        { icon: ShoppingCart, title: 'Yönet', desc: 'Siparişleri tek panelden işleyin' },
+        { icon: FileText, title: 'Faturala', desc: 'e-Fatura tek tıkla kesilir' },
+    ];
+
+    const showFeatured = !search && category === 'all';
+
+    return (
+        <div className="min-h-screen bg-[#FAFAF9] dark:bg-[#0B1120] pt-[calc(4.5rem+env(safe-area-inset-top,0px))] relative overflow-x-hidden">
+            {/* Ambient background */}
+            <div className="fixed inset-0 pointer-events-none z-0">
+                <div className="absolute inset-0 bg-gradient-to-b from-orange-50/40 via-transparent to-transparent dark:from-orange-950/20" />
+                <div
+                    className="absolute inset-0 opacity-[0.35] dark:opacity-[0.12]"
+                    style={{
+                        backgroundImage: 'linear-gradient(rgba(148,163,184,0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.25) 1px, transparent 1px)',
+                        backgroundSize: '56px 56px',
+                        maskImage: 'linear-gradient(to bottom, black 30%, transparent 85%)',
+                        WebkitMaskImage: 'linear-gradient(to bottom, black 30%, transparent 85%)',
+                    }}
+                />
+                <div className="absolute top-20 right-0 w-[600px] h-[500px] bg-orange-400/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-40 left-0 w-[400px] h-[400px] bg-amber-400/8 rounded-full blur-[100px]" />
+            </div>
+
+            <div className="relative z-10">
+                {/* Hero */}
+                <section className="relative border-b border-slate-200/50 dark:border-white/5">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 lg:py-24">
+                        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                            <div className="text-center lg:text-left">
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-white/5 text-orange-700 dark:text-orange-300 text-xs font-bold mb-7 border border-orange-200/60 dark:border-orange-500/20 shadow-sm backdrop-blur-sm"
+                                >
+                                    <span className="relative flex h-2 w-2">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500" />
+                                    </span>
+                                    {integrations.length}+ entegrasyon · %99.9 uptime
+                                </motion.div>
+
+                                <motion.h1
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.05 }}
+                                    className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black text-slate-900 dark:text-white tracking-tight leading-[1.05] mb-6"
+                                >
+                                    Tüm kanallarınız{' '}
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500">
+                                        tek panelde
+                                    </span>
+                                </motion.h1>
+
+                                <motion.p
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.1 }}
+                                    className="text-lg text-slate-600 dark:text-slate-400 max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed"
+                                >
+                                    Pazaryeri, e-ticaret, muhasebe, kargo ve e-fatura entegrasyonlarını dakikalar içinde kurun — tek merkezden yönetin.
+                                </motion.p>
+
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.15 }}
+                                    className="relative max-w-lg mx-auto lg:mx-0"
+                                >
+                                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        placeholder="Trendyol, Paraşüt, Shopify ara…"
+                                        className="w-full pl-14 pr-5 py-4 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-slate-900/80 text-slate-900 dark:text-white shadow-xl shadow-slate-200/40 dark:shadow-none focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-400 transition-all backdrop-blur-sm"
+                                    />
+                                </motion.div>
+
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.25 }}
+                                    className="flex flex-wrap justify-center lg:justify-start gap-6 mt-10"
+                                >
+                                    {[
+                                        { v: '12.5K+', l: 'Aktif satıcı' },
+                                        { v: '45M+', l: 'Senkron ürün' },
+                                        { v: '< 2 dk', l: 'Kurulum' },
+                                        { v: '%99.9', l: 'Uptime' },
+                                    ].map((s, i) => (
+                                        <div key={s.l} className="flex items-center gap-6">
+                                            {i > 0 && <div className="hidden sm:block w-px h-8 bg-slate-200 dark:bg-white/10" />}
+                                            <div className="text-left">
+                                                <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-500">{s.v}</div>
+                                                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{s.l}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </motion.div>
+                            </div>
+
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.2, duration: 0.6 }}
+                                className="hidden sm:block overflow-hidden py-2"
+                            >
+                                <HeroHub items={integrations} />
+                            </motion.div>
+                        </div>
+                    </div>
+
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
+                        <LogoMarquee items={integrations} />
+                    </div>
+                </section>
+
+                {/* How it works — timeline */}
+                <section className="max-w-7xl mx-auto px-4 sm:px-6 py-14 lg:py-16">
+                    <div className="text-center mb-10">
+                        <p className="text-xs font-black uppercase tracking-[0.25em] text-orange-500 mb-3">Nasıl çalışır</p>
+                        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">4 adımda canlıya alın</h2>
+                    </div>
+                    <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                        <div className="hidden lg:block absolute top-12 left-[12%] right-[12%] h-px bg-gradient-to-r from-transparent via-orange-300/60 to-transparent" />
+                        {flowSteps.map((step, i) => (
+                            <motion.div
+                                key={step.title}
+                                initial={{ opacity: 0, y: 16 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.08 }}
+                                className="relative text-center p-6 rounded-3xl bg-white/70 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/10 backdrop-blur-sm"
+                            >
+                                <div className="relative mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/25 mb-4">
+                                    <step.icon className="w-6 h-6" />
+                                    <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white dark:bg-slate-800 text-orange-600 text-[10px] font-black flex items-center justify-center border border-orange-100 dark:border-orange-500/30 shadow-sm">
+                                        {i + 1}
+                                    </span>
+                                </div>
+                                <p className="font-black text-slate-900 dark:text-white">{step.title}</p>
+                                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{step.desc}</p>
+                            </motion.div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* Featured popular */}
+                {showFeatured && (
+                    <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+                        <div className="flex items-end justify-between mb-6">
+                            <div>
+                                <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2 tracking-tight">
+                                    <Sparkles className="w-6 h-6 text-orange-500" />
+                                    En çok tercih edilenler
+                                </h2>
+                                <p className="text-sm text-slate-500 mt-1">Binlerce satıcının güvendiği entegrasyonlar</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-4 md:gap-5">
+                            {popular.map((item, i) => (
+                                <FeaturedCard key={item.id} item={item} rank={i} onSelect={setSelected} />
+                            ))}
+                        </div>
+                    </section>
                 )}
-            </AnimatePresence>
+
+                {/* Filters + Grid */}
+                <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-24">
+                    <div className="sticky top-[calc(4rem+env(safe-area-inset-top,0px))] z-30 -mx-4 px-4 sm:mx-0 sm:px-0 py-4">
+                        <div className="rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 p-2 shadow-lg shadow-slate-200/30 dark:shadow-none">
+                            <div className="flex gap-1.5 overflow-x-auto scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                                {categoryMeta.map((cat) => {
+                                    const Icon = cat.icon;
+                                    const active = category === cat.id;
+                                    const count = counts[cat.id] ?? 0;
+                                    return (
+                                        <button
+                                            key={cat.id}
+                                            type="button"
+                                            onClick={() => setCategory(cat.id)}
+                                            className={`relative flex items-center gap-2 shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${active ? 'text-white' : 'text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400'}`}
+                                        >
+                                            {active && (
+                                                <motion.div
+                                                    layoutId="integration-cat-pill"
+                                                    className="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-500 rounded-xl shadow-md shadow-orange-500/20"
+                                                    transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                                                />
+                                            )}
+                                            <span className="relative flex items-center gap-2">
+                                                <Icon className="w-4 h-4" />
+                                                {cat.name}
+                                                <span className={`text-xs px-1.5 py-0.5 rounded-md font-bold ${active ? 'bg-white/20' : 'bg-slate-100 dark:bg-white/10'}`}>
+                                                    {count}
+                                                </span>
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-8 mb-6">
+                        <p className="text-sm text-slate-500">
+                            <span className="font-black text-slate-800 dark:text-slate-200 text-lg">{filtered.length}</span>
+                            {' '}
+                            <span>entegrasyon</span>
+                            {search && <span className="text-orange-600 dark:text-orange-400 font-medium"> · &quot;{search}&quot;</span>}
+                        </p>
+                    </div>
+
+                    {filtered.length === 0 ? (
+                        <div className="text-center py-24 rounded-[2rem] border border-dashed border-slate-200 dark:border-white/10 bg-white/50 dark:bg-white/[0.02]">
+                            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center mx-auto mb-5">
+                                <Package className="w-8 h-8 text-slate-300" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">Sonuç bulunamadı</h3>
+                            <p className="text-slate-500 text-sm mb-8 max-w-sm mx-auto">Farklı bir arama veya kategori deneyin.</p>
+                            <button
+                                type="button"
+                                onClick={() => { setSearch(''); setCategory('all'); }}
+                                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-500 text-white font-bold text-sm hover:shadow-lg hover:shadow-orange-500/25 transition-all"
+                            >
+                                Tümünü göster
+                            </button>
+                        </div>
+                    ) : (
+                        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 lg:gap-6">
+                            <AnimatePresence mode="popLayout">
+                                {filtered.map((item) => (
+                                    <IntegrationCard key={item.id} item={item} onSelect={setSelected} />
+                                ))}
+                            </AnimatePresence>
+                        </motion.div>
+                    )}
+                </section>
+
+                {/* CTA */}
+                <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
+                    <div className="relative overflow-hidden rounded-[2rem] bg-slate-900 p-10 md:p-14">
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-600/30 via-transparent to-amber-600/20" />
+                        <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/25 rounded-full blur-[100px]" />
+                        <div className="absolute bottom-0 left-0 w-60 h-60 bg-amber-500/15 rounded-full blur-[80px]" />
+                        <div
+                            className="absolute inset-0 opacity-20"
+                            style={{
+                                backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)',
+                                backgroundSize: '24px 24px',
+                            }}
+                        />
+                        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+                            <div>
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-orange-200 text-xs font-bold mb-4">
+                                    <Zap size={14} /> Ücretsiz deneme
+                                </div>
+                                <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-3">14 gün ücretsiz deneyin</h2>
+                                <p className="text-slate-300 max-w-md leading-relaxed">Tüm entegrasyonları kredi kartı olmadan test edin. Kurulum desteği dahil.</p>
+                            </div>
+                            <Link
+                                href="/signup"
+                                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white text-orange-700 font-bold hover:bg-orange-50 hover:scale-[1.02] transition-all shrink-0 shadow-xl shadow-black/20"
+                            >
+                                Hemen başla <ArrowRight className="w-5 h-5" />
+                            </Link>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            {portalReady && createPortal(
+                <AnimatePresence>
+                    {selected && <IntegrationModal item={selected} onClose={() => setSelected(null)} />}
+                </AnimatePresence>,
+                document.body,
+            )}
+
+            <style jsx global>{`
+                @keyframes integrations-marquee {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
+                }
+                .animate-integrations-marquee {
+                    animation: integrations-marquee 45s linear infinite;
+                }
+                .animate-integrations-marquee:hover {
+                    animation-play-state: paused;
+                }
+            `}</style>
         </div>
     );
 }

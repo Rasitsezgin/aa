@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import {
-    ArrowRight, Moon, Sun, Menu, X, ChevronDown, ChevronRight,
+    ArrowRight, Moon, Sun, Menu, X, ChevronDown, ChevronRight, Search,
     Zap, BarChart3, Package, Users, Globe, Layers,
     BookOpen, Video, Calendar, Award, FileText, HelpCircle,
     Building2, Newspaper, Briefcase, Gift, MessageCircle, Heart, Target,
@@ -15,6 +16,7 @@ import {
 import { useTheme } from '@/providers/theme-provider';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession, signOut } from 'next-auth/react';
+import { usePathname } from 'next/navigation';
 
 // ─── Types ────────────────────────────────────────────
 interface MegaMenuColumn {
@@ -34,6 +36,7 @@ interface MegaMenuColumn {
 interface MegaMenuItem {
     label: string;
     megaMenu?: {
+        tagline?: string;
         columns: MegaMenuColumn[];
         featured?: {
             title: string;
@@ -42,6 +45,7 @@ interface MegaMenuItem {
             image?: string;
             badge?: string;
             gradient?: string;
+            stats?: { label: string; value: string }[];
         };
         bottomCTA?: {
             label: string;
@@ -54,7 +58,7 @@ interface MegaMenuItem {
 
 // ─── Color Maps for Icons ─────────────────────────────
 const iconColorMap: Record<string, { bg: string; text: string; hoverBg: string }> = {
-    blue: { bg: 'bg-blue-50 dark:bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400', hoverBg: 'group-hover/item:bg-blue-600' },
+    blue: { bg: 'bg-orange-50 dark:bg-orange-500/10', text: 'text-orange-600 dark:text-orange-400', hoverBg: 'group-hover/item:bg-orange-600' },
     purple: { bg: 'bg-purple-50 dark:bg-purple-500/10', text: 'text-purple-600 dark:text-purple-400', hoverBg: 'group-hover/item:bg-purple-600' },
     green: { bg: 'bg-emerald-50 dark:bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', hoverBg: 'group-hover/item:bg-emerald-600' },
     orange: { bg: 'bg-orange-50 dark:bg-orange-500/10', text: 'text-orange-600 dark:text-orange-400', hoverBg: 'group-hover/item:bg-orange-600' },
@@ -62,7 +66,7 @@ const iconColorMap: Record<string, { bg: string; text: string; hoverBg: string }
     teal: { bg: 'bg-teal-50 dark:bg-teal-500/10', text: 'text-teal-600 dark:text-teal-400', hoverBg: 'group-hover/item:bg-teal-600' },
     amber: { bg: 'bg-amber-50 dark:bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400', hoverBg: 'group-hover/item:bg-amber-600' },
     red: { bg: 'bg-red-50 dark:bg-red-500/10', text: 'text-red-600 dark:text-red-400', hoverBg: 'group-hover/item:bg-red-600' },
-    indigo: { bg: 'bg-indigo-50 dark:bg-indigo-500/10', text: 'text-indigo-600 dark:text-indigo-400', hoverBg: 'group-hover/item:bg-indigo-600' },
+    indigo: { bg: 'bg-orange-50 dark:bg-orange-500/10', text: 'text-orange-600 dark:text-orange-400', hoverBg: 'group-hover/item:bg-orange-600' },
     cyan: { bg: 'bg-cyan-50 dark:bg-cyan-500/10', text: 'text-cyan-600 dark:text-cyan-400', hoverBg: 'group-hover/item:bg-cyan-600' },
 };
 
@@ -71,15 +75,13 @@ const navLinks: MegaMenuItem[] = [
     {
         label: 'Platform',
         megaMenu: {
+            tagline: 'Pazaryeri operasyonlarını tek merkezden yönetin',
             columns: [
                 {
                     title: 'Pazaryeri Yönetimi',
                     icon: Globe,
                     items: [
                         { label: 'Çoklu Pazaryeri', href: '/entegrasyonlar', description: 'Trendyol, Hepsiburada, Amazon, N11', icon: Globe, color: 'blue' },
-                        { label: 'Ürün Yönetimi', href: '/features', description: 'Toplu ürün ve varyant kontrolü', icon: Package, color: 'purple' },
-                        { label: 'Sipariş Merkezi', href: '/features#automation', description: 'Tüm siparişler tek ekranda', icon: ShoppingBag, color: 'green' },
-                        { label: 'Stok Senkronizasyonu', href: '/features#inventory', description: 'Gerçek zamanlı stok takibi', icon: Boxes, color: 'orange' },
                         { label: 'Ürün Yönetimi', href: '/features/inventory', description: 'Toplu ürün ve varyant kontrolü', icon: Package, color: 'purple' },
                         { label: 'Sipariş Merkezi', href: '/features/automation', description: 'Tüm siparişler tek ekranda', icon: ShoppingBag, color: 'green' },
                         { label: 'Stok Senkronizasyonu', href: '/features/inventory', description: 'Gerçek zamanlı stok takibi', icon: Boxes, color: 'orange' },
@@ -97,6 +99,7 @@ const navLinks: MegaMenuItem[] = [
                 },
                 {
                     title: 'Akıllı Araçlar',
+                    icon: Brain,
                     items: [
                         { label: 'Yapay Zeka Asistanı', href: '/features/ai', description: 'SEO ve içerik optimizasyonu', icon: Brain, color: 'purple' },
                         { label: 'Dinamik Fiyatlandırma', href: '/features/pricing', description: 'Otomatik rakip takibi', icon: DollarSign, color: 'orange' },
@@ -109,7 +112,11 @@ const navLinks: MegaMenuItem[] = [
                 title: 'Yapay Zeka Pulse',
                 description: 'Tüm mağazalarınızın nabzını AI ile tutun. Fırsatları ve riskleri saniyeler içinde tespit edin.',
                 href: '/features/ai',
-                image: '/images/mega-featured-ai.jpg'
+                image: '/images/mega-featured-ai.jpg',
+                stats: [
+                    { label: 'Anlık analiz', value: '< 2 sn' },
+                    { label: 'Aktif satıcı', value: '12K+' },
+                ],
             },
             bottomCTA: {
                 label: 'Tüm özellikleri keşfedin',
@@ -120,6 +127,7 @@ const navLinks: MegaMenuItem[] = [
     {
         label: 'Çözümler',
         megaMenu: {
+            tagline: 'İşletmenizin ölçeğine ve sektörüne özel çözümler',
             columns: [
                 {
                     title: 'İşletme Ölçeği',
@@ -156,12 +164,17 @@ const navLinks: MegaMenuItem[] = [
                 href: '/case-studies',
                 badge: '50+ Hikaye',
                 gradient: 'from-emerald-600 via-teal-600 to-cyan-600',
+                stats: [
+                    { label: 'Ort. büyüme', value: '%214' },
+                    { label: 'Memnuniyet', value: '4.9/5' },
+                ],
             }
         }
     },
     {
         label: 'Kaynaklar',
         megaMenu: {
+            tagline: 'Öğrenin, gelişin ve 7/24 destek alın',
             columns: [
                 {
                     title: 'Öğrenin',
@@ -199,12 +212,17 @@ const navLinks: MegaMenuItem[] = [
                 href: '/resources/2026-rapor',
                 badge: 'Yeni',
                 gradient: 'from-orange-600 via-red-600 to-pink-600',
+                stats: [
+                    { label: 'Sayfa', value: '48' },
+                    { label: 'Pazar', value: '6 kanal' },
+                ],
             }
         }
     },
     {
         label: 'Kurumsal',
         megaMenu: {
+            tagline: 'Ekibimiz, vizyonumuz ve iletişim kanallarımız',
             columns: [
                 {
                     title: 'Hakkımızda',
@@ -239,6 +257,10 @@ const navLinks: MegaMenuItem[] = [
                 href: '/careers',
                 badge: 'Hiring',
                 gradient: 'from-violet-600 via-purple-600 to-fuchsia-600',
+                stats: [
+                    { label: 'Açık pozisyon', value: '8' },
+                    { label: 'Ekip', value: '45+' },
+                ],
             }
         }
     },
@@ -248,15 +270,21 @@ const navLinks: MegaMenuItem[] = [
 
 // ─── Animations ───────────────────────────────────────
 const megaMenuVariants = {
-    hidden: { opacity: 0, y: 20, scale: 0.96 },
-    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
-    exit: { opacity: 0, y: 12, scale: 0.97, transition: { duration: 0.2, ease: 'easeIn' as const } }
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.28, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
+    exit: { opacity: 0, y: 8, transition: { duration: 0.16, ease: 'easeIn' as const } }
+};
+
+const megaMenuBackdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.22 } },
+    exit: { opacity: 0, transition: { duration: 0.18 } }
 };
 
 const contentVariants = {
-    hidden: { opacity: 0, x: 16 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number], staggerChildren: 0.04, delayChildren: 0.04 } },
-    exit: { opacity: 0, x: -8, transition: { duration: 0.15 } }
+    hidden: { opacity: 0, y: 8 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number], staggerChildren: 0.04, delayChildren: 0.04 } },
+    exit: { opacity: 0, y: -4, transition: { duration: 0.15 } }
 };
 
 const contentItem = {
@@ -266,7 +294,7 @@ const contentItem = {
 
 // Gradient map for icon hover states
 const iconGradientMap: Record<string, string> = {
-    blue: 'from-blue-500 to-blue-600',
+    blue: 'from-orange-500 to-amber-600',
     purple: 'from-purple-500 to-purple-600',
     green: 'from-emerald-500 to-emerald-600',
     orange: 'from-orange-500 to-orange-600',
@@ -274,7 +302,7 @@ const iconGradientMap: Record<string, string> = {
     teal: 'from-teal-500 to-teal-600',
     amber: 'from-amber-500 to-amber-600',
     red: 'from-red-500 to-red-600',
-    indigo: 'from-indigo-500 to-indigo-600',
+    indigo: 'from-amber-500 to-amber-600',
     cyan: 'from-cyan-500 to-cyan-600',
 };
 
@@ -288,17 +316,18 @@ function MegaMenuItemCard({ item, onClick }: { item: MegaMenuColumn['items'][0];
             <Link
                 href={item.href}
                 onClick={onClick}
-                className="group/item flex items-center gap-4 p-3.5 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-transparent hover:border-slate-100 dark:hover:border-white/[0.07] transition-all duration-300 cursor-pointer"
+                className="group/item relative flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/40 dark:bg-white/[0.02] hover:bg-orange-50/80 dark:hover:bg-orange-500/[0.06] border border-slate-100/60 dark:border-white/[0.04] hover:border-orange-200/70 dark:hover:border-orange-500/20 hover:shadow-md hover:shadow-orange-500/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 focus-visible:border-orange-300 transition-all duration-300 cursor-pointer"
             >
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/[0.03] to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity pointer-events-none" />
                 {item.icon && (
-                    <div className={`relative w-11 h-11 rounded-xl ${colors.bg} flex items-center justify-center shrink-0 transition-all duration-300 group-hover/item:scale-[1.08] group-hover/item:shadow-lg overflow-hidden`}>
+                    <div className={`relative w-11 h-11 rounded-xl ${colors.bg} flex items-center justify-center shrink-0 transition-all duration-300 group-hover/item:scale-105 group-hover/item:shadow-lg group-hover/item:shadow-orange-500/10 overflow-hidden ring-1 ring-black/[0.03] dark:ring-white/[0.06]`}>
                         <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover/item:opacity-100 transition-opacity duration-300`} />
                         <item.icon size={18} className={`relative z-10 ${colors.text} group-hover/item:text-white transition-colors duration-300`} />
                     </div>
                 )}
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-slate-100 group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 transition-colors">
+                <div className="relative flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-slate-100 group-hover/item:text-orange-700 dark:group-hover/item:text-orange-300 transition-colors">
                             {item.label}
                         </span>
                         {item.badge && (
@@ -314,13 +343,13 @@ function MegaMenuItemCard({ item, onClick }: { item: MegaMenuColumn['items'][0];
                         )}
                     </div>
                     {item.description && (
-                        <p className="text-[12px] text-slate-400 dark:text-slate-500 leading-relaxed line-clamp-1">
+                        <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-snug line-clamp-2 group-hover/item:text-slate-600 dark:group-hover/item:text-slate-300 transition-colors">
                             {item.description}
                         </p>
                     )}
                 </div>
-                <div className="w-7 h-7 rounded-lg bg-transparent group-hover/item:bg-blue-500/10 dark:group-hover/item:bg-blue-500/10 flex items-center justify-center transition-all duration-300 opacity-0 group-hover/item:opacity-100 shrink-0">
-                    <ArrowRight size={13} className="text-blue-500" />
+                <div className="relative w-8 h-8 rounded-xl bg-slate-100/80 dark:bg-white/[0.04] group-hover/item:bg-orange-500 group-hover/item:shadow-lg group-hover/item:shadow-orange-500/30 flex items-center justify-center transition-all duration-300 opacity-60 group-hover/item:opacity-100 shrink-0">
+                    <ArrowRight size={14} className="text-slate-400 group-hover/item:text-white group-hover/item:translate-x-0.5 transition-all" />
                 </div>
             </Link>
         </motion.div>
@@ -329,73 +358,178 @@ function MegaMenuItemCard({ item, onClick }: { item: MegaMenuColumn['items'][0];
 
 // ─── Desktop Mega Menu Panel ──────────────────────────
 function DesktopMegaMenuPanel({
+    menuLabel,
     megaMenu,
     onClose
 }: {
+    menuLabel: string;
     megaMenu: NonNullable<MegaMenuItem['megaMenu']>;
     onClose: () => void;
 }) {
     const [activeCol, setActiveCol] = React.useState(0);
+    const [search, setSearch] = React.useState('');
+    const searchRef = useRef<HTMLInputElement>(null);
     const activeColumn = megaMenu.columns[activeCol];
+    const ActiveIcon = activeColumn?.icon;
+
+    useEffect(() => {
+        setActiveCol(0);
+        setSearch('');
+    }, [menuLabel]);
+
+    const filteredItems = React.useMemo(() => {
+        const items = activeColumn?.items ?? [];
+        const q = search.trim().toLowerCase();
+        if (!q) return items;
+        return items.filter((item) =>
+            item.label.toLowerCase().includes(q) ||
+            item.description?.toLowerCase().includes(q)
+        );
+    }, [activeColumn, search]);
+
+    useEffect(() => {
+        const handleKeys = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setActiveCol((c) => Math.min(c + 1, megaMenu.columns.length - 1));
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setActiveCol((c) => Math.max(c - 1, 0));
+            }
+            if (e.key === '/' && document.activeElement !== searchRef.current) {
+                e.preventDefault();
+                searchRef.current?.focus();
+            }
+        };
+        window.addEventListener('keydown', handleKeys);
+        return () => window.removeEventListener('keydown', handleKeys);
+    }, [megaMenu.columns.length]);
 
     return (
-        <div className="relative bg-white/98 dark:bg-[#0a0f1e]/98 backdrop-blur-3xl rounded-2xl overflow-hidden border border-slate-200/70 dark:border-white/[0.08] shadow-[0_32px_80px_-12px_rgba(0,0,0,0.18)] dark:shadow-[0_32px_80px_-12px_rgba(0,0,0,0.6)]">
-            {/* Top gradient accent */}
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500 via-violet-500 to-pink-500" />
+        <div
+            role="dialog"
+            aria-label={`${menuLabel} menüsü`}
+            className="relative bg-white/[0.98] dark:bg-[#0a0f1e]/[0.98] backdrop-blur-3xl rounded-[1.35rem] overflow-hidden border border-slate-200/80 dark:border-white/[0.09] shadow-[0_40px_100px_-20px_rgba(15,23,42,0.22)] dark:shadow-[0_40px_100px_-20px_rgba(0,0,0,0.65)] ring-1 ring-black/[0.03] dark:ring-white/[0.04]"
+        >
+            {/* Top brand accent */}
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400" />
+            {/* Soft ambient wash */}
+            <div className="absolute top-0 right-0 w-72 h-72 bg-orange-400/[0.06] dark:bg-orange-500/[0.08] rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-40 w-56 h-56 bg-amber-400/[0.04] rounded-full blur-3xl pointer-events-none" />
 
-            <div className="flex">
+            {/* Panel header */}
+            <div className="relative flex items-center gap-3 px-5 py-3.5 border-b border-slate-100/90 dark:border-white/[0.06] bg-slate-50/40 dark:bg-white/[0.02] overflow-hidden min-w-0">
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2.5">
+                        <span className="text-[11px] font-black uppercase tracking-[0.16em] text-orange-600 dark:text-orange-400">{menuLabel}</span>
+                        <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate">{megaMenu.tagline}</span>
+                    </div>
+                    <div className="relative mt-2.5 max-w-sm">
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                            ref={searchRef}
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Özellik ara… (/ ile odaklan)"
+                            className="w-full pl-9 pr-3 py-2 text-[12.5px] rounded-xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-white/[0.04] text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-300 dark:focus:border-orange-500/40 transition-all"
+                        />
+                    </div>
+                </div>
+                <div className="hidden sm:flex items-center gap-2 shrink-0">
+                    <div className="px-3 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.06] text-[10px] font-bold text-slate-400">
+                        <kbd className="text-slate-500">↑↓</kbd> kategori
+                    </div>
+                    <div className="px-3 py-1.5 rounded-lg bg-white dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.06] text-[10px] font-bold text-slate-400">
+                        <kbd className="text-slate-500">Esc</kbd> kapat
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    onClick={onClose}
+                    aria-label="Menüyü kapat"
+                    className="shrink-0 w-9 h-9 rounded-xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-white/[0.04] text-slate-400 hover:text-slate-700 dark:hover:text-white hover:border-orange-200 dark:hover:border-orange-500/30 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+                >
+                    <X size={16} className="mx-auto" />
+                </button>
+            </div>
+
+            <div className="relative flex max-h-[min(480px,calc(100vh-11rem))] overflow-hidden">
                 {/* ── Left Sidebar ── */}
-                <div className="w-[220px] shrink-0 bg-slate-50/60 dark:bg-white/[0.02] border-r border-slate-100/80 dark:border-white/[0.05] p-3 flex flex-col gap-1">
+                <div className="w-[210px] shrink-0 bg-slate-50/70 dark:bg-white/[0.025] border-r border-slate-100/90 dark:border-white/[0.06] p-3 flex flex-col gap-1.5 overflow-hidden">
+                    <div className="px-2 pt-1 pb-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">Kategoriler</p>
+                    </div>
                     {megaMenu.columns.map((col, idx) => {
                         const isActive = activeCol === idx;
                         return (
                             <button
                                 key={idx}
-                                onMouseEnter={() => setActiveCol(idx)}
-                                onClick={() => setActiveCol(idx)}
-                                className={`group w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-left transition-all duration-200 ${
+                                onMouseEnter={() => { setActiveCol(idx); setSearch(''); }}
+                                onClick={() => { setActiveCol(idx); setSearch(''); }}
+                                className={`group relative w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all duration-250 ${
                                     isActive
-                                        ? 'bg-white dark:bg-white/[0.08] shadow-sm border border-slate-200/80 dark:border-white/[0.1] text-blue-600 dark:text-blue-400'
-                                        : 'text-slate-600 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white'
+                                        ? 'bg-white dark:bg-white/[0.09] shadow-sm shadow-orange-500/5 border border-orange-100/80 dark:border-orange-500/20 text-orange-700 dark:text-orange-300'
+                                        : 'text-slate-600 dark:text-slate-400 hover:bg-white/70 dark:hover:bg-white/[0.05] hover:text-slate-900 dark:hover:text-white border border-transparent'
                                 }`}
                             >
+                                {isActive && (
+                                    <motion.div
+                                        layoutId={`mega-menu-active-tab-${menuLabel}`}
+                                        className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-gradient-to-b from-orange-500 to-amber-500"
+                                        transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                                    />
+                                )}
                                 {col.icon && (
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200 ${
+                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-250 ${
                                         isActive
-                                            ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400'
-                                            : 'bg-slate-100 dark:bg-white/[0.05] text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-white/[0.08]'
+                                            ? 'bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/25'
+                                            : 'bg-slate-100/90 dark:bg-white/[0.06] text-slate-400 group-hover:bg-slate-200/80 dark:group-hover:bg-white/[0.09] group-hover:text-slate-600'
                                     }`}>
                                         <col.icon size={15} />
                                     </div>
                                 )}
-                                <div className="flex-1 min-w-0">
+                                <div className="flex-1 min-w-0 pl-0.5">
                                     <div className="text-[13px] font-bold leading-tight truncate">{col.title}</div>
-                                    <div className="text-[10.5px] text-slate-400 dark:text-slate-500 mt-0.5">{col.items.length} özellik</div>
+                                    <div className={`text-[10px] mt-0.5 font-medium ${isActive ? 'text-orange-500/80 dark:text-orange-400/80' : 'text-slate-400 dark:text-slate-500'}`}>
+                                        {col.items.length} bağlantı
+                                    </div>
                                 </div>
-                                <ChevronRight size={13} className={`shrink-0 transition-all duration-200 ${isActive ? 'opacity-100 text-blue-500' : 'opacity-0 group-hover:opacity-60'}`} />
+                                <ChevronRight size={13} className={`shrink-0 transition-all duration-200 ${isActive ? 'opacity-100 text-orange-500 translate-x-0' : 'opacity-0 -translate-x-1 group-hover:opacity-50 group-hover:translate-x-0'}`} />
                             </button>
                         );
                     })}
 
-                    {/* Bottom CTA in sidebar */}
                     {megaMenu.bottomCTA && (
-                        <div className="mt-auto pt-3 border-t border-slate-100/80 dark:border-white/[0.05]">
+                        <div className="mt-auto pt-3 border-t border-slate-100/80 dark:border-white/[0.06]">
                             <Link
                                 href={megaMenu.bottomCTA.href}
                                 onClick={onClose}
-                                className="group flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12.5px] font-bold transition-all duration-200 hover:shadow-lg hover:shadow-blue-600/30"
+                                className="group flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white text-[12px] font-bold transition-all duration-200 hover:shadow-lg hover:shadow-orange-600/30"
                             >
-                                <Rocket size={13} className="shrink-0" />
-                                <span className="flex-1 truncate">{megaMenu.bottomCTA.label}</span>
+                                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                                    <Rocket size={13} />
+                                </div>
+                                <span className="flex-1 truncate leading-tight">{megaMenu.bottomCTA.label}</span>
                                 <ArrowRight size={11} className="shrink-0 group-hover:translate-x-0.5 transition-transform" />
                             </Link>
                         </div>
                     )}
                 </div>
 
-                {/* ── Right Content Panel ── */}
-                <div className="flex-1 flex flex-col min-w-0">
-                    <div className="flex-1 p-5">
+                {/* ── Center Content ── */}
+                <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
+                    <div
+                        className="absolute inset-0 opacity-[0.35] dark:opacity-[0.2] pointer-events-none"
+                        style={{
+                            backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(148 163 184 / 0.22) 1px, transparent 0)',
+                            backgroundSize: '22px 22px',
+                        }}
+                    />
+
+                    <div className="relative flex-1 p-5 overflow-hidden">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={activeCol}
@@ -403,50 +537,112 @@ function DesktopMegaMenuPanel({
                                 initial="hidden"
                                 animate="visible"
                                 exit="exit"
-                                className="grid grid-cols-2 gap-1.5"
+                                className="overflow-hidden"
                             >
-                                {activeColumn?.items.map((item, idx) => (
-                                    <MegaMenuItemCard key={idx} item={item} onClick={onClose} />
-                                ))}
+                                <div className="flex items-center gap-3 mb-4 pb-3.5 border-b border-slate-100/90 dark:border-white/[0.06]">
+                                    {ActiveIcon && (
+                                        <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-500/10 border border-orange-100/80 dark:border-orange-500/20 flex items-center justify-center text-orange-600 dark:text-orange-400">
+                                            <ActiveIcon size={18} />
+                                        </div>
+                                    )}
+                                    <div className="min-w-0">
+                                        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white leading-tight">{activeColumn?.title}</h3>
+                                        <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Hızlı erişim — {activeColumn?.items.length} seçenek</p>
+                                    </div>
+                                </div>
+
+                                {filteredItems.length > 0 ? (
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {filteredItems.map((item, idx) => (
+                                            <MegaMenuItemCard key={`${item.href}-${idx}`} item={item} onClick={onClose} />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-14 text-center rounded-2xl border border-dashed border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
+                                        <Search size={28} className="text-slate-300 dark:text-slate-600 mb-3" />
+                                        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Sonuç bulunamadı</p>
+                                        <p className="text-xs text-slate-400 mt-1">Farklı bir anahtar kelime deneyin</p>
+                                    </div>
+                                )}
+
+                                {!search && activeColumn && activeColumn.items.length > 0 && (
+                                    <div className="mt-4 pt-3.5 border-t border-slate-100/80 dark:border-white/[0.06]">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400 mb-2">Hızlı erişim</p>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {activeColumn.items.slice(0, 4).map((item) => (
+                                                <Link
+                                                    key={item.href}
+                                                    href={item.href}
+                                                    onClick={onClose}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold bg-slate-100/80 dark:bg-white/[0.05] text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-white/[0.06] hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-300 hover:border-orange-200 dark:hover:border-orange-500/25 transition-all"
+                                                >
+                                                    {item.icon && <item.icon size={11} />}
+                                                    {item.label}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </motion.div>
                         </AnimatePresence>
                     </div>
-
-                    {/* ── Featured Card Footer ── */}
-                    {megaMenu.featured && (
-                        <div className="border-t border-slate-100/80 dark:border-white/[0.06] p-4">
-                            <Link
-                                href={megaMenu.featured.href}
-                                onClick={onClose}
-                                className={`group/feat relative flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r ${megaMenu.featured.gradient || 'from-blue-600 to-indigo-600'} overflow-hidden hover:scale-[1.01] transition-all duration-300 hover:shadow-lg`}
-                            >
-                                {/* Animated shimmer */}
-                                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover/feat:translate-x-full transition-transform duration-700" />
-                                {/* Decorative circles */}
-                                <div className="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-                                <div className="absolute right-8 bottom-0 w-20 h-20 bg-white/5 rounded-full translate-y-1/2" />
-
-                                <div className="relative z-10 w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                                    <Sparkles size={18} className="text-white" />
-                                </div>
-                                <div className="relative z-10 flex-1 min-w-0">
-                                    {megaMenu.featured.badge && (
-                                        <div className="flex items-center gap-1.5 mb-1">
-                                            <Star size={10} className="text-yellow-300 fill-yellow-300" />
-                                            <span className="text-[10px] font-black text-white/80 uppercase tracking-wider">{megaMenu.featured.badge}</span>
-                                        </div>
-                                    )}
-                                    <div className="text-[14px] font-bold text-white leading-snug">{megaMenu.featured.title}</div>
-                                    <div className="text-[12px] text-white/70 mt-0.5 line-clamp-1">{megaMenu.featured.description}</div>
-                                </div>
-                                <div className="relative z-10 flex items-center gap-1.5 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white text-[12.5px] font-bold transition-colors shrink-0 group-hover/feat:gap-2.5">
-                                    İncele
-                                    <ArrowRight size={12} className="group-hover/feat:translate-x-1 transition-transform" />
-                                </div>
-                            </Link>
-                        </div>
-                    )}
                 </div>
+
+                {/* ── Featured Right Rail ── */}
+                {megaMenu.featured && (
+                    <div className="w-[250px] shrink-0 border-l border-slate-100/90 dark:border-white/[0.06] p-4 bg-slate-50/30 dark:bg-white/[0.015] overflow-hidden">
+                        <Link
+                            href={megaMenu.featured.href}
+                            onClick={onClose}
+                            className={`group/feat relative flex flex-col h-full p-5 rounded-2xl bg-gradient-to-br ${megaMenu.featured.gradient || 'from-orange-600 to-amber-600'} overflow-hidden hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300`}
+                        >
+                            <div
+                                className="absolute inset-0 opacity-20 pointer-events-none"
+                                style={{
+                                    backgroundImage: 'linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)',
+                                    backgroundSize: '20px 20px',
+                                }}
+                            />
+                            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.12)_0%,transparent_50%)]" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover/feat:translate-x-full transition-transform duration-1000" />
+                            <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+                            <div className="absolute -left-4 bottom-8 w-24 h-24 bg-black/10 rounded-full blur-xl" />
+
+                            <div className="relative z-10 flex items-center justify-between mb-5">
+                                <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center ring-1 ring-white/20 group-hover/feat:scale-105 transition-transform">
+                                    <Sparkles size={20} className="text-white" />
+                                </div>
+                                {megaMenu.featured.badge && (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider bg-white/20 text-white rounded-full backdrop-blur-sm ring-1 ring-white/20">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
+                                        {megaMenu.featured.badge}
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="relative z-10 flex-1">
+                                <h4 className="text-[17px] font-black text-white leading-snug mb-2">{megaMenu.featured.title}</h4>
+                                <p className="text-[12.5px] text-white/80 leading-relaxed">{megaMenu.featured.description}</p>
+
+                                {megaMenu.featured.stats && (
+                                    <div className="grid grid-cols-2 gap-2 mt-4">
+                                        {megaMenu.featured.stats.map((stat) => (
+                                            <div key={stat.label} className="px-3 py-2.5 rounded-xl bg-white/15 backdrop-blur-sm ring-1 ring-white/15">
+                                                <div className="text-[15px] font-black text-white leading-none">{stat.value}</div>
+                                                <div className="text-[9px] font-bold uppercase tracking-wider text-white/60 mt-1">{stat.label}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="relative z-10 mt-6 flex items-center justify-between gap-2 px-4 py-3 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white text-[12.5px] font-bold transition-colors ring-1 ring-white/20 group-hover/feat:gap-3">
+                                <span>Keşfet</span>
+                                <ArrowRight size={14} className="group-hover/feat:translate-x-1 transition-transform" />
+                            </div>
+                        </Link>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -454,13 +650,19 @@ function DesktopMegaMenuPanel({
 
 // ─── Navbar ───────────────────────────────────────────
 export default function Navbar() {
+    const pathname = usePathname();
+    const isHomePage = pathname === '/';
     const [scrolled, setScrolled] = useState(false);
+    const overlayNav = isHomePage && !scrolled;
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const megaMenuRef = useRef<HTMLDivElement>(null);
     const profileRef = useRef<HTMLDivElement>(null);
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const switchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [mounted, setMounted] = useState(false);
+    const activeMegaLink = navLinks.find((link) => link.label === activeDropdown && link.megaMenu);
     const { resolvedMode, toggleTheme } = useTheme();
     const { data: session, status } = useSession();
 
@@ -490,60 +692,99 @@ export default function Navbar() {
         }
     }, []);
 
+    const closeMegaMenu = useCallback(() => {
+        if (switchTimeoutRef.current) clearTimeout(switchTimeoutRef.current);
+        setActiveDropdown(null);
+    }, []);
+
+    const handleMegaNavEnter = useCallback((label: string) => {
+        if (switchTimeoutRef.current) clearTimeout(switchTimeoutRef.current);
+
+        if (!activeDropdown) {
+            setActiveDropdown(label);
+            return;
+        }
+
+        if (activeDropdown === label) return;
+
+        switchTimeoutRef.current = setTimeout(() => {
+            setActiveDropdown(label);
+        }, 220);
+    }, [activeDropdown]);
+
+    const handleMegaNavLeave = useCallback(() => {
+        if (switchTimeoutRef.current) clearTimeout(switchTimeoutRef.current);
+    }, []);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
-        window.addEventListener('scroll', handleScroll);
+        handleScroll();
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setActiveDropdown(null);
+            const target = event.target as Node;
+            const inNav = dropdownRef.current?.contains(target);
+            const inMega = megaMenuRef.current?.contains(target);
+            if (!inNav && !inMega && activeDropdown) {
+                closeMegaMenu();
             }
-            if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+            if (profileRef.current && !profileRef.current.contains(target)) {
                 setProfileMenuOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [activeDropdown, closeMegaMenu]);
 
     useEffect(() => {
-        if (mobileMenuOpen) {
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') closeMegaMenu();
+        };
+        if (activeDropdown) {
+            document.addEventListener('keydown', handleEscape);
+            return () => document.removeEventListener('keydown', handleEscape);
+        }
+    }, [activeDropdown, closeMegaMenu]);
+
+    useEffect(() => {
+        if (mobileMenuOpen || activeDropdown) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
         }
         return () => { document.body.style.overflow = 'unset'; };
-    }, [mobileMenuOpen]);
-
-    const handleMouseEnter = useCallback((label: string) => {
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        setActiveDropdown(label);
-    }, []);
-
-    const handleMouseLeave = useCallback(() => {
-        timeoutRef.current = setTimeout(() => setActiveDropdown(null), 180);
-    }, []);
+    }, [mobileMenuOpen, activeDropdown]);
 
     return (
         <>
-            <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'py-2' : 'py-3'}`}>
-                <div className="container mx-auto px-4">
-                    <div className={`flex items-center justify-between px-2.5 sm:px-5 lg:px-6 py-2.5 rounded-2xl transition-all duration-500 ${scrolled
-                        ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-2xl shadow-lg shadow-slate-900/5 dark:shadow-black/30 border border-slate-200/50 dark:border-white/[0.06]'
-                        : 'bg-transparent'
-                        }`}>
+            <nav
+                className={`fixed top-0 left-0 right-0 transition-all duration-300 ${activeDropdown ? 'z-[310]' : 'z-[200]'}`}
+                style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+            >
+                <div className={overlayNav ? 'w-full' : 'container mx-auto px-4'}>
+                    <div className={`flex items-center justify-between transition-all duration-300 ${
+                        overlayNav
+                            ? 'px-4 sm:px-6 lg:px-8 py-3 bg-white/75 dark:bg-slate-950/70 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/10'
+                            : scrolled
+                                ? 'mx-4 sm:mx-6 mt-2 px-2.5 sm:px-5 lg:px-6 py-2.5 rounded-2xl bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl shadow-lg border border-slate-200/50 dark:border-white/[0.06]'
+                                : 'mx-4 sm:mx-6 mt-2 px-2.5 sm:px-5 lg:px-6 py-2.5 rounded-2xl bg-white/80 dark:bg-slate-950/70 backdrop-blur-xl border border-slate-200/60 dark:border-white/[0.08] shadow-sm'
+                    }`}>
 
                         {/* Logo */}
                         <Link href="/" className="flex items-center gap-2.5 group min-w-0">
-                            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold italic text-sm group-hover:scale-110 transition-all duration-300 shadow-lg shadow-blue-600/25 group-hover:shadow-blue-600/40">
+                            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-orange-600 to-amber-600 flex items-center justify-center text-white font-bold italic text-sm group-hover:scale-110 transition-all duration-300 shadow-lg shadow-orange-600/25 group-hover:shadow-orange-600/40">
                                 P
                                 <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
                             <span className="font-bold text-base sm:text-lg tracking-tight text-slate-900 dark:text-white truncate max-[389px]:hidden">
-                                Pazar<span className="text-blue-600 dark:text-blue-400">yonetimi</span>
+                                Pazar<span className="text-orange-600 dark:text-orange-400">yonetimi</span>
                             </span>
                         </Link>
 
@@ -554,14 +795,16 @@ export default function Navbar() {
                                     <div
                                         key={link.label}
                                         className="relative"
-                                        onMouseEnter={() => handleMouseEnter(link.label)}
-                                        onMouseLeave={handleMouseLeave}
+                                        onMouseEnter={() => handleMegaNavEnter(link.label)}
+                                        onMouseLeave={handleMegaNavLeave}
                                     >
                                         <button
+                                            type="button"
                                             aria-expanded={activeDropdown === link.label}
                                             aria-haspopup="true"
-                                            className={`flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${activeDropdown === link.label
-                                                ? 'text-blue-700 dark:text-blue-400 bg-blue-50/80 dark:bg-blue-500/10'
+                                            onClick={() => setActiveDropdown(link.label)}
+                                            className={`relative flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${activeDropdown === link.label
+                                                ? 'text-orange-700 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-500/10'
                                                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-white/[0.04]'
                                                 }`}
                                         >
@@ -570,31 +813,14 @@ export default function Navbar() {
                                                 size={13}
                                                 className={`transition-transform duration-300 ${activeDropdown === link.label ? 'rotate-180' : ''}`}
                                             />
-                                        </button>
-
-                                        {/* ── Mega Menu Dropdown (Premium) ── */}
-                                        <AnimatePresence>
                                             {activeDropdown === link.label && (
-                                                <motion.div
-                                                    variants={megaMenuVariants}
-                                                    initial="hidden"
-                                                    animate="visible"
-                                                    exit="exit"
-                                                    className="absolute top-full left-1/2 -translate-x-1/2 mt-3.5 w-[820px] max-w-[calc(100vw-2rem)]"
-                                                >
-                                                    {/* Hover bridge */}
-                                                    <div className="absolute -top-4 left-0 right-0 h-4" />
-
-                                                    {/* Ambient glow */}
-                                                    <div className="absolute -inset-3 bg-gradient-to-b from-blue-500/[0.07] via-purple-500/[0.04] to-transparent rounded-3xl blur-2xl pointer-events-none" />
-
-                                                    <DesktopMegaMenuPanel
-                                                        megaMenu={link.megaMenu}
-                                                        onClose={() => setActiveDropdown(null)}
-                                                    />
-                                                </motion.div>
+                                                <motion.span
+                                                    layoutId="nav-mega-indicator"
+                                                    className="absolute bottom-0.5 left-3 right-3 h-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500"
+                                                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                                                />
                                             )}
-                                        </AnimatePresence>
+                                        </button>
                                     </div>
                                 ) : (
                                     <Link
@@ -634,7 +860,7 @@ export default function Navbar() {
                                     <Link
                                         href="/dashboard/support"
                                         onClick={() => trackMenuClick('Destek Talebi', '/dashboard/support', 'desktop-actions')}
-                                        className="hidden md:flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                        className="hidden md:flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
                                     >
                                         <HelpCircle size={16} />
                                         <span>Destek Talebi</span>
@@ -643,7 +869,7 @@ export default function Navbar() {
                                     <Link
                                         href="/dashboard"
                                         onClick={() => trackMenuClick('Panel', '/dashboard', 'desktop-actions')}
-                                        className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 text-sm font-bold hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all border border-blue-200/50 dark:border-blue-500/20 shadow-sm"
+                                        className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400 text-sm font-bold hover:bg-orange-100 dark:hover:bg-orange-500/20 transition-all border border-orange-200/50 dark:border-orange-500/20 shadow-sm"
                                     >
                                         <LayoutDashboard size={16} />
                                         <span>Panel</span>
@@ -654,7 +880,7 @@ export default function Navbar() {
                                             onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                                             className="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all border border-transparent hover:border-slate-200 dark:hover:border-white/10"
                                         >
-                                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-[11px] font-black text-white shadow-lg shadow-blue-600/20 ring-2 ring-white dark:ring-slate-900 transition-transform group-hover:scale-105">
+                                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-600 to-amber-600 flex items-center justify-center text-[11px] font-black text-white shadow-lg shadow-orange-600/20 ring-2 ring-white dark:ring-slate-900 transition-transform group-hover:scale-105">
                                                 {session.user?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase() || 'U'}
                                             </div>
                                             <ChevronDown size={14} className={`text-slate-400 transition-transform duration-300 ${profileMenuOpen ? 'rotate-180' : ''} hidden xs:block`} />
@@ -712,21 +938,29 @@ export default function Navbar() {
 
                                     <Link
                                         href="/demo"
-                                        onClick={() => trackMenuClick('Demo İste', '/demo', 'desktop-actions')}
-                                        className="hidden min-[390px]:flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs sm:text-sm font-semibold hover:shadow-lg hover:shadow-blue-600/25 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 relative overflow-hidden group/demo"
+                                        onClick={() => trackMenuClick('Demo İzle', '/demo', 'desktop-actions')}
+                                        className="hidden md:flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
                                     >
-                                        <span className="relative z-10">Demo İste</span>
-                                        <ArrowRight size={14} className="relative z-10 group-hover/demo:translate-x-0.5 transition-transform hidden sm:block" />
-                                        <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-indigo-700 opacity-0 group-hover/demo:opacity-100 transition-opacity" />
+                                        Demo
                                     </Link>
 
                                     <Link
-                                        href="/demo"
-                                        onClick={() => trackMenuClick('Demo İste', '/demo', 'desktop-actions')}
-                                        className="min-[390px]:hidden inline-flex items-center justify-center p-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm"
-                                        aria-label="Demo İste"
+                                        href="/signup"
+                                        onClick={() => trackMenuClick('Ücretsiz Başla', '/signup', 'desktop-actions')}
+                                        className="hidden min-[390px]:flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-white text-xs sm:text-sm font-semibold hover:shadow-lg hover:shadow-orange-600/25 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 relative overflow-hidden group/signup"
                                     >
-                                        <Play size={16} />
+                                        <span className="relative z-10">Ücretsiz Başla</span>
+                                        <ArrowRight size={14} className="relative z-10 group-hover/signup:translate-x-0.5 transition-transform hidden sm:block" />
+                                        <div className="absolute inset-0 bg-gradient-to-r from-orange-700 to-amber-700 opacity-0 group-hover/signup:opacity-100 transition-opacity" />
+                                    </Link>
+
+                                    <Link
+                                        href="/signup"
+                                        onClick={() => trackMenuClick('Ücretsiz Başla', '/signup', 'desktop-actions')}
+                                        className="min-[390px]:hidden inline-flex items-center justify-center p-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-sm"
+                                        aria-label="Ücretsiz Başla"
+                                    >
+                                        <Rocket size={16} />
                                     </Link>
                                 </>
                             )}
@@ -754,6 +988,45 @@ export default function Navbar() {
                 </div>
             </nav>
 
+            {/* ── Centered Desktop Mega Menu (portal) ── */}
+            {mounted && activeMegaLink?.megaMenu && createPortal(
+                <AnimatePresence>
+                    <motion.div
+                        key="mega-menu-layer"
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        variants={megaMenuBackdropVariants}
+                        className="hidden lg:block fixed inset-0 z-[300] pointer-events-none overflow-hidden"
+                    >
+                        <button
+                            type="button"
+                            aria-label="Menüyü kapat"
+                            className="absolute inset-0 bg-slate-900/25 dark:bg-black/45 backdrop-blur-[2px] cursor-default pointer-events-auto"
+                            onClick={closeMegaMenu}
+                        />
+                        <motion.div
+                            key={activeDropdown}
+                            ref={megaMenuRef}
+                            variants={megaMenuVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            className="absolute left-1/2 top-[calc(4.25rem+env(safe-area-inset-top,0px))] -translate-x-1/2 z-10 w-[min(980px,calc(100vw-2rem))] max-h-[calc(100vh-5.5rem)] overflow-hidden pointer-events-auto"
+                            onMouseDown={(e) => e.stopPropagation()}
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-b from-orange-500/[0.10] via-amber-500/[0.04] to-transparent rounded-[1.35rem] blur-xl pointer-events-none" />
+                            <DesktopMegaMenuPanel
+                                menuLabel={activeDropdown || ''}
+                                megaMenu={activeMegaLink.megaMenu}
+                                onClose={closeMegaMenu}
+                            />
+                        </motion.div>
+                    </motion.div>
+                </AnimatePresence>,
+                document.body
+            )}
+
             {/* ── Mobile Fullscreen Menu ── */}
             <AnimatePresence>
                 {mobileMenuOpen && (
@@ -769,7 +1042,7 @@ export default function Navbar() {
                     >
                         {/* Premium Background Effects */}
                         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-blue-500/10 via-purple-500/5 to-transparent blur-3xl opacity-50" />
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-orange-500/10 via-purple-500/5 to-transparent blur-3xl opacity-50" />
                             <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-emerald-500/10 blur-[100px] opacity-30" />
                         </div>
 
@@ -796,7 +1069,7 @@ export default function Navbar() {
                                     <Link
                                         href="/demo"
                                         onClick={() => { trackMenuClick('Demo İste', '/demo', 'mobile-top-strip'); setMobileMenuOpen(false); }}
-                                        className="min-h-[44px] rounded-lg bg-blue-600 text-white text-xs font-bold flex items-center justify-center"
+                                        className="min-h-[44px] rounded-lg bg-orange-600 text-white text-xs font-bold flex items-center justify-center"
                                     >
                                         Demo
                                     </Link>
@@ -840,7 +1113,7 @@ export default function Navbar() {
                                                 className="group flex items-center justify-between p-4 min-h-[56px] text-base font-bold text-slate-900 dark:text-white bg-white/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 rounded-2xl hover:bg-white dark:hover:bg-white/10 transition-all duration-300 shadow-sm"
                                             >
                                                 {link.label}
-                                                <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                                                <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-colors">
                                                     <ArrowRight size={14} />
                                                 </div>
                                             </Link>
@@ -862,7 +1135,7 @@ export default function Navbar() {
                                             <Link
                                                 href="/dashboard"
                                                 onClick={() => { trackMenuClick('Admin Paneli', '/dashboard', 'mobile-quick'); setMobileMenuOpen(false); }}
-                                                className="flex flex-col items-center justify-center py-4 bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/20 text-white gap-1 col-span-2 overflow-hidden relative group"
+                                                className="flex flex-col items-center justify-center py-4 bg-orange-600 rounded-2xl shadow-lg shadow-orange-500/20 text-white gap-1 col-span-2 overflow-hidden relative group"
                                             >
                                                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                                                 <LayoutDashboard size={20} />
@@ -873,7 +1146,7 @@ export default function Navbar() {
                                                 onClick={() => { trackMenuClick('Destek', '/dashboard/support', 'mobile-quick'); setMobileMenuOpen(false); }}
                                                 className="flex flex-col items-center justify-center py-4 bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors gap-1"
                                             >
-                                                <HelpCircle size={18} className="text-blue-500" />
+                                                <HelpCircle size={18} className="text-orange-500" />
                                                 <span className="text-sm font-bold text-slate-800 dark:text-white">Destek</span>
                                             </Link>
                                             <button
@@ -887,6 +1160,13 @@ export default function Navbar() {
                                     ) : (
                                         <>
                                             <Link
+                                                href="/signup"
+                                                onClick={() => { trackMenuClick('Ücretsiz Başla', '/signup', 'mobile-quick'); setMobileMenuOpen(false); }}
+                                                className="flex items-center justify-center py-4 text-base font-bold text-white bg-gradient-to-r from-orange-600 to-amber-600 rounded-2xl shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all col-span-2"
+                                            >
+                                                Ücretsiz Başla
+                                            </Link>
+                                            <Link
                                                 href="/login"
                                                 onClick={() => { trackMenuClick('Giriş Yap', '/login', 'mobile-quick'); setMobileMenuOpen(false); }}
                                                 className="flex items-center justify-center py-4 text-base font-bold text-slate-800 dark:text-white bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/10 transition-colors"
@@ -895,10 +1175,10 @@ export default function Navbar() {
                                             </Link>
                                             <Link
                                                 href="/demo"
-                                                onClick={() => { trackMenuClick('Demo İste', '/demo', 'mobile-quick'); setMobileMenuOpen(false); }}
-                                                className="flex items-center justify-center py-4 text-base font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all"
+                                                onClick={() => { trackMenuClick('Demo İzle', '/demo', 'mobile-quick'); setMobileMenuOpen(false); }}
+                                                className="flex items-center justify-center py-4 text-base font-bold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-2xl hover:bg-orange-100 dark:hover:bg-orange-500/20 transition-all"
                                             >
-                                                Demo İste
+                                                Demo İzle
                                             </Link>
                                         </>
                                     )}
@@ -910,7 +1190,7 @@ export default function Navbar() {
                                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                         <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Sistemler Aktif</span>
                                     </div>
-                                    <Link href="/iletisim" className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
+                                    <Link href="/iletisim" className="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline">
                                         Destek Al
                                     </Link>
                                 </div>
@@ -941,17 +1221,17 @@ function MobileMegaMenu({
     if (!megaMenu) return null;
 
     return (
-        <div className={`overflow-hidden rounded-2xl transition-all duration-300 border ${isOpen ? 'bg-white/80 dark:bg-slate-900/80 border-blue-100 dark:border-blue-500/20 shadow-lg shadow-blue-500/5' : 'bg-white/50 dark:bg-white/5 border-slate-200/50 dark:border-white/5'}`}>
+        <div className={`overflow-hidden rounded-2xl transition-all duration-300 border ${isOpen ? 'bg-white/80 dark:bg-slate-900/80 border-orange-100 dark:border-orange-500/20 shadow-lg shadow-orange-500/5' : 'bg-white/50 dark:bg-white/5 border-slate-200/50 dark:border-white/5'}`}>
             <button
                 onClick={() => { setIsOpen(!isOpen); setActiveColumn(null); }}
                 className="flex items-center justify-between w-full p-4 min-h-[56px] text-left transition-colors"
                 aria-expanded={isOpen}
             >
-                <span className={`text-lg font-bold transition-colors ${isOpen ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
+                <span className={`text-lg font-bold transition-colors ${isOpen ? 'text-orange-600 dark:text-orange-400' : 'text-slate-900 dark:text-white'}`}>
                     {label}
                 </span>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isOpen ? 'bg-blue-50 dark:bg-blue-500/10 rotate-180' : 'bg-transparent'}`}>
-                    <ChevronDown size={18} className={`transition-colors ${isOpen ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`} />
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isOpen ? 'bg-orange-50 dark:bg-orange-500/10 rotate-180' : 'bg-transparent'}`}>
+                    <ChevronDown size={18} className={`transition-colors ${isOpen ? 'text-orange-600 dark:text-orange-400' : 'text-slate-400'}`} />
                 </div>
             </button>
 
@@ -963,68 +1243,78 @@ function MobileMegaMenu({
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3, ease: 'easeInOut' }}
                     >
-                        <div className="px-3 pb-4 space-y-3 pt-2">
+                        <div className="px-3 pb-4 space-y-2.5 pt-2">
                             {megaMenu.columns.map((column, colIdx) => (
-                                <div key={colIdx} className="bg-slate-50/50 dark:bg-white/[0.02] rounded-xl overflow-hidden border border-slate-100 dark:border-white/5">
+                                <div key={colIdx} className={`rounded-2xl overflow-hidden border transition-colors ${activeColumn === colIdx ? 'bg-orange-50/50 dark:bg-orange-500/[0.06] border-orange-200/70 dark:border-orange-500/20' : 'bg-slate-50/60 dark:bg-white/[0.02] border-slate-100 dark:border-white/5'}`}>
                                     <button
                                         onClick={() => setActiveColumn(activeColumn === colIdx ? null : colIdx)}
-                                        className="flex items-center gap-3 w-full px-4 py-3.5 min-h-[52px] text-left transition-colors hover:bg-slate-100/50 dark:hover:bg-white/5"
+                                        className="flex items-center gap-3 w-full px-4 py-3.5 min-h-[52px] text-left transition-colors"
                                     >
                                         {column.icon && (
-                                            <div className="w-8 h-8 rounded-lg bg-white dark:bg-white/5 shadow-sm border border-slate-100 dark:border-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400">
-                                                <column.icon size={14} />
+                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all ${activeColumn === colIdx ? 'bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20' : 'bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 text-slate-500'}`}>
+                                                <column.icon size={15} />
                                             </div>
                                         )}
-                                        <span className="flex-1 font-bold text-sm text-slate-700 dark:text-slate-200 uppercase tracking-wide">
-                                            {column.title}
-                                        </span>
+                                        <div className="flex-1 min-w-0 text-left">
+                                            <span className="block font-bold text-sm text-slate-800 dark:text-slate-100">
+                                                {column.title}
+                                            </span>
+                                            <span className="text-[10px] text-slate-400">{column.items.length} bağlantı</span>
+                                        </div>
                                         <ChevronRight
                                             size={14}
-                                            className={`text-slate-400 transition-transform duration-300 ${activeColumn === colIdx ? 'rotate-90 text-blue-500' : ''}`}
+                                            className={`shrink-0 transition-transform duration-300 ${activeColumn === colIdx ? 'rotate-90 text-orange-500' : 'text-slate-400'}`}
                                         />
                                     </button>
 
                                     <AnimatePresence>
                                         {activeColumn === colIdx && (
                                             <motion.div
-                                                initial={{ height: 0 }}
-                                                animate={{ height: 'auto' }}
-                                                exit={{ height: 0 }}
-                                                transition={{ duration: 0.2 }}
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.22 }}
                                                 className="overflow-hidden"
                                             >
-                                                <div className="px-2 pb-2 space-y-1">
+                                                <div className="px-2.5 pb-2.5 space-y-1.5">
                                                     {column.items.map((item, itemIdx) => {
+                                                        const colors = iconColorMap[item.color || 'blue'];
+                                                        const ItemIcon = item.icon;
                                                         return (
                                                             <Link
                                                                 key={itemIdx}
                                                                 href={item.href}
                                                                 onClick={() => { onTrack(item.label, item.href, `mobile-submenu:${label}`); onClose(); }}
-                                                                className="group flex items-start gap-3 p-3.5 rounded-lg hover:bg-white dark:hover:bg-white/5 transition-all"
+                                                                className="group flex items-center gap-3 p-3 rounded-xl bg-white/80 dark:bg-white/[0.04] border border-slate-100/80 dark:border-white/[0.05] hover:border-orange-200 dark:hover:border-orange-500/25 transition-all"
                                                             >
-                                                                <div className={`mt-1 w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 group-hover:bg-blue-500 transition-colors`} />
-                                                                <div className="flex-1">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+                                                                {ItemIcon && (
+                                                                    <div className={`w-9 h-9 rounded-lg ${colors.bg} flex items-center justify-center shrink-0`}>
+                                                                        <ItemIcon size={15} className={colors.text} />
+                                                                    </div>
+                                                                )}
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                                        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                                                                             {item.label}
                                                                         </span>
                                                                         {item.badge && (
-                                                                            <span className="px-1.5 py-0.5 text-[9px] font-bold bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 rounded">
+                                                                            <span className="px-1.5 py-0.5 text-[9px] font-bold bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 rounded-full">
                                                                                 {item.badge}
                                                                             </span>
                                                                         )}
                                                                         {item.isNew && (
-                                                                            <span className="px-1.5 py-0.5 text-[9px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded">
+                                                                            <span className="px-1.5 py-0.5 text-[9px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded-full">
                                                                                 Yeni
                                                                             </span>
                                                                         )}
                                                                     </div>
                                                                     {item.description && (
-                                                                        <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 line-clamp-1">
+                                                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
                                                                             {item.description}
                                                                         </p>
                                                                     )}
                                                                 </div>
+                                                                <ArrowRight size={14} className="text-slate-300 group-hover:text-orange-500 shrink-0 transition-colors" />
                                                             </Link>
                                                         );
                                                     })}
@@ -1040,7 +1330,7 @@ function MobileMegaMenu({
                                 <Link
                                     href={megaMenu.featured.href}
                                     onClick={() => { onTrack(megaMenu.featured?.title || label, megaMenu.featured?.href || '/', `mobile-featured:${label}`); onClose(); }}
-                                    className={`relative block p-5 rounded-xl bg-gradient-to-br ${megaMenu.featured.gradient || 'from-blue-600 to-indigo-600'} overflow-hidden shadow-lg shadow-blue-500/25`}
+                                    className={`relative block p-5 rounded-xl bg-gradient-to-br ${megaMenu.featured.gradient || 'from-orange-600 to-amber-600'} overflow-hidden shadow-lg shadow-orange-500/25`}
                                 >
                                     <div className="absolute top-0 right-0 p-3 opacity-20">
                                         <Sparkles size={48} className="text-white rotate-12" />
@@ -1054,7 +1344,7 @@ function MobileMegaMenu({
                                         )}
                                         <h4 className="font-bold text-lg text-white mb-1.5">{megaMenu.featured.title}</h4>
                                         <p className="text-sm text-white/90 leading-relaxed mb-4">{megaMenu.featured.description}</p>
-                                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white text-sm font-bold text-blue-700 rounded-lg shadow-sm">
+                                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white text-sm font-bold text-orange-700 rounded-lg shadow-sm">
                                             İncele <ArrowRight size={14} />
                                         </div>
                                     </div>

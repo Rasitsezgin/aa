@@ -130,7 +130,7 @@ export default function ForumUserProfilePage() {
       ) : (
         <>
       {/* Cover Image */}
-      <div className={`h-48 md:h-64 bg-gradient-to-r from-indigo-600 to-purple-600 relative ${user.coverImage ? "bg-cover bg-center" : ""}`}
+      <div className={`h-48 md:h-64 bg-gradient-to-r from-amber-600 to-purple-600 relative ${user.coverImage ? "bg-cover bg-center" : ""}`}
         style={user.coverImage ? { backgroundImage: `url(${user.coverImage})` } : {}}
       >
         <div className="absolute inset-0 bg-black/20"></div>
@@ -143,7 +143,7 @@ export default function ForumUserProfilePage() {
             {/* Avatar */}
             <div className="relative -mt-20 md:-mt-24">
               <div className={`w-32 h-32 md:w-40 md:h-40 rounded-2xl flex items-center justify-center text-white text-4xl md:text-5xl font-bold shadow-lg border-4 border-white ${
-                user.isStaff ? "bg-gradient-to-br from-red-500 to-orange-500" : "bg-gradient-to-br from-indigo-500 to-purple-600"
+                user.isStaff ? "bg-gradient-to-br from-red-500 to-orange-500" : "bg-gradient-to-br from-amber-500 to-purple-600"
               }`}>
                 {user.avatar ? (
                   <img src={user.avatar} alt={user.name} className="w-full h-full object-cover rounded-2xl" />
@@ -175,7 +175,7 @@ export default function ForumUserProfilePage() {
                     )}
                   </div>
                   <p className="text-slate-500 mt-1">@{user.username}</p>
-                  {user.title && <p className="text-indigo-600 font-medium mt-1">{user.title}</p>}
+                  {user.title && <p className="text-orange-600 font-medium mt-1">{user.title}</p>}
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -183,7 +183,7 @@ export default function ForumUserProfilePage() {
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium ${
                       isFollowing
                         ? "bg-slate-200 text-slate-700"
-                        : "bg-indigo-600 text-white hover:bg-indigo-700"
+                        : "bg-orange-600 text-white hover:bg-orange-500"
                     }`}
                   >
                     {isFollowing ? (
@@ -223,7 +223,7 @@ export default function ForumUserProfilePage() {
                   </span>
                 )}
                 {user.website && (
-                  <Link href={user.website} className="flex items-center gap-1 text-indigo-600 hover:underline">
+                  <Link href={user.website} className="flex items-center gap-1 text-orange-600 hover:underline">
                     <LinkIcon className="w-4 h-4" /> Website
                   </Link>
                 )}
@@ -270,7 +270,7 @@ export default function ForumUserProfilePage() {
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === tab.id
-                  ? "bg-indigo-100 text-indigo-700"
+                  ? "bg-orange-100 text-orange-700"
                   : "text-slate-600 hover:bg-slate-100"
               }`}
             >
@@ -365,7 +365,7 @@ export default function ForumUserProfilePage() {
                   {user.recentPosts.map((post) => (
                     <div key={post.id} className="p-4 hover:bg-slate-50">
                       <p className="text-sm text-slate-500 mb-2">
-                        <span className="font-medium text-indigo-600">{post.topicTitle}</span> konusunda
+                        <span className="font-medium text-orange-600">{post.topicTitle}</span> konusunda
                       </p>
                       <p className="text-slate-700 line-clamp-2">{post.excerpt}</p>
                       <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">

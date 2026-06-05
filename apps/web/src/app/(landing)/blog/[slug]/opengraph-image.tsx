@@ -46,7 +46,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        backgroundImage: 'linear-gradient(to bottom right, #2563eb 0%, transparent 40%, transparent 60%, #9333ea 100%)',
+                        backgroundImage: 'linear-gradient(to bottom right, #f97316 0%, transparent 40%, transparent 60%, #9333ea 100%)',
                         opacity: 0.2,
                     }}
                 />
@@ -108,7 +108,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
                                 width: 48,
                                 height: 48,
                                 borderRadius: '50%',
-                                backgroundColor: '#3b82f6',
+                                backgroundColor: '#ea580c',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',

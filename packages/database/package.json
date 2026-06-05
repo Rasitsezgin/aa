@@ -11,7 +11,7 @@
     }
   },
   "scripts": {
-    "build": "prisma generate && tsc",
+    "build": "prisma generate && tsc && node -e \"require('node:fs').cpSync('generated','dist/generated',{recursive:true})\"",
     "prisma:generate": "prisma generate",
     "generate": "npm run prisma:generate",
     "postinstall": "prisma generate",

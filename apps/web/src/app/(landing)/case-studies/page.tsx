@@ -65,7 +65,7 @@ const caseStudies: CaseStudy[] = [
         },
         tags: ['elektronik', 'çoklu kanal', 'AI fiyatlandırma'],
         featured: true,
-        thumbnail: 'from-blue-500 via-indigo-500 to-purple-600',
+        thumbnail: 'from-orange-500 via-amber-500 to-purple-600',
         duration: '6 ay',
         marketplaces: ['Trendyol', 'Hepsiburada', 'Amazon', 'N11']
     },
@@ -151,7 +151,7 @@ const caseStudies: CaseStudy[] = [
         },
         tags: ['kozmetik', 'SEO', 'organik büyüme'],
         featured: true,
-        thumbnail: 'from-purple-500 via-violet-500 to-indigo-600',
+        thumbnail: 'from-purple-500 via-violet-500 to-amber-600',
         duration: '4 ay',
         marketplaces: ['Trendyol', 'Hepsiburada', 'Watsons']
     },
@@ -207,7 +207,7 @@ const caseStudies: CaseStudy[] = [
             role: 'Operasyon Müdürü, EvDekor'
         },
         tags: ['ev dekorasyon', 'toplu işlem', 'verimlilik'],
-        thumbnail: 'from-cyan-500 via-sky-500 to-blue-600',
+        thumbnail: 'from-cyan-500 via-sky-500 to-amber-600',
         duration: '3 ay',
         marketplaces: ['Trendyol', 'Hepsiburada', 'N11', 'Çiçeksepeti']
     }
@@ -248,7 +248,7 @@ export default function CaseStudiesPage() {
                     backgroundSize: '32px 32px'
                 }} />
                 <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-emerald-500/10 dark:bg-emerald-500/20 blur-[180px] rounded-full" />
-                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-500/20 blur-[150px] rounded-full" />
+                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-orange-500/10 dark:bg-orange-500/20 blur-[150px] rounded-full" />
             </div>
 
             <div className="container mx-auto px-6 relative z-10 max-w-7xl">

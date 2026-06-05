@@ -70,22 +70,22 @@ export default function EcosystemCloud() {
                     backgroundSize: '24px 24px'
                 }} />
                 {/* Ambient Glows */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-blue-500/5 dark:bg-blue-500/10 blur-[200px] rounded-full" />
-                <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-indigo-500/5 dark:bg-indigo-500/10 blur-[120px] rounded-full" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-orange-500/5 dark:bg-orange-500/10 blur-[200px] rounded-full" />
+                <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-orange-500/5 dark:bg-orange-500/10 blur-[120px] rounded-full" />
             </div>
 
             <div className="container mx-auto px-4 sm:px-6 text-center mb-6 sm:mb-12 relative z-20">
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-100/50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/30 rounded-full mb-8"
+                    className="inline-flex items-center gap-2 px-4 py-1.5 bg-orange-100/50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800/30 rounded-full mb-8"
                 >
-                    <Link size={14} className="text-blue-600 dark:text-blue-400" />
-                    <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">ECOSYSTEM GALAXY</span>
+                    <Link size={14} className="text-orange-600 dark:text-orange-400" />
+                    <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-widest">ECOSYSTEM GALAXY</span>
                 </motion.div>
                 <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-black tracking-tighter text-slate-900 dark:text-white mb-4 sm:mb-6">
                     Merkezi <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-500">Çekim Gücü.</span>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600 dark:from-orange-400 dark:to-amber-500">Çekim Gücü.</span>
                 </h2>
             </div>
 
@@ -108,17 +108,17 @@ export default function EcosystemCloud() {
                     {/* Central Sun/Core */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-32 h-32 rounded-full flex items-center justify-center">
                         {/* Core Glow */}
-                        <div className="absolute inset-0 rounded-full bg-blue-500/20 dark:bg-blue-600 blur-[80px] dark:opacity-60 animate-pulse" />
+                        <div className="absolute inset-0 rounded-full bg-orange-500/20 dark:bg-orange-600 blur-[80px] dark:opacity-60 animate-pulse" />
 
                         {/* Main Circle */}
-                        <div className="relative z-10 w-full h-full bg-white rounded-full flex items-center justify-center border-[6px] border-slate-100 dark:border-white/20 shadow-[0_0_50px_rgba(59,130,246,0.3)] dark:shadow-[0_0_50px_rgba(59,130,246,0.6)]">
+                        <div className="relative z-10 w-full h-full bg-white rounded-full flex items-center justify-center border-[6px] border-slate-100 dark:border-white/20 shadow-[0_0_50px_rgba(234,88,12,0.3)] dark:shadow-[0_0_50px_rgba(234,88,12,0.6)]">
                             <div className="w-24 h-24 bg-white dark:bg-[#02040a] rounded-full flex items-center justify-center border border-slate-200 dark:border-white/10">
                                 <span className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">P</span>
                             </div>
                         </div>
 
                         {/* Orbital Ripples */}
-                        <div className="absolute inset-0 border border-blue-500/30 rounded-full animate-ping [animation-duration:3s]" />
+                        <div className="absolute inset-0 border border-orange-500/30 rounded-full animate-ping [animation-duration:3s]" />
                     </div>
 
                     {/* Planets using Trigonometry - Client Side Only */}

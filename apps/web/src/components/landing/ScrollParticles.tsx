@@ -44,7 +44,7 @@ export const ScrollParticles = ({ features }: ScrollParticlesProps) => {
             duration: Math.random() * 3 + 2,
             delay: Math.random() * 2,
             color: [
-                'bg-blue-400',
+                'bg-orange-400',
                 'bg-purple-400', 
                 'bg-emerald-400',
                 'bg-pink-400',
@@ -83,7 +83,7 @@ export const ScrollParticles = ({ features }: ScrollParticlesProps) => {
     return (
         <div ref={containerRef} className="relative py-20">
             {/* Background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-emerald-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-emerald-950/20" />
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-purple-50 to-emerald-50 dark:from-orange-950/20 dark:via-purple-950/20 dark:to-emerald-950/20" />
             
             {/* Content */}
             <div className="relative z-10 text-center px-8">
@@ -163,7 +163,7 @@ export const ScrollParticles = ({ features }: ScrollParticlesProps) => {
                                     repeatDelay: 2
                                 }}
                                 className={`absolute w-32 h-32 ${
-                                    ['bg-blue-400', 'bg-purple-400', 'bg-emerald-400', 'bg-pink-400', 'bg-amber-400'][i]
+                                    ['bg-orange-400', 'bg-purple-400', 'bg-emerald-400', 'bg-pink-400', 'bg-amber-400'][i]
                                 } rounded-full blur-3xl`}
                             />
                         ))}

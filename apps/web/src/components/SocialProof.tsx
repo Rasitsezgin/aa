@@ -60,7 +60,7 @@ export default function SocialProof() {
                     backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
                     backgroundSize: '24px 24px'
                 }} />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-blue-500/5 dark:bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-orange-500/5 dark:bg-orange-500/10 blur-[100px] rounded-full pointer-events-none" />
             </div>
 
             <div className="container mx-auto px-4 sm:px-6 relative z-10">
@@ -71,18 +71,18 @@ export default function SocialProof() {
                     viewport={{ once: true }}
                     className="text-center mb-8 sm:mb-16"
                 >
-                    <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 rounded-full mb-4 sm:mb-6">
+                    <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 rounded-full mb-4 sm:mb-6">
                         <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
                         </span>
-                        <p className="text-[10px] sm:text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-wider">
+                        <p className="text-[10px] sm:text-xs font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider">
                             5.000+ İşletme Tarafından Güveniliyor
                         </p>
                     </div>
 
                     <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-3 sm:mb-4 tracking-tight leading-tight">
-                        Türkiye&apos;nin Lider <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">E-ticaret Platformları</span>
+                        Desteklenen <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-500 dark:from-orange-400 dark:to-amber-400">Pazaryeri & Entegrasyonlar</span>
                     </h3>
                     <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-2xl mx-auto text-balance">
                         Tüm büyük pazaryerleri ve e-ticaret altyapıları ile tam entegre çalışıyoruz.
@@ -167,7 +167,7 @@ function BrandLogo({ brand }: { brand: { name: string; logo: string } }) {
             <motion.div 
                 whileHover={{ scale: 1.05, y: -5 }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="relative p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-slate-200 dark:hover:border-white/10 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300"
+                className="relative p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-slate-200 dark:hover:border-white/10 hover:shadow-xl hover:shadow-orange-500/10 transition-all duration-300"
             >
                 <motion.div
                     whileHover={{ rotate: [0, -5, 5, -5, 0] }}
@@ -183,7 +183,7 @@ function BrandLogo({ brand }: { brand: { name: string; logo: string } }) {
                 </motion.div>
                 {/* Glow effect on hover */}
                 <motion.div 
-                    className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/5 group-hover:to-purple-500/5 transition-colors duration-300 pointer-events-none"
+                    className="absolute inset-0 rounded-2xl bg-gradient-to-br from-orange-500/0 to-purple-500/0 group-hover:from-orange-500/5 group-hover:to-purple-500/5 transition-colors duration-300 pointer-events-none"
                 />
             </motion.div>
         </div>

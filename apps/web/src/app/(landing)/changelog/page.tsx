@@ -179,7 +179,7 @@ const releases: Release[] = [
 const getTypeConfig = (type: ChangeType) => {
     switch (type) {
         case 'feature':
-            return { icon: Sparkles, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30', gradient: 'from-blue-500 to-cyan-500', label: 'Yeni Özellik' };
+            return { icon: Sparkles, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-900/30', gradient: 'from-orange-500 to-amber-500', label: 'Yeni Özellik' };
         case 'improvement':
             return { icon: Zap, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30', gradient: 'from-emerald-500 to-green-500', label: 'İyileştirme' };
         case 'fix':
@@ -268,7 +268,7 @@ export default function ChangelogPage() {
                     backgroundSize: '32px 32px'
                 }} />
                 <div className="absolute top-0 right-1/4 w-[800px] h-[800px] bg-purple-500/10 dark:bg-purple-500/5 blur-[150px] rounded-full" />
-                <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-500/5 blur-[150px] rounded-full" />
+                <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-orange-500/10 dark:bg-orange-500/5 blur-[150px] rounded-full" />
             </div>
 
             <div className="container mx-auto px-6 relative z-10">
@@ -678,8 +678,8 @@ export default function ChangelogPage() {
                     </Link>
                     
                     <Link href="/destek" className="group p-5 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:shadow-lg transition-all">
-                        <MessageCircle className="w-8 h-8 text-blue-600 dark:text-blue-400 mb-3" />
-                        <h3 className="font-bold text-slate-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Destek Merkezi</h3>
+                        <MessageCircle className="w-8 h-8 text-orange-600 dark:text-orange-400 mb-3" />
+                        <h3 className="font-bold text-slate-900 dark:text-white mb-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">Destek Merkezi</h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">Yardım ve rehberler</p>
                     </Link>
                 </motion.div>

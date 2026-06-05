@@ -38,11 +38,11 @@ export default function FeatureDetailView({ feature }: { feature: FeatureData })
             {/* ── Hero ── */}
             <section className="relative overflow-hidden">
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-[0.04] dark:opacity-[0.08]`} />
-                <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl" />
+                <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-gradient-to-br from-orange-400/10 to-amber-400/10 rounded-full blur-3xl" />
 
                 <div className="container mx-auto px-4 py-16 md:py-24 relative">
                     {/* Breadcrumb */}
-                    <Link href="/features" className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors mb-8">
+                    <Link href="/features" className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors mb-8">
                         <ArrowLeft size={14} />
                         Özelliklere Dön
                     </Link>
@@ -236,7 +236,7 @@ export default function FeatureDetailView({ feature }: { feature: FeatureData })
                                     >
                                         <span className="font-bold text-slate-900 dark:text-white pr-4">{item.q}</span>
                                         {openFaq === i ? (
-                                            <ChevronUp size={20} className="text-blue-500 shrink-0" />
+                                            <ChevronUp size={20} className="text-orange-500 shrink-0" />
                                         ) : (
                                             <ChevronDown size={20} className="text-slate-400 shrink-0" />
                                         )}
@@ -261,7 +261,7 @@ export default function FeatureDetailView({ feature }: { feature: FeatureData })
             {/* ── CTA ── */}
             <section className="py-20 md:py-32">
                 <div className="container mx-auto px-4">
-                    <div className={`relative overflow-hidden rounded-[3rem] bg-gradient-to-br ${feature.gradient} p-10 md:p-20 text-center shadow-2xl shadow-blue-500/10`}>
+                    <div className={`relative overflow-hidden rounded-[3rem] bg-gradient-to-br ${feature.gradient} p-10 md:p-20 text-center shadow-2xl shadow-orange-500/10`}>
                         {/* Decorative Background */}
                         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgMGh2NjBMMCB6IiBmaWxsPSJub25lIi8+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2cpIi8+PC9zdmc+')] opacity-20" />
                         <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2" />

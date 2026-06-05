@@ -44,7 +44,7 @@ const videos: Video[] = [
         title: 'Komple E-ticaret Masterclass 2026',
         description: 'Sıfırdan profesyonele: Pazaryeri satışının A\'dan Z\'ye tüm sırları. 50+ ders, 15+ saat içerik.',
         type: 'course',
-        thumbnail: 'from-violet-600 via-purple-600 to-indigo-700',
+        thumbnail: 'from-violet-600 via-purple-600 to-amber-700',
         duration: '15 saat',
         totalVideos: 52,
         views: 45200,
@@ -61,7 +61,7 @@ const videos: Video[] = [
         title: 'Pazaryonetimi\'ye Hoş Geldiniz',
         description: 'Platform tanıtımı ve temel özelliklerin 5 dakikada keşfi. İlk adımınızı atın.',
         type: 'video',
-        thumbnail: 'from-blue-500 via-sky-500 to-cyan-500',
+        thumbnail: 'from-orange-500 via-sky-500 to-cyan-500',
         duration: '5 dk',
         views: 128500,
         rating: 4.8,
@@ -167,7 +167,7 @@ const videos: Video[] = [
         title: 'Analytics Dashboard Kullanımı',
         description: 'Verilerinizi anlamlandırın. KPI takibi, raporlama ve veri odaklı karar verme.',
         type: 'tutorial',
-        thumbnail: 'from-indigo-500 via-blue-500 to-cyan-500',
+        thumbnail: 'from-amber-500 via-amber-500 to-cyan-500',
         duration: '35 dk',
         views: 15600,
         rating: 4.6,
@@ -193,7 +193,7 @@ const videos: Video[] = [
         title: 'Çoklu Kanal Yönetimi - Canlı Demo',
         description: '5+ pazaryerini tek ekrandan yönetin. Gerçek zamanlı senkronizasyon demo\'su.',
         type: 'live',
-        thumbnail: 'from-purple-500 via-violet-500 to-indigo-600',
+        thumbnail: 'from-purple-500 via-violet-500 to-amber-600',
         duration: '1.5 saat',
         views: 12100,
         rating: 4.9,
@@ -293,7 +293,7 @@ export default function VideoLibraryPage() {
                     backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
                     backgroundSize: '32px 32px'
                 }} />
-                <div className="absolute top-0 right-1/4 w-[800px] h-[800px] bg-blue-500/10 dark:bg-blue-500/20 blur-[180px] rounded-full" />
+                <div className="absolute top-0 right-1/4 w-[800px] h-[800px] bg-orange-500/10 dark:bg-orange-500/20 blur-[180px] rounded-full" />
                 <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-purple-500/10 dark:bg-purple-500/20 blur-[150px] rounded-full" />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-cyan-500/5 to-violet-500/5 dark:from-cyan-500/10 dark:to-violet-500/10 blur-[200px] rounded-full" />
             </div>
@@ -310,14 +310,14 @@ export default function VideoLibraryPage() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.1 }}
-                        className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/40 dark:to-purple-900/40 border border-blue-200/50 dark:border-blue-700/50 rounded-full mb-8"
+                        className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-orange-100 to-purple-100 dark:from-orange-900/40 dark:to-amber-900/40 border border-orange-200/50 dark:border-orange-700/50 rounded-full mb-8"
                     >
-                        <Play size={16} className="text-blue-600 dark:text-blue-400" />
-                        <span className="text-sm font-bold text-blue-700 dark:text-blue-300 tracking-wide">VİDEO KÜTÜPHANESİ</span>
+                        <Play size={16} className="text-orange-600 dark:text-orange-400" />
+                        <span className="text-sm font-bold text-orange-700 dark:text-orange-300 tracking-wide">VİDEO KÜTÜPHANESİ</span>
                     </motion.div>
 
                     <h1 className="text-5xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight mb-6">
-                        <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        <span className="bg-gradient-to-r from-orange-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                             İzle
                         </span>{' '}
                         ve Öğren
@@ -325,7 +325,7 @@ export default function VideoLibraryPage() {
 
                     <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed">
                         150+ video, kurs ve webinar ile e-ticaret yolculuğunuzu hızlandırın.
-                        <span className="text-blue-600 dark:text-blue-400 font-semibold"> Kendi hızınızda öğrenin.</span>
+                        <span className="text-orange-600 dark:text-orange-400 font-semibold"> Kendi hızınızda öğrenin.</span>
                     </p>
 
                     {/* Stats */}
@@ -337,8 +337,8 @@ export default function VideoLibraryPage() {
                     >
                         {stats.map((stat, i) => (
                             <div key={i} className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 flex items-center justify-center">
-                                    <stat.icon size={18} className="text-blue-600 dark:text-blue-400" />
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500/10 to-purple-500/10 dark:from-orange-500/20 dark:to-purple-500/20 flex items-center justify-center">
+                                    <stat.icon size={18} className="text-orange-600 dark:text-orange-400" />
                                 </div>
                                 <div className="text-left">
                                     <div className="text-2xl font-black text-slate-900 dark:text-white">{stat.value}</div>
@@ -358,7 +358,7 @@ export default function VideoLibraryPage() {
                 >
                     <div className="relative rounded-[2rem] overflow-hidden group cursor-pointer">
                         {/* Background Gradient */}
-                        <div className={`absolute inset-0 bg-gradient-to-br ${featuredVideos[0]?.thumbnail || 'from-violet-600 to-indigo-700'}`} />
+                        <div className={`absolute inset-0 bg-gradient-to-br ${featuredVideos[0]?.thumbnail || 'from-violet-600 to-amber-700'}`} />
 
                         {/* Pattern */}
                         <div className="absolute inset-0 opacity-10" style={{
@@ -487,7 +487,7 @@ export default function VideoLibraryPage() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Video, kurs veya eğitim ara..."
-                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all"
                             />
                             {searchQuery && (
                                 <button
@@ -511,7 +511,7 @@ export default function VideoLibraryPage() {
                                     key={cat.value}
                                     onClick={() => setSelectedCategory(cat.value)}
                                     className={`group flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${selectedCategory === cat.value
-                                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25'
+                                        ? 'bg-gradient-to-r from-orange-600 to-purple-600 text-white shadow-lg shadow-orange-500/25'
                                         : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
                                         }`}
                                 >
@@ -637,7 +637,7 @@ export default function VideoLibraryPage() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.1 + i * 0.05 }}
-                                className="group rounded-2xl overflow-hidden bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/30 transition-all hover:shadow-xl cursor-pointer"
+                                className="group rounded-2xl overflow-hidden bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/30 transition-all hover:shadow-xl cursor-pointer"
                             >
                                 {/* Thumbnail */}
                                 <div className={`relative aspect-video bg-gradient-to-br ${video.thumbnail} flex items-center justify-center overflow-hidden`}>
@@ -680,19 +680,19 @@ export default function VideoLibraryPage() {
                                     <div className="flex items-center gap-2 mb-3">
                                         <span className={`px-2 py-1 rounded text-xs font-bold ${video.type === 'course' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400' :
                                             video.type === 'webinar' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
-                                                'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                                                'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
                                             }`}>
                                             {getTypeInfo(video.type).icon} {getTypeInfo(video.type).label}
                                         </span>
                                         <span className={`px-2 py-1 rounded text-xs font-bold ${video.level === 'beginner' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
-                                            video.level === 'intermediate' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                                            video.level === 'intermediate' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
                                                 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
                                             }`}>
                                             {getLevelInfo(video.level).label}
                                         </span>
                                     </div>
 
-                                    <h3 className="font-bold text-slate-900 dark:text-white mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                    <h3 className="font-bold text-slate-900 dark:text-white mb-2 line-clamp-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                                         {video.title}
                                     </h3>
 
@@ -748,7 +748,7 @@ export default function VideoLibraryPage() {
                 >
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-purple-600 flex items-center justify-center">
                                 <Layers size={20} className="text-white" />
                             </div>
                             <div>
@@ -779,7 +779,7 @@ export default function VideoLibraryPage() {
                                         exit={{ opacity: 0, scale: 0.95 }}
                                         transition={{ delay: i * 0.03 }}
                                         layout
-                                        className="group rounded-xl overflow-hidden bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/30 transition-all hover:shadow-lg cursor-pointer"
+                                        className="group rounded-xl overflow-hidden bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/30 transition-all hover:shadow-lg cursor-pointer"
                                     >
                                         {/* Thumbnail */}
                                         <div className={`relative aspect-video bg-gradient-to-br ${video.thumbnail} flex items-center justify-center overflow-hidden`}>
@@ -816,7 +816,7 @@ export default function VideoLibraryPage() {
                                         {/* Content */}
                                         <div className="p-4">
                                             <div className="flex items-center gap-1.5 mb-2">
-                                                <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                                                <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400">
                                                     {getTypeInfo(video.type).icon} {getTypeInfo(video.type).label}
                                                 </span>
                                                 <span className="text-slate-300 dark:text-slate-600">•</span>
@@ -825,7 +825,7 @@ export default function VideoLibraryPage() {
                                                 </span>
                                             </div>
 
-                                            <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-1 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                            <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-1 line-clamp-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                                                 {video.title}
                                             </h3>
 
@@ -884,7 +884,7 @@ export default function VideoLibraryPage() {
                                 description: 'Trendyol, Hepsiburada ve Amazon\'da ileri seviye teknikler.',
                                 courses: 12,
                                 duration: '24 saat',
-                                color: 'from-blue-500 to-indigo-600',
+                                color: 'from-orange-500 to-amber-600',
                                 icon: BarChart3
                             },
                             {
@@ -902,7 +902,7 @@ export default function VideoLibraryPage() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: i * 0.1 }}
-                                className="group p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-blue-300 dark:hover:border-blue-500/30 transition-all hover:shadow-xl cursor-pointer"
+                                className="group p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/30 transition-all hover:shadow-xl cursor-pointer"
                             >
                                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${path.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                                     <path.icon size={28} className="text-white" />
@@ -933,7 +933,7 @@ export default function VideoLibraryPage() {
                 >
                     <div className="relative p-12 md:p-16 rounded-[2rem] overflow-hidden">
                         {/* Background */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-600 via-purple-600 to-pink-600" />
                         <div className="absolute inset-0 opacity-20" style={{
                             backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
                             backgroundSize: '24px 24px'

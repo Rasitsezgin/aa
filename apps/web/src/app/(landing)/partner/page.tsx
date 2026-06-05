@@ -58,7 +58,7 @@ const partnerTypes = [
         label: 'Satıcılar',
         icon: Briefcase,
         description: 'B2B satış ve danışmanlık firmaları',
-        color: 'from-blue-500 to-cyan-600',
+        color: 'from-orange-500 to-amber-600',
         benefits: [
             'Yüksek komisyon oranları',
             'Satış eğitimi ve sertifikasyon',
@@ -274,7 +274,7 @@ export default function PartnerPage() {
                     backgroundSize: '32px 32px'
                 }} />
                 <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-violet-500/10 dark:bg-violet-500/20 blur-[180px] rounded-full" />
-                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-500/20 blur-[150px] rounded-full" />
+                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-orange-500/10 dark:bg-orange-500/20 blur-[150px] rounded-full" />
                 <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-purple-500/5 to-pink-500/5 dark:from-purple-500/10 dark:to-pink-500/10 blur-[200px] rounded-full" />
             </div>
 
@@ -290,7 +290,7 @@ export default function PartnerPage() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.1 }}
-                        className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-violet-100 to-purple-100 dark:from-violet-900/40 dark:to-purple-900/40 border border-violet-200/50 dark:border-violet-700/50 rounded-full mb-8"
+                        className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-violet-100 to-purple-100 dark:from-violet-900/40 dark:to-amber-900/40 border border-violet-200/50 dark:border-violet-700/50 rounded-full mb-8"
                     >
                         <Handshake size={16} className="text-violet-600 dark:text-violet-400" />
                         <span className="text-sm font-bold text-violet-700 dark:text-violet-300 tracking-wide">PARTNER PROGRAMI</span>
@@ -576,9 +576,9 @@ export default function PartnerPage() {
                                         <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{story.revenue}</div>
                                         <div className="text-xs text-emerald-600/70 dark:text-emerald-400/70">Toplam Kazanç</div>
                                     </div>
-                                    <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20">
-                                        <div className="text-2xl font-black text-blue-600 dark:text-blue-400">{story.growth}</div>
-                                        <div className="text-xs text-blue-600/70 dark:text-blue-400/70">Büyüme</div>
+                                    <div className="p-3 rounded-xl bg-orange-50 dark:bg-orange-900/20">
+                                        <div className="text-2xl font-black text-orange-600 dark:text-orange-400">{story.growth}</div>
+                                        <div className="text-xs text-orange-600/70 dark:text-orange-400/70">Büyüme</div>
                                     </div>
                                 </div>
 

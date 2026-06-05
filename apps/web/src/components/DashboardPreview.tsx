@@ -48,8 +48,8 @@ export default function DashboardPreview() {
                     backgroundSize: '24px 24px'
                 }} />
                 {/* Ambient Glows */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/5 dark:bg-blue-500/10 blur-[150px] rounded-full" />
-                <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-indigo-500/5 dark:bg-indigo-500/10 blur-[120px] rounded-full" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-orange-500/5 dark:bg-orange-500/10 blur-[150px] rounded-full" />
+                <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-orange-500/5 dark:bg-orange-500/10 blur-[120px] rounded-full" />
             </div>
 
             <div className="container mx-auto px-4 sm:px-6 relative z-10">
@@ -65,12 +65,12 @@ export default function DashboardPreview() {
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-400/10 dark:via-white/20 to-transparent w-full -translate-x-full animate-[shimmer_2s_infinite]" />
                     </motion.div>
                     <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-4 sm:mb-6 text-slate-900 dark:text-white">
-                        Tüm Operasyon <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Tek Ekranda</span>
+                        Stok, Sipariş, Kargo <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-500 dark:from-orange-400 dark:to-amber-400">Tek Ekranda</span>
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-lg md:text-xl max-w-2xl mx-auto font-medium leading-relaxed">
-                        Siz kahvenizi yudumlarken, Pazaryönetimi arka planda milyonlarca veriyi işler
-                        ve ekranınıza canlı olarak yansıtır.
+                        Tüm pazaryerlerinizden gelen siparişleri tek listede görün, stokları anlık senkronize edin
+                        ve kargo sürecini panelden yönetin.
                     </p>
                 </div>
 
@@ -83,7 +83,7 @@ export default function DashboardPreview() {
                         className="w-72 border-r border-slate-100 dark:border-white/5 bg-white dark:bg-[#0F172A] p-6 hidden md:flex flex-col gap-8 z-20 relative"
                     >
                         <div className="flex items-center gap-3 pl-2">
-                            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-600 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
                                 <Activity size={20} />
                             </div>
                             <span className="font-black text-slate-900 dark:text-white text-xl tracking-tight">Pazaryonetimi</span>
@@ -98,7 +98,7 @@ export default function DashboardPreview() {
                                 { i: Globe, l: "Pazar Yerleri", a: false },
                                 { i: Zap, l: "Otomasyonlar", a: false },
                             ].map((Item, idx) => (
-                                <div key={idx} className={`flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all cursor-pointer group ${Item.a ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20 dark:shadow-blue-900/40' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}`}>
+                                <div key={idx} className={`flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all cursor-pointer group ${Item.a ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/20 dark:shadow-orange-900/40' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'}`}>
                                     <div className="flex items-center gap-3">
                                         <Item.i size={18} />
                                         <span className="text-sm font-bold">{Item.l}</span>
@@ -136,7 +136,7 @@ export default function DashboardPreview() {
                             style={{ y: headerY, opacity: headerOpacity }}
                             className="h-12 sm:h-16 md:h-24 flex items-center justify-between px-3 sm:px-4 md:px-8 border-b border-transparent dark:border-transparent md:border-slate-100 md:dark:border-white/5"
                         >
-                            <div className="flex items-center gap-2 sm:gap-4 w-full max-w-[160px] sm:max-w-sm md:max-w-96 bg-white dark:bg-slate-900/50 px-3 sm:px-5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-500 text-xs sm:text-sm focus-within:border-blue-500/50 focus-within:text-slate-600 dark:focus-within:text-white transition-colors shadow-sm dark:shadow-none">
+                            <div className="flex items-center gap-2 sm:gap-4 w-full max-w-[160px] sm:max-w-sm md:max-w-96 bg-white dark:bg-slate-900/50 px-3 sm:px-5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-500 text-xs sm:text-sm focus-within:border-orange-500/50 focus-within:text-slate-600 dark:focus-within:text-white transition-colors shadow-sm dark:shadow-none">
                                 <Search size={14} />
                                 <span className="font-medium truncate">Sipariş, ürün veya müşteri ara...</span>
                             </div>
@@ -220,10 +220,10 @@ export default function DashboardPreview() {
                                                     ease: "easeInOut",
                                                     delay: i * 0.1
                                                 }}
-                                                className="flex-1 bg-gradient-to-t from-blue-600/20 to-blue-500 rounded-t-xl relative group hover:from-blue-600/40 hover:to-blue-400 transition-colors"
+                                                className="flex-1 bg-gradient-to-t from-orange-600/20 to-amber-500 rounded-t-xl relative group hover:from-orange-600/40 hover:to-amber-400 transition-colors"
                                             >
                                                 {/* Bar Tops */}
-                                                <div className="absolute top-0 left-0 right-0 h-1 bg-blue-300 opacity-50" />
+                                                <div className="absolute top-0 left-0 right-0 h-1 bg-orange-300 opacity-50" />
                                             </motion.div>
                                         ))}
                                     </div>
@@ -242,7 +242,7 @@ export default function DashboardPreview() {
                                         <div className="absolute left-[19px] top-4 bottom-4 w-0.5 bg-slate-100 dark:bg-slate-800 -z-10" />
                                         {[
                                             { t: "Sipariş #9012", s: "Onaylandı", c: "text-green-500 dark:text-green-400", bg: "bg-green-500" },
-                                            { t: "Stok Eşitlendi", s: "Trendyol", c: "text-blue-500 dark:text-blue-400", bg: "bg-blue-500" },
+                                            { t: "Stok Eşitlendi", s: "Trendyol", c: "text-orange-500 dark:text-orange-400", bg: "bg-orange-500" },
                                             { t: "Fiyat Analizi", s: "Tamamlandı", c: "text-purple-500 dark:text-purple-400", bg: "bg-purple-500" },
                                             { t: "Yeni Müşteri", s: "Kaydedildi", c: "text-orange-500 dark:text-orange-400", bg: "bg-orange-500" },
                                             { t: "Kargo Fişi", s: "Yazdırıldı", c: "text-slate-500 dark:text-slate-400", bg: "bg-slate-500" },
@@ -284,7 +284,7 @@ export default function DashboardPreview() {
 function StatsCard({ label, value, trend, icon: Icon, color, delay }: any) {
     const colors: any = {
         green: 'text-green-500 dark:text-green-400 bg-green-500/10 border-green-500/20',
-        blue: 'text-blue-500 dark:text-blue-400 bg-blue-500/10 border-blue-500/20',
+        blue: 'text-orange-500 dark:text-orange-400 bg-orange-500/10 border-orange-500/20',
         purple: 'text-purple-500 dark:text-purple-400 bg-purple-500/10 border-purple-500/20',
     };
 
@@ -308,7 +308,7 @@ function StatsCard({ label, value, trend, icon: Icon, color, delay }: any) {
             <div className="text-[8px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest relative z-10">{label}</div>
 
             {/* Hover Glow */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${color === 'green' ? 'from-green-500/5' : color === 'blue' ? 'from-blue-500/5' : 'from-purple-500/5'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+            <div className={`absolute inset-0 bg-gradient-to-br ${color === 'green' ? 'from-green-500/5' : color === 'blue' ? 'from-orange-500/5' : 'from-purple-500/5'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
         </div>
     )
 }
@@ -330,7 +330,7 @@ function SimulatedToast({ text, top, right, delay, color = 'green' }: any) {
                 repeatDelay: 8
             }}
         >
-            <div className={`w-2 h-2 rounded-full ${color === 'green' ? 'bg-green-500 shadow-[0_0_10px_rgba(74,222,128,0.5)]' : 'bg-blue-500 shadow-[0_0_10px_rgba(96,165,250,0.5)]'} animate-ping`} />
+            <div className={`w-2 h-2 rounded-full ${color === 'green' ? 'bg-green-500 shadow-[0_0_10px_rgba(74,222,128,0.5)]' : 'bg-orange-500 shadow-[0_0_10px_rgba(96,165,250,0.5)]'} animate-ping`} />
             <span className="text-xs font-bold whitespace-nowrap overflow-hidden text-ellipsis">{text}</span>
         </motion.div>
     )

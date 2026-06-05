@@ -35,8 +35,8 @@ ARG NEXTAUTH_URL
 ARG NEXTAUTH_SECRET
 ENV DATABASE_URL=$DATABASE_URL
 
-# Generate Prisma Client
-RUN cd packages/database && npm run prisma:generate
+# Generate Prisma client + build database package (dist/generated/client)
+RUN npm run db:generate --prefix . && npm run build --workspace=@pazaryonetimi/database
 
 # Build the project
 ENV NODE_OPTIONS="--max-old-space-size=3072"
@@ -60,6 +60,10 @@ RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 nextjs
 COPY --from=builder /app/apps/web/public ./apps/web/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+# Monorepo: standalone trace may miss workspace Prisma client
+COPY --from=builder --chown=nextjs:nodejs /app/packages/database/dist ./packages/database/dist
+COPY --from=builder --chown=nextjs:nodejs /app/packages/database/generated ./packages/database/generated
+COPY --from=builder --chown=nextjs:nodejs /app/packages/database/package.json ./packages/database/package.json
 
 USER nextjs
 EXPOSE 3000

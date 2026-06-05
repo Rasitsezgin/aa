@@ -41,7 +41,7 @@ const resources: Resource[] = [
         longDescription: 'Türkiye\'nin en kapsamlı e-ticaret rehberi. Pazaryeri entegrasyonu, stok yönetimi, fiyatlandırma stratejileri ve daha fazlası.',
         category: 'ebook',
         tags: ['e-ticaret', 'strateji', 'başlangıç'],
-        image: 'from-blue-500 via-indigo-500 to-purple-600',
+        image: 'from-orange-500 via-amber-500 to-purple-600',
         downloadUrl: '#',
         pages: 247,
         downloads: 15420,
@@ -111,7 +111,7 @@ const resources: Resource[] = [
         description: 'Yeni pazaryeri başlatırken hiçbir şeyi kaçırmayın. Adım adım checklist.',
         category: 'checklist',
         tags: ['lansman', 'checklist', 'başlangıç'],
-        image: 'from-cyan-500 via-sky-500 to-blue-600',
+        image: 'from-cyan-500 via-sky-500 to-amber-600',
         downloadUrl: '#',
         downloads: 18500,
         rating: 4.9,
@@ -173,7 +173,7 @@ const resources: Resource[] = [
         description: 'İade oranını %60 azaltıp, tekrar satın alma oranını 4x artırın.',
         category: 'ebook',
         tags: ['müşteri', 'retention', 'CRM'],
-        image: 'from-indigo-500 via-blue-500 to-cyan-500',
+        image: 'from-amber-500 via-amber-500 to-cyan-500',
         pages: 124,
         downloads: 8900,
         rating: 4.8,
@@ -211,7 +211,7 @@ const resources: Resource[] = [
         description: '5+ pazaryerini aynı anda yönetin. Senkronizasyon ve otomasyon rehberi.',
         category: 'guide',
         tags: ['çoklu kanal', 'entegrasyon', 'otomasyon'],
-        image: 'from-purple-500 via-violet-500 to-indigo-500',
+        image: 'from-purple-500 via-violet-500 to-amber-500',
         readTime: '45 dk',
         downloads: 6800,
         rating: 4.8,
@@ -223,7 +223,7 @@ const resources: Resource[] = [
         description: 'İlk çeyrek tahminleri, tüketici davranışları ve fırsat analizi.',
         category: 'whitepaper',
         tags: ['trendler', 'rapor', '2026'],
-        image: 'from-sky-500 via-blue-500 to-indigo-500',
+        image: 'from-sky-500 via-amber-500 to-amber-500',
         pages: 42,
         downloads: 4200,
         rating: 4.6,
@@ -293,7 +293,7 @@ export default function ResourceCenterPage() {
                     backgroundSize: '32px 32px'
                 }} />
                 <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-purple-500/10 dark:bg-purple-500/20 blur-[180px] rounded-full" />
-                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-500/20 blur-[150px] rounded-full" />
+                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-orange-500/10 dark:bg-orange-500/20 blur-[150px] rounded-full" />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-emerald-500/5 to-cyan-500/5 dark:from-emerald-500/10 dark:to-cyan-500/10 blur-[200px] rounded-full" />
             </div>
 
@@ -309,14 +309,14 @@ export default function ResourceCenterPage() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.1 }}
-                        className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/40 dark:to-blue-900/40 border border-purple-200/50 dark:border-purple-700/50 rounded-full mb-8"
+                        className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-amber-100 to-orange-100 dark:from-purple-900/40 dark:to-amber-900/40 border border-purple-200/50 dark:border-purple-700/50 rounded-full mb-8"
                     >
                         <Sparkles size={16} className="text-purple-600 dark:text-purple-400" />
                         <span className="text-sm font-bold text-purple-700 dark:text-purple-300 tracking-wide">RESOURCE CENTER</span>
                     </motion.div>
 
                     <h1 className="text-5xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight mb-6">
-                        <span className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                        <span className="bg-gradient-to-r from-orange-600 via-amber-600 to-orange-500 bg-clip-text text-transparent">
                             Ücretsiz
                         </span>{' '}
                         Kaynaklar
@@ -336,7 +336,7 @@ export default function ResourceCenterPage() {
                     >
                         {stats.map((stat, i) => (
                             <div key={i} className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 dark:from-purple-500/20 dark:to-blue-500/20 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/10 to-amber-500/10 dark:from-purple-500/20 dark:to-amber-500/20 flex items-center justify-center">
                                     <stat.icon size={18} className="text-purple-600 dark:text-purple-400" />
                                 </div>
                                 <div className="text-left">
@@ -388,7 +388,7 @@ export default function ResourceCenterPage() {
                                     key={cat.value}
                                     onClick={() => setSelectedCategory(cat.value)}
                                     className={`group flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${selectedCategory === cat.value
-                                            ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-500/25'
+                                            ? 'bg-gradient-to-r from-purple-600 to-amber-600 text-white shadow-lg shadow-purple-500/25'
                                             : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
                                         }`}
                                 >
@@ -544,7 +544,7 @@ export default function ResourceCenterPage() {
                 >
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-amber-600 flex items-center justify-center">
                                 <Layers size={20} className="text-white" />
                             </div>
                             <div>
@@ -704,12 +704,12 @@ export default function ResourceCenterPage() {
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {[
-                            { icon: ShoppingCart, label: 'Pazaryeri Optimizasyonu', count: 12, color: 'from-blue-500 to-indigo-600' },
+                            { icon: ShoppingCart, label: 'Pazaryeri Optimizasyonu', count: 12, color: 'from-orange-500 to-amber-600' },
                             { icon: Zap, label: 'Otomasyon', count: 8, color: 'from-amber-500 to-orange-600' },
                             { icon: BarChart3, label: 'Analytics', count: 6, color: 'from-emerald-500 to-teal-600' },
                             { icon: Package, label: 'Stok Yönetimi', count: 10, color: 'from-purple-500 to-pink-600' },
                             { icon: TrendingUp, label: 'Fiyatlandırma', count: 7, color: 'from-rose-500 to-red-600' },
-                            { icon: Globe, label: 'Çoklu Kanal', count: 5, color: 'from-cyan-500 to-blue-600' },
+                            { icon: Globe, label: 'Çoklu Kanal', count: 5, color: 'from-cyan-500 to-amber-600' },
                             { icon: Users, label: 'Müşteri Yönetimi', count: 9, color: 'from-violet-500 to-purple-600' },
                             { icon: Target, label: 'SEO & Görünürlük', count: 11, color: 'from-pink-500 to-rose-600' },
                         ].map((topic, i) => (
@@ -741,7 +741,7 @@ export default function ResourceCenterPage() {
                 >
                     <div className="relative p-12 md:p-16 rounded-[2rem] overflow-hidden">
                         {/* Background */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-600" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-600 via-amber-600 to-orange-500" />
                         <div className="absolute inset-0 opacity-20" style={{
                             backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
                             backgroundSize: '24px 24px'

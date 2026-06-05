@@ -11,9 +11,11 @@ export default function LandingLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="relative">
+        <div className="landing-brand relative min-h-screen">
             <Navbar />
-            {children}
+            <div className="relative">
+                {children}
+            </div>
             <Footer />
 
             {/* Floating Components */}

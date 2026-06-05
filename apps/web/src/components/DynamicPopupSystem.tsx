@@ -61,8 +61,13 @@ export default function DynamicPopupSystem() {
         if (popups.length === 0 || isVisible) return;
 
         const popup = popups[0]; // For now show the most recent one
+        const isHomepage = window.location.pathname === '/';
 
-        // TRIGGER LOGIC
+        // Ana sayfada agresif popup'lari engelle (FloatingCTA ile cakismasin)
+        if (isHomepage && (popup.type === 'IMMEDIATE' || popup.type === 'TIMED')) {
+            return;
+        }
+
         if (popup.type === 'IMMEDIATE') {
             showPopup(popup);
         } else if (popup.type === 'TIMED') {

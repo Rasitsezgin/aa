@@ -140,8 +140,8 @@ export const IntegrationStats: React.FC<IntegrationStatsProps> = ({
       title: 'Toplam Ürün',
       value: totalProducts.toLocaleString('tr-TR'),
       icon: <Package className="w-6 h-6 text-white" />,
-      color: 'bg-blue-500',
-      gradient: 'bg-gradient-to-br from-blue-500 to-blue-600',
+      color: 'bg-orange-500',
+      gradient: 'bg-gradient-to-br from-orange-500 to-amber-600',
     },
     {
       title: 'Toplam Sipariş',
@@ -224,8 +224,8 @@ export const MiniStatsRow: React.FC<MiniStatsRowProps> = ({
       <div className="h-4 w-px bg-gray-200 dark:bg-gray-700" />
       
       <div className="flex items-center gap-2">
-        <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-          <Globe className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+        <div className="p-1.5 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+          <Globe className="w-4 h-4 text-orange-600 dark:text-orange-400" />
         </div>
         <span className="text-sm">
           <span className="font-semibold text-gray-900 dark:text-white">{platformCount}</span>

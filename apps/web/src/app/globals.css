@@ -95,6 +95,13 @@ nextjs-portal,
   --text-secondary: #94a3b8;
 }
 
+/* Landing/marketing pages — orange brand (dashboard keeps blue primary) */
+.landing-brand {
+  --theme-primary: #ea580c;
+  --theme-primary-rgb: 234, 88, 12;
+  --theme-primary-hover: #f97316;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

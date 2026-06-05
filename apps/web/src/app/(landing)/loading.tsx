@@ -4,7 +4,7 @@ export default function LandingLoading() {
             <div className="flex flex-col items-center gap-4">
                 <div className="relative w-12 h-12">
                     <div className="absolute inset-0 rounded-full border-[3px] border-slate-200 dark:border-slate-800" />
-                    <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-blue-600 animate-spin" />
+                    <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-orange-600 animate-spin" />
                 </div>
             </div>
         </div>

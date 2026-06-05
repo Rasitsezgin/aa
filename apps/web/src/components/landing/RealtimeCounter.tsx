@@ -76,7 +76,7 @@ export const RealtimeCounter = ({ features }: RealtimeCounterProps) => {
     return (
         <div className="bg-surface rounded-3xl border border-border overflow-hidden shadow-xl shadow-primary/5">
             {/* Enhanced Header with Gradient */}
-            <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5">
+            <div className="px-6 py-4 border-b border-border bg-gradient-to-r from-orange-500/5 via-purple-500/5 to-pink-500/5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <motion.div 
@@ -115,10 +115,10 @@ export const RealtimeCounter = ({ features }: RealtimeCounterProps) => {
                     {/* Active Users */}
                     <motion.div 
                         whileHover={{ scale: 1.05, y: -2 }}
-                        className="text-center p-3 rounded-2xl bg-gradient-to-b from-blue-500/5 to-transparent border border-blue-200/50 dark:border-blue-500/10"
+                        className="text-center p-3 rounded-2xl bg-gradient-to-b from-orange-500/5 to-transparent border border-orange-200/50 dark:border-orange-500/10"
                     >
                         <div className="flex items-center justify-center gap-1 mb-1">
-                            <Users className="w-4 h-4 text-blue-500/50" />
+                            <Users className="w-4 h-4 text-orange-500/50" />
                         </div>
                         <motion.span 
                             key={activeUsers}

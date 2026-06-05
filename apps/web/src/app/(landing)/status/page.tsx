@@ -144,7 +144,7 @@ const getStatusConfig = (status: ServiceStatus) => {
         case 'outage':
             return { icon: XCircle, color: 'text-red-500', bg: 'bg-red-500', bgLight: 'bg-red-100 dark:bg-red-900/30', label: 'Kesinti', pulse: true };
         case 'maintenance':
-            return { icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500', bgLight: 'bg-blue-100 dark:bg-blue-900/30', label: 'Bakımda', pulse: false };
+            return { icon: Clock, color: 'text-orange-500', bg: 'bg-orange-500', bgLight: 'bg-orange-100 dark:bg-orange-900/30', label: 'Bakımda', pulse: false };
     }
 };
 
@@ -155,7 +155,7 @@ const getIncidentStatusConfig = (status: IncidentStatus) => {
         case 'investigating':
             return { color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-900/30', label: 'İnceleniyor', icon: AlertCircle };
         case 'identified':
-            return { color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30', label: 'Tespit Edildi', icon: Info };
+            return { color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-900/30', label: 'Tespit Edildi', icon: Info };
         case 'monitoring':
             return { color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30', label: 'İzleniyor', icon: Activity };
         case 'scheduled':
@@ -172,7 +172,7 @@ const getSeverityConfig = (severity: Incident['severity']) => {
         case 'minor':
             return { color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30', label: 'Küçük' };
         case 'maintenance':
-            return { color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30', label: 'Bakım' };
+            return { color: 'text-orange-600', bg: 'bg-orange-100 dark:bg-orange-900/30', label: 'Bakım' };
     }
 };
 
@@ -245,7 +245,7 @@ export default function StatusPage() {
                     backgroundSize: '32px 32px'
                 }} />
                 <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-emerald-500/10 dark:bg-emerald-500/5 blur-[150px] rounded-full" />
-                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-500/5 blur-[150px] rounded-full" />
+                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-orange-500/10 dark:bg-orange-500/5 blur-[150px] rounded-full" />
             </div>
 
             <div className="container mx-auto px-6 relative z-10">
@@ -288,7 +288,7 @@ export default function StatusPage() {
                             ? 'bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-900/20 dark:via-yellow-900/20 dark:to-orange-900/20 border-amber-300 dark:border-amber-700'
                             : overallStatus.color === 'red'
                             ? 'bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 dark:from-red-900/20 dark:via-rose-900/20 dark:to-pink-900/20 border-red-300 dark:border-red-700'
-                            : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 border-blue-300 dark:border-blue-700'
+                            : 'bg-gradient-to-br from-orange-50 via-amber-50 to-purple-50 dark:from-orange-900/20 dark:via-orange-900/20 dark:to-amber-900/20 border-orange-300 dark:border-orange-700'
                     }`}
                 >
                     <div className="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -297,7 +297,7 @@ export default function StatusPage() {
                                 overallStatus.color === 'emerald' ? 'bg-emerald-100 dark:bg-emerald-900/50' :
                                 overallStatus.color === 'amber' ? 'bg-amber-100 dark:bg-amber-900/50' :
                                 overallStatus.color === 'red' ? 'bg-red-100 dark:bg-red-900/50' :
-                                'bg-blue-100 dark:bg-blue-900/50'
+                                'bg-orange-100 dark:bg-orange-900/50'
                             }`}>
                                 {overallStatus.status === 'operational' ? (
                                     <CheckCircle2 className={`w-10 h-10 text-emerald-600 dark:text-emerald-400`} />
@@ -306,13 +306,13 @@ export default function StatusPage() {
                                 ) : overallStatus.status === 'outage' ? (
                                     <XCircle className={`w-10 h-10 text-red-600 dark:text-red-400`} />
                                 ) : (
-                                    <Clock className={`w-10 h-10 text-blue-600 dark:text-blue-400`} />
+                                    <Clock className={`w-10 h-10 text-orange-600 dark:text-orange-400`} />
                                 )}
                                 {/* Pulse animation for non-operational */}
                                 {overallStatus.status !== 'operational' && (
                                     <span className={`absolute inset-0 rounded-2xl animate-ping opacity-30 ${
                                         overallStatus.color === 'amber' ? 'bg-amber-400' :
-                                        overallStatus.color === 'red' ? 'bg-red-400' : 'bg-blue-400'
+                                        overallStatus.color === 'red' ? 'bg-red-400' : 'bg-orange-400'
                                     }`} />
                                 )}
                             </div>
@@ -321,7 +321,7 @@ export default function StatusPage() {
                                     overallStatus.color === 'emerald' ? 'text-emerald-700 dark:text-emerald-400' :
                                     overallStatus.color === 'amber' ? 'text-amber-700 dark:text-amber-400' :
                                     overallStatus.color === 'red' ? 'text-red-700 dark:text-red-400' :
-                                    'text-blue-700 dark:text-blue-400'
+                                    'text-orange-700 dark:text-orange-400'
                                 }`}>
                                     {overallStatus.label}
                                 </h2>
@@ -547,23 +547,23 @@ export default function StatusPage() {
                         className="max-w-4xl mx-auto mb-16"
                     >
                         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
-                            <Calendar className="text-blue-500" />
+                            <Calendar className="text-orange-500" />
                             Planlı Bakımlar
                         </h3>
                         <div className="space-y-4">
                             {scheduledMaintenances.map((maintenance) => (
                                 <div
                                     key={maintenance.id}
-                                    className="p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800"
+                                    className="p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border border-orange-200 dark:border-orange-800"
                                 >
                                     <div className="flex items-start justify-between mb-4">
                                         <div>
                                             <h4 className="font-bold text-slate-900 dark:text-white mb-1">{maintenance.title}</h4>
-                                            <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                                            <p className="text-sm text-orange-600 dark:text-orange-400 font-medium">
                                                 {maintenance.date} • {maintenance.duration}
                                             </p>
                                         </div>
-                                        <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-bold">
+                                        <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 rounded-lg text-xs font-bold">
                                             Planlandı
                                         </span>
                                     </div>

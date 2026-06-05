@@ -15,7 +15,7 @@ const Footer = () => {
     const currentYear = new Date().getFullYear();
 
     return (
-        <footer className="relative w-full bg-white dark:bg-[#02040a] pt-12 sm:pt-20 overflow-hidden border-t border-slate-100 dark:border-white/5 transition-colors duration-500">
+        <footer className="relative w-full bg-white dark:bg-[#0F172A] pt-12 sm:pt-20 overflow-hidden border-t border-slate-100 dark:border-white/5 transition-colors duration-500">
             {/* 3D Multi-Layer Ambient Background */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 {/* Noise Texture Overlay */}
@@ -38,7 +38,7 @@ const Footer = () => {
                         opacity: [0.05, 0.1, 0.05]
                     }}
                     transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -top-48 -left-48 w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[180px]"
+                    className="absolute -top-48 -left-48 w-[600px] h-[600px] bg-orange-500/10 dark:bg-orange-600/10 rounded-full blur-[180px]"
                 />
                 <motion.div
                     animate={{
@@ -48,7 +48,7 @@ const Footer = () => {
                     transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute top-1/2 -right-48 w-[500px] h-[500px] bg-purple-500/10 dark:bg-purple-600/10 rounded-full blur-[150px]"
                 />
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[300px] bg-gradient-to-t from-blue-500/[0.02] dark:from-blue-500/[0.04] to-transparent" />
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[300px] bg-gradient-to-t from-orange-500/[0.02] dark:from-orange-500/[0.04] to-transparent" />
             </div>
 
             <div className="container mx-auto px-6 relative z-10">
@@ -59,28 +59,27 @@ const Footer = () => {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                     >
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100/50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 mb-6 group cursor-default">
-                            <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
-                            <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300 tracking-widest uppercase">Geleceği Şekillendirin</span>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100/50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 mb-6 group cursor-default">
+                            <span className="w-2 h-2 rounded-full bg-orange-600 dark:bg-orange-400 animate-pulse" />
+                            <span className="text-[10px] font-bold text-orange-700 dark:text-orange-300 tracking-widest uppercase">14 Gün Ücretsiz</span>
                         </div>
                         <h2 className="text-3xl sm:text-5xl md:text-7xl font-black text-slate-900 dark:text-white mb-4 sm:mb-6 tracking-tighter leading-[0.9]">
-                            İşinizi <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400">Büyütün.</span>
+                            Pazaryerlerinizi <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-500 dark:from-orange-400 dark:to-amber-400">Tek Panelde Yönetin.</span>
                         </h2>
                         <p className="text-base sm:text-xl text-slate-600 dark:text-slate-400 max-w-md mb-6 sm:mb-8 leading-relaxed font-light">
-                            14 gün ücretsiz deneyin, kredi kartı gerekmez. Modern e-ticaretin gücünü keşfedin.
+                            Stok, sipariş ve kargo operasyonlarınızı tek merkezden yönetin. Kredi kartı gerekmez.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                            <button className="group relative w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-bold overflow-hidden shadow-xl shadow-blue-900/10 dark:shadow-white/10 hover:shadow-2xl hover:shadow-blue-500/20 transition-all hover:scale-105 active:scale-95 duration-300">
+                            <Link href="/signup" className="group relative w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-full font-bold overflow-hidden shadow-xl shadow-orange-600/20 hover:shadow-2xl hover:shadow-orange-500/30 transition-all hover:scale-105 active:scale-95 duration-300 text-center">
                                 <span className="relative z-10 flex items-center justify-center gap-2">
-                                    Şimdi Başla
+                                    Ücretsiz Başla
                                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                 </span>
-                                <div className="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-10 dark:group-hover:opacity-5 transition-opacity" />
-                            </button>
-                            <button className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-full font-bold hover:bg-slate-50 dark:hover:bg-white/10 transition-all hover:-translate-y-0.5 shadow-sm">
-                                Demosu İncele
-                            </button>
+                            </Link>
+                            <Link href="/demo" className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-full font-bold hover:bg-slate-50 dark:hover:bg-white/10 transition-all hover:-translate-y-0.5 shadow-sm text-center">
+                                Demo İzle
+                            </Link>
                         </div>
                     </motion.div>
 
@@ -97,10 +96,10 @@ const Footer = () => {
                         {/* Mobile Brand Card / Desktop Brand Info */}
                         <div className="relative p-6 lg:p-0 rounded-3xl lg:rounded-none bg-slate-50 lg:bg-transparent dark:bg-white/[0.02] lg:dark:bg-transparent border border-slate-200 lg:border-none dark:border-white/[0.06] lg:dark:border-none flex flex-col items-center lg:items-start text-center lg:text-left gap-6 overflow-hidden">
                             {/* Subtle background glow for mobile card */}
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl lg:hidden rounded-full pointer-events-none" />
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 blur-3xl lg:hidden rounded-full pointer-events-none" />
 
                             <Link href="/" className="inline-block group relative z-10">
-                                <span className="text-2xl lg:text-3xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 group-hover:from-blue-600 group-hover:to-indigo-600 transition-all duration-300">
+                                <span className="text-2xl lg:text-3xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 group-hover:from-orange-600 group-hover:to-amber-600 transition-all duration-300">
                                     Pazaryonetimi
                                 </span>
                             </Link>
@@ -150,11 +149,11 @@ const Footer = () => {
                         <div className="flex flex-col items-center lg:items-start gap-4 text-center lg:text-left">
                             <p className="text-[11px] lg:text-xs text-slate-400 font-medium">© {currentYear} Pazaryonetimi Inc. Tüm hakları saklıdır.</p>
                             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-[10px] lg:text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">
-                                <Link href="/security" className="hover:text-blue-500 transition-colors">Güvenlik</Link>
+                                <Link href="/security" className="hover:text-orange-500 transition-colors">Güvenlik</Link>
                                 <span className="w-1 h-1 rounded-full bg-slate-200 dark:bg-white/10" />
-                                <Link href="/status" className="hover:text-blue-500 transition-colors">Durum</Link>
+                                <Link href="/status" className="hover:text-orange-500 transition-colors">Durum</Link>
                                 <span className="w-1 h-1 rounded-full bg-slate-200 dark:bg-white/10" />
-                                <Link href="/privacy" className="hover:text-blue-500 transition-colors">Gizlilik</Link>
+                                <Link href="/privacy" className="hover:text-orange-500 transition-colors">Gizlilik</Link>
                             </div>
                         </div>
 
@@ -210,7 +209,7 @@ const FooterColumn = ({ title, icon: Icon, links }: { title: string, icon: any, 
                     }`}
             >
                 <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl transition-colors duration-300 ${isOpen ? "bg-blue-500 text-white" : "bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-slate-400"
+                    <div className={`p-2 rounded-xl transition-colors duration-300 ${isOpen ? "bg-orange-500 text-white" : "bg-slate-200 dark:bg-white/10 text-slate-500 dark:text-slate-400"
                         }`}>
                         <Icon size={18} />
                     </div>
@@ -220,13 +219,13 @@ const FooterColumn = ({ title, icon: Icon, links }: { title: string, icon: any, 
                     animate={{ rotate: isOpen ? 180 : 0 }}
                     transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                 >
-                    <ChevronDown size={18} className={isOpen ? "text-blue-500" : "text-slate-400"} />
+                    <ChevronDown size={18} className={isOpen ? "text-orange-500" : "text-slate-400"} />
                 </motion.div>
             </button>
 
             {/* Desktop Column Header */}
             <div className="hidden lg:flex items-center gap-2 mb-6">
-                <Icon size={16} className="text-blue-500" />
+                <Icon size={16} className="text-orange-500" />
                 <h4 className="font-bold text-slate-900 dark:text-white text-sm tracking-tight">{title}</h4>
             </div>
 
@@ -234,8 +233,8 @@ const FooterColumn = ({ title, icon: Icon, links }: { title: string, icon: any, 
                 <ul className="space-y-4 text-xs font-medium text-slate-500 dark:text-slate-400">
                     {links.map(link => (
                         <li key={link.label}>
-                            <Link href={link.href} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-2 group relative">
-                                <span className="w-0 group-hover:w-3 h-px bg-blue-500 dark:bg-blue-400 transition-all duration-300 ease-out" />
+                            <Link href={link.href} className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors flex items-center gap-2 group relative">
+                                <span className="w-0 group-hover:w-3 h-px bg-orange-500 dark:bg-orange-400 transition-all duration-300 ease-out" />
                                 {link.label}
                             </Link>
                         </li>
@@ -256,7 +255,7 @@ const FooterColumn = ({ title, icon: Icon, links }: { title: string, icon: any, 
                         <ul className="grid grid-cols-2 gap-x-4 gap-y-3 p-4 bg-slate-50/50 dark:bg-white/[0.01] rounded-b-2xl border-x border-b border-slate-200 dark:border-white/[0.06] -mt-2 pt-6">
                             {links.map(link => (
                                 <li key={link.label}>
-                                    <Link href={link.href} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-white dark:hover:bg-white/5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 transition-all duration-200">
+                                    <Link href={link.href} className="flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-white dark:hover:bg-white/5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-300 transition-all duration-200">
                                         <div className="w-1.5 h-1.5 rounded-full bg-slate-200 dark:bg-white/10" />
                                         {link.label}
                                     </Link>
@@ -308,17 +307,17 @@ const NewsletterCard = () => {
             style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
             className="relative group perspective-1000 mt-4 lg:mt-0"
         >
-            <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-[35px] blur-2xl opacity-0 group-hover:opacity-20 transition duration-700" />
+            <div className="absolute -inset-2 bg-gradient-to-r from-orange-600 via-amber-600 to-purple-600 rounded-[35px] blur-2xl opacity-0 group-hover:opacity-20 transition duration-700" />
             <div
                 style={{ transform: "translateZ(80px)" }}
-                className="relative p-6 sm:p-10 md:p-12 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-[24px] sm:rounded-[32px] border border-white/50 dark:border-white/10 shadow-2xl dark:shadow-none overflow-hidden transition-all duration-300 group-hover:shadow-[0_20px_50px_rgba(59,130,246,0.1)] dark:group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+                className="relative p-6 sm:p-10 md:p-12 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-[24px] sm:rounded-[32px] border border-white/50 dark:border-white/10 shadow-2xl dark:shadow-none overflow-hidden transition-all duration-300 group-hover:shadow-[0_20px_50px_rgba(234,88,12,0.1)] dark:group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
             >
                 {/* Internal Glow Follower */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[60px] rounded-full pointer-events-none group-hover:scale-150 transition-transform duration-1000" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 blur-[60px] rounded-full pointer-events-none group-hover:scale-150 transition-transform duration-1000" />
 
                 <div className="relative z-10">
                     <div className="flex items-center gap-5 mb-8">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-600 to-blue-700 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform duration-500">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 via-amber-600 to-amber-700 flex items-center justify-center text-white shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-500">
                             <Send size={28} className="-ml-1 translate-y-0.5 group-hover:rotate-12 transition-transform" />
                         </div>
                         <div>
@@ -327,14 +326,14 @@ const NewsletterCard = () => {
                         </div>
                     </div>
 
-                    <div className="relative flex gap-3 p-1 bg-slate-50 dark:bg-black/20 rounded-[22px] border border-slate-200 dark:border-white/5 focus-within:border-blue-500/50 transition-colors">
+                    <div className="relative flex gap-3 p-1 bg-slate-50 dark:bg-black/20 rounded-[22px] border border-slate-200 dark:border-white/5 focus-within:border-orange-500/50 transition-colors">
                         <input
                             type="email"
                             placeholder="E-posta adresiniz"
                             aria-label="Bülten aboneliği için e-posta adresiniz"
                             className="flex-1 bg-transparent px-5 py-4 outline-none text-slate-900 dark:text-white placeholder:text-slate-400 text-sm font-medium"
                         />
-                        <button aria-label="Bültene abone ol" className="px-7 py-4 bg-slate-900 dark:bg-white hover:bg-blue-600 dark:hover:bg-blue-400 text-white dark:text-slate-900 rounded-[20px] font-bold transition-all shadow-lg hover:shadow-blue-500/30 group-hover:px-8 group/btn">
+                        <button aria-label="Bültene abone ol" className="px-7 py-4 bg-orange-600 hover:bg-orange-500 text-white rounded-[20px] font-bold transition-all shadow-lg hover:shadow-orange-500/30 group-hover:px-8 group/btn">
                             <ArrowRight size={20} className="group-hover/btn:translate-x-1 transition-transform" />
                         </button>
                     </div>

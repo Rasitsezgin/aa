@@ -23,9 +23,9 @@ const SOLUTIONS_DATA = {
             icon: User,
             name: 'Girişimciler',
             shortDesc: 'E-ticarete yeni başlayanlar',
-            color: 'from-blue-500 to-cyan-500',
-            bgColor: 'bg-blue-500/10',
-            borderColor: 'border-blue-500/20',
+            color: 'from-orange-500 to-amber-500',
+            bgColor: 'bg-orange-500/10',
+            borderColor: 'border-orange-500/20',
             title: 'E-Ticarete Yeni Başlayanlar İçin',
             description: 'Sıfırdan başlayın, hızlıca büyüyün. Karmaşık sistemlerle uğraşmadan, kolay kurulum ve kullanım.',
             features: [
@@ -114,7 +114,7 @@ const SOLUTIONS_DATA = {
     ],
     industries: [
         { name: 'Moda & Giyim', icon: ShoppingBag, color: 'from-pink-500 to-rose-500' },
-        { name: 'Elektronik', icon: Zap, color: 'from-blue-500 to-cyan-500' },
+        { name: 'Elektronik', icon: Zap, color: 'from-orange-500 to-amber-500' },
         { name: 'Ev & Yaşam', icon: Package, color: 'from-green-500 to-emerald-500' },
         { name: 'Kozmetik', icon: Star, color: 'from-purple-500 to-pink-500' },
         { name: 'Gıda', icon: Target, color: 'from-orange-500 to-amber-500' },
@@ -196,7 +196,7 @@ export default function SolutionsView({ data }: { data: any }) {
                     backgroundSize: '32px 32px'
                 }} />
                 <div className="absolute top-0 right-1/4 w-[800px] h-[800px] bg-purple-500/10 dark:bg-purple-500/5 rounded-full blur-[150px]" />
-                <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-[150px]" />
+                <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-orange-500/10 dark:bg-orange-500/5 rounded-full blur-[150px]" />
             </div>
 
             {/* Hero Section */}

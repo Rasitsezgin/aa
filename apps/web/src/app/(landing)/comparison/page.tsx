@@ -119,7 +119,7 @@ const COMPARISON_DATA = {
             icon: Users,
             title: '7/24 Türkçe Destek',
             desc: 'Her planda ücretsiz canlı destek. Rakipler ek ücret talep ediyor.',
-            color: 'from-blue-500 to-cyan-500'
+            color: 'from-orange-500 to-amber-500'
         }
     ],
     stats: [

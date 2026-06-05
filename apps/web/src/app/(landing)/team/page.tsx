@@ -29,7 +29,7 @@ const teamMembers: TeamMember[] = [
             { icon: <Mail size={18} />, url: 'mailto:erdem@pazaryonetimi.com' },
         ],
         stats: [
-            { label: 'Vizyon', value: '%100', color: 'bg-blue-500' },
+            { label: 'Vizyon', value: '%100', color: 'bg-orange-500' },
             { label: 'Kodlama', value: '%85', color: 'bg-purple-500' }
         ]
     },
@@ -75,7 +75,7 @@ const teamMembers: TeamMember[] = [
         ],
         stats: [
             { label: 'User Focus', value: '%98', color: 'bg-pink-500' },
-            { label: 'Strategy', value: '%92', color: 'bg-indigo-500' }
+            { label: 'Strategy', value: '%92', color: 'bg-orange-500' }
         ]
     },
     {

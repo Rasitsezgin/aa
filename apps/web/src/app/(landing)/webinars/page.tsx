@@ -46,7 +46,7 @@ const webinars: Webinar[] = [
         status: 'upcoming',
         category: 'AI & Otomasyon',
         tags: ['AI', 'fiyatlandırma', 'otomasyon'],
-        thumbnail: 'from-violet-500 via-purple-500 to-indigo-600',
+        thumbnail: 'from-violet-500 via-purple-500 to-amber-600',
         attendees: 342,
         featured: true
     },
@@ -104,7 +104,7 @@ const webinars: Webinar[] = [
         status: 'recorded',
         category: 'SEO & Görünürlük',
         tags: ['SEO', 'optimizasyon', 'arama'],
-        thumbnail: 'from-blue-500 via-indigo-500 to-violet-600',
+        thumbnail: 'from-orange-500 via-amber-500 to-violet-600',
         views: 4520,
         rating: 4.9
     },
@@ -119,7 +119,7 @@ const webinars: Webinar[] = [
         status: 'recorded',
         category: 'Analytics',
         tags: ['analytics', 'veri', 'KPI'],
-        thumbnail: 'from-cyan-500 via-sky-500 to-blue-600',
+        thumbnail: 'from-cyan-500 via-sky-500 to-amber-600',
         views: 3890,
         rating: 4.8
     },

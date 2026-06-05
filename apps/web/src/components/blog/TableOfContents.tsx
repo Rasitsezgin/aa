@@ -60,7 +60,7 @@ export default function TableOfContents() {
             className="sticky top-32 p-6 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 hidden lg:block"
         >
             <div className="flex items-center gap-2 mb-4 font-bold text-slate-900 dark:text-white">
-                <List size={20} className="text-blue-600" />
+                <List size={20} className="text-orange-600" />
                 İçindekiler
             </div>
             <nav className="flex flex-col gap-2">
@@ -75,8 +75,8 @@ export default function TableOfContents() {
                             });
                             setActiveId(heading.id);
                         }}
-                        className={`text-sm transition-all hover:text-blue-600 dark:hover:text-blue-400 block py-1 border-l-2 pl-4 ${activeId === heading.id
-                            ? 'text-blue-600 dark:text-blue-400 border-blue-600 font-medium'
+                        className={`text-sm transition-all hover:text-orange-600 dark:hover:text-orange-400 block py-1 border-l-2 pl-4 ${activeId === heading.id
+                            ? 'text-orange-600 dark:text-orange-400 border-orange-600 font-medium'
                             : 'text-slate-500 dark:text-slate-400 border-transparent hover:border-slate-300 dark:hover:border-white/20'
                             } ${heading.level === 3 ? 'ml-4' : ''}`}
                     >

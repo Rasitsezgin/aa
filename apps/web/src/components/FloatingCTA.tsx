@@ -24,7 +24,7 @@ export default function FloatingCTA() {
         // Show after scrolling 30% of the page
         const handleScroll = () => {
             const scrollPercent = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
-            setIsVisible(scrollPercent > 30);
+            setIsVisible(scrollPercent > 60);
         };
 
         window.addEventListener('scroll', handleScroll);
@@ -50,10 +50,9 @@ export default function FloatingCTA() {
                 >
                     <div className="relative group">
                         {/* Glow Effect */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur-xl opacity-50 group-hover:opacity-70 transition-opacity" />
-                        
-                        {/* Main Button */}
-                        <div className="relative bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-3 sm:p-4 shadow-2xl">
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl blur-xl opacity-50 group-hover:opacity-70 transition-opacity" />
+
+                        <div className="relative bg-gradient-to-r from-orange-600 to-amber-600 rounded-2xl p-3 sm:p-4 shadow-2xl">
                             {/* Dismiss Button */}
                             <button
                                 onClick={handleDismiss}
@@ -77,7 +76,7 @@ export default function FloatingCTA() {
                                 {/* CTA Button */}
                                 <Link
                                     href="/demo"
-                                    className="px-4 py-2 bg-white text-emerald-700 rounded-xl font-bold text-sm hover:bg-emerald-50 transition-colors flex items-center gap-2 whitespace-nowrap"
+                                    className="px-4 py-2 bg-white text-orange-700 rounded-xl font-bold text-sm hover:bg-orange-50 transition-colors flex items-center gap-2 whitespace-nowrap"
                                 >
                                     Demo İste
                                     <ArrowRight size={16} />

@@ -84,8 +84,8 @@ const StatusIndicator: React.FC<{ status: IntegrationStatusData['status']; size?
       label: 'Hata',
     },
     syncing: {
-      bg: 'bg-blue-500',
-      ring: 'ring-blue-500/20',
+      bg: 'bg-orange-500',
+      ring: 'ring-orange-500/20',
       pulse: true,
       icon: RefreshCw,
       label: 'Senkronize Ediliyor',
@@ -190,7 +190,7 @@ const IntegrationStatusCard: React.FC<{
             }}
             className={`p-2 rounded-lg transition-colors ${
               notificationsEnabled
-                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
                 : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
             }`}
             title={notificationsEnabled ? 'Bildirimleri Kapat' : 'Bildirimleri Aç'}
@@ -213,13 +213,13 @@ const IntegrationStatusCard: React.FC<{
 
       {/* Sync Progress (if syncing) */}
       {integration.status === 'syncing' && integration.syncProgress !== undefined && (
-        <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-100 dark:border-blue-800">
+        <div className="px-4 py-2 bg-orange-50 dark:bg-orange-900/20 border-b border-orange-100 dark:border-orange-800">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-medium text-blue-700 dark:text-blue-400 flex items-center gap-1">
+            <span className="text-xs font-medium text-orange-700 dark:text-orange-400 flex items-center gap-1">
               <Loader2 className="w-3 h-3 animate-spin" />
               Senkronize ediliyor...
             </span>
-            <span className="text-xs font-bold text-blue-700 dark:text-blue-400">
+            <span className="text-xs font-bold text-orange-700 dark:text-orange-400">
               %{integration.syncProgress}
             </span>
           </div>
@@ -228,7 +228,7 @@ const IntegrationStatusCard: React.FC<{
               initial={{ width: 0 }}
               animate={{ width: `${integration.syncProgress}%` }}
               transition={{ duration: 0.5 }}
-              className="h-full bg-blue-600 dark:bg-blue-400 rounded-full"
+              className="h-full bg-orange-600 dark:bg-orange-400 rounded-full"
             />
           </div>
         </div>
@@ -358,7 +358,7 @@ const IntegrationStatusCard: React.FC<{
                           : activity.type === 'order'
                             ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
                             : activity.type === 'product'
-                              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                              ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
                               : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                       }`}
                     >
@@ -427,7 +427,7 @@ export const RealTimeStatusPanel: React.FC<RealTimeStatusPanelProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Activity className="w-5 h-5 text-blue-500" />
+            <Activity className="w-5 h-5 text-orange-500" />
             Gerçek Zamanlı Durum
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -441,7 +441,7 @@ export const RealTimeStatusPanel: React.FC<RealTimeStatusPanelProps> = ({
           className={`px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-all ${
             isRefreshing
               ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-              : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50'
+              : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-blue-200 dark:hover:bg-blue-900/50'
           }`}
         >
           <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -467,9 +467,9 @@ export const RealTimeStatusPanel: React.FC<RealTimeStatusPanelProps> = ({
           <p className="text-2xl font-bold text-red-700 dark:text-red-400">{stats.error}</p>
           <p className="text-xs text-red-600 dark:text-red-500">Hata</p>
         </div>
-        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 p-3 text-center">
-          <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{stats.syncing}</p>
-          <p className="text-xs text-blue-600 dark:text-blue-500">Senkronize</p>
+        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-800 p-3 text-center">
+          <p className="text-2xl font-bold text-orange-700 dark:text-orange-400">{stats.syncing}</p>
+          <p className="text-xs text-orange-600 dark:text-orange-500">Senkronize</p>
         </div>
       </div>
 
@@ -495,7 +495,7 @@ export const RealTimeStatusPanel: React.FC<RealTimeStatusPanelProps> = ({
           <p className="text-gray-500 dark:text-gray-400 mb-4">
             Pazaryerlerine bağlanarak gerçek zamanlı verileri görüntüleyin
           </p>
-          <button className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium flex items-center gap-2 mx-auto">
+          <button className="px-6 py-2.5 bg-gradient-to-r from-orange-600 to-purple-600 text-white rounded-xl font-medium flex items-center gap-2 mx-auto">
             <Zap className="w-4 h-4" />
             Entegrasyon Ekle
           </button>

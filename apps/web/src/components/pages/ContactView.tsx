@@ -30,7 +30,7 @@ const CONTACT_DATA = {
             label: 'Telefon',
             value: '0850 123 45 67',
             desc: 'Hafta içi 09:00 - 22:00',
-            color: 'from-blue-500 to-cyan-500',
+            color: 'from-orange-500 to-amber-500',
             action: 'tel:+908501234567'
         },
         {
@@ -179,7 +179,7 @@ export default function ContactView() {
                     backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
                     backgroundSize: '32px 32px'
                 }} />
-                <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-[150px]" />
+                <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-orange-500/10 dark:bg-orange-500/5 rounded-full blur-[150px]" />
                 <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-500/10 dark:bg-purple-500/5 rounded-full blur-[150px]" />
             </div>
 
@@ -498,7 +498,7 @@ export default function ContactView() {
                     >
                         <div className="absolute inset-0 opacity-20">
                             <div className="absolute top-0 left-0 w-64 h-64 bg-green-500 rounded-full blur-[100px]" />
-                            <div className="absolute bottom-0 right-0 w-64 h-64 bg-blue-500 rounded-full blur-[100px]" />
+                            <div className="absolute bottom-0 right-0 w-64 h-64 bg-orange-500 rounded-full blur-[100px]" />
                         </div>
 
                         <div className="relative z-10 text-center">

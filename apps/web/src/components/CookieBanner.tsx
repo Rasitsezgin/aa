@@ -62,7 +62,7 @@ export default function CookieBanner() {
                     {/* Luxury Outer Container */}
                     <div className="relative group p-[1px] rounded-[32px] overflow-hidden">
                         {/* Animated Border Gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 opacity-20 group-hover:opacity-40 transition-opacity duration-1000" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 opacity-20 group-hover:opacity-40 transition-opacity duration-1000" />
 
                         {/* Layered Glass Body */}
                         <div className="relative rounded-[31px] bg-white/80 dark:bg-[#020617]/85 backdrop-blur-3xl border border-white/20 dark:border-white/5 shadow-[0_24px_80px_rgba(0,0,0,0.15)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.4)] overflow-hidden">
@@ -77,7 +77,7 @@ export default function CookieBanner() {
                                         y: [-20, 20, -20]
                                     }}
                                     transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                                    className="absolute -top-1/2 -left-1/2 w-full h-full bg-blue-500/30 blur-[100px] rounded-full"
+                                    className="absolute -top-1/2 -left-1/2 w-full h-full bg-orange-500/30 blur-[100px] rounded-full"
                                 />
                                 <motion.div
                                     animate={{
@@ -87,7 +87,7 @@ export default function CookieBanner() {
                                         y: [20, -20, 20]
                                     }}
                                     transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                                    className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-purple-500/30 blur-[100px] rounded-full"
+                                    className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-amber-500/30 blur-[100px] rounded-full"
                                 />
                             </div>
 
@@ -104,23 +104,23 @@ export default function CookieBanner() {
                                             {/* Luxury Header */}
                                             <div className="flex items-center gap-6">
                                                 <div className="relative shrink-0">
-                                                    <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 p-[1px] shadow-lg shadow-blue-500/20">
+                                                    <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-orange-500 to-amber-600 p-[1px] shadow-lg shadow-orange-500/20">
                                                         <div className="w-full h-full rounded-[23px] bg-white dark:bg-[#020617] flex items-center justify-center relative overflow-hidden">
-                                                            <Cookie className="w-8 h-8 text-blue-600 dark:text-blue-400 relative z-10" />
+                                                            <Cookie className="w-8 h-8 text-orange-600 dark:text-orange-400 relative z-10" />
                                                             <motion.div
                                                                 animate={{ rotate: 360 }}
                                                                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                                                                className="absolute inset-0 bg-gradient-to-tr from-transparent via-blue-500/5 to-transparent"
+                                                                className="absolute inset-0 bg-gradient-to-tr from-transparent via-orange-500/5 to-transparent"
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="absolute -top-2 -right-2 bg-white dark:bg-[#020617] p-1 rounded-full border border-blue-500/20 shadow-sm">
+                                                    <div className="absolute -top-2 -right-2 bg-white dark:bg-[#020617] p-1 rounded-full border border-orange-500/20 shadow-sm">
                                                         <Sparkles size={14} className="text-yellow-500" />
                                                     </div>
                                                 </div>
                                                 <div>
                                                     <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-                                                        Gizliliğiniz <span className="text-blue-600 dark:text-blue-400 underline decoration-blue-500/30 underline-offset-4">Önemli</span>
+                                                        Gizliliğiniz <span className="text-orange-600 dark:text-orange-400 underline decoration-orange-500/30 underline-offset-4">Önemli</span>
                                                     </h3>
                                                     <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed max-w-[280px]">
                                                         Size özel bir e-ticaret deneyimi sunmak için akıllı çerezler kullanıyoruz.
@@ -133,11 +133,10 @@ export default function CookieBanner() {
                                                 onClick={handleAcceptAll}
                                                 className="w-full relative group/btn h-14"
                                             >
-                                                <div className="absolute inset-0 bg-blue-600 rounded-2xl blur-md opacity-20 group-hover/btn:opacity-40 transition-opacity" />
-                                                <div className="relative h-full w-full bg-slate-900 dark:bg-white rounded-2xl flex items-center justify-center gap-3 active:scale-[0.98] transition-transform overflow-hidden">
-                                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover/btn:opacity-100 transition-opacity" />
-                                                    <Check size={20} className="text-white dark:text-slate-900 relative z-10" />
-                                                    <span className="text-white dark:text-slate-900 font-black tracking-tight relative z-10">Tümünü Kabul Et ve Başla</span>
+                                                <div className="absolute inset-0 bg-orange-600 rounded-2xl blur-md opacity-20 group-hover/btn:opacity-40 transition-opacity" />
+                                                <div className="relative h-full w-full bg-orange-600 hover:bg-orange-500 rounded-2xl flex items-center justify-center gap-3 active:scale-[0.98] transition-colors overflow-hidden">
+                                                    <Check size={20} className="text-white relative z-10" />
+                                                    <span className="text-white font-black tracking-tight relative z-10">Tümünü Kabul Et ve Başla</span>
 
                                                     {/* Shine Effect */}
                                                     <motion.div
@@ -154,7 +153,7 @@ export default function CookieBanner() {
                                                     onClick={() => setShowSettings(true)}
                                                     className="flex-1 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold text-xs uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2"
                                                 >
-                                                    <Settings size={16} className="text-blue-500" />
+                                                    <Settings size={16} className="text-orange-500" />
                                                     Ayarlar
                                                 </button>
                                                 <Link
@@ -177,7 +176,7 @@ export default function CookieBanner() {
                                             <div className="flex items-center justify-between">
                                                 <button
                                                     onClick={() => setShowSettings(false)}
-                                                    className="text-sm font-black text-blue-600 dark:text-blue-400 flex items-center gap-2 hover:translate-x-[-4px] transition-transform"
+                                                    className="text-sm font-black text-orange-600 dark:text-orange-400 flex items-center gap-2 hover:translate-x-[-4px] transition-transform"
                                                 >
                                                     <ChevronRight size={18} className="rotate-180" />
                                                     Geri
@@ -214,7 +213,7 @@ export default function CookieBanner() {
 
                                             <button
                                                 onClick={handleAcceptSelected}
-                                                className="w-full h-14 bg-blue-600 text-white rounded-2xl font-black text-sm hover:shadow-xl hover:shadow-blue-500/30 active:scale-[0.98] transition-all"
+                                                className="w-full h-14 bg-orange-600 hover:bg-orange-500 text-white rounded-2xl font-black text-sm hover:shadow-xl hover:shadow-orange-500/30 active:scale-[0.98] transition-all"
                                             >
                                                 Tercihlerimi Kaydet
                                             </button>
@@ -224,7 +223,7 @@ export default function CookieBanner() {
                             </div>
 
                             {/* Decorative Bottom Glow */}
-                            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-orange-500/20 to-transparent" />
                         </div>
                     </div>
                 </motion.div>
@@ -235,16 +234,16 @@ export default function CookieBanner() {
 
 function PremiumOption({ icon: Icon, label, desc, checked, onChange, disabled, color }: any) {
     const colors: any = {
-        blue: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
+        blue: 'text-orange-500 bg-orange-500/10 border-orange-500/20',
         purple: 'text-purple-500 bg-purple-500/10 border-purple-500/20',
-        indigo: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20',
+        indigo: 'text-orange-500 bg-orange-500/10 border-orange-500/20',
     };
 
     return (
         <div
             onClick={!disabled ? onChange : undefined}
             className={`flex items-center gap-4 p-4 rounded-2xl border transition-all cursor-pointer ${checked
-                ? 'bg-white dark:bg-white/5 border-blue-500/30 shadow-sm'
+                ? 'bg-white dark:bg-white/5 border-orange-500/30 shadow-sm'
                 : 'bg-slate-50/50 dark:bg-transparent border-transparent hover:bg-slate-100 dark:hover:bg-white/[0.02]'
                 }`}
         >
@@ -259,7 +258,7 @@ function PremiumOption({ icon: Icon, label, desc, checked, onChange, disabled, c
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{desc}</p>
             </div>
             {!disabled && (
-                <div className={`w-10 h-6 rounded-full p-1 transition-colors duration-500 ${checked ? 'bg-blue-600' : 'bg-slate-300 dark:bg-white/10'}`}>
+                <div className={`w-10 h-6 rounded-full p-1 transition-colors duration-500 ${checked ? 'bg-orange-600' : 'bg-slate-300 dark:bg-white/10'}`}>
                     <motion.div
                         animate={{ x: checked ? 16 : 0 }}
                         transition={{ type: "spring", damping: 20, stiffness: 400 }}

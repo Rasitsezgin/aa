@@ -70,10 +70,10 @@ export function TestimonialsSection({
               transition={{ delay: index * 0.1 }}
               className="bg-white rounded-2xl p-8 shadow-sm"
             >
-              <Quote size={32} className="text-blue-200 mb-4" />
+              <Quote size={32} className="text-orange-200 mb-4" />
               <p className="text-slate-700 mb-6 leading-relaxed">{testimonial.quote}</p>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
                   {testimonial.author?.charAt(0)}
                 </div>
                 <div>

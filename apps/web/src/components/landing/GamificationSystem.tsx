@@ -89,7 +89,7 @@ export const GamificationSystem = ({ features }: GamificationSystemProps) => {
             unlocked: false,
             progress: 0,
             maxProgress: 1,
-            color: 'from-blue-500 to-cyan-500',
+            color: 'from-orange-500 to-amber-500',
             category: 'Başlangıç'
         },
         {
@@ -156,7 +156,7 @@ export const GamificationSystem = ({ features }: GamificationSystemProps) => {
 
     const ranks = [
         { level: 1, name: 'Yeni Başlayan', icon: Star, color: 'from-gray-500 to-slate-500' },
-        { level: 2, name: 'Öğrenci', icon: Award, color: 'from-blue-500 to-cyan-500' },
+        { level: 2, name: 'Öğrenci', icon: Award, color: 'from-orange-500 to-amber-500' },
         { level: 3, name: 'Uzman', icon: Trophy, color: 'from-purple-500 to-pink-500' },
         { level: 4, name: 'Usta', icon: Medal, color: 'from-amber-500 to-orange-500' },
         { level: 5, name: 'Efsane', icon: Crown, color: 'from-red-500 to-rose-500' }
@@ -233,7 +233,7 @@ export const GamificationSystem = ({ features }: GamificationSystemProps) => {
             <div className="p-6 space-y-6">
                 {/* User Progress */}
                 {showProgress && (
-                    <div className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 rounded-2xl border border-indigo-200 dark:border-indigo-800/50">
+                    <div className="p-6 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 rounded-2xl border border-orange-200 dark:border-orange-800/50">
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
                                 <div className={`w-12 h-12 bg-gradient-to-r ${currentRank?.color} rounded-xl flex items-center justify-center`}>
@@ -280,7 +280,7 @@ export const GamificationSystem = ({ features }: GamificationSystemProps) => {
                                 <div className="text-xs text-slate-500">Rozet</div>
                             </div>
                             <div className="text-center">
-                                <div className="text-lg font-bold text-blue-600">
+                                <div className="text-lg font-bold text-orange-600">
                                     {userProgress.completedTasks}/{userProgress.totalTasks}
                                 </div>
                                 <div className="text-xs text-slate-500">Görev</div>

@@ -25,7 +25,7 @@ const categories = [
         label: 'Genel', 
         icon: Sparkles,
         color: 'blue',
-        gradient: 'from-blue-500 to-cyan-500',
+        gradient: 'from-orange-500 to-amber-500',
         description: 'Platform hakkında genel bilgiler'
     },
     { 
@@ -65,7 +65,7 @@ const categories = [
         label: 'Destek', 
         icon: Headphones,
         color: 'indigo',
-        gradient: 'from-indigo-500 to-violet-500',
+        gradient: 'from-amber-500 to-violet-500',
         description: 'Yardım ve müşteri desteği'
     },
 ];
@@ -689,13 +689,13 @@ export default function FAQPage() {
                     viewport={{ once: true }}
                     className="mt-20 grid md:grid-cols-3 gap-6"
                 >
-                    <Link href="/destek" className="group p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 hover:shadow-xl transition-all">
-                        <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center mb-4">
-                            <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    <Link href="/destek" className="group p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border border-orange-200 dark:border-orange-800 hover:shadow-xl transition-all">
+                        <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center mb-4">
+                            <BookOpen className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                         </div>
-                        <h3 className="font-bold text-slate-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Yardım Merkezi</h3>
+                        <h3 className="font-bold text-slate-900 dark:text-white mb-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">Yardım Merkezi</h3>
                         <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">Detaylı rehberler ve dokümantasyon</p>
-                        <span className="text-sm text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1">
+                        <span className="text-sm text-orange-600 dark:text-orange-400 font-medium flex items-center gap-1">
                             Keşfet <ArrowRight size={14} />
                         </span>
                     </Link>

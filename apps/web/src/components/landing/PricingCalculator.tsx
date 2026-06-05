@@ -82,7 +82,7 @@ export const PricingCalculator = ({ features }: PricingCalculatorProps) => {
             price: 299,
             features: ['Temel özellikler', '3 platform', '500 ürün'],
             limits: { products: 500, orders: 1000, users: 2, platforms: 3 },
-            color: 'from-blue-500 to-cyan-500',
+            color: 'from-orange-500 to-amber-500',
             icon: Rocket
         },
         {
@@ -345,9 +345,9 @@ export const PricingCalculator = ({ features }: PricingCalculatorProps) => {
                                     <div className="text-xs text-slate-500">Manuel yönetim</div>
                                 </div>
 
-                                <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border border-blue-200 dark:border-blue-800/50 rounded-xl">
+                                <div className="p-4 bg-gradient-to-br from-orange-50 to-cyan-50 dark:from-orange-950/20 dark:to-cyan-950/20 border border-orange-200 dark:border-orange-800/50 rounded-xl">
                                     <div className="text-sm text-slate-600 mb-1">Pazaryonetimi</div>
-                                    <div className="text-2xl font-black text-blue-600">
+                                    <div className="text-2xl font-black text-orange-600">
                                         {formatCurrency(currentPlan?.price || 0)}
                                     </div>
                                     <div className="text-xs text-slate-500">{currentPlan?.name} paketi</div>
@@ -393,8 +393,8 @@ export const PricingCalculator = ({ features }: PricingCalculatorProps) => {
                                             <Area
                                                 type="monotone"
                                                 dataKey="automated"
-                                                stroke="#3b82f6"
-                                                fill="#3b82f6"
+                                                stroke="#ea580c"
+                                                fill="#ea580c"
                                                 fillOpacity={0.3}
                                                 name="Pazaryonetimi"
                                             />

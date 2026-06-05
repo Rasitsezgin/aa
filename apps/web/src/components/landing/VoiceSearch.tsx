@@ -256,7 +256,7 @@ export const VoiceSearch = ({ features }: VoiceSearchProps) => {
             <div className="p-6 border-b border-border">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl">
+                        <div className="p-2 bg-gradient-to-r from-orange-500 to-purple-500 rounded-xl">
                             <Mic className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -478,12 +478,12 @@ export const VoiceSearch = ({ features }: VoiceSearchProps) => {
                 </div>
 
                 {/* Tips */}
-                <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-800/50">
+                <div className="p-4 bg-orange-50 dark:bg-orange-950/20 rounded-xl border border-orange-200 dark:border-orange-800/50">
                     <div className="flex items-start gap-3">
-                        <Sparkles className="w-5 h-5 text-blue-600 mt-0.5" />
+                        <Sparkles className="w-5 h-5 text-orange-600 mt-0.5" />
                         <div>
-                            <h4 className="text-sm font-bold text-blue-600 mb-1">Pro İpuçları</h4>
-                            <ul className="text-xs text-blue-600 space-y-1">
+                            <h4 className="text-sm font-bold text-orange-600 mb-1">Pro İpuçları</h4>
+                            <ul className="text-xs text-orange-600 space-y-1">
                                 <li>• Net ve komut cümleleri kullanın</li>
                                 <li>• Arka plan gürültüsünü azaltın</li>
                                 <li>• Mikrofon izni vermeniz gerekebilir</li>

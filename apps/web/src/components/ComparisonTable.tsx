@@ -25,18 +25,18 @@ export default function ComparisonTable() {
                     backgroundSize: '24px 24px'
                 }} />
                 {/* Ambient Glows */}
-                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-500/5 dark:bg-blue-500/10 blur-[150px] rounded-full" />
-                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-500/5 dark:bg-indigo-500/10 blur-[120px] rounded-full" />
+                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-orange-500/5 dark:bg-orange-500/10 blur-[150px] rounded-full" />
+                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-amber-500/5 dark:bg-amber-500/10 blur-[120px] rounded-full" />
             </div>
 
             <div className="container mx-auto px-4 sm:px-6 max-w-5xl relative z-10">
                 <div className="text-center mb-10 sm:mb-20">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-full mb-6">
-                        <ShieldCheck size={14} className="text-blue-600 dark:text-blue-400" />
-                        <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">GÜVEN VE FARK</span>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-full mb-6">
+                        <ShieldCheck size={14} className="text-orange-600 dark:text-orange-400" />
+                        <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-widest">GÜVEN VE FARK</span>
                     </div>
                     <h2 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight mb-4 sm:mb-6 text-slate-900 dark:text-white">
-                        Neden <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">Pazaryonetimi?</span>
+                        Neden <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600 dark:from-orange-400 dark:to-amber-400">Pazaryonetimi?</span>
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-lg max-w-xl mx-auto">
                         Standart yazılımlar sadece rapor sunar. Biz operasyonunuzun her adımını yapay zeka ile otomatikleştiririz.
@@ -49,7 +49,7 @@ export default function ComparisonTable() {
                         <thead>
                             <tr className="bg-slate-50/80 dark:bg-white/[0.03] border-b border-slate-200 dark:border-white/10">
                                 <th className="p-4 md:p-8 text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Özellikler</th>
-                                <th className="p-4 md:p-8 text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tighter bg-blue-50/30 dark:bg-blue-500/[0.02]">Pazaryonetimi</th>
+                                <th className="p-4 md:p-8 text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tighter bg-orange-50/30 dark:bg-orange-500/[0.02]">Pazaryonetimi</th>
                                 <th className="p-4 md:p-8 text-sm font-bold text-slate-400 dark:text-slate-500">Standart Yazılımlar</th>
                             </tr>
                         </thead>
@@ -63,11 +63,11 @@ export default function ComparisonTable() {
                                     className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors group"
                                 >
                                     <td className="p-4 md:p-8">
-                                        <div className="text-slate-700 dark:text-white font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{feature.name}</div>
+                                        <div className="text-slate-700 dark:text-white font-medium group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{feature.name}</div>
                                     </td>
-                                    <td className="p-4 md:p-8 bg-blue-50/20 dark:bg-blue-500/[0.01]">
+                                    <td className="p-4 md:p-8 bg-orange-50/20 dark:bg-orange-500/[0.01]">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
                                                 <Check size={14} strokeWidth={3} />
                                             </div>
                                             <span className="text-slate-900 dark:text-white font-bold">{feature.p}</span>
@@ -88,13 +88,13 @@ export default function ComparisonTable() {
                     {/* Footer for the table */}
                     <div className="p-4 sm:p-6 md:p-10 bg-slate-50/50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5 flex flex-col items-center justify-between gap-4 sm:gap-6 md:flex-row md:gap-8">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-xl shadow-blue-500/20">P</div>
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-600 to-amber-600 flex items-center justify-center text-white font-black text-xl shadow-xl shadow-orange-500/20">P</div>
                             <div>
                                 <div className="text-slate-900 dark:text-white font-bold italic">"Dünyanın en iyi e-ticaret altyapısı."</div>
                                 <div className="text-xs text-slate-500 uppercase font-bold tracking-widest mt-1">- TECH INSIDE REVIEW 2026</div>
                             </div>
                         </div>
-                        <button className="w-full sm:w-auto px-8 py-3.5 sm:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-black uppercase tracking-wider transition-all shadow-xl shadow-blue-500/20 hover:shadow-blue-500/30 hover:scale-105 text-sm sm:text-base">
+                        <button className="w-full sm:w-auto px-8 py-3.5 sm:py-4 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white rounded-2xl font-black uppercase tracking-wider transition-all shadow-xl shadow-orange-500/20 hover:shadow-orange-500/30 hover:scale-105 text-sm sm:text-base">
                             TESTE BAŞLA
                         </button>
                     </div>

@@ -38,7 +38,7 @@ export default function IntegrationDetailPage({ params }: { params: { slug: stri
         data = {
             name: genericName,
             category: 'Sistem Entegrasyonu',
-            color: 'from-indigo-500 to-purple-600',
+            color: 'from-amber-500 to-purple-600',
             desc: `${genericName} sistemini Pazaryönetimi altyapısına saniyeler içinde bağlayın. E-Ticaret operasyonlarınızdaki veri akışını tamamen dijitalleştirerek insan hatasını sıfıra indirin.`,
             benefits: ['Zaman Kaybına Son Veren Otomasyon', 'Verilerinizin %100 Güvenliği', 'Tek Panelden Tüm Süreç Yönetimi'],
             features: ['API ile Gerçek Zamanlı Haberleşme', 'Maliyet ve Kâr Optimizasyonu', 'Kolay Kurulum Sihirbazı']
@@ -130,7 +130,7 @@ export default function IntegrationDetailPage({ params }: { params: { slug: stri
                                 </div>
                             ))}
                             <div className="p-6 bg-slate-100 dark:bg-slate-800/50 rounded-2xl border border-transparent">
-                                <LayoutDashboard className="w-6 h-6 text-indigo-500 mb-4" />
+                                <LayoutDashboard className="w-6 h-6 text-orange-500 mb-4" />
                                 <h4 className="font-bold text-sm text-slate-900 dark:text-white">Tekil UI Kontrolü</h4>
                             </div>
                             <div className="p-6 bg-slate-100 dark:bg-slate-800/50 rounded-2xl border border-transparent">

@@ -1,12 +1,19 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { withSentryConfig } from '@sentry/nextjs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  outputFileTracingRoot: path.join(__dirname, '../..'),
   typescript: {
     ignoreBuildErrors: true,
   },
-  serverExternalPackages: ['@pazaryonetimi/database', 'pg', 'bcryptjs'],
+  // Workspace DB package must be transpiled (Turbopack forbids listing it in both lists).
+  transpilePackages: ['@pazaryonetimi/database'],
+  serverExternalPackages: ['@prisma/adapter-pg', 'pg', 'bcryptjs'],
   experimental: {
     // Package import optimization for better tree-shaking
     optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion'],

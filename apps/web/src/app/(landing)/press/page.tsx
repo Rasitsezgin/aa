@@ -35,7 +35,7 @@ const pressItems: PressItem[] = [
         date: '2024-01-15',
         link: '#',
         featured: true,
-        image: 'from-blue-500 to-indigo-600'
+        image: 'from-orange-500 to-amber-600'
     },
     {
         id: '2',

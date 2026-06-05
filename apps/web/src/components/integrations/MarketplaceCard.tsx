@@ -137,8 +137,8 @@ const StatusBadge: React.FC<{ status: IntegrationStatus['status'] }> = ({ status
       pulse: true,
     },
     syncing: {
-      bg: 'bg-blue-100 dark:bg-blue-900/30',
-      text: 'text-blue-700 dark:text-blue-400',
+      bg: 'bg-orange-100 dark:bg-orange-900/30',
+      text: 'text-orange-700 dark:text-orange-400',
       icon: <Loader2 className="w-3.5 h-3.5 animate-spin" />,
       label: 'Senkronize Ediliyor',
       pulse: true,
@@ -255,7 +255,7 @@ export const MarketplaceCard: React.FC<MarketplaceCardProps> = ({
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="mt-3 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg"
+              className="mt-3 px-4 py-2 bg-gradient-to-r from-purple-600 to-amber-600 text-white text-sm font-medium rounded-lg"
             >
               Planı Yükselt
             </motion.button>
@@ -525,7 +525,7 @@ export const MarketplaceCard: React.FC<MarketplaceCardProps> = ({
         {/* API & Auth Type Tags */}
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-xs font-medium">
+            <span className="px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded text-xs font-medium">
               {marketplace.apiType}
             </span>
             <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded text-xs font-medium">

@@ -220,9 +220,9 @@ export const Hero3D = ({ features }: Hero3DProps) => {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.8, type: "spring" }}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-xl border border-white/10 rounded-full mb-8"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500/20 to-purple-500/20 backdrop-blur-xl border border-white/10 rounded-full mb-8"
                     >
-                        <Sparkles className="w-4 h-4 text-blue-400" />
+                        <Sparkles className="w-4 h-4 text-orange-400" />
                         <span className="text-sm font-bold text-white">AI-Powered E-commerce Revolution</span>
                         <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                     </motion.div>
@@ -234,7 +234,7 @@ export const Hero3D = ({ features }: Hero3DProps) => {
                         transition={{ delay: 1, duration: 0.8 }}
                         className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-8 leading-tight"
                     >
-                        <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">
+                        <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-orange-300 bg-clip-text text-transparent">
                             Pazaryonetimi
                         </span>
                         <br />
@@ -255,7 +255,7 @@ export const Hero3D = ({ features }: Hero3DProps) => {
                         className="text-xl md:text-2xl text-white/60 mb-12 max-w-3xl mx-auto leading-relaxed"
                     >
                         Trendyol, Hepsiburada, Amazon, N11, Çiçeksepeti — tüm pazaryerlerinizi 
-                        <span className="text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text font-bold">
+                        <span className="text-transparent bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text font-bold">
                             {' '}tek platformdan{' '}
                         </span>
                         yönetin. AI destekli stok senkronizasyonu, akıllı fiyatlandırma ve satış tahminleri.
@@ -271,9 +271,9 @@ export const Hero3D = ({ features }: Hero3DProps) => {
                         <motion.button
                             whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)" }}
                             whileTap={{ scale: 0.95 }}
-                            className="group relative px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-2xl transition-all shadow-2xl shadow-blue-500/25 overflow-hidden"
+                            className="group relative px-8 py-4 bg-gradient-to-r from-orange-500 to-purple-600 text-white font-bold rounded-2xl transition-all shadow-2xl shadow-orange-500/25 overflow-hidden"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity" />
                             <div className="relative flex items-center gap-3">
                                 <Zap className="w-5 h-5" />
                                 <span>14 Gün Ücretsiz Dene</span>
@@ -305,7 +305,7 @@ export const Hero3D = ({ features }: Hero3DProps) => {
                             <span className="text-sm">1,247+ Aktif Satıcı</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 bg-blue-400 rounded-full" />
+                            <div className="w-4 h-4 bg-orange-400 rounded-full" />
                             <span className="text-sm">₺50M+ İşlem Hacmi</span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -325,7 +325,7 @@ export const Hero3D = ({ features }: Hero3DProps) => {
                             }}
                             className="pointer-events-none fixed z-50 hidden lg:block"
                         >
-                            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full opacity-50 blur-xl" />
+                            <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-purple-500 rounded-full opacity-50 blur-xl" />
                         </motion.div>
                     )}
                 </motion.div>
@@ -337,7 +337,7 @@ export const Hero3D = ({ features }: Hero3DProps) => {
                     <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                        className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full"
+                        className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full"
                     />
                 </div>
             )}

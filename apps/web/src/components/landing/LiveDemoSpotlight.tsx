@@ -117,7 +117,7 @@ export const LiveDemoSpotlight = ({ features }: LiveDemoSpotlightProps) => {
                         <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4">
                             <div className="text-sm text-slate-400 mb-2">Aktif Ürünler</div>
                             <div className="text-2xl font-bold text-white">1,247</div>
-                            <div className="text-xs text-blue-400 mt-1">+23 yeni</div>
+                            <div className="text-xs text-orange-400 mt-1">+23 yeni</div>
                         </div>
                         <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4">
                             <div className="text-sm text-slate-400 mb-2">Siparişler</div>
@@ -151,7 +151,7 @@ export const LiveDemoSpotlight = ({ features }: LiveDemoSpotlightProps) => {
                                 Yeni sipariş: #1234 - ₺2,340
                             </div>
                                 <div className="flex items-center gap-2 text-xs text-white/70">
-                                <div className="w-2 h-2 bg-blue-400 rounded-full" />
+                                <div className="w-2 h-2 bg-orange-400 rounded-full" />
                                 Stok güncellendi: iPhone 15 Pro
                             </div>
                             <div className="flex items-center gap-2 text-xs text-white/70">

@@ -29,11 +29,11 @@ export default function SolutionDetailView({ solution }: { solution: SolutionDat
             {/* ── Hero ── */}
             <section className="relative overflow-hidden">
                 <div className={`absolute inset-0 bg-gradient-to-br ${solution.gradient} opacity-[0.04] dark:opacity-[0.08]`} />
-                <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl" />
+                <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-gradient-to-br from-orange-400/10 to-amber-400/10 rounded-full blur-3xl" />
 
                 <div className="container mx-auto px-4 py-16 md:py-24 relative">
                     {/* Breadcrumb */}
-                    <Link href="/solutions" className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors mb-8">
+                    <Link href="/solutions" className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-colors mb-8">
                         <ArrowLeft size={14} />
                         Çözümlere Dön
                     </Link>

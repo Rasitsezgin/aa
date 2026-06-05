@@ -47,7 +47,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
   return (
     <article className="min-h-screen pt-28 pb-20 bg-white dark:bg-[#03060f]">
       <div className="container mx-auto px-6 max-w-4xl">
-        <Link href="/blog" className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-500 mb-8">
+        <Link href="/blog" className="inline-flex items-center gap-2 text-sm font-semibold text-orange-600 hover:text-orange-500 mb-8">
           <ArrowLeft size={16} /> Blog listesine don
         </Link>
 
