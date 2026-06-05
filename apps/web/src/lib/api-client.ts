@@ -685,6 +685,27 @@ class ApiClient {
     });
   }
 
+  async syncAllProducts() {
+    return this.request('/marketplace/sync-all', {
+      method: 'POST',
+      body: JSON.stringify({ tenantId: this.tenantId }),
+    });
+  }
+
+  async syncPlatformOrders(platform: string) {
+    return this.request(`/marketplace/sync-orders/${platform}`, {
+      method: 'POST',
+      body: JSON.stringify({ tenantId: this.tenantId }),
+    });
+  }
+
+  async syncAllOrders() {
+    return this.request('/marketplace/sync-all-orders', {
+      method: 'POST',
+      body: JSON.stringify({ tenantId: this.tenantId }),
+    });
+  }
+
   // Campaign Endpoints
   async getCampaigns(params: Record<string, string> = {}) {
     const query = this.addTenantParam(params);

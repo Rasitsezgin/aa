@@ -2,7 +2,11 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { PrismaService } from '../../../database/prisma.service';
-import { MarketplaceService } from '../../marketplace/marketplace.service';
+import {
+  MarketplaceService,
+  Platform,
+} from '../../marketplace/marketplace.service';
+import { supportsOrderSync } from '../../marketplace/marketplace-capabilities';
 
 @Processor('sync')
 export class SyncJobProcessor extends WorkerHost {
@@ -76,15 +80,13 @@ export class SyncJobProcessor extends WorkerHost {
     platform: string,
     integrationId: string,
   ) {
-    this.logger.log(`Stok senkronizasyonu: ${platform}`);
+    this.logger.log(`Ürün senkronizasyonu: ${platform}`);
 
     try {
-      const bridge = await this.marketplaceService.getBridgeForTenant(
+      const result = await this.marketplaceService.syncProductsForTenant(
         tenantId,
-        platform.toUpperCase() as any,
+        platform.toUpperCase() as Platform,
       );
-
-      const result = await bridge.syncProducts();
 
       await this.prisma.activityLog.create({
         data: {
@@ -98,7 +100,7 @@ export class SyncJobProcessor extends WorkerHost {
 
       return { platform, success: true, result };
     } catch (error) {
-      this.logger.error(`Stok senkronizasyonu hatası: ${error.message}`);
+      this.logger.error(`Ürün senkronizasyonu hatası: ${error.message}`);
       throw error;
     }
   }
@@ -110,13 +112,23 @@ export class SyncJobProcessor extends WorkerHost {
   ) {
     this.logger.log(`Sipariş senkronizasyonu: ${platform}`);
 
-    try {
-      const bridge = await this.marketplaceService.getBridgeForTenant(
-        tenantId,
-        platform.toUpperCase() as any,
+    const platformEnum = platform.toUpperCase() as Platform;
+    if (!supportsOrderSync(platformEnum)) {
+      this.logger.log(
+        `Sipariş senkronizasyonu atlandı (desteklenmiyor): ${platform}`,
       );
+      return {
+        platform,
+        success: true,
+        skipped: true,
+      };
+    }
 
-      const result = await bridge.syncOrders();
+    try {
+      const result = await this.marketplaceService.syncPlatformOrdersForTenant(
+        tenantId,
+        platformEnum,
+      );
 
       await this.prisma.activityLog.create({
         data: {
@@ -124,7 +136,13 @@ export class SyncJobProcessor extends WorkerHost {
           action: 'sync.orders.success',
           resource: 'integration',
           resourceId: integrationId,
-          details: { platform, orderCount: result?.orders?.length || 0 },
+          details: {
+            platform,
+            created: result.created,
+            updated: result.updated,
+            failed: result.failed,
+            total: result.total,
+          },
         },
       });
 
@@ -224,8 +242,7 @@ export class SyncJobProcessor extends WorkerHost {
       let errorMessage = null;
 
       try {
-        // Just try to sync a small amount to test connection
-        const testResult = await bridge.syncProducts();
+        await bridge.syncProducts();
         isHealthy = true;
       } catch (error) {
         isHealthy = false;
@@ -235,12 +252,27 @@ export class SyncJobProcessor extends WorkerHost {
         );
       }
 
-      // Update integration status
+      const integration = await this.prisma.integration.findUnique({
+        where: { id: integrationId },
+        select: { apiExtra: true },
+      });
+      const existingExtra =
+        integration?.apiExtra &&
+        typeof integration.apiExtra === 'object' &&
+        !Array.isArray(integration.apiExtra)
+          ? (integration.apiExtra as Record<string, unknown>)
+          : {};
+
       await this.prisma.integration.update({
         where: { id: integrationId },
         data: {
-          isActive: isHealthy,
           updatedAt: new Date(),
+          apiExtra: {
+            ...existingExtra,
+            lastHealthCheck: new Date().toISOString(),
+            lastHealthError: isHealthy ? null : errorMessage,
+            healthStatus: isHealthy ? 'healthy' : 'degraded',
+          },
         },
       });
 

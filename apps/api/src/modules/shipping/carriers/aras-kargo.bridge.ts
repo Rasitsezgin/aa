@@ -1,4 +1,5 @@
-import { Logger } from '@nestjs/common';
+import { BadRequestException, Logger } from '@nestjs/common';
+import { isSimulationAllowed } from '../../../common/simulation.util';
 import {
   CarrierBridge,
   ShipmentRequest,
@@ -30,7 +31,18 @@ export class ArasKargoBridge implements CarrierBridge {
       config.apiPassword || process.env.ARAS_API_PASSWORD || '';
   }
 
+  private assertShippingSimulationAllowed(): void {
+    const hasCredentials = Boolean(this.apiUrl && this.apiUser && this.apiPassword);
+    if (!hasCredentials && !isSimulationAllowed('ALLOW_SIMULATED_SHIPPING')) {
+      throw new BadRequestException(
+        'Aras Kargo API bilgileri yapılandırılmamış. Tenant credentials veya ALLOW_SIMULATED_SHIPPING=true gerekir.',
+      );
+    }
+  }
+
   async createShipment(request: ShipmentRequest): Promise<ShipmentResponse> {
+    this.assertShippingSimulationAllowed();
+
     this.logger.log(`Aras Kargo gönderi oluşturuluyor: ${request.receiverAddress.city}`);
 
     // Aras Kargo SOAP XML Yapısı (Simüle/Hazırlık)
@@ -63,6 +75,8 @@ export class ArasKargoBridge implements CarrierBridge {
   }
 
   async trackShipment(trackingNumber: string): Promise<TrackingResult> {
+    this.assertShippingSimulationAllowed();
+
     this.logger.log(`Aras Kargo takip sorgusu: ${trackingNumber}`);
 
     // TODO: Gerçek Aras Kargo API çağrısı

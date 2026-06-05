@@ -112,9 +112,19 @@ export class N11Bridge implements MarketplaceBridge {
         throw new Error(`HTTP ${response.status}`);
       }
 
-      throw new Error(
-        'N11 sipariş ayrıştırma henüz uygulanmadı; boş başarı çıktısı devre dışı bırakıldı',
-      );
+      const text = await response.text();
+      const apiError = this.parseSoapResultError(text);
+      if (apiError) {
+        throw new Error(apiError);
+      }
+
+      const orders = this.parseOrderListResponse(text);
+      return {
+        success: true,
+        platform: 'N11',
+        count: orders.length,
+        orders,
+      };
     } catch (error) {
       this.logger.warn(`N11 syncOrders error: ${(error as Error).message}`);
       return {
@@ -463,6 +473,150 @@ export class N11Bridge implements MarketplaceBridge {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&apos;');
+  }
+
+  private parseSoapResultError(xml: string): string | null {
+    const status = this.getXmlValue(xml, 'status').toLowerCase();
+    if (status && status !== 'success') {
+      const errorMessage = this.getXmlValue(xml, 'errorMessage');
+      const errorCode = this.getXmlValue(xml, 'errorCode');
+      return (
+        errorMessage ||
+        (errorCode ? `N11 API hatası: ${errorCode}` : 'N11 API isteği başarısız')
+      );
+    }
+    return null;
+  }
+
+  private parseOrderListResponse(xml: string): Record<string, unknown>[] {
+    const orders: Record<string, unknown>[] = [];
+    const orderBlocks = xml.match(/<order>([\s\S]*?)<\/order>/g) || [];
+
+    for (const block of orderBlocks) {
+      const buyerBlock = this.getXmlBlock(block, 'buyer');
+      const shippingBlock =
+        this.getXmlBlock(block, 'shippingAddress') ||
+        this.getXmlBlock(block, 'shipmentAddress');
+      const billingBlock = this.getXmlBlock(block, 'billingAddress');
+
+      const orderNumber =
+        this.getXmlValue(block, 'orderNumber') || this.getXmlValue(block, 'id');
+      if (!orderNumber) continue;
+
+      const createDate = this.getXmlValue(block, 'createDate');
+      const totalAmount = Number(
+        this.getXmlValue(block, 'totalAmount') ||
+          this.getXmlValue(block, 'dueAmount') ||
+          0,
+      );
+
+      orders.push({
+        orderNumber,
+        orderId: this.getXmlValue(block, 'id'),
+        status: this.mapN11OrderStatus(this.getXmlValue(block, 'status')),
+        customerName: this.getXmlValue(buyerBlock, 'fullName'),
+        customerEmail: this.getXmlValue(buyerBlock, 'email'),
+        customerPhone: this.getXmlValue(buyerBlock, 'gsm'),
+        shippingAddress: this.formatAddressBlock(shippingBlock),
+        billingAddress: this.formatAddressBlock(billingBlock),
+        totalPrice: totalAmount,
+        totalAmount,
+        paymentStatus: 'PAID',
+        orderDate: this.parseN11Date(createDate),
+        trackingNumber: this.getXmlValue(block, 'shipmentCode'),
+        currency: 'TRY',
+      });
+    }
+
+    return orders;
+  }
+
+  private mapN11OrderStatus(status: string): string {
+    const normalized = status.trim().toLowerCase();
+    const numericStatus = Number(normalized);
+
+    if (
+      normalized.includes('ship') ||
+      normalized.includes('kargo') ||
+      numericStatus === 4
+    ) {
+      return 'SHIPPED';
+    }
+    if (
+      normalized.includes('deliver') ||
+      normalized.includes('complete') ||
+      normalized.includes('teslim') ||
+      numericStatus === 5 ||
+      numericStatus === 6
+    ) {
+      return 'DELIVERED';
+    }
+    if (
+      normalized.includes('cancel') ||
+      normalized.includes('reject') ||
+      normalized.includes('iptal') ||
+      numericStatus === 3
+    ) {
+      return 'CANCELLED';
+    }
+    if (
+      normalized.includes('approve') ||
+      normalized.includes('new') ||
+      normalized.includes('onay') ||
+      numericStatus === 1 ||
+      numericStatus === 2
+    ) {
+      return 'CONFIRMED';
+    }
+
+    return 'PENDING';
+  }
+
+  private formatAddressBlock(block: string): string {
+    if (!block) return '';
+    const parts = [
+      this.getXmlValue(block, 'fullAddress'),
+      this.getXmlValue(block, 'address'),
+      this.getXmlValue(block, 'neighborhood'),
+      this.getXmlValue(block, 'district'),
+      this.getXmlValue(block, 'city'),
+      this.getXmlValue(block, 'postalCode'),
+    ].filter(Boolean);
+    return parts.join(', ');
+  }
+
+  private parseN11Date(value: string): string {
+    if (!value) return new Date().toISOString();
+    const slashMatch = value.match(
+      /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?$/,
+    );
+    if (slashMatch) {
+      const [, day, month, year, hour = '0', minute = '0'] = slashMatch;
+      const parsed = new Date(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        Number(hour),
+        Number(minute),
+      );
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toISOString();
+      }
+    }
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime())
+      ? new Date().toISOString()
+      : parsed.toISOString();
+  }
+
+  private getXmlValue(block: string, tag: string): string {
+    const match = block.match(new RegExp(`<${tag}>([^<]*)</${tag}>`));
+    return match ? match[1].trim() : '';
+  }
+
+  private getXmlBlock(block: string, tag: string): string {
+    const match = block.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`));
+    return match ? match[1] : '';
   }
 
   private parseProductListResponse(xml: string): N11Product[] {

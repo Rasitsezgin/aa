@@ -48,17 +48,15 @@ export class MarketplaceController {
       queryTenantId,
       body?.tenantId,
     );
-    const bridge = await this.marketplaceService.getBridgeForTenant(
+    return this.marketplaceService.syncProductsForTenant(
       tenantId,
       platform.toUpperCase() as Platform,
     );
-    return bridge.syncProducts();
   }
 
-  @Post('sync-store/:storeId')
-  async syncStore(
+  @Post('sync-all-orders')
+  async syncAllOrders(
     @Headers('x-tenant-id') headerTenantId: string,
-    @Param('storeId') storeId: string,
     @Query('tenantId') queryTenantId?: string,
     @Body() body?: { tenantId?: string },
   ) {
@@ -67,7 +65,26 @@ export class MarketplaceController {
       queryTenantId,
       body?.tenantId,
     );
-    return this.marketplaceService.syncIntegrationByStoreId(tenantId, storeId);
+    return this.marketplaceService.syncAllOrdersForTenant(tenantId);
+  }
+
+  @Post('sync-store/:storeId')
+  async syncStore(
+    @Headers('x-tenant-id') headerTenantId: string,
+    @Param('storeId') storeId: string,
+    @Query('tenantId') queryTenantId?: string,
+    @Body() body?: { tenantId?: string; syncType?: string },
+  ) {
+    const tenantId = this.resolveTenantId(
+      headerTenantId,
+      queryTenantId,
+      body?.tenantId,
+    );
+    return this.marketplaceService.syncIntegrationByStoreId(
+      tenantId,
+      storeId,
+      body?.syncType ?? 'all',
+    );
   }
 
   @Post('sync-orders/:platform')

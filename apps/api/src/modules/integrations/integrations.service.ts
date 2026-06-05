@@ -49,23 +49,33 @@ export interface ConnectionTestResult {
 const PLATFORM_MAP: Record<string, Platform> = {
   trendyol: 'TRENDYOL',
   hepsiburada: 'HEPSIBURADA',
+  n11: 'N11',
+  ciceksepeti: 'CICEKSEPETI',
   'amazon-tr': 'AMAZON',
   'amazon-us': 'AMAZON',
   'amazon-de': 'AMAZON',
   'amazon-uk': 'AMAZON',
-  n11: 'N11',
-} as const;
+  'ebay-us': 'EBAY',
+  'ebay-uk': 'EBAY',
+  'ebay-de': 'EBAY',
+  'aliexpress': 'ALIEXPRESS',
+  alibaba: 'ALIBABA',
+  'shopee-sg': 'SHOPEE',
+  'lazada-sg': 'LAZADA',
+  'rakuten-jp': 'RAKUTEN',
+  zalando: 'ZALANDO',
+  allegro: 'ALLEGRO',
+  'bol-com': 'BOL',
+  cdiscount: 'CDISCOUNT',
+  otto: 'OTTO',
+  'mercadolibre-mx': 'MERCADOLIBRE',
+  'mercadolibre-br': 'MERCADOLIBRE',
+  'walmart-us': 'WALMART',
+  etsy: 'ETSY',
+  wayfair: 'WAYFAIR',
+};
 
-// Desteklenen platformlar
-const SUPPORTED_PLATFORMS = [
-  'trendyol',
-  'hepsiburada',
-  'amazon-tr',
-  'amazon-us',
-  'amazon-de',
-  'amazon-uk',
-  'n11',
-];
+const SUPPORTED_PLATFORMS = Object.keys(PLATFORM_MAP);
 
 function getPlatformEnum(marketplaceId: string): Platform | null {
   return PLATFORM_MAP[marketplaceId] || null;
@@ -448,6 +458,8 @@ export class IntegrationsService {
           return await this.testHepsiburadaConnection(credentials);
         case 'n11':
           return await this.testN11Connection(credentials);
+        case 'ciceksepeti':
+          return await this.testCiceksepetiConnection(credentials);
         case 'amazon-tr':
         case 'amazon-us':
         case 'amazon-uk':
@@ -474,77 +486,217 @@ export class IntegrationsService {
     }
   }
 
-  // Trendyol bağlantı testi
   private async testTrendyolConnection(
     credentials: Record<string, string>,
   ): Promise<ConnectionTestResult> {
-    // Gerçek implementasyonda Trendyol API'ye istek atılacak
-    if (credentials.supplierId && credentials.apiKey && credentials.apiSecret) {
+    const { supplierId, apiKey, apiSecret } = credentials;
+    if (!supplierId || !apiKey || !apiSecret) {
       return {
-        success: true,
-        message:
-          'Kimlik bilgileri format kontrolu tamamlandi. Gercek API testi desteklenmiyor.',
+        success: false,
+        message: 'Trendyol kimlik bilgileri eksik veya hatalı',
       };
     }
+
+    const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64');
+    const response = await fetch(
+      `https://api.trendyol.com/sapigw/suppliers/${encodeURIComponent(supplierId)}/products?page=0&size=1`,
+      {
+        headers: {
+          Authorization: `Basic ${auth}`,
+          Accept: 'application/json',
+          'User-Agent': 'PazarYonetimi/1.0',
+        },
+      },
+    );
+
+    if (response.ok) {
+      return {
+        success: true,
+        message: 'Trendyol API bağlantısı doğrulandı',
+      };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        success: false,
+        message: 'Trendyol API kimlik bilgileri geçersiz',
+      };
+    }
+
     return {
       success: false,
-      message: 'Trendyol kimlik bilgileri eksik veya hatalı',
+      message: `Trendyol API testi başarısız (HTTP ${response.status})`,
     };
   }
 
-  // Hepsiburada bağlantı testi
   private async testHepsiburadaConnection(
     credentials: Record<string, string>,
   ): Promise<ConnectionTestResult> {
-    if (
-      credentials.merchantId &&
-      credentials.apiKey &&
-      credentials.apiSecret
-    ) {
+    const { merchantId, apiKey } = credentials;
+    if (!merchantId || !apiKey) {
       return {
-        success: true,
-        message:
-          'Kimlik bilgileri format kontrolu tamamlandi. Gercek API testi desteklenmiyor.',
+        success: false,
+        message: 'Hepsiburada kimlik bilgileri eksik veya hatalı',
       };
     }
+
+    const endpoints = [
+      `https://listing-external-sit.hepsiburada.com/ListingExternalService/v1/Listings/merchantid/${encodeURIComponent(merchantId)}?page=1&size=1`,
+      `https://listing-external-sit.hepsiburada.com/ListingExternalService/v1/Listings?merchantId=${encodeURIComponent(merchantId)}&page=1&size=1`,
+    ];
+
+    for (const url of endpoints) {
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Basic ${apiKey}`,
+          Accept: 'application/json',
+          'User-Agent': 'PazarYonetimi/1.0',
+        },
+      });
+
+      if (response.ok) {
+        return {
+          success: true,
+          message: 'Hepsiburada API bağlantısı doğrulandı',
+        };
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        return {
+          success: false,
+          message: 'Hepsiburada API kimlik bilgileri geçersiz',
+        };
+      }
+    }
+
     return {
       success: false,
-      message: 'Hepsiburada kimlik bilgileri eksik veya hatalı',
+      message: 'Hepsiburada API testi başarısız',
     };
   }
 
-  // N11 bağlantı testi
   private async testN11Connection(
     credentials: Record<string, string>,
   ): Promise<ConnectionTestResult> {
-    if (credentials.apiKey && credentials.apiSecret) {
+    const { apiKey, apiSecret } = credentials;
+    if (!apiKey || !apiSecret) {
       return {
-        success: true,
-        message:
-          'Kimlik bilgileri format kontrolu tamamlandi. Gercek API testi desteklenmiyor.',
+        success: false,
+        message: 'N11 kimlik bilgileri eksik veya hatalı',
       };
     }
+
+    const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+  <soapenv:Header>
+    <sch:Authentication>
+      <appKey>${this.escapeXml(apiKey)}</appKey>
+      <appSecret>${this.escapeXml(apiSecret)}</appSecret>
+    </sch:Authentication>
+  </soapenv:Header>
+  <soapenv:Body>
+    <sch:GetProductListRequest>
+      <pagingData>
+        <currentPage>0</currentPage>
+        <pageSize>1</pageSize>
+      </pagingData>
+    </sch:GetProductListRequest>
+  </soapenv:Body>
+</soapenv:Envelope>`;
+
+    const response = await fetch('https://api.n11.com/ws/ProductService/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/xml; charset=utf-8', SOAPAction: '' },
+      body: soapBody,
+    });
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: `N11 API testi başarısız (HTTP ${response.status})`,
+      };
+    }
+
+    const text = await response.text();
+    const status = text.match(/<status>([^<]*)<\/status>/i)?.[1]?.toLowerCase();
+    if (status && status !== 'success') {
+      const errorMessage = text.match(/<errorMessage>([^<]*)<\/errorMessage>/i)?.[1];
+      return {
+        success: false,
+        message: errorMessage || 'N11 API kimlik bilgileri geçersiz',
+      };
+    }
+
     return {
-      success: false,
-      message: 'N11 kimlik bilgileri eksik veya hatalı',
+      success: true,
+      message: 'N11 API bağlantısı doğrulandı',
     };
   }
 
-  // Amazon bağlantı testi
+  private async testCiceksepetiConnection(
+    credentials: Record<string, string>,
+  ): Promise<ConnectionTestResult> {
+    const { apiKey } = credentials;
+    if (!apiKey) {
+      return {
+        success: false,
+        message: 'Çiçeksepeti API anahtarı eksik',
+      };
+    }
+
+    const response = await fetch('https://apis.ciceksepeti.com/api/v1/Products', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
+      body: JSON.stringify({ pageSize: 1, page: 1 }),
+    });
+
+    if (response.ok) {
+      return {
+        success: true,
+        message: 'Çiçeksepeti API bağlantısı doğrulandı',
+      };
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        success: false,
+        message: 'Çiçeksepeti API anahtarı geçersiz',
+      };
+    }
+
+    return {
+      success: false,
+      message: `Çiçeksepeti API testi başarısız (HTTP ${response.status})`,
+    };
+  }
+
   private async testAmazonConnection(
     credentials: Record<string, string>,
   ): Promise<ConnectionTestResult> {
-    if (credentials.apiKey && credentials.apiSecret) {
+    if (!credentials.apiKey || !credentials.apiSecret) {
       return {
-        success: true,
-        message:
-          'Kimlik bilgileri format kontrolu tamamlandi. Gercek API testi desteklenmiyor.',
+        success: false,
+        message: 'Amazon kimlik bilgileri eksik veya hatalı',
       };
     }
+
     return {
-      success: false,
-      message: 'Amazon kimlik bilgileri eksik veya hatalı',
+      success: true,
+      message:
+        'Kimlik bilgileri kaydedildi. Amazon sipariş/stok sync için SP-API entegrasyonu gereklidir.',
     };
+  }
+
+  private escapeXml(str: string): string {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
   }
 
   // Entegrasyonu devre dışı bırak

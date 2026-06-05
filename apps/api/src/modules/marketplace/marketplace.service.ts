@@ -40,6 +40,10 @@ import {
   MarketplaceAnalysisResponse,
   computeConfidenceFromSources,
 } from './analysis.types';
+import {
+  getOrderSyncSkipMessage,
+  supportsOrderSync,
+} from './marketplace-capabilities';
 
 export interface MarketplaceReview {
   externalId: string;
@@ -279,13 +283,11 @@ export class MarketplaceService {
     const results: any[] = [];
     for (const integration of integrations) {
       try {
-        const bridge = await this.getBridgeForTenant(
+        const res = await this.syncProductsForTenant(
           tenantId,
           integration.platform as unknown as Platform,
         );
-        const res = await bridge.syncProducts();
         results.push({
-          platform: integration.platform,
           integrationId: integration.id,
           ...res,
         });
@@ -301,7 +303,126 @@ export class MarketplaceService {
     return results;
   }
 
-  async syncIntegrationByStoreId(tenantId: string, storeId: string) {
+  async syncAllOrdersForTenant(tenantId: string) {
+    const integrations = await this.prisma.integration.findMany({
+      where: { tenantId, isActive: true },
+    });
+
+    const results: any[] = [];
+    for (const integration of integrations) {
+      const platform = integration.platform as unknown as Platform;
+      if (!supportsOrderSync(platform)) {
+        results.push({
+          integrationId: integration.id,
+          platform: integration.platform,
+          success: true,
+          skipped: true,
+          message: getOrderSyncSkipMessage(platform),
+          total: 0,
+          created: 0,
+          updated: 0,
+          failed: 0,
+        });
+        continue;
+      }
+
+      try {
+        const res = await this.syncPlatformOrdersForTenant(tenantId, platform);
+        results.push({
+          integrationId: integration.id,
+          ...res,
+        });
+      } catch (error) {
+        results.push({
+          platform: integration.platform,
+          integrationId: integration.id,
+          success: false,
+          error: (error as Error).message,
+        });
+      }
+    }
+    return results;
+  }
+
+  async syncProductsForTenant(tenantId: string, platform: Platform) {
+    if (!tenantId) {
+      throw new BadRequestException('tenantId zorunludur');
+    }
+
+    const bridge = await this.getBridgeForTenant(tenantId, platform);
+    const raw = await bridge.syncProducts();
+
+    if (raw && raw.success === false) {
+      throw new BadRequestException(
+        raw.error || `${platform} ürün senkronizasyonu başarısız`,
+      );
+    }
+
+    const products = this.extractProducts(raw);
+    let created = 0;
+    let updated = 0;
+    let failed = 0;
+
+    for (const source of products) {
+      try {
+        const normalized = this.normalizeProductForPersistence(
+          tenantId,
+          platform,
+          source,
+        );
+        const outcome = await this.persistMarketplaceProduct(normalized);
+        if (outcome === 'created') {
+          created += 1;
+        } else {
+          updated += 1;
+        }
+      } catch (error) {
+        failed += 1;
+        this.logger.warn(
+          `Product sync failed for platform=${platform}: ${(error as Error).message}`,
+        );
+      }
+    }
+
+    await this.prisma.integration.updateMany({
+      where: {
+        tenantId,
+        platform: platform as unknown as PrismaPlatform,
+        isActive: true,
+      },
+      data: { updatedAt: new Date() },
+    });
+
+    await this.prisma.activityLog.create({
+      data: {
+        tenantId,
+        action: 'marketplace.products.sync',
+        resource: 'product',
+        details: {
+          platform,
+          total: products.length,
+          created,
+          updated,
+          failed,
+        } as Prisma.InputJsonValue,
+      },
+    });
+
+    return {
+      success: true,
+      platform,
+      total: products.length,
+      created,
+      updated,
+      failed,
+    };
+  }
+
+  async syncIntegrationByStoreId(
+    tenantId: string,
+    storeId: string,
+    syncType: string = 'all',
+  ) {
     if (!tenantId || !storeId) {
       throw new BadRequestException('tenantId ve storeId zorunludur');
     }
@@ -318,15 +439,41 @@ export class MarketplaceService {
       throw new NotFoundException('Aktif mağaza entegrasyonu bulunamadı');
     }
 
-    const bridge = await this.getBridgeForTenant(
-      tenantId,
-      integration.platform as unknown as Platform,
-    );
-    const result = await bridge.syncProducts();
+    const platform = integration.platform as unknown as Platform;
+    const productResult = await this.syncProductsForTenant(tenantId, platform);
+
+    let orderResult: Record<string, unknown> | null = null;
+    if (syncType === 'all' || syncType === 'orders') {
+      if (!supportsOrderSync(platform)) {
+        orderResult = {
+          success: true,
+          skipped: true,
+          message: getOrderSyncSkipMessage(platform),
+          total: 0,
+          created: 0,
+          updated: 0,
+          failed: 0,
+        };
+      } else {
+      try {
+        orderResult = await this.syncPlatformOrdersForTenant(
+          tenantId,
+          platform,
+        );
+      } catch (error) {
+        orderResult = {
+          success: false,
+          error: (error as Error).message,
+        };
+      }
+      }
+    }
+
     return {
       integrationId: integration.id,
       platform: integration.platform,
-      ...result,
+      products: productResult,
+      orders: orderResult,
     };
   }
 
@@ -381,8 +528,28 @@ export class MarketplaceService {
       throw new BadRequestException('tenantId zorunludur');
     }
 
+    if (!supportsOrderSync(platform)) {
+      return {
+        success: true,
+        skipped: true,
+        platform,
+        message: getOrderSyncSkipMessage(platform),
+        total: 0,
+        created: 0,
+        updated: 0,
+        failed: 0,
+      };
+    }
+
     const bridge = await this.getBridgeForTenant(tenantId, platform);
     const raw = await bridge.syncOrders();
+
+    if (raw && raw.success === false) {
+      throw new BadRequestException(
+        raw.error || `${platform} sipariş senkronizasyonu başarısız`,
+      );
+    }
+
     const orders = this.extractOrders(raw);
 
     let created = 0;
@@ -1118,6 +1285,214 @@ export class MarketplaceService {
       );
       throw new InternalServerErrorException('Mağaza bağlantısı kesilemedi');
     }
+  }
+
+  private extractProducts(raw: any): Record<string, unknown>[] {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw as Record<string, unknown>[];
+    if (Array.isArray(raw.products))
+      return raw.products as Record<string, unknown>[];
+    if (Array.isArray(raw.content))
+      return raw.content as Record<string, unknown>[];
+    if (Array.isArray(raw.items)) return raw.items as Record<string, unknown>[];
+    return [];
+  }
+
+  private normalizeProductForPersistence(
+    tenantId: string,
+    platform: Platform,
+    source: Record<string, unknown>,
+  ) {
+    const marketplaceListingId = String(
+      source.productId ??
+        source.id ??
+        source.productMainId ??
+        source.listingId ??
+        source.marketplaceListingId ??
+        `LIST-${Date.now()}`,
+    );
+
+    const sku = String(
+      source.stockCode ??
+        source.sku ??
+        source.sellerStockCode ??
+        source.barcode ??
+        marketplaceListingId,
+    );
+
+    const barcode =
+      source.barcode !== undefined && source.barcode !== null
+        ? String(source.barcode)
+        : null;
+
+    const title = String(source.title ?? source.name ?? 'İsimsiz Ürün');
+    const price = this.toNumber(
+      source.salePrice ?? source.listPrice ?? source.price ?? 0,
+    );
+    const stock = Math.max(
+      0,
+      Math.floor(
+        this.toNumber(source.stockCount ?? source.quantity ?? source.stock ?? 0),
+      ),
+    );
+
+    const statusRaw = String(
+      source.listingStatus ?? source.status ?? source.approved ?? 'active',
+    ).toLowerCase();
+    let status = 'active';
+    if (
+      statusRaw === 'false' ||
+      statusRaw === 'draft' ||
+      statusRaw === '0' ||
+      statusRaw.includes('draft')
+    ) {
+      status = 'draft';
+    } else if (statusRaw.includes('pause') || statusRaw.includes('block')) {
+      status = 'paused';
+    }
+
+    const marketplaceStatus = String(
+      source.listingStatus ??
+        source.status ??
+        (stock > 0 ? 'ACTIVE' : 'OUT_OF_STOCK'),
+    ).toUpperCase();
+
+    return {
+      tenantId,
+      platform,
+      sku,
+      barcode,
+      title,
+      price,
+      stock,
+      brand: source.brand ? String(source.brand) : null,
+      category: source.categoryName
+        ? String(source.categoryName)
+        : source.category
+          ? String(source.category)
+          : null,
+      status,
+      marketplaceListingId,
+      marketplaceStatus,
+    };
+  }
+
+  private async persistMarketplaceProduct(
+    normalized: ReturnType<typeof this.normalizeProductForPersistence>,
+  ): Promise<'created' | 'updated'> {
+    const {
+      tenantId,
+      platform,
+      sku,
+      barcode,
+      title,
+      price,
+      stock,
+      brand,
+      category,
+      status,
+      marketplaceListingId,
+      marketplaceStatus,
+    } = normalized;
+
+    const existingProduct = await this.prisma.product.findFirst({
+      where: {
+        tenantId,
+        OR: [
+          { sku },
+          ...(barcode ? [{ barcode }] : []),
+          ...(marketplaceListingId
+            ? [
+                {
+                  marketplaceLinks: {
+                    some: {
+                      platform: platform as unknown as PrismaPlatform,
+                      marketplaceListingId,
+                    },
+                  },
+                },
+              ]
+            : []),
+        ],
+      },
+    });
+
+    let productId: string;
+    let isNew = false;
+
+    if (existingProduct) {
+      const updated = await this.prisma.product.update({
+        where: { id: existingProduct.id },
+        data: {
+          title,
+          price,
+          stock,
+          brand,
+          category,
+          status,
+          ...(barcode ? { barcode } : {}),
+          updatedAt: new Date(),
+        },
+      });
+      productId = updated.id;
+    } else {
+      const created = await this.prisma.product.create({
+        data: {
+          tenantId,
+          title,
+          sku,
+          barcode,
+          price,
+          stock,
+          brand,
+          category,
+          status,
+        },
+      });
+      productId = created.id;
+      isNew = true;
+    }
+
+    const existingLink = await this.prisma.marketplaceProduct.findFirst({
+      where: {
+        platform: platform as unknown as PrismaPlatform,
+        OR: [
+          { productId, platform: platform as unknown as PrismaPlatform },
+          {
+            marketplaceListingId,
+            platform: platform as unknown as PrismaPlatform,
+          },
+        ],
+      },
+    });
+
+    if (existingLink) {
+      await this.prisma.marketplaceProduct.update({
+        where: { id: existingLink.id },
+        data: {
+          productId,
+          marketplaceListingId,
+          status: marketplaceStatus,
+          stock,
+          price,
+          lastSyncAt: new Date(),
+        },
+      });
+    } else {
+      await this.prisma.marketplaceProduct.create({
+        data: {
+          productId,
+          marketplaceListingId,
+          platform: platform as unknown as PrismaPlatform,
+          status: marketplaceStatus,
+          stock,
+          price,
+          lastSyncAt: new Date(),
+        },
+      });
+    }
+
+    return isNew ? 'created' : 'updated';
   }
 
   private extractOrders(raw: any): Record<string, unknown>[] {

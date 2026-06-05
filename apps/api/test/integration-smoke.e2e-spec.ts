@@ -61,9 +61,33 @@ describe('Integration Smoke (e2e)', () => {
     getIntegrations: jest.fn().mockResolvedValue([]),
     connectStore: jest.fn().mockResolvedValue({ success: true }),
     disconnectStore: jest.fn().mockResolvedValue({ success: true }),
+    syncProductsForTenant: jest.fn().mockResolvedValue({
+      success: true,
+      platform: 'TRENDYOL',
+      total: 2,
+      created: 1,
+      updated: 1,
+      failed: 0,
+    }),
+    syncAllOrdersForTenant: jest.fn().mockResolvedValue([
+      {
+        integrationId: 'int-1',
+        platform: 'TRENDYOL',
+        success: true,
+        created: 1,
+        updated: 0,
+        failed: 0,
+      },
+    ]),
     syncPlatformOrdersForTenant: jest
       .fn()
       .mockResolvedValue({ success: true, created: 0, updated: 0, failed: 0 }),
+    syncIntegrationByStoreId: jest.fn().mockResolvedValue({
+      integrationId: 'store-1',
+      platform: 'TRENDYOL',
+      products: { success: true, total: 1, created: 1, updated: 0, failed: 0 },
+      orders: { success: true, created: 1, updated: 0, failed: 0 },
+    }),
     updateMarketplaceStock: jest.fn().mockResolvedValue({ success: true }),
     updateMarketplacePrice: jest.fn().mockResolvedValue({ success: true }),
     probeIntegrationContract: jest
@@ -169,10 +193,51 @@ describe('Integration Smoke (e2e)', () => {
   });
 
   it('POST /marketplace/sync-all smoke', async () => {
-    await request(app.getHttpServer())
+    const response = await request(app.getHttpServer())
       .post('/marketplace/sync-all')
       .set('x-tenant-id', 'tenant-1')
       .expect(201);
+
+    expect(marketplaceServiceMock.syncAllPlatformsForTenant).toHaveBeenCalled();
+    expect(response.body).toBeDefined();
+  });
+
+  it('POST /marketplace/sync-all-orders smoke', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/marketplace/sync-all-orders')
+      .set('x-tenant-id', 'tenant-1')
+      .expect(201);
+
+    expect(marketplaceServiceMock.syncAllOrdersForTenant).toHaveBeenCalledWith(
+      'tenant-1',
+    );
+    expect(Array.isArray(response.body)).toBe(true);
+  });
+
+  it('POST /marketplace/sync-store/:storeId smoke', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/marketplace/sync-store/store-1')
+      .set('x-tenant-id', 'tenant-1')
+      .send({ tenantId: 'tenant-1', syncType: 'all' })
+      .expect(201);
+
+    expect(marketplaceServiceMock.syncIntegrationByStoreId).toHaveBeenCalledWith(
+      'tenant-1',
+      'store-1',
+      'all',
+    );
+    expect(response.body).toHaveProperty('products');
+    expect(response.body).toHaveProperty('orders');
+  });
+
+  it('POST /marketplace/sync/:platform smoke', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/marketplace/sync/trendyol')
+      .set('x-tenant-id', 'tenant-1')
+      .expect(201);
+
+    expect(marketplaceServiceMock.syncProductsForTenant).toHaveBeenCalled();
+    expect(response.body).toHaveProperty('success', true);
   });
 
   it('POST /marketplace/disconnect/:storeId smoke', async () => {

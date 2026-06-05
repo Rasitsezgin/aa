@@ -108,7 +108,7 @@ export default function StoresPage() {
     const handleSync = useCallback(async (storeId: string) => {
         setSyncingStoreId(storeId);
         try {
-            await syncStore(storeId);
+            await syncStore(storeId, 'all');
             await fetchStores();
         } catch {
             // error handled by hook

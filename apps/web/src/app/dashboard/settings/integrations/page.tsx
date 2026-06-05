@@ -82,9 +82,9 @@ const MARKETPLACES: MarketplaceConfig[] = [
   {
     id: 'amazon-tr', name: 'Amazon Türkiye', slug: 'amazon-tr', logo: '/images/pazaryeri/Amazon.png',
     region: 'TURKEY', country: 'Türkiye', countryCode: 'TR', category: 'GENERAL',
-    description: "Amazon'un Türkiye operasyonu.", website: 'https://www.amazon.com.tr',
+    description: "Amazon TR — mağaza analizi desteklenir; sipariş/stok sync için SP-API entegrasyonu gereklidir.", website: 'https://www.amazon.com.tr',
     apiType: 'REST', authType: 'API_KEY', sandboxAvailable: true,
-    features: { productSync: true, orderSync: true, inventorySync: true, priceSync: true, shippingIntegration: true, returnManagement: true, analyticsApi: true, advertisingApi: true, fulfillmentService: true, multiWarehouse: true },
+    features: { productSync: true, orderSync: false, inventorySync: false, priceSync: false, shippingIntegration: true, returnManagement: true, analyticsApi: true, advertisingApi: true, fulfillmentService: true, multiWarehouse: true },
     requiredFields: [
       { key: 'apiKey', label: 'Seller URL/ID', type: 'text', required: true },
       { key: 'apiSecret', label: 'SP-API Token/Secret', type: 'password', required: true },
@@ -95,9 +95,9 @@ const MARKETPLACES: MarketplaceConfig[] = [
   {
     id: 'amazon-us', name: 'Amazon US', slug: 'amazon-us', logo: '/images/pazaryeri/Amazon.png',
     region: 'NORTH_AMERICA', country: 'Amerika', countryCode: 'US', category: 'GENERAL',
-    description: "Dünyanın en büyük e-ticaret platformu.", website: 'https://www.amazon.com',
+    description: "Amazon US — mağaza analizi desteklenir; sipariş/stok sync için SP-API entegrasyonu gereklidir.", website: 'https://www.amazon.com',
     apiType: 'REST', authType: 'OAUTH2', sandboxAvailable: true,
-    features: { productSync: true, orderSync: true, inventorySync: true, priceSync: true, shippingIntegration: true, returnManagement: true, analyticsApi: true, advertisingApi: true, fulfillmentService: true, multiWarehouse: true },
+    features: { productSync: true, orderSync: false, inventorySync: false, priceSync: false, shippingIntegration: true, returnManagement: true, analyticsApi: true, advertisingApi: true, fulfillmentService: true, multiWarehouse: true },
     requiredFields: [
       { key: 'sellerId', label: 'Seller ID', type: 'text', required: true },
       { key: 'refreshToken', label: 'Refresh Token', type: 'password', required: true },
@@ -463,9 +463,26 @@ export default function IntegrationsPage() {
   const handleSync = async (mp: MarketplaceConfig) => {
     setIsSyncing(true);
     try {
-      await fetch('/api/sync/products', { method: 'POST' });
-      await fetch('/api/sync/orders', { method: 'POST' });
-      await fetchActiveIntegrations(); // refresh last sync times
+      if (!tenantId) {
+        alert('Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapın.');
+        return;
+      }
+
+      const platformEnum = resolvePlatformEnum(mp.id);
+      const integration = activeIntegrations.find(
+        (i) => i.platform === platformEnum,
+      );
+
+      if (!integration) {
+        alert(`${mp.name} için aktif bir bağlantı bulunamadı.`);
+        return;
+      }
+
+      if (accessToken) apiClient.setAccessToken(accessToken);
+      apiClient.setTenantId(tenantId);
+
+      await apiClient.syncStore(integration.id, 'all');
+      await fetchActiveIntegrations();
       alert(`${mp.name} başarıyla senkronize edildi!`);
     } catch (error) {
       console.error("Sync error:", error);

@@ -8,6 +8,7 @@ import {
   CheckInstallmentDto,
 } from './dto/payment.dto';
 import { TenantCredentialsService } from '../tenant-credentials/tenant-credentials.service';
+import { isSimulationAllowed } from '../../common/simulation.util';
 
 /**
  * iyzico Ödeme Servisi (Çok Kiracılı)
@@ -24,6 +25,14 @@ export class PaymentsService {
     private readonly tenantCredentials: TenantCredentialsService,
   ) {}
 
+  private assertPaymentSimulationAllowed(): void {
+    if (!isSimulationAllowed('ALLOW_SIMULATED_PAYMENTS')) {
+      throw new BadRequestException(
+        'Ödeme işlemi production ortamında devre dışı. iyzico SDK entegrasyonu veya ALLOW_SIMULATED_PAYMENTS=true gerekir.',
+      );
+    }
+  }
+
   /** Tenant'ın ödeme entegrasyon bilgilerini getir */
   private async getPaymentConfig(tenantId: string) {
     const creds = await this.tenantCredentials.getDecryptedCredentials(
@@ -39,6 +48,8 @@ export class PaymentsService {
 
   /** Tek çekim ödeme */
   async createPayment(tenantId: string, dto: CreatePaymentDto) {
+    this.assertPaymentSimulationAllowed();
+
     // Sipariş kontrolü
     const order = await this.prisma.order.findFirst({
       where: { id: dto.orderId, tenantId },
@@ -118,6 +129,8 @@ export class PaymentsService {
 
   /** 3D Secure ödeme başlat */
   async create3DPayment(tenantId: string, dto: Create3DPaymentDto) {
+    this.assertPaymentSimulationAllowed();
+
     const order = await this.prisma.order.findFirst({
       where: { id: dto.orderId, tenantId },
     });
@@ -141,6 +154,8 @@ export class PaymentsService {
 
   /** 3D Secure callback işle */
   async handle3DCallback(tenantId: string, paymentId: string) {
+    this.assertPaymentSimulationAllowed();
+
     this.logger.log(`3D Secure callback: ${paymentId}`);
 
     // TODO: iyzipay SDK - threeDSAuth
@@ -155,6 +170,8 @@ export class PaymentsService {
 
   /** İade işlemi */
   async refundPayment(tenantId: string, dto: RefundPaymentDto) {
+    this.assertPaymentSimulationAllowed();
+
     const payment = await this.prisma.payment.findFirst({
       where: { transactionId: dto.paymentTransactionId, tenantId },
     });
@@ -221,6 +238,8 @@ export class PaymentsService {
 
   /** Taksit seçenekleri sorgula */
   async checkInstallments(dto: CheckInstallmentDto) {
+    this.assertPaymentSimulationAllowed();
+
     this.logger.log(
       `Taksit sorgusu: BIN ${dto.binNumber}, Tutar: ${dto.amount}`,
     );

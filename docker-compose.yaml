@@ -31,6 +31,9 @@ services:
       - REDIS_PORT=${REDIS_PORT:-6379}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - ALLOW_SIMULATED_PAYMENTS=${ALLOW_SIMULATED_PAYMENTS:-false}
+      - ALLOW_SIMULATED_SHIPPING=${ALLOW_SIMULATED_SHIPPING:-false}
       - NODE_ENV=production
     ports:
       - "3001:3001"
@@ -96,7 +99,10 @@ services:
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - ENABLE_SCHEDULER=true
+      - ALLOW_SIMULATED_PAYMENTS=${ALLOW_SIMULATED_PAYMENTS:-false}
+      - ALLOW_SIMULATED_SHIPPING=${ALLOW_SIMULATED_SHIPPING:-false}
     depends_on:
       postgres:
         condition: service_healthy
