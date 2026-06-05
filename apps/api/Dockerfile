@@ -41,7 +41,9 @@ RUN npm install --no-save napi-postinstall --ignore-scripts && \
 COPY --from=pruner /app/out/full/ .
 
 # Prisma client + database package build (dist/generated/client)
-RUN npm run db:generate && npm run build --workspace=@pazaryonetimi/database
+RUN npm run db:generate && npm run build --workspace=@pazaryonetimi/database && \
+    rm -rf node_modules/@prisma/client && \
+    cp -r packages/database/generated/client node_modules/@prisma/client
 
 # Build the project
 ENV NODE_OPTIONS="--max-old-space-size=3072"

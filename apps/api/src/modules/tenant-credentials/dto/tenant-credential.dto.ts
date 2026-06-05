@@ -1,5 +1,5 @@
 import { IsEnum, IsOptional, IsString, IsBoolean } from 'class-validator';
-import { ServiceType } from '@prisma/client';
+import { ServiceType } from '@pazaryonetimi/database';
 
 export class CreateServiceCredentialDto {
   @IsEnum(ServiceType)

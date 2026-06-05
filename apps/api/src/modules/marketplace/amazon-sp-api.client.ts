@@ -78,6 +78,10 @@ export class AmazonSpApiClient {
       },
     });
 
+    if (!this.client) {
+      throw new Error('Amazon SP-API client initialization failed');
+    }
+
     return this.client;
   }
 

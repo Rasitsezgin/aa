@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { Platform } from '@prisma/client';
+import { Platform } from '@pazaryonetimi/database';
 
 @Injectable()
 export class FinanceService {

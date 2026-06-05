@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { ServiceType } from '@prisma/client';
+import { ServiceType } from '@pazaryonetimi/database';
 import {
   CreatePaymentDto,
   Create3DPaymentDto,
@@ -348,7 +348,10 @@ export class PaymentsService {
     if (this.hasIyzicoCredentials(paymentConfig)) {
       const gateway = this.buildIyzicoGateway(paymentConfig);
       try {
-        const result = await gateway.retrieveInstallments(dto);
+        const result = (await gateway.retrieveInstallments(dto)) as {
+          status?: string;
+          errorMessage?: string;
+        };
         if (result.status === 'success') {
           return result;
         }

@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { ServiceType } from '@prisma/client';
+import { ServiceType } from '@pazaryonetimi/database';
 import {
   CarrierBridge,
   ShipmentRequest,

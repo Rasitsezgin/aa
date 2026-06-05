@@ -7,12 +7,9 @@ import {
   TrackingResult,
   ShippingRate,
 } from './carrier.interface';
-import {
-  ArasKargoClient,
-  ArasKargoClientConfig,
-} from './aras-kargo.client';
+import { ArasKargoClient } from './aras-kargo.client';
 
-export interface ArasKargoBridgeConfig extends ArasKargoClientConfig {
+export interface ArasKargoBridgeConfig {
   apiUrl?: string;
   apiUser?: string;
   apiPassword?: string;
@@ -54,8 +51,8 @@ export class ArasKargoBridge implements CarrierBridge {
   private getClient(): ArasKargoClient {
     return new ArasKargoClient({
       apiUrl: this.config.apiUrl,
-      apiUser: this.config.apiUser,
-      apiPassword: this.config.apiPassword,
+      apiUser: this.config.apiUser ?? '',
+      apiPassword: this.config.apiPassword ?? '',
       customerCode: this.config.customerCode,
     });
   }

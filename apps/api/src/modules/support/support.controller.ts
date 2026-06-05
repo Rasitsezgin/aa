@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
 import { SupportService } from './support.service';
-import { Platform } from '@prisma/client';
+import { Platform } from '@pazaryonetimi/database';
 
 @Controller('support')
 export class SupportController {

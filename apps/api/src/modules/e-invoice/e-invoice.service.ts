@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { ServiceType } from '@prisma/client';
+import { ServiceType } from '@pazaryonetimi/database';
 import { CreateEInvoiceDto, CancelEInvoiceDto } from './dto/e-invoice.dto';
 import { TenantCredentialsService } from '../tenant-credentials/tenant-credentials.service';
 import * as crypto from 'crypto';

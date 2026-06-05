@@ -18,7 +18,7 @@ import { AmazonBridge } from './amazon.bridge';
 import { HepsiburadaBridge } from './hepsiburada.bridge';
 import { N11Bridge } from './n11.bridge';
 import { CicekSepetiBridge } from './ciceksepeti.bridge';
-import { Platform as PrismaPlatform, Prisma } from '@prisma/client';
+import { Platform as PrismaPlatform, Prisma } from '@pazaryonetimi/database';
 import { EncryptionService } from '../../common/encryption.service';
 import { EbayBridge } from './ebay.bridge';
 import { AlibabaBridge } from './alibaba.bridge';
@@ -45,7 +45,7 @@ import {
   supportsOrderSync,
 } from './marketplace-capabilities';
 import { hasAmazonSpApiCredentials } from './amazon-sp-api.config';
-import { Integration } from '@prisma/client';
+import { Integration } from '@pazaryonetimi/database';
 
 export interface MarketplaceReview {
   externalId: string;

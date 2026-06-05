@@ -8,7 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { Platform } from '@prisma/client';
+import { Platform } from '@pazaryonetimi/database';
 import { MarketIntelligenceService } from './market-intelligence.service';
 import { PricingEngineService } from './pricing-engine.service';
 import { ForecastingService } from './forecasting.service';

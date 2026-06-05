@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@pazaryonetimi/database';
 import { PrismaService } from '../../database/prisma.service';
 
 interface ForecastEntry {

@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { createHmac } from 'crypto';
-import { Platform, Prisma } from '@prisma/client';
+import { Platform, Prisma } from '@pazaryonetimi/database';
 import { PrismaService } from '../../database/prisma.service';
 import { MarketplaceService } from '../marketplace/marketplace.service';
 

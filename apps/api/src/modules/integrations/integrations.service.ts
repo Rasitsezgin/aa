@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import type { Platform, Integration } from '@prisma/client';
+import type { Platform, Integration } from '@pazaryonetimi/database';
 import {
   ALL_MARKETPLACES,
   MarketplaceConfig,

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { EncryptionService } from '../../common/encryption.service';
-import { ServiceType } from '@prisma/client';
+import { ServiceType } from '@pazaryonetimi/database';
 import {
   CreateServiceCredentialDto,
   UpdateServiceCredentialDto,

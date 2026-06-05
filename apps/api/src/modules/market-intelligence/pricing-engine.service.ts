@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Platform, Prisma } from '@prisma/client';
+import { Platform, Prisma } from '@pazaryonetimi/database';
 import { PrismaService } from '../../database/prisma.service';
 
 interface PricingContext {

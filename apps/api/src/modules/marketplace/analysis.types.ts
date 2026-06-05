@@ -19,7 +19,10 @@ export interface AnalysisConfidence {
 }
 
 export interface AnalysisDataSources {
-  overall: AnalysisMetricSource | 'scraped+calculated';
+  overall:
+    | AnalysisMetricSource
+    | 'scraped+calculated'
+    | 'api+scraped+calculated';
   seoScore: AnalysisMetricSource;
   products: AnalysisMetricSource;
   metrics: Record<string, AnalysisMetricSource>;

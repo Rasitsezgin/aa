@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { AiModel, Prisma } from '@prisma/client';
+import { AiModel, Prisma } from '@pazaryonetimi/database';
 import {
   createCipheriv,
   createDecipheriv,

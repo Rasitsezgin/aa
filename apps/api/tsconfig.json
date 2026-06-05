@@ -14,6 +14,10 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@pazaryonetimi/database": ["../../packages/database/index.ts"],
+      "@pazaryonetimi/database/*": ["../../packages/database/*"]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,

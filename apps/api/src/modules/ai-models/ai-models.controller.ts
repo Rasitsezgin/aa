@@ -7,7 +7,7 @@ import {
   Body,
   Param,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@pazaryonetimi/database';
 import { AiModelsService } from './ai-models.service';
 import { AdvisorService, type AnalysisRequest } from './advisor.service';
 

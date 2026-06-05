@@ -14,18 +14,22 @@ import { AmazonSpApiClient } from './amazon-sp-api.client';
 @Injectable()
 export class AmazonBridge implements MarketplaceBridge {
   private readonly logger = new Logger(AmazonBridge.name);
-  private readonly spApiCredentials = parseAmazonSpApiCredentials({
-    apiKey: this.sellerId,
-    apiSecret: this.mwsAuthToken,
-    apiExtra: this.apiExtra,
-  });
+  private readonly spApiCredentials: ReturnType<
+    typeof parseAmazonSpApiCredentials
+  >;
 
   constructor(
     private readonly sellerId: string,
     private readonly mwsAuthToken: string,
     private readonly scrapingService: ScrapingService,
     private readonly apiExtra?: Record<string, unknown> | null,
-  ) {}
+  ) {
+    this.spApiCredentials = parseAmazonSpApiCredentials({
+      apiKey: this.sellerId,
+      apiSecret: this.mwsAuthToken,
+      apiExtra: this.apiExtra,
+    });
+  }
 
   private getSpApiClient(): AmazonSpApiClient | null {
     if (!this.spApiCredentials) {
