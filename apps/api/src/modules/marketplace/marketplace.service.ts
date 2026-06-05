@@ -44,6 +44,8 @@ import {
   getOrderSyncSkipMessage,
   supportsOrderSync,
 } from './marketplace-capabilities';
+import { hasAmazonSpApiCredentials } from './amazon-sp-api.config';
+import { Integration } from '@prisma/client';
 
 export interface MarketplaceReview {
   externalId: string;
@@ -106,10 +108,15 @@ export class MarketplaceService {
   async getBridgeForTenant(
     tenantId: string,
     platform: Platform,
+    integrationId?: string,
   ): Promise<MarketplaceBridge> {
-    const integration = await this.prisma.integration.findFirst({
-      where: { tenantId, platform: platform as any, isActive: true },
-    });
+    const integration = integrationId
+      ? await this.prisma.integration.findFirst({
+          where: { id: integrationId, tenantId, isActive: true },
+        })
+      : await this.prisma.integration.findFirst({
+          where: { tenantId, platform: platform as any, isActive: true },
+        });
 
     if (!integration) {
       throw new Error(
@@ -117,6 +124,11 @@ export class MarketplaceService {
       );
     }
 
+    return this.getBridgeForIntegration(integration);
+  }
+
+  private getBridgeForIntegration(integration: Integration): MarketplaceBridge {
+    const platform = integration.platform as unknown as Platform;
     const apiKey = this.encryption.decrypt(integration.apiKey);
     const apiSecret = this.encryption.decrypt(integration.apiSecret);
 
@@ -131,7 +143,12 @@ export class MarketplaceService {
           !!extra?.isTestMode,
         );
       case Platform.AMAZON:
-        return new AmazonBridge(apiKey, apiSecret, this.scrapingService);
+        return new AmazonBridge(
+          apiKey,
+          apiSecret,
+          this.scrapingService,
+          (integration.apiExtra as Record<string, unknown>) ?? {},
+        );
       case Platform.HEPSIBURADA:
         return new HepsiburadaBridge(
           apiKey,
@@ -311,7 +328,18 @@ export class MarketplaceService {
     const results: any[] = [];
     for (const integration of integrations) {
       const platform = integration.platform as unknown as Platform;
-      if (!supportsOrderSync(platform)) {
+      const apiKey = this.encryption.decrypt(integration.apiKey);
+      const apiSecret = this.encryption.decrypt(integration.apiSecret);
+      const spApiReady =
+        platform === Platform.AMAZON
+          ? hasAmazonSpApiCredentials({
+              apiKey,
+              apiSecret,
+              apiExtra: (integration.apiExtra as Record<string, unknown>) ?? {},
+            })
+          : undefined;
+
+      if (!supportsOrderSync(platform, { spApiReady })) {
         results.push({
           integrationId: integration.id,
           platform: integration.platform,
@@ -327,7 +355,11 @@ export class MarketplaceService {
       }
 
       try {
-        const res = await this.syncPlatformOrdersForTenant(tenantId, platform);
+        const res = await this.syncPlatformOrdersForTenant(
+          tenantId,
+          platform,
+          integration.id,
+        );
         results.push({
           integrationId: integration.id,
           ...res,
@@ -444,7 +476,18 @@ export class MarketplaceService {
 
     let orderResult: Record<string, unknown> | null = null;
     if (syncType === 'all' || syncType === 'orders') {
-      if (!supportsOrderSync(platform)) {
+      const apiKey = this.encryption.decrypt(integration.apiKey);
+      const apiSecret = this.encryption.decrypt(integration.apiSecret);
+      const spApiReady =
+        platform === Platform.AMAZON
+          ? hasAmazonSpApiCredentials({
+              apiKey,
+              apiSecret,
+              apiExtra: (integration.apiExtra as Record<string, unknown>) ?? {},
+            })
+          : undefined;
+
+      if (!supportsOrderSync(platform, { spApiReady })) {
         orderResult = {
           success: true,
           skipped: true,
@@ -455,17 +498,18 @@ export class MarketplaceService {
           failed: 0,
         };
       } else {
-      try {
-        orderResult = await this.syncPlatformOrdersForTenant(
-          tenantId,
-          platform,
-        );
-      } catch (error) {
-        orderResult = {
-          success: false,
-          error: (error as Error).message,
-        };
-      }
+        try {
+          orderResult = await this.syncPlatformOrdersForTenant(
+            tenantId,
+            platform,
+            integration.id,
+          );
+        } catch (error) {
+          orderResult = {
+            success: false,
+            error: (error as Error).message,
+          };
+        }
       }
     }
 
@@ -523,12 +567,39 @@ export class MarketplaceService {
     };
   }
 
-  async syncPlatformOrdersForTenant(tenantId: string, platform: Platform) {
+  async syncPlatformOrdersForTenant(
+    tenantId: string,
+    platform: Platform,
+    integrationId?: string,
+  ) {
     if (!tenantId) {
       throw new BadRequestException('tenantId zorunludur');
     }
 
-    if (!supportsOrderSync(platform)) {
+    const integration = integrationId
+      ? await this.prisma.integration.findFirst({
+          where: { id: integrationId, tenantId, isActive: true },
+        })
+      : await this.prisma.integration.findFirst({
+          where: { tenantId, platform: platform as any, isActive: true },
+        });
+
+    if (!integration) {
+      throw new NotFoundException('Aktif entegrasyon bulunamadı');
+    }
+
+    const apiKey = this.encryption.decrypt(integration.apiKey);
+    const apiSecret = this.encryption.decrypt(integration.apiSecret);
+    const spApiReady =
+      platform === Platform.AMAZON
+        ? hasAmazonSpApiCredentials({
+            apiKey,
+            apiSecret,
+            apiExtra: (integration.apiExtra as Record<string, unknown>) ?? {},
+          })
+        : undefined;
+
+    if (!supportsOrderSync(platform, { spApiReady })) {
       return {
         success: true,
         skipped: true,
@@ -541,7 +612,11 @@ export class MarketplaceService {
       };
     }
 
-    const bridge = await this.getBridgeForTenant(tenantId, platform);
+    const bridge = await this.getBridgeForTenant(
+      tenantId,
+      platform,
+      integration.id,
+    );
     const raw = await bridge.syncOrders();
 
     if (raw && raw.success === false) {

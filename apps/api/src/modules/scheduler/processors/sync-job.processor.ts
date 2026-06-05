@@ -7,6 +7,8 @@ import {
   Platform,
 } from '../../marketplace/marketplace.service';
 import { supportsOrderSync } from '../../marketplace/marketplace-capabilities';
+import { hasAmazonSpApiCredentials } from '../../marketplace/amazon-sp-api.config';
+import { EncryptionService } from '../../../common/encryption.service';
 
 @Processor('sync')
 export class SyncJobProcessor extends WorkerHost {
@@ -15,6 +17,7 @@ export class SyncJobProcessor extends WorkerHost {
   constructor(
     private prisma: PrismaService,
     private marketplaceService: MarketplaceService,
+    private encryption: EncryptionService,
   ) {
     super();
   }
@@ -113,7 +116,20 @@ export class SyncJobProcessor extends WorkerHost {
     this.logger.log(`Sipariş senkronizasyonu: ${platform}`);
 
     const platformEnum = platform.toUpperCase() as Platform;
-    if (!supportsOrderSync(platformEnum)) {
+    const integration = await this.prisma.integration.findFirst({
+      where: { id: integrationId, tenantId, isActive: true },
+    });
+
+    let spApiReady: boolean | undefined;
+    if (integration && platformEnum === Platform.AMAZON) {
+      spApiReady = hasAmazonSpApiCredentials({
+        apiKey: this.encryption.decrypt(integration.apiKey),
+        apiSecret: this.encryption.decrypt(integration.apiSecret),
+        apiExtra: (integration.apiExtra as Record<string, unknown>) ?? {},
+      });
+    }
+
+    if (!supportsOrderSync(platformEnum, { spApiReady })) {
       this.logger.log(
         `Sipariş senkronizasyonu atlandı (desteklenmiyor): ${platform}`,
       );
@@ -128,6 +144,7 @@ export class SyncJobProcessor extends WorkerHost {
       const result = await this.marketplaceService.syncPlatformOrdersForTenant(
         tenantId,
         platformEnum,
+        integrationId,
       );
 
       await this.prisma.activityLog.create({

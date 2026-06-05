@@ -11,8 +11,10 @@ describe('marketplace-capabilities', () => {
     expect(supportsOrderSync('CICEKSEPETI')).toBe(true);
   });
 
-  it('does not support order sync for Amazon without SP-API', () => {
+  it('supports Amazon order sync only when SP-API is ready', () => {
     expect(supportsOrderSync('AMAZON')).toBe(false);
+    expect(supportsOrderSync('AMAZON', { spApiReady: false })).toBe(false);
+    expect(supportsOrderSync('AMAZON', { spApiReady: true })).toBe(true);
     expect(getOrderSyncSkipMessage('AMAZON')).toContain('SP-API');
   });
 });

@@ -2,6 +2,8 @@ generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
   engineType      = "library"
+  // Monorepo: tek bir client üret, root node_modules üzerinden paylaş
+  output          = "../../../node_modules/.prisma/client"
 }
 
 datasource db {

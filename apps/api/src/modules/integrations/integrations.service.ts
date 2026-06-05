@@ -20,6 +20,11 @@ import {
   PLAN_NAMES,
 } from './marketplace-registry';
 import { EncryptionService } from '../../common/encryption.service';
+import {
+  hasAmazonSpApiCredentials,
+  parseAmazonSpApiCredentials,
+} from '../marketplace/amazon-sp-api.config';
+import { AmazonSpApiClient } from '../marketplace/amazon-sp-api.client';
 
 export interface IntegrationCredentials {
   [key: string]: string;
@@ -340,6 +345,7 @@ export class IntegrationsService {
       '';
     const apiSecret =
       credentials['apiSecret'] ||
+      credentials['refreshToken'] ||
       credentials['secretKey'] ||
       credentials['apiToken'] ||
       '';
@@ -676,17 +682,56 @@ export class IntegrationsService {
   private async testAmazonConnection(
     credentials: Record<string, string>,
   ): Promise<ConnectionTestResult> {
-    if (!credentials.apiKey || !credentials.apiSecret) {
+    const spApiReady = hasAmazonSpApiCredentials({
+      apiKey: credentials.apiKey || credentials.sellerId,
+      apiSecret: credentials.apiSecret || credentials.refreshToken,
+      apiExtra: credentials,
+    });
+
+    if (!spApiReady) {
+      const missing = [
+        !credentials.clientId && 'Client ID',
+        !credentials.clientSecret && 'Client Secret',
+        !(credentials.refreshToken || credentials.apiSecret) && 'Refresh Token',
+        !credentials.awsAccessKeyId && 'AWS Access Key',
+        !credentials.awsSecretAccessKey && 'AWS Secret Key',
+        !credentials.roleArn && 'IAM Role ARN',
+        !(credentials.sellerId || credentials.apiKey) && 'Seller ID',
+      ].filter(Boolean);
+
       return {
         success: false,
-        message: 'Amazon kimlik bilgileri eksik veya hatalı',
+        message:
+          missing.length > 0
+            ? `Amazon SP-API için eksik alanlar: ${missing.join(', ')}`
+            : 'Amazon SP-API kimlik bilgileri eksik',
       };
     }
 
+    const parsed = parseAmazonSpApiCredentials({
+      apiKey: credentials.apiKey || credentials.sellerId,
+      apiSecret: credentials.apiSecret || credentials.refreshToken,
+      apiExtra: credentials,
+    });
+
+    if (!parsed) {
+      return {
+        success: false,
+        message: 'Amazon SP-API kimlik bilgileri çözümlenemedi',
+      };
+    }
+
+    const lwa = await AmazonSpApiClient.testLwaCredentials({
+      refreshToken: parsed.refreshToken,
+      clientId: parsed.clientId,
+      clientSecret: parsed.clientSecret,
+    });
+
     return {
-      success: true,
-      message:
-        'Kimlik bilgileri kaydedildi. Amazon sipariş/stok sync için SP-API entegrasyonu gereklidir.',
+      success: lwa.success,
+      message: lwa.success
+        ? 'Amazon SP-API LWA bağlantısı doğrulandı'
+        : lwa.message,
     };
   }
 

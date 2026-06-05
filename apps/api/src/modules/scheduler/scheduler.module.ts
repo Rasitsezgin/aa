@@ -8,10 +8,12 @@ import { DatabaseModule } from '../../database/database.module';
 import { MarketIntelligenceModule } from '../market-intelligence/market-intelligence.module';
 import { MarketplaceModule } from '../marketplace/marketplace.module';
 import { CompetitorAnalysisService } from '../marketplace/competitor-analysis.service';
+import { EncryptionModule } from '../../common/encryption.module';
 
 @Module({
   imports: [
     DatabaseModule,
+    EncryptionModule,
     MarketIntelligenceModule,
     MarketplaceModule,
     BullModule.registerQueue(

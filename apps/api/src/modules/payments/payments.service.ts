@@ -9,6 +9,7 @@ import {
 } from './dto/payment.dto';
 import { TenantCredentialsService } from '../tenant-credentials/tenant-credentials.service';
 import { isSimulationAllowed } from '../../common/simulation.util';
+import { IyzicoGateway } from './iyzico.gateway';
 
 /**
  * iyzico Ödeme Servisi (Çok Kiracılı)
@@ -46,11 +47,27 @@ export class PaymentsService {
     };
   }
 
+  private hasIyzicoCredentials(config: {
+    apiKey: string;
+    secretKey: string;
+  }): boolean {
+    return Boolean(config.apiKey && config.secretKey);
+  }
+
+  private buildIyzicoGateway(config: {
+    apiKey: string;
+    secretKey: string;
+    baseUrl: string;
+  }) {
+    return new IyzicoGateway({
+      apiKey: config.apiKey,
+      secretKey: config.secretKey,
+      baseUrl: config.baseUrl,
+    });
+  }
+
   /** Tek çekim ödeme */
   async createPayment(tenantId: string, dto: CreatePaymentDto) {
-    this.assertPaymentSimulationAllowed();
-
-    // Sipariş kontrolü
     const order = await this.prisma.order.findFirst({
       where: { id: dto.orderId, tenantId },
       include: { items: true },
@@ -63,34 +80,85 @@ export class PaymentsService {
       `Ödeme oluşturuluyor: Sipariş ${dto.orderId}, Tutar: ${dto.amount} ${dto.currency || 'TRY'}`,
     );
 
-    // Tenant'ın iyzico bilgilerini al
     const paymentConfig = await this.getPaymentConfig(tenantId);
 
-    /**
-     * NOT: iyzipay SDK entegrasyonu için `npm install iyzipay` kurulumu gerekir.
-     * Kurulum sonrası aşağıdaki kod aktifleştirilebilir:
-     *
-     * import Iyzipay from 'iyzipay';
-     * const iyzipay = new Iyzipay({
-     *   apiKey: paymentConfig.apiKey,
-     *   secretKey: paymentConfig.secretKey,
-     *   uri: paymentConfig.baseUrl,
-     * });
-     *
-     * Şu an DB kaydı oluşturuluyor, gerçek ödeme işlemi
-     * iyzipay SDK kurulduğunda aktif olacak.
-     */
+    if (this.hasIyzicoCredentials(paymentConfig)) {
+      const gateway = this.buildIyzicoGateway(paymentConfig);
+      let result;
+      try {
+        result = await gateway.createPayment(dto);
+      } catch (error) {
+        throw new BadRequestException(
+          `iyzico ödeme hatası: ${(error as Error).message}`,
+        );
+      }
+
+      if (result.status !== 'success') {
+        throw new BadRequestException(
+          result.errorMessage || 'iyzico ödeme reddedildi',
+        );
+      }
+
+      const paidAmount = Number(result.paidPrice ?? dto.amount);
+      const commission = Math.max(0, dto.amount - paidAmount);
+      const transactionId = String(
+        result.paymentId || result.paymentTransactionId || `IYZ${Date.now()}`,
+      );
+
+      const payment = await this.prisma.payment.create({
+        data: {
+          tenantId,
+          orderId: dto.orderId,
+          platform: 'iyzico',
+          amount: dto.amount,
+          netAmount: paidAmount,
+          commission,
+          currency: dto.currency || 'TRY',
+          status: 'completed',
+          type: 'sale',
+          paymentMethod: 'credit-card',
+          transactionId,
+          paidAt: new Date(),
+          metadata: {
+            installment: dto.installment || 1,
+            cardType: 'CREDIT_CARD',
+            lastFourDigits: dto.card.cardNumber.slice(-4),
+            buyerEmail: dto.buyer.email,
+            iyzicoPaymentId: result.paymentId,
+            iyzicoPaymentTransactionId: result.paymentTransactionId,
+            fraudStatus: result.fraudStatus,
+            provider: 'iyzipay',
+          },
+        },
+      });
+
+      await this.prisma.order.update({
+        where: { id: dto.orderId },
+        data: { paymentStatus: 'PAID' },
+      });
+
+      return {
+        success: true,
+        paymentId: payment.id,
+        transactionId,
+        status: 'completed',
+        amount: dto.amount,
+        currency: dto.currency || 'TRY',
+        provider: 'iyzipay',
+      };
+    }
+
+    this.assertPaymentSimulationAllowed();
 
     const transactionId = `IYZ${Date.now()}${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
-    // Payment kaydı (DB)
     const payment = await this.prisma.payment.create({
       data: {
         tenantId,
         orderId: dto.orderId,
         platform: 'iyzico',
         amount: dto.amount,
-        netAmount: dto.amount * 0.975, // ~%2.5 komisyon simülasyonu
+        netAmount: dto.amount * 0.975,
         commission: dto.amount * 0.025,
         currency: dto.currency || 'TRY',
         status: 'completed',
@@ -103,19 +171,15 @@ export class PaymentsService {
           cardType: 'CREDIT_CARD',
           lastFourDigits: dto.card.cardNumber.slice(-4),
           buyerEmail: dto.buyer.email,
+          provider: 'simulated',
         },
       },
     });
 
-    // Siparişin ödeme durumunu güncelle
     await this.prisma.order.update({
       where: { id: dto.orderId },
       data: { paymentStatus: 'PAID' },
     });
-
-    this.logger.log(
-      `Ödeme başarılı: ${transactionId} - Sipariş: ${dto.orderId}`,
-    );
 
     return {
       success: true,
@@ -124,13 +188,12 @@ export class PaymentsService {
       status: 'completed',
       amount: dto.amount,
       currency: dto.currency || 'TRY',
+      provider: 'simulated',
     };
   }
 
   /** 3D Secure ödeme başlat */
   async create3DPayment(tenantId: string, dto: Create3DPaymentDto) {
-    this.assertPaymentSimulationAllowed();
-
     const order = await this.prisma.order.findFirst({
       where: { id: dto.orderId, tenantId },
     });
@@ -138,10 +201,16 @@ export class PaymentsService {
       throw new BadRequestException('Sipariş bulunamadı');
     }
 
-    this.logger.log(`3D Secure ödeme başlatılıyor: Sipariş ${dto.orderId}`);
+    const paymentConfig = await this.getPaymentConfig(tenantId);
+    if (this.hasIyzicoCredentials(paymentConfig)) {
+      throw new BadRequestException(
+        '3D Secure akışı henüz iyzipay SDK ile bağlanmadı. Tek çekim ödeme endpointini kullanın.',
+      );
+    }
 
-    // TODO: iyzipay SDK - threeDSInitialize
-    // Gerçek implementasyonda htmlContent dönecek (3DS form)
+    this.assertPaymentSimulationAllowed();
+
+    this.logger.log(`3D Secure ödeme başlatılıyor: Sipariş ${dto.orderId}`);
 
     return {
       success: true,
@@ -149,6 +218,7 @@ export class PaymentsService {
       htmlContent:
         '<html><body><p>3D Secure doğrulama simülasyonu</p></body></html>',
       callbackUrl: dto.callbackUrl,
+      provider: 'simulated',
     };
   }
 
@@ -170,8 +240,6 @@ export class PaymentsService {
 
   /** İade işlemi */
   async refundPayment(tenantId: string, dto: RefundPaymentDto) {
-    this.assertPaymentSimulationAllowed();
-
     const payment = await this.prisma.payment.findFirst({
       where: { transactionId: dto.paymentTransactionId, tenantId },
     });
@@ -186,8 +254,39 @@ export class PaymentsService {
       `İade işlemi: ${dto.paymentTransactionId}, Tutar: ${dto.amount}`,
     );
 
-    // TODO: iyzipay SDK - refund.create
-    const refundTransactionId = `REF${Date.now()}${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+    const paymentConfig = await this.getPaymentConfig(tenantId);
+    const metadata = (payment.metadata || {}) as Record<string, unknown>;
+    let refundTransactionId = `REF${Date.now()}${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+
+    if (this.hasIyzicoCredentials(paymentConfig)) {
+      const gateway = this.buildIyzicoGateway(paymentConfig);
+      const iyzicoTxId = String(
+        metadata.iyzicoPaymentTransactionId || dto.paymentTransactionId,
+      );
+      let result;
+      try {
+        result = await gateway.refund(
+          { ...dto, paymentTransactionId: iyzicoTxId },
+          String(metadata.buyerIp || '127.0.0.1'),
+        );
+      } catch (error) {
+        throw new BadRequestException(
+          `iyzico iade hatası: ${(error as Error).message}`,
+        );
+      }
+
+      if (result.status !== 'success') {
+        throw new BadRequestException(
+          String(result.errorMessage || 'iyzico iade reddedildi'),
+        );
+      }
+
+      refundTransactionId = String(
+        result.paymentTransactionId || refundTransactionId,
+      );
+    } else {
+      this.assertPaymentSimulationAllowed();
+    }
 
     // İade kaydı
     await this.prisma.payment.create({
@@ -237,15 +336,34 @@ export class PaymentsService {
   }
 
   /** Taksit seçenekleri sorgula */
-  async checkInstallments(dto: CheckInstallmentDto) {
-    this.assertPaymentSimulationAllowed();
-
+  async checkInstallments(
+    tenantId: string,
+    dto: CheckInstallmentDto,
+  ) {
     this.logger.log(
       `Taksit sorgusu: BIN ${dto.binNumber}, Tutar: ${dto.amount}`,
     );
 
-    // TODO: iyzipay SDK - installmentInfo.retrieve
-    // Gerçek implementasyonda kart BIN'ine göre taksit seçenekleri döner
+    const paymentConfig = await this.getPaymentConfig(tenantId);
+    if (this.hasIyzicoCredentials(paymentConfig)) {
+      const gateway = this.buildIyzicoGateway(paymentConfig);
+      try {
+        const result = await gateway.retrieveInstallments(dto);
+        if (result.status === 'success') {
+          return result;
+        }
+        throw new BadRequestException(
+          String(result.errorMessage || 'Taksit sorgusu başarısız'),
+        );
+      } catch (error) {
+        if (error instanceof BadRequestException) throw error;
+        throw new BadRequestException(
+          `iyzico taksit sorgusu hatası: ${(error as Error).message}`,
+        );
+      }
+    }
+
+    this.assertPaymentSimulationAllowed();
 
     const installmentOptions = [
       {

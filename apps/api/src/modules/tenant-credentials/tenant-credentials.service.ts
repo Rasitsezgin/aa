@@ -12,6 +12,7 @@ import {
   UpdateServiceCredentialDto,
 } from './dto/tenant-credential.dto';
 import { AuditService, AuditAction } from '../audit/audit.service';
+import { ArasKargoClient } from '../shipping/carriers/aras-kargo.client';
 
 export interface DecryptedCredentials {
   apiUrl: string;
@@ -236,9 +237,23 @@ export class TenantCredentialsService {
 
     try {
       const st = credential.serviceType as string;
-      if (st.startsWith('SHIPPING_')) {
-        // Kargo: apiKey (kullanıcı adı) dolu mu kontrol et
-        success = apiKey.length > 0;
+      if (credential.serviceType === ServiceType.SHIPPING_ARAS) {
+        if (!apiKey || !apiSecret) {
+          success = false;
+          message = 'Aras kullanıcı adı ve şifre zorunlu';
+        } else {
+          const apiExtra = (credential.apiExtra as Record<string, unknown>) ?? {};
+          const probe = await new ArasKargoClient({
+            apiUrl: apiUrl || undefined,
+            apiUser: apiKey,
+            apiPassword: apiSecret,
+            customerCode: String(apiExtra.customerCode || '').trim() || undefined,
+          }).testConnection();
+          success = probe.success;
+          message = probe.message;
+        }
+      } else if (st.startsWith('SHIPPING_')) {
+        success = apiKey.length > 0 && apiSecret.length > 0;
         message = success
           ? 'Kargo kimlik bilgileri geçerli görünüyor'
           : 'Kullanıcı adı/şifre boş';

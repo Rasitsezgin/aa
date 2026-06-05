@@ -60,6 +60,7 @@ export class ShippingService {
           apiUrl: creds.apiUrl,
           apiUser: creds.apiKey,
           apiPassword: creds.apiSecret,
+          customerCode: String(creds.apiExtra?.customerCode || '').trim() || undefined,
         }
       : {};
 

@@ -38,8 +38,8 @@ export class PaymentsController {
 
   /** Taksit seçenekleri sorgula */
   @Post('installments')
-  checkInstallments(@Body() dto: CheckInstallmentDto) {
-    return this.paymentsService.checkInstallments(dto);
+  checkInstallments(@Req() req: any, @Body() dto: CheckInstallmentDto) {
+    return this.paymentsService.checkInstallments(req.user?.tenantId, dto);
   }
 
   /** Tek çekim ödeme oluştur */

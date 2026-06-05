@@ -55,16 +55,22 @@ Ornek JSON:
 }
 ```
 
-## 5) Amazon
-- Zorunlu: `apiKey` (mevcut bridge implementasyonunda sellerRef/seller URL gibi kullaniliyor)
-- Zorunlu: `apiSecret` (mevcut bridge implementasyonunda token/secret gibi kullaniliyor)
-- Not: SP-API order/stock/price aksiyonlari icin ek entegrasyon gereklidir.
+## 5) Amazon (SP-API)
+- Zorunlu: `apiKey` veya `sellerId` (seller URL/ID)
+- Zorunlu: `refreshToken`
+- Zorunlu: `clientId`, `clientSecret` (LWA app)
+- Zorunlu: `awsAccessKeyId`, `awsSecretAccessKey`, `roleArn` (IAM)
 
 Ornek JSON:
 ```json
 {
-  "apiKey": "https://www.amazon.com.tr/s?me=YOUR_SELLER_ID",
-  "apiSecret": "YOUR_SP_API_TOKEN_OR_SECRET"
+  "apiKey": "https://www.amazon.com.tr/sp?seller=YOUR_SELLER_ID",
+  "refreshToken": "Atzr|...",
+  "clientId": "amzn1.application-oa2-client.xxx",
+  "clientSecret": "xxx",
+  "awsAccessKeyId": "AKIA...",
+  "awsSecretAccessKey": "xxx",
+  "roleArn": "arn:aws:iam::123456789012:role/SpApiRole"
 }
 ```
 

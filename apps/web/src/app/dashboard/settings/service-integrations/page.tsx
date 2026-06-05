@@ -49,6 +49,7 @@ interface FieldDef {
   placeholder: string;
   secret?: boolean;
   required?: boolean;
+  extra?: boolean;
 }
 
 const SERVICE_GROUPS: ServiceGroup[] = [
@@ -65,9 +66,10 @@ const SERVICE_GROUPS: ServiceGroup[] = [
         label: 'Aras Kargo',
         description: 'Aras Kargo otomatik sevkiyat ve takip',
         fields: [
-          { key: 'apiUrl', label: 'API URL', placeholder: 'https://service.araskargo.com.tr/...', required: false },
-          { key: 'apiKey', label: 'Kullanıcı Adı', placeholder: 'Aras kullanıcı adınız', required: true },
-          { key: 'apiSecret', label: 'Şifre', placeholder: 'Aras şifreniz', secret: true, required: true },
+          { key: 'apiUrl', label: 'API URL', placeholder: 'https://customerws.araskargo.com.tr/arascargoservice.asmx', required: false },
+          { key: 'apiKey', label: 'Web Servis Kullanıcı Adı', placeholder: 'EsasWeb kullanıcı adınız', required: true },
+          { key: 'apiSecret', label: 'Web Servis Şifre', placeholder: 'EsasWeb şifreniz', secret: true, required: true },
+          { key: 'customerCode', label: 'Müşteri Kodu (SetOrder)', placeholder: 'Opsiyonel — farklıysa girin', required: false, extra: true },
         ],
       },
       {
@@ -467,6 +469,15 @@ function ServiceGroupSection({ group, credentials, onRefresh }: {
 
   const handleSave = async (serviceType: string, data: Record<string, string>) => {
     const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const serviceDef = group.services.find((s) => s.type === serviceType);
+    const apiExtra: Record<string, string> = {};
+
+    for (const field of serviceDef?.fields ?? []) {
+      if (field.extra && data[field.key]?.trim()) {
+        apiExtra[field.key] = data[field.key].trim();
+      }
+    }
+
     await fetch(`${API}/tenant-credentials`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -477,6 +488,7 @@ function ServiceGroupSection({ group, credentials, onRefresh }: {
         apiUrl: data.apiUrl || undefined,
         apiKey: data.apiKey || undefined,
         apiSecret: data.apiSecret || undefined,
+        apiExtra: Object.keys(apiExtra).length > 0 ? apiExtra : undefined,
         isDefault: data.isDefault === 'true',
       }),
     });

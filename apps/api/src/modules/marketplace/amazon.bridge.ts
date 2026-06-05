@@ -5,18 +5,62 @@ import {
   MarketplaceAnalysisResponse,
   computeConfidenceFromSources,
 } from './analysis.types';
+import {
+  hasAmazonSpApiCredentials,
+  parseAmazonSpApiCredentials,
+} from './amazon-sp-api.config';
+import { AmazonSpApiClient } from './amazon-sp-api.client';
 
 @Injectable()
 export class AmazonBridge implements MarketplaceBridge {
   private readonly logger = new Logger(AmazonBridge.name);
+  private readonly spApiCredentials = parseAmazonSpApiCredentials({
+    apiKey: this.sellerId,
+    apiSecret: this.mwsAuthToken,
+    apiExtra: this.apiExtra,
+  });
 
   constructor(
     private readonly sellerId: string,
     private readonly mwsAuthToken: string,
     private readonly scrapingService: ScrapingService,
+    private readonly apiExtra?: Record<string, unknown> | null,
   ) {}
 
+  private getSpApiClient(): AmazonSpApiClient | null {
+    if (!this.spApiCredentials) {
+      return null;
+    }
+    return new AmazonSpApiClient(this.spApiCredentials);
+  }
+
+  hasSpApiEnabled(): boolean {
+    return hasAmazonSpApiCredentials({
+      apiKey: this.sellerId,
+      apiSecret: this.mwsAuthToken,
+      apiExtra: this.apiExtra,
+    });
+  }
+
   async syncProducts(): Promise<any> {
+    const spClient = this.getSpApiClient();
+    if (spClient) {
+      try {
+        const products = await spClient.searchListingProducts(50);
+        return {
+          success: true,
+          platform: 'AMAZON',
+          count: products.length,
+          products,
+          source: 'sp-api',
+        };
+      } catch (error) {
+        this.logger.warn(
+          `Amazon SP-API product sync failed, falling back to scraping: ${(error as Error).message}`,
+        );
+      }
+    }
+
     const sellerId = this.sellerId?.trim();
     if (!sellerId || sellerId === 'public') {
       throw new Error('Amazon syncProducts için sellerId zorunludur');
@@ -41,6 +85,7 @@ export class AmazonBridge implements MarketplaceBridge {
       platform: 'AMAZON',
       count: products.length,
       products,
+      source: 'scraping',
     };
   }
 
@@ -67,6 +112,17 @@ export class AmazonBridge implements MarketplaceBridge {
   }
 
   async getStoreProducts(storeId?: string, limit: number = 10): Promise<any[]> {
+    const spClient = this.getSpApiClient();
+    if (spClient) {
+      try {
+        return spClient.searchListingProducts(limit);
+      } catch (error) {
+        this.logger.warn(
+          `Amazon SP-API listing fetch failed: ${(error as Error).message}`,
+        );
+      }
+    }
+
     const resolvedStoreId = (storeId || this.sellerId || '').trim();
     if (!resolvedStoreId || resolvedStoreId === 'public') {
       throw new Error('Amazon getStoreProducts için sellerId zorunludur');
@@ -100,41 +156,48 @@ export class AmazonBridge implements MarketplaceBridge {
   }
 
   async syncOrders(): Promise<any> {
-    throw new Error(
-      'Amazon sipariş senkronizasyonu için SP-API entegrasyonu zorunludur',
-    );
+    const spClient = this.getSpApiClient();
+    if (!spClient) {
+      throw new Error(
+        'Amazon sipariş senkronizasyonu için SP-API kimlik bilgileri eksik (clientId, refreshToken, AWS IAM)',
+      );
+    }
+
+    return spClient.syncOrders();
   }
 
   async updateStock(sku: string, stock: number): Promise<any> {
-    void sku;
-    void stock;
-    throw new Error(
-      'Amazon stok güncelleme için SP-API entegrasyonu zorunludur',
-    );
+    const spClient = this.getSpApiClient();
+    if (!spClient) {
+      throw new Error(
+        'Amazon stok güncelleme için SP-API kimlik bilgileri eksik',
+      );
+    }
+
+    return spClient.updateStock(sku, stock);
   }
 
   async updatePrice(sku: string, price: number): Promise<any> {
-    void sku;
-    void price;
-    throw new Error(
-      'Amazon fiyat güncelleme için SP-API entegrasyonu zorunludur',
-    );
+    const spClient = this.getSpApiClient();
+    if (!spClient) {
+      throw new Error(
+        'Amazon fiyat güncelleme için SP-API kimlik bilgileri eksik',
+      );
+    }
+
+    return spClient.updatePrice(sku, price);
   }
 
-  // Amazon SP-API review entegrasyonu — henüz aktif değil
   async getReviews(
     _page: number = 0,
     _size: number = 100,
   ): Promise<MarketplaceReview[]> {
     this.logger.warn(
-      'Amazon getReviews: SP-API entegrasyonu henüz aktif değil',
+      'Amazon getReviews: SP-API review endpoint henüz aktif değil',
     );
     return [];
   }
 
-  /**
-   * SEO ve Performans analizi yap - Scraping tabanlı
-   */
   async analyzeStoreSEO(
     storeId?: string,
   ): Promise<MarketplaceAnalysisResponse> {
@@ -146,15 +209,13 @@ export class AmazonBridge implements MarketplaceBridge {
 
       const storeInfo = await this.getStoreInfo(resolvedStoreId);
       const products = await this.getStoreProducts(resolvedStoreId, 20);
-
-      // SEO Score hesabı
       const seoScore = this.calculateSEOScore(storeInfo, products);
 
       const metricSources = {
-        storeName: 'scraped',
+        storeName: this.hasSpApiEnabled() ? 'api' : 'scraped',
         rating: 'scraped',
         followers: 'not_available',
-        totalProducts: 'scraped',
+        totalProducts: this.hasSpApiEnabled() ? 'api' : 'scraped',
         responseTime: 'not_available',
         monthlyTraffic: 'not_available',
         monthlyTurnover: 'not_available',
@@ -172,9 +233,11 @@ export class AmazonBridge implements MarketplaceBridge {
         storeName: storeInfo.storeName,
         seoScore,
         dataSources: {
-          overall: 'scraped+calculated',
+          overall: this.hasSpApiEnabled()
+            ? 'api+scraped+calculated'
+            : 'scraped+calculated',
           seoScore: 'calculated',
-          products: 'scraped',
+          products: this.hasSpApiEnabled() ? 'api' : 'scraped',
           metrics: metricSources,
           reasons: {
             responseTime:
@@ -189,9 +252,7 @@ export class AmazonBridge implements MarketplaceBridge {
           evidence: {
             adapter: 'amazon.bridge',
             productSampleSize: products.length,
-            hasCredentials: Boolean(
-              this.sellerId && this.sellerId !== 'public',
-            ),
+            hasCredentials: this.hasSpApiEnabled(),
           },
         },
         confidence: computeConfidenceFromSources(metricSources),
@@ -226,16 +287,13 @@ export class AmazonBridge implements MarketplaceBridge {
   }
 
   private calculateSEOScore(storeInfo: any, products: any[]): number {
-    let score = 45; // Base score (lower than local platforms due to global competition)
+    let score = 45;
 
-    // Rating (max +20) - Amazon uses 5-star system
     score += (storeInfo.averageRating / 5) * 20;
 
-    // Review count (max +15)
     const reviewBonus = Math.min(storeInfo.totalReviews / 500, 15);
     score += reviewBonus;
 
-    // Stock health (max +15)
     const avgStock =
       products.length > 0
         ? products.reduce((sum, p) => sum + (p.stockCount > 0 ? 1 : 0), 0) /
@@ -243,7 +301,6 @@ export class AmazonBridge implements MarketplaceBridge {
         : 0;
     score += avgStock * 15;
 
-    // Product diversity (max +5)
     if (products.length >= 10) score += 5;
 
     return Math.min(Math.round(score), 100);
@@ -255,7 +312,6 @@ export class AmazonBridge implements MarketplaceBridge {
 
     products.forEach((p) => {
       const title = p.title || '';
-      // Amazon title optimization: 60-200 chars is ideal
       if (title.length >= 60 && title.length <= 200) validCount++;
     });
 
@@ -266,7 +322,6 @@ export class AmazonBridge implements MarketplaceBridge {
     if (!products.length) return 50;
     let validCount = 0;
     products.forEach((p) => {
-      // Amazon requires main image + 4+ additional images ideally
       if (p.images && p.images.length >= 1) validCount++;
     });
     return Math.round((validCount / products.length) * 100);
@@ -277,7 +332,6 @@ export class AmazonBridge implements MarketplaceBridge {
     const avgPrice =
       products.reduce((sum, p) => sum + (p.salePrice || 0), 0) /
       products.length;
-    // Amazon competitive pricing analysis - variance indicates competition
     const variance =
       products.reduce(
         (sum, p) => sum + Math.abs((p.salePrice || 0) - avgPrice),
@@ -330,10 +384,15 @@ export class AmazonBridge implements MarketplaceBridge {
       );
     }
 
-    // Check for Prime eligibility simulation
     const hasPrimeEligible = products.some((p) => (p.salePrice || 0) > 35);
     if (!hasPrimeEligible) {
       recommendations.push('Prime ücretsiz kargo için 35$+ ürünler ekle');
+    }
+
+    if (!this.hasSpApiEnabled()) {
+      recommendations.push(
+        'Sipariş/stok sync için SP-API kimlik bilgilerini tamamlayın',
+      );
     }
 
     return recommendations;
