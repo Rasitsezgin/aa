@@ -41,13 +41,11 @@ RUN npm install --no-save napi-postinstall --ignore-scripts && \
 COPY --from=pruner /app/out/full/ .
 
 # Prisma client + database package build (dist/generated/client)
-RUN npm run db:generate && npm run build --workspace=@pazaryonetimi/database && \
-    rm -rf node_modules/@prisma/client && \
-    cp -r packages/database/generated/client node_modules/@prisma/client
+RUN npm run db:generate && npm run build --workspace=@pazaryonetimi/database
 
-# Build the project
+# Build API directly (database already built; turbo would re-run prisma generate)
 ENV NODE_OPTIONS="--max-old-space-size=3072"
-RUN npx turbo run build --filter=@pazaryonetimi/api
+RUN npm run build --workspace=@pazaryonetimi/api
 
 FROM base AS runner
 # Base already contains runtime libraries
@@ -71,9 +69,10 @@ COPY --from=pruner /app/out/package-lock.json ./package-lock.json
 # Install production dependencies (--ignore-scripts: prisma runs after schema is copied)
 RUN npm install --omit=dev --legacy-peer-deps --ignore-scripts
 
-# Prisma CLI + runtime deps
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+# Prisma CLI for db push/seed at startup
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy built artifacts (includes packages/database/dist + generated/client)
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
