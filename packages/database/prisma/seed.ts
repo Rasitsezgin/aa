@@ -1,4 +1,4 @@
-import { PrismaClient, Plan, UserType, Platform, OrderStatus, PaymentStatus } from '@prisma/client';
+import { PrismaClient, Plan, UserType, Platform, OrderStatus, PaymentStatus } from '../generated/client';
 import bcrypt from 'bcryptjs';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
