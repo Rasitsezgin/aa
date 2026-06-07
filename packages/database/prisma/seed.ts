@@ -1,7 +1,30 @@
 import { PrismaClient, Plan, UserType, Platform, OrderStatus, PaymentStatus } from '../generated/client';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
+
+function buildSeedApiKey(
+  tenantId: string,
+  userId: string,
+  name: string,
+  keyPrefix: string,
+  scopes: string[],
+  extra?: { lastUsed?: Date; expiresAt?: Date },
+) {
+  const keySecret = `${keyPrefix}_${crypto.randomBytes(16).toString('hex')}`;
+  return {
+    tenantId,
+    userId,
+    name,
+    keyHash: crypto.createHash('sha256').update(keySecret).digest('hex'),
+    prefix: keySecret.slice(0, 8),
+    permissions: scopes,
+    scopes,
+    isActive: true,
+    ...extra,
+  };
+}
 
 const pool = process.env.DATABASE_URL
   ? new Pool({ connectionString: process.env.DATABASE_URL })
@@ -664,28 +687,24 @@ async function main() {
   const existingApiKeys = await prisma.apiKey.count({ where: { tenantId: tenant.id } });
   if (existingApiKeys === 0) {
     await prisma.apiKey.create({
-      data: {
-        tenantId: tenant.id,
-        userId: admin.id,
-        name: 'Production API Key',
-        key: `pk_live_${Math.random().toString(36).substr(2, 32)}`,
-        prefix: 'pk_live',
-        permissions: ['read', 'write', 'orders', 'products', 'inventory'],
-        isActive: true,
-        lastUsed: new Date(Date.now() - 3600000),
-      },
+      data: buildSeedApiKey(
+        tenant.id,
+        admin.id,
+        'Production API Key',
+        'pk_live',
+        ['read', 'write', 'orders', 'products', 'inventory'],
+        { lastUsed: new Date(Date.now() - 3600000) },
+      ),
     });
     await prisma.apiKey.create({
-      data: {
-        tenantId: tenant.id,
-        userId: admin.id,
-        name: 'Test API Key',
-        key: `pk_test_${Math.random().toString(36).substr(2, 32)}`,
-        prefix: 'pk_test',
-        permissions: ['read'],
-        isActive: true,
-        expiresAt: new Date(Date.now() + 90 * 86400000),
-      },
+      data: buildSeedApiKey(
+        tenant.id,
+        admin.id,
+        'Test API Key',
+        'pk_test',
+        ['read'],
+        { expiresAt: new Date(Date.now() + 90 * 86400000) },
+      ),
     });
     console.log('✅ API anahtarları oluşturuldu');
   }
