@@ -46,6 +46,8 @@ RUN npm run db:generate && npm run build --workspace=@pazaryonetimi/database
 # Build API directly (database already built; turbo would re-run prisma generate)
 ENV NODE_OPTIONS="--max-old-space-size=3072"
 RUN npm run build --workspace=@pazaryonetimi/api
+# Keep the exact production dependency tree used for the build (incl. apps/api/node_modules)
+RUN npm prune --omit=dev --legacy-peer-deps
 
 FROM base AS runner
 # Base already contains runtime libraries
@@ -62,17 +64,13 @@ WORKDIR /app
 RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 nestjs
 RUN mkdir -p /home/nestjs/.puppeteer_data && chown -R nestjs:nodejs /home/nestjs
 
-# Copy pruned metadata and lockfile
+# Workspace package manifests
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/package-lock.json ./package-lock.json
 
-# Install production dependencies (--ignore-scripts: prisma runs after schema is copied)
-RUN npm install --omit=dev --legacy-peer-deps --ignore-scripts
-
-# Prisma CLI for db push/seed at startup
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Reuse builder's pruned node_modules (Nest HTTP driver lives in apps/api/node_modules)
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 
 # Copy built artifacts (includes packages/database/dist + generated/client)
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
@@ -82,10 +80,10 @@ COPY --from=builder /app/packages/database ./packages/database
 RUN chown -R nestjs:nodejs /app
 
 USER nestjs
-ENV NODE_PATH=/app/node_modules
+ENV NODE_PATH=/app/node_modules:/app/apps/api/node_modules
 EXPOSE 3001
 
 # Start the application with an automatic database sync and seeding
-CMD ["sh", "-c", "cd packages/database && ../../node_modules/.bin/prisma db push --accept-data-loss && mkdir -p ../../node_modules/.prisma/client && cp -r ./generated/client/. ../../node_modules/.prisma/client/ && npm run db:seed && cd ../.. && node apps/api/dist/apps/api/src/main.js"]
+CMD ["sh", "-c", "cd packages/database && ../../node_modules/.bin/prisma db push --accept-data-loss && mkdir -p ../../node_modules/.prisma/client && cp -r ./generated/client/. ../../node_modules/.prisma/client/ && npm run db:seed && cd ../../apps/api && node dist/apps/api/src/main.js"]
 
 

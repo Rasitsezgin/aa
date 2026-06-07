@@ -93,7 +93,7 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
       dockerfile: apps/api/Dockerfile
-    command: ["node", "apps/api/dist/apps/api/src/worker.js"]
+    command: ["sh", "-c", "cd apps/api && node dist/apps/api/src/worker.js"]
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
       - REDIS_HOST=${REDIS_HOST:-redis}
