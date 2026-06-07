@@ -2,12 +2,12 @@ import { Module } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { AnalyticsController } from './analytics.controller';
 import { DatabaseModule } from '../../database/database.module';
-import { AiModule } from '../ai/ai.module';
+import { PricingOptimizationModule } from '../pricing-optimization/pricing-optimization.module';
 
 @Module({
-  imports: [DatabaseModule], // Removed AiModule temporarily
+  imports: [DatabaseModule, PricingOptimizationModule],
   controllers: [AnalyticsController],
-  providers: [AnalyticsService], // Temporarily removed AnalyticsService
+  providers: [AnalyticsService],
   exports: [AnalyticsService],
 })
 export class AnalyticsModule {}
