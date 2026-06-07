@@ -39,7 +39,7 @@ export default function RoiCalculator() {
     }, [yearlyValue]);
 
     return (
-        <section className="py-12 md:py-24 relative overflow-hidden bg-slate-50 dark:bg-[#02040a] min-h-[800px] flex items-center justify-center transition-colors duration-500">
+        <section className="py-12 md:py-24 relative overflow-hidden bg-[#FAFAF9] dark:bg-[#0B1120] min-h-[800px] flex items-center justify-center transition-colors duration-500">
             {/* Unified Background Pattern */}
             <div className="absolute inset-0 pointer-events-none">
                 {/* Subtle Dot Grid */}
@@ -109,7 +109,7 @@ export default function RoiCalculator() {
                         {/* Glow Behind */}
                         <div className="absolute inset-0 bg-gradient-to-tr from-green-500/20 to-amber-500/20 blur-3xl opacity-30 rounded-[48px] transform rotate-3" />
 
-                        <div className="relative bg-white dark:bg-[#0F172A] border border-slate-100 dark:border-slate-800 p-8 sm:p-10 rounded-[40px] shadow-2xl overflow-hidden group">
+                        <div className="relative bg-[#FAFAF9] dark:bg-[#0B1120] border border-slate-100 dark:border-slate-800 p-8 sm:p-10 rounded-[40px] shadow-2xl overflow-hidden group">
 
                             {/* Card Header */}
                             <div className="text-center mb-10">

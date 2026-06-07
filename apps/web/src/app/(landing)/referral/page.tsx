@@ -1,5 +1,7 @@
 "use client";
 
+
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -136,7 +138,7 @@ export default function ReferralPage() {
     ];
 
     return (
-        <section className="min-h-screen pt-32 pb-24 relative overflow-hidden bg-white dark:bg-[#02040a] transition-colors duration-500">
+        <MarketingPageShell as="section" className="pb-24" padded={false}>
             {/* Animated Background */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03]" style={{
@@ -486,6 +488,6 @@ export default function ReferralPage() {
                     </div>
                 </motion.div>
             </div>
-        </section>
+        </MarketingPageShell>
     );
 }

@@ -26,6 +26,13 @@ export async function POST(request: Request) {
       slug?: string;
       content?: string;
       isActive?: boolean;
+      coverImage?: string;
+      tags?: string[] | string;
+      isFeatured?: boolean;
+      category?: string;
+      metaTitle?: string;
+      metaDescription?: string;
+      metaKeywords?: string;
     };
 
     if (!body.title?.trim() || !body.content?.trim()) {

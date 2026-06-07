@@ -8,6 +8,7 @@ import {
     MessageSquare, Globe, Calendar, Shield, Star, Zap, ChevronDown,
     Linkedin, Twitter, Instagram, Youtube
 } from 'lucide-react';
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 
 const CONTACT_DATA = {
     hero: {
@@ -172,19 +173,9 @@ export default function ContactView() {
     };
 
     return (
-        <main className="min-h-screen bg-white dark:bg-[#020617] transition-colors duration-500">
-            {/* Background */}
-            <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]" style={{
-                    backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
-                    backgroundSize: '32px 32px'
-                }} />
-                <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-orange-500/10 dark:bg-orange-500/5 rounded-full blur-[150px]" />
-                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-500/10 dark:bg-purple-500/5 rounded-full blur-[150px]" />
-            </div>
-
+        <MarketingPageShell as="main" padded={false}>
             {/* Hero Section */}
-            <section className="relative pt-32 pb-16 overflow-hidden">
+            <section className="relative pt-8 sm:pt-12 pb-16 overflow-hidden">
                 <div className="container mx-auto px-6 max-w-7xl">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
                         {/* Left Content */}
@@ -529,6 +520,6 @@ export default function ContactView() {
                     </motion.div>
                 </div>
             </section>
-        </main>
+        </MarketingPageShell>
     );
 }

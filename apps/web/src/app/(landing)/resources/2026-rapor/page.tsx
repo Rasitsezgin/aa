@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -52,7 +53,7 @@ const reportData = {
 
 export default function ECommerceReport2026() {
     return (
-        <main className="min-h-screen bg-white dark:bg-slate-950 pt-24">
+        <MarketingPageShell as="main" padded={false} className="pb-20">
             {/* ── Hero ── */}
             <section className="relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-red-500/5 to-pink-500/5 dark:from-orange-500/10 dark:via-red-500/10 dark:to-pink-500/10" />
@@ -216,6 +217,6 @@ export default function ECommerceReport2026() {
                     </div>
                 </div>
             </section>
-        </main>
+        </MarketingPageShell>
     );
 }

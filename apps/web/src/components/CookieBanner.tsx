@@ -65,7 +65,7 @@ export default function CookieBanner() {
                         <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 opacity-20 group-hover:opacity-40 transition-opacity duration-1000" />
 
                         {/* Layered Glass Body */}
-                        <div className="relative rounded-[31px] bg-white/80 dark:bg-[#020617]/85 backdrop-blur-3xl border border-white/20 dark:border-white/5 shadow-[0_24px_80px_rgba(0,0,0,0.15)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.4)] overflow-hidden">
+                        <div className="relative rounded-[31px] bg-white/80 dark:bg-[#0B1120]/85 backdrop-blur-3xl border border-white/20 dark:border-white/5 shadow-[0_24px_80px_rgba(0,0,0,0.15)] dark:shadow-[0_24px_80px_rgba(0,0,0,0.4)] overflow-hidden">
 
                             {/* Animated Mesh Background */}
                             <div className="absolute inset-0 pointer-events-none opacity-20 dark:opacity-30">
@@ -105,7 +105,7 @@ export default function CookieBanner() {
                                             <div className="flex items-center gap-6">
                                                 <div className="relative shrink-0">
                                                     <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-orange-500 to-amber-600 p-[1px] shadow-lg shadow-orange-500/20">
-                                                        <div className="w-full h-full rounded-[23px] bg-white dark:bg-[#020617] flex items-center justify-center relative overflow-hidden">
+                                                        <div className="w-full h-full rounded-[23px] bg-[#FAFAF9] dark:bg-[#0B1120] flex items-center justify-center relative overflow-hidden">
                                                             <Cookie className="w-8 h-8 text-orange-600 dark:text-orange-400 relative z-10" />
                                                             <motion.div
                                                                 animate={{ rotate: 360 }}
@@ -114,7 +114,7 @@ export default function CookieBanner() {
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="absolute -top-2 -right-2 bg-white dark:bg-[#020617] p-1 rounded-full border border-orange-500/20 shadow-sm">
+                                                    <div className="absolute -top-2 -right-2 bg-[#FAFAF9] dark:bg-[#0B1120] p-1 rounded-full border border-orange-500/20 shadow-sm">
                                                         <Sparkles size={14} className="text-yellow-500" />
                                                     </div>
                                                 </div>

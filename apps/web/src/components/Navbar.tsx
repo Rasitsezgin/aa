@@ -1035,7 +1035,7 @@ export default function Navbar() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.98 }}
                         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                        className="fixed inset-0 z-40 bg-white/90 dark:bg-[#020617]/90 backdrop-blur-2xl pt-[max(4.75rem,env(safe-area-inset-top))] overflow-y-auto lg:hidden"
+                        className="fixed inset-0 z-40 bg-white/90 dark:bg-[#0B1120]/90 backdrop-blur-2xl pt-[max(4.75rem,env(safe-area-inset-top))] overflow-y-auto lg:hidden"
                         role="dialog"
                         aria-modal="true"
                         aria-label="Mobil Menü"
@@ -1054,7 +1054,7 @@ export default function Navbar() {
                             }}
                             className="relative container mx-auto px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] space-y-1"
                         >
-                            <div className="sticky top-0 z-10 mb-3 -mx-1 px-1 py-2 bg-white/70 dark:bg-[#020617]/70 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/10">
+                            <div className="sticky top-0 z-10 mb-3 -mx-1 px-1 py-2 bg-white/70 dark:bg-[#0B1120]/70 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/10">
                                 <div className="flex items-center justify-between px-2">
                                     <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Menü</span>
                                     <button

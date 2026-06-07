@@ -776,6 +776,18 @@ async function main() {
   console.log(`   - ${await prisma.review.count({ where: { tenantId: tenant.id } })} yorum`);
   console.log(`   - ${await prisma.store.count({ where: { tenantId: tenant.id } })} mağaza`);
   console.log(`   - ${await prisma.seoAnalysis.count({ where: { tenantId: tenant.id } })} SEO analizi`);
+
+  if (process.env.SEED_FORUM === 'true') {
+    console.log('\n🗣️  Forum seed başlatılıyor (SEED_FORUM=true)...');
+    const { execSync } = await import('child_process');
+    execSync('npx tsx prisma/seed-forum.ts', { stdio: 'inherit' });
+  }
+
+  if (process.env.SEED_HELP === 'true') {
+    console.log('\n📚 Help seed başlatılıyor (SEED_HELP=true)...');
+    const { execSync } = await import('child_process');
+    execSync('npx tsx prisma/seed-help.ts', { stdio: 'inherit' });
+  }
 }
 
 main()

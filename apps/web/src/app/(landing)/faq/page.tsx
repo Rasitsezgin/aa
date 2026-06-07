@@ -9,6 +9,7 @@ import {
     Star, TrendingUp, Bot, FileText, ExternalLink
 } from 'lucide-react';
 import Link from 'next/link';
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 
 // Kategori tanımları
 const categories = [
@@ -398,18 +399,8 @@ export default function FAQPage() {
     };
 
     return (
-        <section className="min-h-screen pt-32 pb-24 relative overflow-hidden bg-white dark:bg-[#02040a] transition-colors duration-500">
-            {/* Background Effects */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03]" style={{
-                    backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
-                    backgroundSize: '32px 32px'
-                }} />
-                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-amber-500/10 dark:bg-amber-500/5 blur-[150px] rounded-full" />
-                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-orange-500/10 dark:bg-orange-500/5 blur-[150px] rounded-full" />
-            </div>
-
-            <div className="container mx-auto px-6 relative z-10">
+        <MarketingPageShell as="section" className="pb-24" padded={false}>
+            <div className="container mx-auto px-6">
                 {/* Hero Section */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -780,6 +771,6 @@ export default function FAQPage() {
                     </div>
                 </motion.div>
             </div>
-        </section>
+        </MarketingPageShell>
     );
 }

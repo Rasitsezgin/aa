@@ -12,10 +12,10 @@ interface SectionWrapperProps {
 }
 
 const variantClasses = {
-  default: 'bg-white dark:bg-[#020617]',
-  muted: 'bg-slate-50/50 dark:bg-[#020617]/80',
-  gradient: 'bg-gradient-to-b from-slate-50/80 to-white dark:from-[#020617]/80 dark:to-[#020617]',
-  dark: 'bg-slate-900 dark:bg-[#020617]',
+  default: 'bg-[#FAFAF9] dark:bg-[#0B1120]',
+  muted: 'bg-slate-50/50 dark:bg-[#0B1120]/80',
+  gradient: 'bg-gradient-to-b from-slate-50/80 to-white dark:from-[#0B1120]/80 dark:to-[#0B1120]',
+  dark: 'bg-slate-900 dark:bg-[#0B1120]',
 };
 
 export function SectionWrapper({

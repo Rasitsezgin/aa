@@ -6,15 +6,16 @@ import { prisma } from '@/lib/prisma';
 // Konu detayı ve gönderileri
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
+    const { slug } = await params;
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '20');
     const page = parseInt(searchParams.get('page') || '1');
 
     const topic = await prisma.forumTopic.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: {
         board: {
           select: {

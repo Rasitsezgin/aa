@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { createForumReply } from "@/lib/forum-api";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageSquare, ArrowLeft, Pin, Lock, Eye, MessageCircle,
@@ -82,9 +84,45 @@ export default function ForumTopicPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showReplyEditor, setShowReplyEditor] = useState(false);
+  const [isSubmittingReply, setIsSubmittingReply] = useState(false);
+  const [replyError, setReplyError] = useState<string | null>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportTarget, setReportTarget] = useState<{ postId?: string; topicId?: string } | null>(null);
+  const [reportReason, setReportReason] = useState('spam');
+  const [reportDescription, setReportDescription] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const { data: session, status } = useSession();
 
-  useEffect(() => {
-    const fetchTopic = async () => {
+  const openReport = (target: { postId?: string; topicId?: string }) => {
+    if (!session) {
+      window.location.href = `/signup?callbackUrl=${encodeURIComponent(`/forum/topic/${slug}`)}`;
+      return;
+    }
+    setReportTarget(target);
+    setReportReason('spam');
+    setReportDescription('');
+    setShowReportModal(true);
+  };
+
+  const submitReport = async () => {
+    if (!reportTarget) return;
+    setReportSubmitting(true);
+    try {
+      await communityService.submitReport({
+        ...reportTarget,
+        reason: reportReason,
+        description: reportDescription,
+      });
+      setShowReportModal(false);
+      alert('Raporunuz alındı. Teşekkürler.');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Rapor gönderilemedi');
+    } finally {
+      setReportSubmitting(false);
+    }
+  };
+
+  const fetchTopic = async () => {
       if (!slug) return;
       
       try {
@@ -105,14 +143,30 @@ export default function ForumTopicPage() {
       }
     };
 
+  useEffect(() => {
     fetchTopic();
   }, [slug]);
 
+  const handleReplySubmit = async () => {
+    if (!replyContent.trim() || !slug) return;
+    setIsSubmittingReply(true);
+    setReplyError(null);
+    try {
+      await createForumReply(slug, replyContent.trim());
+      setReplyContent("");
+      await fetchTopic();
+    } catch (error) {
+      setReplyError(error instanceof Error ? error.message : "Cevap gönderilemedi.");
+    } finally {
+      setIsSubmittingReply(false);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#02040a] flex items-center justify-center">
+      <div className="min-h-screen bg-[#FAFAF9] dark:bg-[#0B1120] flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-cyan-600 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-orange-600 animate-spin mx-auto mb-4" />
           <p className="text-slate-600 dark:text-slate-400">Konu yükleniyor...</p>
         </div>
       </div>
@@ -121,7 +175,7 @@ export default function ForumTopicPage() {
 
   if (error || !topic) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-[#02040a] flex items-center justify-center">
+      <div className="min-h-screen bg-[#FAFAF9] dark:bg-[#0B1120] flex items-center justify-center">
         <div className="text-center">
           <MessageSquare className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
@@ -129,7 +183,7 @@ export default function ForumTopicPage() {
           </h1>
           <Link 
             href="/forum" 
-            className="text-cyan-600 hover:underline inline-flex items-center gap-2"
+            className="text-orange-600 hover:underline inline-flex items-center gap-2"
           >
             <ChevronLeft size={18} />
             Foruma Dön
@@ -159,7 +213,7 @@ export default function ForumTopicPage() {
             <ChevronLeft className="w-4 h-4 rotate-180" />
             {topic ? (
               <>
-                <Link href={`/forum`} className="hover:text-cyan-600">{topic.board?.name || topic.category || 'Forum'}</Link>
+                <Link href={`/forum`} className="hover:text-orange-600">{topic.board?.name || topic.category || 'Forum'}</Link>
                 <ChevronLeft className="w-4 h-4 rotate-180" />
                 <span className="text-slate-700 font-medium truncate">{topic.title}</span>
               </>
@@ -216,7 +270,7 @@ export default function ForumTopicPage() {
               </div>
               <div className="flex flex-wrap gap-2 mt-3">
                 {topic.tags?.map((tag: {name: string; slug: string; color?: string}) => (
-                  <Link key={tag.slug} href={`/forum/tag/${tag.slug}`} className="px-3 py-1 bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400 rounded-full text-sm hover:bg-cyan-100">
+                  <Link key={tag.slug} href={`/forum/tag/${tag.slug}`} className="px-3 py-1 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full text-sm hover:bg-orange-100">
                     #{tag.name}
                   </Link>
                 ))}
@@ -229,7 +283,12 @@ export default function ForumTopicPage() {
               <button className="p-2 hover:bg-slate-100 rounded-lg" title="Paylaş">
                 <Share2 className="w-5 h-5 text-slate-400" />
               </button>
-              <button className="p-2 hover:bg-slate-100 rounded-lg" title="Rapor Et">
+              <button
+                type="button"
+                className="p-2 hover:bg-slate-100 rounded-lg"
+                title="Rapor Et"
+                onClick={() => openReport({ topicId: topic.id })}
+              >
                 <Flag className="w-5 h-5 text-slate-400" />
               </button>
             </div>
@@ -360,7 +419,7 @@ export default function ForumTopicPage() {
                           key={reaction.type}
                           className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm ${
                             reaction.userReacted
-                              ? "bg-cyan-100 text-cyan-700"
+                              ? "bg-orange-100 text-orange-700"
                               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                           }`}
                         >
@@ -379,8 +438,13 @@ export default function ForumTopicPage() {
                       <button className="flex items-center gap-1 px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded-lg text-sm">
                         <Share2 className="w-4 h-4" /> Alıntı
                       </button>
-                      <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-400">
-                        <MoreHorizontal className="w-4 h-4" />
+                      <button
+                        type="button"
+                        className="p-2 hover:bg-slate-100 rounded-lg text-slate-400"
+                        title="Rapor et"
+                        onClick={() => openReport({ postId: post.id })}
+                      >
+                        <Flag className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -396,6 +460,14 @@ export default function ForumTopicPage() {
             <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
               <Reply className="w-5 h-5" /> Cevap Yaz
             </h3>
+            {status === "unauthenticated" ? (
+              <div className="text-center py-8">
+                <p className="text-slate-600 mb-4">Cevap yazmak için giriş yapmalısınız.</p>
+                <Link href={`/login?callbackUrl=/forum/topic/${slug}`} className="inline-flex px-5 py-2.5 bg-orange-600 text-white font-bold rounded-xl hover:bg-orange-500">
+                  Giriş Yap
+                </Link>
+              </div>
+            ) : (
             <div className="space-y-3">
               <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
                 <button className="p-1.5 hover:bg-slate-200 rounded" title="Kalın">
@@ -427,13 +499,23 @@ export default function ForumTopicPage() {
                 placeholder="Cevabınızı buraya yazın..."
                 className="w-full h-32 px-4 py-3 border border-slate-200 rounded-lg resize-none focus:ring-2 focus:ring-orange-500"
               />
+              {replyError && (
+                <p className="text-sm text-red-600">{replyError}</p>
+              )}
               <div className="flex justify-between items-center">
-                <p className="text-sm text-slate-500">BBCode ve Markdown desteklenir</p>
-                <button className="flex items-center gap-2 px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 font-medium">
-                  <Send className="w-4 h-4" /> Gönder
+                <p className="text-sm text-slate-500">{session?.user?.name || "Üye"} olarak cevaplıyorsunuz</p>
+                <button
+                  type="button"
+                  onClick={handleReplySubmit}
+                  disabled={!replyContent.trim() || isSubmittingReply}
+                  className="flex items-center gap-2 px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-500 font-medium disabled:opacity-50"
+                >
+                  {isSubmittingReply ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  Gönder
                 </button>
               </div>
             </div>
+            )}
           </div>
         )}
 
@@ -459,6 +541,58 @@ export default function ForumTopicPage() {
           </button>
         </div>
       </div>
+      )}
+
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-slate-900 mb-4">İçeriği Rapor Et</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Neden</label>
+                <select
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                >
+                  <option value="spam">Spam</option>
+                  <option value="offensive">Hakaret / Ayrımcılık</option>
+                  <option value="harassment">Taciz</option>
+                  <option value="off_topic">Konu dışı</option>
+                  <option value="duplicate">Tekrar</option>
+                  <option value="other">Diğer</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Açıklama</label>
+                <textarea
+                  value={reportDescription}
+                  onChange={(e) => setReportDescription(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                  placeholder="Kısa açıklama (opsiyonel)"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowReportModal(false)}
+                  className="flex-1 py-2.5 border border-slate-200 rounded-lg font-medium"
+                >
+                  İptal
+                </button>
+                <button
+                  type="button"
+                  onClick={submitReport}
+                  disabled={reportSubmitting}
+                  className="flex-1 py-2.5 bg-orange-600 text-white rounded-lg font-medium disabled:opacity-60"
+                >
+                  {reportSubmitting ? 'Gönderiliyor...' : 'Raporla'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -10,11 +10,16 @@ import {
     Package, ShoppingCart, FileText, ChevronRight,
 } from 'lucide-react';
 import {
-    integrations,
+    integrations as fallbackIntegrations,
     categoryMeta,
     type Integration,
     type CategoryId,
 } from './integrations-data';
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
+
+type IntegrationsClientProps = {
+    initialIntegrations?: Integration[];
+};
 
 // ─── Logo ─────────────────────────────────────────────
 function IntegrationLogo({ item, size = 'md' }: { item: Integration; size?: 'sm' | 'md' | 'lg' | 'xl' }) {
@@ -138,9 +143,14 @@ function IntegrationCard({ item, onSelect }: { item: Integration; onSelect: (ite
                             <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg ${item.price === 'Ücretsiz' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400'}`}>
                                 {item.price}
                             </span>
-                            <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-gradient-to-br group-hover:from-orange-600 group-hover:to-amber-500 group-hover:text-white transition-all duration-300">
+                            <Link
+                                href={`/entegrasyonlar/${item.id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-gradient-to-br group-hover:from-orange-600 group-hover:to-amber-500 group-hover:text-white transition-all duration-300"
+                                aria-label={`${item.name} detay`}
+                            >
                                 <ArrowRight className="w-4 h-4" />
-                            </div>
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -174,7 +184,7 @@ function FeaturedCard({ item, rank, onSelect }: { item: Integration; rank: numbe
             viewport={{ once: true }}
             transition={{ delay: rank * 0.08 }}
             onClick={() => onSelect(item)}
-            className={`group relative overflow-hidden rounded-3xl text-left transition-transform hover:scale-[1.01] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60 ${isHero ? 'md:col-span-2 md:row-span-2 min-h-[280px] md:min-h-0' : 'min-h-[300px]'}`}
+            className={`group relative overflow-hidden rounded-2xl sm:rounded-3xl text-left transition-transform hover:scale-[1.01] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60 ${isHero ? 'md:col-span-2 md:row-span-2 min-h-0 md:min-h-0' : 'min-h-0'}`}
         >
             <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient}`} />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.28),transparent_45%)]" />
@@ -369,11 +379,11 @@ function IntegrationModal({ item, onClose }: { item: Integration; onClose: () =>
                             <Plug size={18} /> Bağlan
                         </Link>
                         <Link
-                            href={item.documentation}
+                            href={`/entegrasyonlar/${item.id}`}
                             onClick={onClose}
                             className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                         >
-                            <ExternalLink size={18} /> Dokümantasyon
+                            <ChevronRight size={18} /> Detay sayfası
                         </Link>
                     </div>
                 </div>
@@ -409,16 +419,16 @@ function HeroHub({ items }: { items: Integration[] }) {
     const orbit = items.slice(0, 8);
 
     return (
-        <div className="relative w-full max-w-sm lg:max-w-md mx-auto aspect-square overflow-hidden isolate">
-            <div className="absolute inset-5 sm:inset-6 [--orbit:6.75rem] sm:[--orbit:7.75rem] lg:[--orbit:8.5rem]">
+        <div className="relative w-full max-w-[min(100%,260px)] xs:max-w-[280px] sm:max-w-sm lg:max-w-md mx-auto aspect-square overflow-hidden isolate">
+            <div className="absolute inset-2 min-[380px]:inset-4 sm:inset-6 [--orbit:4.25rem] min-[380px]:[--orbit:4.75rem] sm:[--orbit:6.75rem] md:[--orbit:7.75rem] lg:[--orbit:8.5rem]">
                 <div className="absolute inset-[6%] rounded-full border border-dashed border-orange-300/40 dark:border-orange-500/20 animate-[spin_80s_linear_infinite]" />
                 <div className="absolute inset-[22%] rounded-full border border-orange-200/30 dark:border-orange-500/10" />
                 <div className="absolute inset-[30%] rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/10 blur-2xl" />
 
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="relative z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-[1.75rem] bg-gradient-to-br from-orange-600 to-amber-500 shadow-2xl shadow-orange-500/30 flex flex-col items-center justify-center text-white ring-4 ring-white/20 dark:ring-white/10">
-                        <Plug className="w-9 h-9 sm:w-10 sm:h-10 mb-1" />
-                        <span className="text-[10px] font-black uppercase tracking-wider opacity-90">Merkez</span>
+                    <div className="relative z-10 w-[4.5rem] h-[4.5rem] min-[380px]:w-20 min-[380px]:h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl sm:rounded-[1.75rem] bg-gradient-to-br from-orange-600 to-amber-500 shadow-2xl shadow-orange-500/30 flex flex-col items-center justify-center text-white ring-2 sm:ring-4 ring-white/20 dark:ring-white/10">
+                        <Plug className="w-7 h-7 min-[380px]:w-8 min-[380px]:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 mb-0.5 sm:mb-1" />
+                        <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider opacity-90">Merkez</span>
                     </div>
                 </div>
 
@@ -446,8 +456,92 @@ function HeroHub({ items }: { items: Integration[] }) {
     );
 }
 
+// ─── Category overview ────────────────────────────────
+function CategoryOverview({
+    counts,
+    active,
+    onSelect,
+}: {
+    counts: Record<string, number>;
+    active: CategoryId;
+    onSelect: (id: CategoryId) => void;
+}) {
+    const cats = categoryMeta.filter((c) => c.id !== 'all' && (counts[c.id] ?? 0) > 0);
+
+    return (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {cats.map((cat) => {
+                const Icon = cat.icon;
+                const isActive = active === cat.id;
+                return (
+                    <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => onSelect(cat.id)}
+                        className={`group relative overflow-hidden rounded-2xl p-4 text-left border transition-all ${
+                            isActive
+                                ? 'border-orange-400/60 bg-gradient-to-br from-orange-500/10 to-amber-500/5 shadow-lg shadow-orange-500/10'
+                                : 'border-slate-200/70 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] hover:border-orange-300/50'
+                        }`}
+                    >
+                        <div className="flex items-center justify-between mb-3">
+                            <div className={`p-2 rounded-xl ${isActive ? 'bg-orange-500 text-white' : 'bg-slate-100 dark:bg-white/5 text-orange-500'}`}>
+                                <Icon size={18} />
+                            </div>
+                            <span className="text-2xl font-black text-slate-900 dark:text-white">{counts[cat.id]}</span>
+                        </div>
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{cat.name}</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">Keşfet →</p>
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
+// ─── New integrations strip ───────────────────────────
+function NewIntegrationsStrip({ items, onSelect }: { items: Integration[]; onSelect: (item: Integration) => void }) {
+    if (items.length === 0) return null;
+
+    return (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+            <div className="flex items-end justify-between mb-6">
+                <div>
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2 tracking-tight">
+                        <Zap className="w-6 h-6 text-emerald-500" />
+                        Yeni eklenenler
+                    </h2>
+                    <p className="text-sm text-slate-500 mt-1">Son dönemde kataloğa eklenen entegrasyonlar</p>
+                </div>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {items.map((item) => (
+                    <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => onSelect(item)}
+                        className="shrink-0 w-[260px] rounded-2xl border border-emerald-200/60 dark:border-emerald-500/20 bg-white/80 dark:bg-slate-900/60 p-5 text-left hover:shadow-lg hover:shadow-emerald-500/10 transition-all"
+                    >
+                        <div className="flex items-center gap-3 mb-3">
+                            <IntegrationLogo item={item} size="sm" />
+                            <div>
+                                <p className="font-black text-slate-900 dark:text-white">{item.name}</p>
+                                <span className="text-[10px] font-bold uppercase text-emerald-600">Yeni</span>
+                            </div>
+                        </div>
+                        <p className="text-xs text-slate-500 line-clamp-2">{item.shortDesc}</p>
+                    </button>
+                ))}
+            </div>
+        </section>
+    );
+}
+
 // ─── Main page ────────────────────────────────────────
-export default function IntegrationsClient() {
+export default function IntegrationsClient({ initialIntegrations }: IntegrationsClientProps) {
+    const [items] = useState<Integration[]>(
+        initialIntegrations?.length ? initialIntegrations : fallbackIntegrations,
+    );
     const [search, setSearch] = useState('');
     const [category, setCategory] = useState<CategoryId>('all');
     const [selected, setSelected] = useState<Integration | null>(null);
@@ -467,16 +561,16 @@ export default function IntegrationsClient() {
     }, [selected]);
 
     const counts = useMemo(() => {
-        const map: Record<string, number> = { all: integrations.length };
-        for (const item of integrations) {
+        const map: Record<string, number> = { all: items.length };
+        for (const item of items) {
             map[item.category] = (map[item.category] || 0) + 1;
         }
         return map;
-    }, []);
+    }, [items]);
 
     const filtered = useMemo(() => {
         const q = search.trim().toLowerCase();
-        return integrations.filter((item) => {
+        return items.filter((item) => {
             const matchCat = category === 'all' || item.category === category;
             const matchSearch = !q ||
                 item.name.toLowerCase().includes(q) ||
@@ -484,9 +578,15 @@ export default function IntegrationsClient() {
                 item.features.some((f) => f.toLowerCase().includes(q));
             return matchCat && matchSearch;
         });
-    }, [search, category]);
+    }, [search, category, items]);
 
-    const popular = useMemo(() => integrations.filter((i) => i.isPopular).slice(0, 3), []);
+    const popular = useMemo(() => items.filter((i) => i.isPopular).slice(0, 3), [items]);
+    const newest = useMemo(() => items.filter((i) => i.isNew).slice(0, 6), [items]);
+    const avgRating = useMemo(() => {
+        if (!items.length) return '4.8';
+        const avg = items.reduce((sum, i) => sum + i.rating, 0) / items.length;
+        return avg.toFixed(1);
+    }, [items]);
 
     const flowSteps = [
         { icon: Plug, title: 'Bağlan', desc: 'API anahtarınızı 5 dakikada ekleyin' },
@@ -498,46 +598,30 @@ export default function IntegrationsClient() {
     const showFeatured = !search && category === 'all';
 
     return (
-        <div className="min-h-screen bg-[#FAFAF9] dark:bg-[#0B1120] pt-[calc(4.5rem+env(safe-area-inset-top,0px))] relative overflow-x-hidden">
-            {/* Ambient background */}
-            <div className="fixed inset-0 pointer-events-none z-0">
-                <div className="absolute inset-0 bg-gradient-to-b from-orange-50/40 via-transparent to-transparent dark:from-orange-950/20" />
-                <div
-                    className="absolute inset-0 opacity-[0.35] dark:opacity-[0.12]"
-                    style={{
-                        backgroundImage: 'linear-gradient(rgba(148,163,184,0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.25) 1px, transparent 1px)',
-                        backgroundSize: '56px 56px',
-                        maskImage: 'linear-gradient(to bottom, black 30%, transparent 85%)',
-                        WebkitMaskImage: 'linear-gradient(to bottom, black 30%, transparent 85%)',
-                    }}
-                />
-                <div className="absolute top-20 right-0 w-[600px] h-[500px] bg-orange-400/10 rounded-full blur-[120px]" />
-                <div className="absolute bottom-40 left-0 w-[400px] h-[400px] bg-amber-400/8 rounded-full blur-[100px]" />
-            </div>
-
-            <div className="relative z-10">
+        <>
+        <MarketingPageShell padded={false} className="pb-20">
                 {/* Hero */}
-                <section className="relative border-b border-slate-200/50 dark:border-white/5">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14 lg:py-24">
-                        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-                            <div className="text-center lg:text-left">
+                <section className="relative border-b border-slate-200/50 dark:border-white/5 overflow-hidden">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-10 sm:pt-16 sm:pb-14 lg:pt-24 lg:pb-24">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-16 items-center">
+                            <div className="text-center lg:text-left order-2 lg:order-1 min-w-0">
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-white/5 text-orange-700 dark:text-orange-300 text-xs font-bold mb-7 border border-orange-200/60 dark:border-orange-500/20 shadow-sm backdrop-blur-sm"
+                                    className="inline-flex flex-wrap items-center justify-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/80 dark:bg-white/5 text-orange-700 dark:text-orange-300 text-[11px] sm:text-xs font-bold mb-5 sm:mb-7 border border-orange-200/60 dark:border-orange-500/20 shadow-sm backdrop-blur-sm max-w-full"
                                 >
                                     <span className="relative flex h-2 w-2">
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
                                         <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500" />
                                     </span>
-                                    {integrations.length}+ entegrasyon · %99.9 uptime
+                                    {items.length}+ entegrasyon · {avgRating} ort. puan
                                 </motion.div>
 
                                 <motion.h1
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.05 }}
-                                    className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black text-slate-900 dark:text-white tracking-tight leading-[1.05] mb-6"
+                                    className="text-[1.75rem] min-[380px]:text-3xl sm:text-5xl lg:text-[3.5rem] font-black text-slate-900 dark:text-white tracking-tight leading-[1.1] sm:leading-[1.05] mb-4 sm:mb-6 px-1 sm:px-0"
                                 >
                                     Tüm kanallarınız{' '}
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500">
@@ -549,7 +633,7 @@ export default function IntegrationsClient() {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.1 }}
-                                    className="text-lg text-slate-600 dark:text-slate-400 max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed"
+                                    className="text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed px-1 sm:px-0"
                                 >
                                     Pazaryeri, e-ticaret, muhasebe, kargo ve e-fatura entegrasyonlarını dakikalar içinde kurun — tek merkezden yönetin.
                                 </motion.p>
@@ -558,23 +642,31 @@ export default function IntegrationsClient() {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.15 }}
-                                    className="relative max-w-lg mx-auto lg:mx-0"
+                                    className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto lg:mx-0 w-full"
                                 >
-                                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                    <input
-                                        type="text"
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                        placeholder="Trendyol, Paraşüt, Shopify ara…"
-                                        className="w-full pl-14 pr-5 py-4 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-slate-900/80 text-slate-900 dark:text-white shadow-xl shadow-slate-200/40 dark:shadow-none focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-400 transition-all backdrop-blur-sm"
-                                    />
+                                    <div className="relative flex-1">
+                                        <Search className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+                                        <input
+                                            type="text"
+                                            value={search}
+                                            onChange={(e) => setSearch(e.target.value)}
+                                            placeholder="Trendyol, Paraşüt, Shopify ara…"
+                                            className="w-full pl-11 sm:pl-14 pr-4 sm:pr-5 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-slate-900/80 text-slate-900 dark:text-white text-sm sm:text-base shadow-xl shadow-slate-200/40 dark:shadow-none focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-400 transition-all backdrop-blur-sm min-h-[48px]"
+                                        />
+                                    </div>
+                                    <Link
+                                        href="/signup"
+                                        className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-orange-600 to-amber-500 text-white font-bold text-sm shadow-lg shadow-orange-500/25 hover:scale-[1.02] transition-all shrink-0 min-h-[48px]"
+                                    >
+                                        Ücretsiz dene <ArrowRight className="w-4 h-4" />
+                                    </Link>
                                 </motion.div>
 
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: 0.25 }}
-                                    className="flex flex-wrap justify-center lg:justify-start gap-6 mt-10"
+                                    className="grid grid-cols-2 sm:flex sm:flex-wrap justify-center lg:justify-start gap-x-4 gap-y-5 sm:gap-6 mt-8 sm:mt-10 max-w-sm sm:max-w-none mx-auto lg:mx-0"
                                 >
                                     {[
                                         { v: '12.5K+', l: 'Aktif satıcı' },
@@ -582,11 +674,11 @@ export default function IntegrationsClient() {
                                         { v: '< 2 dk', l: 'Kurulum' },
                                         { v: '%99.9', l: 'Uptime' },
                                     ].map((s, i) => (
-                                        <div key={s.l} className="flex items-center gap-6">
+                                        <div key={s.l} className="flex items-center sm:gap-6">
                                             {i > 0 && <div className="hidden sm:block w-px h-8 bg-slate-200 dark:bg-white/10" />}
-                                            <div className="text-left">
-                                                <div className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-500">{s.v}</div>
-                                                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{s.l}</div>
+                                            <div className="text-left w-full sm:w-auto">
+                                                <div className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-500">{s.v}</div>
+                                                <div className="text-[10px] sm:text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{s.l}</div>
                                             </div>
                                         </div>
                                     ))}
@@ -597,15 +689,15 @@ export default function IntegrationsClient() {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.2, duration: 0.6 }}
-                                className="hidden sm:block overflow-hidden py-2"
+                                className="order-1 lg:order-2 overflow-hidden py-1 sm:py-2 w-full flex justify-center lg:justify-end"
                             >
-                                <HeroHub items={integrations} />
+                                <HeroHub items={items} />
                             </motion.div>
                         </div>
                     </div>
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-10">
-                        <LogoMarquee items={integrations} />
+                        <LogoMarquee items={items} />
                     </div>
                 </section>
 
@@ -638,6 +730,27 @@ export default function IntegrationsClient() {
                         ))}
                     </div>
                 </section>
+
+                {/* Category overview */}
+                {showFeatured && (
+                    <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+                        <div className="text-center mb-8">
+                            <p className="text-xs font-black uppercase tracking-[0.25em] text-orange-500 mb-3">Kategoriler</p>
+                            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">İhtiyacınıza göre keşfedin</h2>
+                        </div>
+                        <CategoryOverview
+                            counts={counts}
+                            active={category}
+                            onSelect={(id) => {
+                                setCategory(id);
+                                setSearch('');
+                            }}
+                        />
+                    </section>
+                )}
+
+                {/* New integrations */}
+                {showFeatured && <NewIntegrationsStrip items={newest} onSelect={setSelected} />}
 
                 {/* Featured popular */}
                 {showFeatured && (
@@ -761,7 +874,7 @@ export default function IntegrationsClient() {
                         </div>
                     </div>
                 </section>
-            </div>
+        </MarketingPageShell>
 
             {portalReady && createPortal(
                 <AnimatePresence>
@@ -782,6 +895,6 @@ export default function IntegrationsClient() {
                     animation-play-state: paused;
                 }
             `}</style>
-        </div>
+        </>
     );
 }

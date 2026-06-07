@@ -14,6 +14,10 @@ export default function robots(): MetadataRoute.Robots {
                     '/auth',
                     '/_sites',
                     '/_next',
+                    '/forum/new-topic',
+                    '/forum/messages',
+                    '/forum/settings',
+                    '/login',
                 ],
             },
             {

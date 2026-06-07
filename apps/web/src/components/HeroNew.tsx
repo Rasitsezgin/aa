@@ -97,15 +97,15 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
 
     return (
         <section
-            className="relative min-h-svh overflow-hidden bg-[#FAFAF9] dark:bg-[#0F172A] transition-colors duration-500 selection:bg-orange-500/20 overflow-x-hidden"
+            className="relative min-h-0 lg:min-h-[calc(100svh-4rem)] overflow-hidden bg-[#FAFAF9] dark:bg-[#0B1120] transition-colors duration-500 selection:bg-orange-500/20 overflow-x-hidden"
         >
             {/* ═══════════════════════════════════════════════ */}
             {/* BACKGROUND SYSTEM (Optimized with CSS) */}
             {/* ═══════════════════════════════════════════════ */}
 
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-0 right-0 w-[480px] h-[480px] rounded-full bg-orange-500/[0.04] blur-3xl" />
-                <div className="absolute bottom-0 left-0 w-[360px] h-[360px] rounded-full bg-slate-400/[0.04] blur-3xl" />
+                <div className="absolute top-0 right-0 w-[240px] h-[240px] sm:w-[360px] sm:h-[360px] lg:w-[480px] lg:h-[480px] rounded-full bg-orange-500/[0.04] blur-3xl" />
+                <div className="absolute bottom-0 left-0 w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] lg:w-[360px] lg:h-[360px] rounded-full bg-slate-400/[0.04] blur-3xl" />
             </div>
 
             <div
@@ -121,8 +121,8 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
             {/* MAIN CONTENT                                   */}
             {/* ═══════════════════════════════════════════════ */}
             <div
-                className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pb-12 sm:pb-16 lg:pb-20 max-w-7xl w-full"
-                style={{ paddingTop: 'calc(4.05rem + env(safe-area-inset-top, 0px))' }}
+                className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pb-10 sm:pb-16 lg:pb-20 max-w-7xl w-full min-w-0"
+                style={{ paddingTop: 'calc(5.25rem + env(safe-area-inset-top, 0px))' }}
             >
 
                 {/* ────────────────────── TOP ANNOUNCEMENT ────────────────────── */}
@@ -170,19 +170,19 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
                     )}
                 </AnimatePresence>
 
-                <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-14 items-start">
 
                     <motion.div
                         variants={stagger}
                         initial="hidden"
                         animate="visible"
-                        className="flex flex-col gap-8 text-center lg:text-left"
+                        className="flex flex-col gap-6 sm:gap-8 text-center lg:text-left min-w-0 order-2 lg:order-1"
                     >
                         <motion.h1
                             variants={fadeUp}
-                            className="text-[1.75rem] sm:text-[2.5rem] lg:text-[3rem] xl:text-[3.25rem] font-bold tracking-tight leading-[1.25] text-slate-900 dark:text-white"
+                            className="text-[1.5rem] min-[380px]:text-[1.75rem] sm:text-[2.5rem] lg:text-[3rem] xl:text-[3.25rem] font-bold tracking-tight leading-[1.2] sm:leading-[1.25] text-slate-900 dark:text-white px-1 sm:px-0"
                         >
-                            <span className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-x-2.5 gap-y-2">
+                            <span className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-x-2 gap-y-2 sm:gap-x-2.5">
                                 <AnimatePresence mode="wait">
                                     <motion.span
                                         key={wordIndex}
@@ -190,7 +190,7 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -6 }}
                                         transition={{ duration: 0.35 }}
-                                        className="inline-flex items-center gap-2 h-11 sm:h-12 px-3 sm:px-3.5 rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-white/[0.04] shadow-sm"
+                                        className="inline-flex items-center gap-1.5 sm:gap-2 h-9 sm:h-11 md:h-12 px-2.5 sm:px-3 md:px-3.5 rounded-lg sm:rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-white/[0.04] shadow-sm max-w-full"
                                         style={{ borderLeftWidth: 3, borderLeftColor: currentMarketplace.color }}
                                     >
                                         <Image
@@ -198,9 +198,9 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
                                             alt={currentMarketplace.name}
                                             width={72}
                                             height={24}
-                                            className="h-5 sm:h-6 w-auto max-w-[72px] object-contain"
+                                            className="h-4 sm:h-5 md:h-6 w-auto max-w-[56px] sm:max-w-[72px] object-contain"
                                         />
-                                        <span className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100">
+                                        <span className="text-xs sm:text-sm md:text-base font-semibold text-slate-800 dark:text-slate-100 truncate max-w-[7rem] sm:max-w-none">
                                             {currentMarketplace.name}
                                         </span>
                                     </motion.span>
@@ -284,16 +284,13 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
                             })}
                         </motion.div>
 
-                        <div className="lg:hidden w-full max-w-md mx-auto pt-2">
-                            <LandingDashboardPreview />
-                        </div>
                     </motion.div>
 
                     <motion.div
                         variants={scaleIn}
                         initial="hidden"
                         animate="visible"
-                        className="hidden lg:block w-full"
+                        className="w-full min-w-0 order-1 lg:order-2 max-w-md sm:max-w-lg lg:max-w-none mx-auto lg:mx-0"
                     >
                         <LandingDashboardPreview />
                     </motion.div>
@@ -309,7 +306,7 @@ export default function HeroNew({ texts = HOMEPAGE_TEXTS.hero }: { texts?: typeo
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.4 }}
                 transition={{ duration: 1, delay: 3 }}
-                className="absolute bottom-4 sm:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 hidden sm:flex"
+                className="absolute bottom-4 sm:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center gap-2"
             >
                 <motion.div
                     animate={{ y: [0, 8, 0] }}

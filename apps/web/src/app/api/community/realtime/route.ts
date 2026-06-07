@@ -1,17 +1,17 @@
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
+import { auth } from '@/auth';
+import { ensureForumProfile } from '@/lib/forum-server';
+import {
+  getOnlinePresenceCount,
+  getOnlinePresenceUsers,
+  getTypingUsers,
+  markStaleUsersOffline,
+  setTypingIndicator,
+  setUserPresence,
+} from '@/lib/forum-presence';
 import { prisma } from '@/lib/prisma';
-
-// Server-Sent Events için basit bir endpoint
-// Gerçek WebSocket yerine SSE kullanıyoruz (Next.js App Router'da daha uygun)
-
-// Online kullanıcıları takip etmek için basit bir in-memory store
-// (Gerçek uygulamada Redis kullanılmalı)
-const onlineUsers = new Map<string, { id: string; name: string; lastSeen: Date }>();
-
-// Son aktiviteler
-let recentActivities: any[] = [];
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -25,6 +25,8 @@ export async function GET(request: Request) {
         return await getRecentActivities();
       case 'typing':
         return await getTypingStatus(searchParams);
+      case 'notifications':
+        return await getNotificationCount();
       default:
         return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
     }
@@ -34,59 +36,83 @@ export async function GET(request: Request) {
   }
 }
 
+async function getNotificationCount() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ unreadCount: 0 });
+  }
+
+  const profile = await prisma.forumUserProfile.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true },
+  });
+
+  if (!profile) {
+    return NextResponse.json({ unreadCount: 0 });
+  }
+
+  const unreadCount = await prisma.forumNotification.count({
+    where: { userId: profile.id, isRead: false },
+  });
+
+  return NextResponse.json({ unreadCount });
+}
+
 async function getRealtimeStatus() {
   try {
-    // Veritabanından gerçek online kullanıcı sayısı
-    const onlineCount = await prisma.forumUserProfile.count({
-      where: { isOnline: true },
-    });
+    await markStaleUsersOffline();
 
-    // Son 5 dakikada aktif kullanıcılar
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    const recentlyActive = await prisma.forumUserProfile.findMany({
-      where: {
-        lastActivityAt: { gte: fiveMinutesAgo },
-      },
-      take: 20,
-      select: {
-        id: true,
-        userId: true,
-        isOnline: true,
-        lastActivityAt: true,
-      },
-    });
+    const [redisCount, recentlyActive, activeTopics] = await Promise.all([
+      getOnlinePresenceCount(),
+      prisma.forumUserProfile.findMany({
+        where: { lastActivityAt: { gte: fiveMinutesAgo } },
+        take: 20,
+        orderBy: { lastActivityAt: 'desc' },
+        select: {
+          id: true,
+          userId: true,
+          isOnline: true,
+          lastActivityAt: true,
+          primaryGroup: { select: { isStaff: true, isModerator: true } },
+        },
+      }),
+      prisma.forumTopic.findMany({
+        where: {
+          OR: [
+            { createdAt: { gte: new Date(Date.now() - 10 * 60 * 1000) } },
+            { lastPostAt: { gte: new Date(Date.now() - 10 * 60 * 1000) } },
+          ],
+        },
+        take: 5,
+        orderBy: { lastPostAt: 'desc' },
+      }),
+    ]);
 
-    // Kullanıcı bilgilerini getir
-    const userIds = recentlyActive.map(u => u.userId);
+    const userIds = recentlyActive.map((u) => u.userId);
     const users = await prisma.user.findMany({
       where: { id: { in: userIds } },
       select: { id: true, firstName: true, lastName: true, image: true },
     });
 
-    // Aktif konular (son 10 dakika)
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
-    const activeTopics = await prisma.forumTopic.findMany({
-      where: {
-        OR: [
-          { createdAt: { gte: tenMinutesAgo } },
-          { lastPostAt: { gte: tenMinutesAgo } },
-        ],
-      },
-      take: 5,
-      orderBy: { lastPostAt: 'desc' },
-    });
+    const redisUsers = await getOnlinePresenceUsers();
+    const onlineCount = Math.max(redisCount, recentlyActive.filter((u) => u.isOnline).length);
 
-    const formattedUsers = recentlyActive.map(profile => {
-      const user = users.find(u => u.id === profile.userId);
-      const name = user?.firstName && user?.lastName 
-        ? `${user.firstName} ${user.lastName}` 
-        : user?.firstName || 'Anonim';
-      
+    const formattedUsers = recentlyActive.map((profile) => {
+      const user = users.find((u) => u.id === profile.userId);
+      const redisUser = redisUsers.find((r) => r.id === profile.id);
+      const name =
+        user?.firstName && user?.lastName
+          ? `${user.firstName} ${user.lastName}`
+          : user?.firstName || redisUser?.name || 'Anonim';
+
       return {
         id: profile.id,
         name,
         avatar: user?.image || name.slice(0, 2).toUpperCase(),
-        isOnline: profile.isOnline,
+        isOnline: profile.isOnline || Boolean(redisUser),
+        isStaff: profile.primaryGroup?.isStaff || false,
+        isModerator: profile.primaryGroup?.isModerator || false,
         lastActivity: profile.lastActivityAt,
       };
     });
@@ -94,7 +120,7 @@ async function getRealtimeStatus() {
     return NextResponse.json({
       onlineCount,
       recentlyActive: formattedUsers,
-      activeTopics: activeTopics.map(t => ({
+      activeTopics: activeTopics.map((t) => ({
         id: t.id,
         title: t.title,
         slug: t.slug,
@@ -103,21 +129,11 @@ async function getRealtimeStatus() {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    // Veritabanı hatası durumunda fallback veri
-    console.log('Database unavailable, using fallback data for realtime status');
+    console.error('Realtime status error:', error);
     return NextResponse.json({
-      onlineCount: 42,
-      recentlyActive: [
-        { id: '1', name: 'Ahmet Y.', avatar: 'AY', isOnline: true, lastActivity: new Date().toISOString() },
-        { id: '2', name: 'Zeynep K.', avatar: 'ZK', isOnline: true, lastActivity: new Date().toISOString() },
-        { id: '3', name: 'Mert D.', avatar: 'MD', isOnline: false, lastActivity: new Date(Date.now() - 2 * 60 * 1000).toISOString() },
-        { id: '4', name: 'Ayşe Ç.', avatar: 'AÇ', isOnline: true, lastActivity: new Date().toISOString() },
-        { id: '5', name: 'Can Ö.', avatar: 'CÖ', isOnline: false, lastActivity: new Date(Date.now() - 4 * 60 * 1000).toISOString() },
-      ],
-      activeTopics: [
-        { id: '1', title: 'AI Fiyatlandırma Stratejileri', slug: 'ai-fiyatlandirma', lastActivity: new Date().toISOString() },
-        { id: '2', title: 'Trendyol Entegrasyonu', slug: 'trendyol-entegrasyon', lastActivity: new Date(Date.now() - 5 * 60 * 1000).toISOString() },
-      ],
+      onlineCount: 0,
+      recentlyActive: [],
+      activeTopics: [],
       timestamp: new Date().toISOString(),
     });
   }
@@ -125,10 +141,10 @@ async function getRealtimeStatus() {
 
 async function getRecentActivities() {
   try {
-    // Son aktiviteleri getir
     const activities = await prisma.forumPost.findMany({
       take: 20,
       orderBy: { createdAt: 'desc' },
+      where: { isDeleted: false },
       select: {
         id: true,
         content: true,
@@ -138,33 +154,32 @@ async function getRecentActivities() {
       },
     });
 
-    const authorIds = [...new Set(activities.map(a => a.authorId))];
-    const topicIds = [...new Set(activities.map(a => a.topicId).filter(Boolean))];
+    const authorIds = [...new Set(activities.map((a) => a.authorId))];
+    const topicIds = [...new Set(activities.map((a) => a.topicId).filter(Boolean))];
 
     const [authors, topics] = await Promise.all([
-      prisma.forumUserProfile.findMany({
-        where: { id: { in: authorIds } },
-      }),
+      prisma.forumUserProfile.findMany({ where: { id: { in: authorIds } } }),
       prisma.forumTopic.findMany({
         where: { id: { in: topicIds as string[] } },
         select: { id: true, title: true, slug: true },
       }),
     ]);
 
-    const userIds = [...new Set(authors.map(a => a.userId))];
+    const userIds = [...new Set(authors.map((a) => a.userId))];
     const users = await prisma.user.findMany({
       where: { id: { in: userIds } },
       select: { id: true, firstName: true, lastName: true, image: true },
     });
 
-    const formattedActivities = activities.map(activity => {
-      const author = authors.find(a => a.id === activity.authorId);
-      const user = users.find(u => u.id === author?.userId);
-      const topic = topics.find(t => t.id === activity.topicId);
-      
-      const name = user?.firstName && user?.lastName 
-        ? `${user.firstName} ${user.lastName}` 
-        : user?.firstName || 'Anonim';
+    const formattedActivities = activities.map((activity) => {
+      const author = authors.find((a) => a.id === activity.authorId);
+      const user = users.find((u) => u.id === author?.userId);
+      const topic = topics.find((t) => t.id === activity.topicId);
+
+      const name =
+        user?.firstName && user?.lastName
+          ? `${user.firstName} ${user.lastName}`
+          : user?.firstName || 'Anonim';
 
       return {
         id: activity.id,
@@ -174,11 +189,9 @@ async function getRecentActivities() {
           name,
           avatar: user?.image || name.slice(0, 2).toUpperCase(),
         },
-        topic: topic ? {
-          id: topic.id,
-          title: topic.title,
-          slug: topic.slug,
-        } : null,
+        topic: topic
+          ? { id: topic.id, title: topic.title, slug: topic.slug }
+          : null,
         createdAt: activity.createdAt,
       };
     });
@@ -188,54 +201,71 @@ async function getRecentActivities() {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    // Fallback veri
-    return NextResponse.json({
-      activities: [
-        { id: '1', type: 'post', user: { id: '1', name: 'Ahmet Y.', avatar: 'AY' }, topic: { id: '1', title: 'AI Fiyatlandırma Stratejileri', slug: 'ai-fiyatlandirma' }, createdAt: new Date(Date.now() - 2 * 60 * 1000).toISOString() },
-        { id: '2', type: 'post', user: { id: '2', name: 'Zeynep K.', avatar: 'ZK' }, topic: { id: '2', title: 'Trendyol Entegrasyonu', slug: 'trendyol-entegrasyon' }, createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString() },
-        { id: '3', type: 'post', user: { id: '3', name: 'Mert D.', avatar: 'MD' }, topic: { id: '1', title: 'AI Fiyatlandırma Stratejileri', slug: 'ai-fiyatlandirma' }, createdAt: new Date(Date.now() - 8 * 60 * 1000).toISOString() },
-      ],
-      timestamp: new Date().toISOString(),
-    });
+    console.error('Realtime activities error:', error);
+    return NextResponse.json({ activities: [], timestamp: new Date().toISOString() });
   }
 }
 
 async function getTypingStatus(searchParams: URLSearchParams) {
   const topicId = searchParams.get('topicId');
-  
+  if (!topicId) {
+    return NextResponse.json({ typingUsers: [], topicId: null });
+  }
+
+  const typingUsers = await getTypingUsers(topicId);
   return NextResponse.json({
-    typingUsers: [],
-    topicId: topicId || null,
+    typingUsers: typingUsers.map((u) => ({ id: u.profileId, name: u.userName })),
+    topicId,
     timestamp: new Date().toISOString(),
   });
 }
 
-// POST - Online status güncelleme
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, userId, topicId } = body;
+    const { action, topicId, userName } = body;
 
     switch (action) {
-      case 'heartbeat':
-        // Kullanıcı online durumunu güncelle
-        if (userId) {
-          await prisma.forumUserProfile.update({
-            where: { userId },
-            data: {
-              isOnline: true,
-              lastActivityAt: new Date(),
-            },
-          });
+      case 'heartbeat': {
+        const session = await auth();
+        if (!session?.user?.id) {
+          return NextResponse.json({ success: false });
         }
-        return NextResponse.json({ success: true });
 
-      case 'typing':
-        // Kullanıcı yazıyor bildirimi
+        const profile = await ensureForumProfile(session.user.id);
+        const user = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { firstName: true, lastName: true },
+        });
+        const name =
+          [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Üye';
+
+        await Promise.all([
+          prisma.forumUserProfile.update({
+            where: { id: profile.id },
+            data: { isOnline: true, lastActivityAt: new Date() },
+          }),
+          setUserPresence(profile.id, name),
+        ]);
+
         return NextResponse.json({ success: true });
+      }
+
+      case 'typing': {
+        const session = await auth();
+        if (!session?.user?.id || !topicId) {
+          return NextResponse.json({ success: false });
+        }
+        const profile = await ensureForumProfile(session.user.id);
+        await setTypingIndicator(
+          topicId,
+          profile.id,
+          userName || 'Üye',
+        );
+        return NextResponse.json({ success: true });
+      }
 
       case 'view':
-        // Konu görüntüleme
         if (topicId) {
           await prisma.forumTopic.update({
             where: { id: topicId },

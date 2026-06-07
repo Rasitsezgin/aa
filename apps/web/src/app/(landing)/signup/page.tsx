@@ -10,6 +10,7 @@ import {
     CreditCard, Globe, Package, BarChart3, Users, Gift, AlertCircle, Loader2
 } from 'lucide-react';
 import { DEFAULT_PRICING_CATALOG, formatTryAmount, type PricingCatalog } from '@/config/pricing-catalog';
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 
 const DEFAULT_STARTER = DEFAULT_PRICING_CATALOG.plans.find((plan) => plan.id === 'starter')!;
 const DEFAULT_PROFESSIONAL = DEFAULT_PRICING_CATALOG.plans.find((plan) => plan.id === 'professional')!;
@@ -207,7 +208,7 @@ export default function SignupPage() {
     };
 
     return (
-        <main className="min-h-screen pt-24 pb-12">
+        <MarketingPageShell as="main" padded={false} className="pb-12">
             <div className="container mx-auto px-4">
                 <div className="grid lg:grid-cols-2 gap-12 items-start max-w-6xl mx-auto">
 
@@ -669,6 +670,6 @@ export default function SignupPage() {
                     </motion.div>
                 </div>
             </div>
-        </main>
+        </MarketingPageShell>
     );
 }

@@ -53,7 +53,7 @@ const row2 = brands.slice(Math.ceil(brands.length / 2));
 
 export default function SocialProof() {
     return (
-        <section className="py-10 sm:py-20 bg-white dark:bg-[#020617] overflow-hidden relative transition-colors duration-500">
+        <section className="py-10 sm:py-20 bg-[#FAFAF9] dark:bg-[#0B1120] overflow-hidden relative transition-colors duration-500">
             {/* Background */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03]" style={{
@@ -112,8 +112,8 @@ export default function SocialProof() {
                 {/* Logo Carousel Container */}
                 <div className="relative hidden sm:flex flex-col gap-8 sm:gap-12 mask-linear-fade">
                     {/* Gradient Fades with enhanced blur */}
-                    <div className="absolute inset-y-0 left-0 w-20 sm:w-32 bg-gradient-to-r from-white dark:from-[#020617] via-white/80 dark:via-[#020617]/80 to-transparent z-10 pointer-events-none" />
-                    <div className="absolute inset-y-0 right-0 w-20 sm:w-32 bg-gradient-to-l from-white dark:from-[#020617] via-white/80 dark:via-[#020617]/80 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute inset-y-0 left-0 w-20 sm:w-32 bg-gradient-to-r from-white dark:from-[#0B1120] via-white/80 dark:via-[#0B1120]/80 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute inset-y-0 right-0 w-20 sm:w-32 bg-gradient-to-l from-white dark:from-[#0B1120] via-white/80 dark:via-[#0B1120]/80 to-transparent z-10 pointer-events-none" />
 
                     {/* Row 1: Left to Right */}
                     <motion.div 

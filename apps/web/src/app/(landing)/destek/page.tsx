@@ -9,6 +9,8 @@ import {
     ChevronDown, ExternalLink, Star, ThumbsUp, Send, Bot, Rocket
 } from 'lucide-react';
 import Link from 'next/link';
+import PopularHelpArticles from '@/components/help/PopularHelpArticles';
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 
 // Kategori verileri
 const categories = [
@@ -83,58 +85,6 @@ const categories = [
         color: "indigo",
         gradient: "from-amber-500 to-violet-500",
         popular: ["Bildirim ayarları", "Ekip yönetimi", "Entegrasyon ayarları"]
-    },
-];
-
-// Popüler makaleler
-const popularArticles = [
-    { 
-        title: "İlk mağazamı nasıl oluşturabilirim?", 
-        category: "Başlangıç", 
-        views: "12.4K",
-        rating: 4.9,
-        readTime: "5 dk",
-        icon: Rocket
-    },
-    { 
-        title: "Trendyol entegrasyonu adım adım rehber", 
-        category: "Entegrasyon", 
-        views: "8.7K",
-        rating: 4.8,
-        readTime: "8 dk",
-        icon: Globe
-    },
-    { 
-        title: "Toplu ürün yükleme: Excel şablonu kullanımı", 
-        category: "Ürün Yönetimi", 
-        views: "6.5K",
-        rating: 4.7,
-        readTime: "10 dk",
-        icon: Package
-    },
-    { 
-        title: "AI SEO ile ürün başlıklarını optimize edin", 
-        category: "AI", 
-        views: "5.2K",
-        rating: 4.9,
-        readTime: "6 dk",
-        icon: Sparkles
-    },
-    { 
-        title: "Stok senkronizasyonu: Tüm pazaryerlerinde anlık güncelleme", 
-        category: "Stok", 
-        views: "4.8K",
-        rating: 4.6,
-        readTime: "7 dk",
-        icon: Zap
-    },
-    { 
-        title: "Hepsiburada API bağlantısı kurulumu", 
-        category: "Entegrasyon", 
-        views: "4.2K",
-        rating: 4.8,
-        readTime: "12 dk",
-        icon: Globe
     },
 ];
 
@@ -318,18 +268,8 @@ export default function DestekPage() {
     const filteredFaqs = faqItems.filter(faq => faq.category === activeFaqCategory);
 
     return (
-        <section className="min-h-screen pt-32 pb-24 relative overflow-hidden bg-white dark:bg-[#02040a] transition-colors duration-500">
-            {/* Background Effects */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03]" style={{
-                    backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
-                    backgroundSize: '32px 32px'
-                }} />
-                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-orange-500/10 dark:bg-orange-500/5 blur-[150px] rounded-full" />
-                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-500/10 dark:bg-purple-500/5 blur-[150px] rounded-full" />
-            </div>
-
-            <div className="container mx-auto px-6 relative z-10">
+        <MarketingPageShell as="section" className="pb-24" padded={false}>
+            <div className="container mx-auto px-6">
                 {/* Hero Section */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -557,35 +497,7 @@ export default function DestekPage() {
                             </Link>
                         </div>
                         
-                        <div className="space-y-3">
-                            {popularArticles.map((article, i) => (
-                                <Link
-                                    key={i}
-                                    href="#"
-                                    className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors group"
-                                >
-                                    <div className="w-10 h-10 rounded-lg bg-white dark:bg-white/10 flex items-center justify-center flex-shrink-0">
-                                        <article.icon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h4 className="font-medium text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors line-clamp-1">
-                                            {article.title}
-                                        </h4>
-                                        <div className="flex items-center gap-3 mt-1">
-                                            <span className="text-xs text-slate-500">{article.category}</span>
-                                            <span className="text-xs text-slate-400">•</span>
-                                            <span className="text-xs text-slate-400">{article.readTime} okuma</span>
-                                            <span className="text-xs text-slate-400">•</span>
-                                            <span className="text-xs text-yellow-500 flex items-center gap-0.5">
-                                                <Star size={10} fill="currentColor" /> {article.rating}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="text-xs text-slate-400">{article.views}</div>
-                                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" />
-                                </Link>
-                            ))}
-                        </div>
+                        <PopularHelpArticles limit={5} />
                     </motion.div>
 
                     {/* Video Tutorials */}
@@ -778,6 +690,6 @@ export default function DestekPage() {
                     </div>
                 </motion.div>
             </div>
-        </section>
+        </MarketingPageShell>
     );
 }

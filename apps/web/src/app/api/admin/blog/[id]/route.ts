@@ -17,6 +17,13 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       slug?: string;
       content?: string;
       isActive?: boolean;
+      coverImage?: string;
+      tags?: string[] | string;
+      isFeatured?: boolean;
+      category?: string;
+      metaTitle?: string;
+      metaDescription?: string;
+      metaKeywords?: string;
     };
 
     const post = await updateBlogPost(id, body);

@@ -1,5 +1,7 @@
 "use client";
 
+
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -132,7 +134,7 @@ export default function DemoPage() {
 
     if (isSubmitted) {
         return (
-            <section className="min-h-screen pt-32 pb-24 relative overflow-hidden bg-white dark:bg-[#02040a]">
+            <MarketingPageShell as="section" className="pb-24" padded={false}>
                 <div className="absolute inset-0 pointer-events-none">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-emerald-500/10 dark:bg-emerald-500/20 blur-[150px] rounded-full" />
                 </div>
@@ -183,12 +185,12 @@ export default function DemoPage() {
                         </div>
                     </motion.div>
                 </div>
-            </section>
+            </MarketingPageShell>
         );
     }
 
     return (
-        <section className="min-h-screen pt-32 pb-24 relative overflow-hidden bg-white dark:bg-[#02040a] transition-colors duration-500">
+        <MarketingPageShell as="section" className="pb-24" padded={false}>
             {/* Animated Background */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03]" style={{
@@ -585,6 +587,6 @@ export default function DemoPage() {
                     </div>
                 </motion.div>
             </div>
-        </section>
+        </MarketingPageShell>
     );
 }

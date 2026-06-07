@@ -1,98 +1,165 @@
-"use client";
-
-import React from 'react';
-import { 
-    ArrowRight, CheckCircle2, Zap, 
-    Workflow, LayoutDashboard, Lock
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import {
+    ArrowRight, CheckCircle2, Clock, Shield, Star, Users, Workflow, Zap,
 } from 'lucide-react';
 import Link from 'next/link';
+import { categoryMeta } from '@/components/landing/integrations-data';
+import JsonLd from '@/components/SEO/JsonLd';
+import {
+    buildIntegrationDetailPath,
+    getPublishedIntegrationDetailBySlug,
+} from '@/lib/landing-integrations-service';
+import { absoluteUrl, buildPageMetadata, truncateForMeta } from '@/lib/seo/site-seo';
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 
-export default function IntegrationDetailPage({ params }: { params: { slug: string } }) {
-    const slug = params.slug;
-    
-    // Mock data for different integrations based on slug
-    const integrationData: Record<string, any> = {
-        'trendyol-entegrasyonu': {
-            name: 'Trendyol',
-            category: 'Pazaryeri',
-            color: 'from-orange-500 to-orange-600',
-            desc: 'Trendyol mağazanızı Pazaryönetimi panelinize bağlayın. Sipariş, stok güncelleme ve ürün listeleme süreçlerini tek tıkla otomatikleştirin.',
-            benefits: ['Otomatik Stok Senkronizasyon (Sıfır stok hatası)', 'Toplu Ürün ve Fiyat Güncelleme', 'Panelden Anlık Fatura Kesimi'],
-            features: ['Siparişler Saniyeler İçinde Sisteme Düşer', 'Varyantlı Ürün Yönetimi', 'Buybox Analizi ve Rekabet Optimizasyonu']
-        },
-        'hepsiburada-entegrasyonu': {
-            name: 'Hepsiburada',
-            category: 'Pazaryeri',
-            color: 'from-orange-600 to-pink-600',
-            desc: 'Hepsiburada entegrasyonu ile yüzlerce siparişi tek ekrandan onaylayın, e-faturanızı kesin ve kargo barkodlarını otomatik oluşturun.',
-            benefits: ['Hepsijet ve Diğer Kargo Entegrasyonları', 'Gelişmiş Katalog Eşleştirme', 'Otomatik İade Yönetimi'],
-            features: ['Merchant API ile Tam Uyum', 'Hızlı Ürün Listeleme', 'Stok Koruma Limitleri']
-        }
-    };
+type PageProps = {
+    params: Promise<{ slug: string }>;
+};
 
-    let data = integrationData[slug];
-
-    if (!data) {
-        // Fallback for demo: if not found in mock, create a generic dynamic layout
-        const genericName = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ').replace('Entegrasyonu', '');
-        data = {
-            name: genericName,
-            category: 'Sistem Entegrasyonu',
-            color: 'from-amber-500 to-purple-600',
-            desc: `${genericName} sistemini Pazaryönetimi altyapısına saniyeler içinde bağlayın. E-Ticaret operasyonlarınızdaki veri akışını tamamen dijitalleştirerek insan hatasını sıfıra indirin.`,
-            benefits: ['Zaman Kaybına Son Veren Otomasyon', 'Verilerinizin %100 Güvenliği', 'Tek Panelden Tüm Süreç Yönetimi'],
-            features: ['API ile Gerçek Zamanlı Haberleşme', 'Maliyet ve Kâr Optimizasyonu', 'Kolay Kurulum Sihirbazı']
-        };
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+    const { slug } = await params;
+    const integration = await getPublishedIntegrationDetailBySlug(slug);
+    if (!integration) {
+        return { title: 'Entegrasyon bulunamadı | Pazaryonetimi' };
     }
 
+    const path = buildIntegrationDetailPath(integration);
+    const title = integration.metaTitle
+        || `${integration.name} Entegrasyonu | Pazaryonetimi`;
+    const description = integration.metaDescription
+        || truncateForMeta(integration.shortDesc || integration.desc, 165);
+    const ogImage = integration.ogImage
+        ? absoluteUrl(integration.ogImage)
+        : integration.logo.startsWith('/')
+            ? absoluteUrl(integration.logo)
+            : undefined;
+
+    return buildPageMetadata({
+        title,
+        description,
+        path,
+        keywords: integration.metaKeywords,
+        noIndex: Boolean(integration.noIndex),
+        ogImage,
+    });
+}
+
+export default async function IntegrationDetailPage({ params }: PageProps) {
+    const { slug } = await params;
+    const integration = await getPublishedIntegrationDetailBySlug(slug);
+    if (!integration) notFound();
+
+    const categoryName = categoryMeta.find((c) => c.id === integration.category)?.name ?? 'Entegrasyon';
+    const benefits = integration.features.slice(0, 3);
+    const extraFeatures = integration.features.slice(3);
+    const detailPath = buildIntegrationDetailPath(integration);
+
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: `${integration.name} Entegrasyonu`,
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'Web',
+        description: integration.shortDesc || integration.desc,
+        url: absoluteUrl(detailPath),
+        image: integration.ogImage
+            ? absoluteUrl(integration.ogImage)
+            : integration.logo.startsWith('/')
+                ? absoluteUrl(integration.logo)
+                : absoluteUrl('/og-image.png'),
+        offers: {
+            '@type': 'Offer',
+            price: integration.price === 'Ücretsiz' ? '0' : undefined,
+            priceCurrency: 'TRY',
+            description: integration.price,
+        },
+        aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: integration.rating,
+            reviewCount: integration.reviews,
+            bestRating: 5,
+        },
+        provider: {
+            '@type': 'Organization',
+            name: 'Pazaryonetimi',
+            url: absoluteUrl('/'),
+        },
+    };
+
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#0B1121] flex flex-col pt-24 pb-20">
-            {/* Dynamic SEO Hero */}
-            <div className="relative pt-12 pb-16 lg:pt-20 lg:pb-24 border-b border-border">
-                <div className="absolute inset-0 bg-grid-slate-100 dark:bg-grid-slate-900/[0.04] bg-[size:32px_32px]" />
+        <MarketingPageShell as="div" className="flex flex-col" padded={false}>
+            <JsonLd data={jsonLd} />
+
+            <div className="relative pt-12 pb-16 lg:pt-20 lg:pb-24 border-b border-slate-200/50 dark:border-white/5 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-orange-50/50 via-transparent to-transparent dark:from-orange-950/20 pointer-events-none" />
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    
                     <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
-                        <div className="lg:w-1/2">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold mb-6 uppercase tracking-widest">
-                                {data.category} Modülü
+                        <div className="lg:w-1/2 text-center lg:text-left">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-500/10 text-orange-600 dark:text-orange-300 rounded-full text-xs font-bold mb-6 uppercase tracking-widest">
+                                {categoryName}
                             </div>
                             <h1 className="text-4xl lg:text-6xl font-black text-slate-900 dark:text-white leading-tight mb-6">
-                                <span className={`text-transparent bg-clip-text bg-gradient-to-r ${data.color}`}>
-                                    {data.name}
-                                </span> <br/> Entegrasyonu
+                                <span className={`text-transparent bg-clip-text bg-gradient-to-r ${integration.gradient}`}>
+                                    {integration.name}
+                                </span>
+                                <br />
+                                Entegrasyonu
                             </h1>
-                            <p className="text-lg lg:text-xl text-slate-600 dark:text-slate-400 leading-relaxed mb-8">
-                                {data.desc} Pazaryönetimi ile rakiplerinizden her zaman bir adım önde olun.
+                            <p className="text-lg lg:text-xl text-slate-600 dark:text-slate-400 leading-relaxed mb-8 max-w-xl mx-auto lg:mx-0">
+                                {integration.desc}
                             </p>
-                            
-                            <div className="flex gap-4">
-                                <Link href="/register" className={`px-8 py-4 bg-gradient-to-r ${data.color} text-white rounded-2xl font-black hover:opacity-90 transition-opacity shadow-lg text-lg`}>
+
+                            <div className="flex flex-wrap justify-center lg:justify-start gap-3 mb-8">
+                                {[
+                                    { icon: Users, label: integration.stats.users },
+                                    { icon: Star, label: `${integration.rating} puan` },
+                                    { icon: Clock, label: integration.setupTime },
+                                    { icon: Shield, label: integration.stats.uptime },
+                                ].map(({ icon: Icon, label }) => (
+                                    <span key={label} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                                        <Icon size={14} className="text-orange-500" />
+                                        {label}
+                                    </span>
+                                ))}
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                                <Link
+                                    href="/signup"
+                                    className={`px-8 py-4 bg-gradient-to-r ${integration.gradient} text-white rounded-2xl font-black hover:opacity-90 transition-opacity shadow-lg text-lg text-center`}
+                                >
                                     Ücretsiz Entegre Et
                                 </Link>
-                                <Link href="/entegrasyonlar" className="px-8 py-4 bg-white dark:bg-surface border border-border text-slate-900 dark:text-white rounded-2xl font-bold hover:bg-slate-50 transition-colors flex items-center gap-2">
-                                    Tüm Listeye Dön <ArrowRight className="w-5 h-5" />
+                                <Link
+                                    href="/entegrasyonlar"
+                                    className="px-8 py-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-2xl font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    Tüm listeye dön <ArrowRight className="w-5 h-5" />
                                 </Link>
                             </div>
                         </div>
 
                         <div className="lg:w-1/2 flex justify-center w-full relative">
-                            <div className={`w-64 h-64 lg:w-96 lg:h-96 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ${data.color} blur-[100px] opacity-20`} />
-                            
-                            <div className="relative z-10 bg-white dark:bg-surface border border-border p-8 rounded-[3rem] shadow-2xl flex items-center justify-center gap-8 w-full max-w-md">
+                            <div className={`w-64 h-64 lg:w-96 lg:h-96 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br ${integration.gradient} blur-[100px] opacity-25`} />
+                            <div className="relative z-10 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-white/10 p-8 rounded-[3rem] shadow-2xl flex items-center justify-center gap-8 w-full max-w-md">
                                 <div className="flex flex-col items-center">
-                                    <div className="w-20 h-20 bg-primary text-white rounded-3xl flex items-center justify-center font-black text-2xl shadow-lg">PY</div>
-                                    <div className="text-sm font-bold text-slate-500 mt-3">Sistemimiz</div>
+                                    <div className="w-20 h-20 bg-gradient-to-br from-orange-600 to-amber-500 text-white rounded-3xl flex items-center justify-center font-black text-2xl shadow-lg">PY</div>
+                                    <div className="text-sm font-bold text-slate-500 mt-3">Pazaryönetimi</div>
                                 </div>
                                 <div className="flex flex-col items-center">
-                                    <Workflow className="w-10 h-10 text-slate-300 animate-pulse" />
-                                    <div className="text-[10px] text-primary font-bold tracking-widest mt-2 uppercase">API SENKRON</div>
+                                    <Workflow className="w-10 h-10 text-orange-400 animate-pulse" />
+                                    <div className="text-[10px] text-orange-500 font-bold tracking-widest mt-2 uppercase">API Senkron</div>
                                 </div>
                                 <div className="flex flex-col items-center">
-                                    <div className={`w-20 h-20 bg-gradient-to-br ${data.color} text-white rounded-3xl flex items-center justify-center font-black text-3xl shadow-lg`}>
-                                        {data.name.charAt(0)}
+                                    <div className={`w-20 h-20 bg-gradient-to-br ${integration.gradient} text-white rounded-3xl flex items-center justify-center font-black text-3xl shadow-lg overflow-hidden`}>
+                                        {integration.logo.startsWith('/') ? (
+                                            <img src={integration.logo} alt={integration.name} className="w-full h-full object-contain p-3 bg-white" />
+                                        ) : (
+                                            integration.name.charAt(0)
+                                        )}
                                     </div>
-                                    <div className="text-sm font-bold text-slate-500 mt-3">{data.name}</div>
+                                    <div className="text-sm font-bold text-slate-500 mt-3">{integration.name}</div>
                                 </div>
                             </div>
                         </div>
@@ -100,48 +167,65 @@ export default function IntegrationDetailPage({ params }: { params: { slug: stri
                 </div>
             </div>
 
-            {/* Features Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 lg:mt-20">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
                     <div>
-                        <h2 className="text-3xl font-black mb-8">Neden {data.name} İçin Pazaryönetimi İş Ortağınız Olmalı?</h2>
-                        <div className="space-y-6">
-                            {data.benefits.map((benefit: string, idx: number) => (
-                                <div key={idx} className="flex gap-4 p-6 bg-white dark:bg-surface border border-border rounded-2xl hover:border-primary/20 transition-colors">
+                        <h2 className="text-3xl font-black mb-8 text-slate-900 dark:text-white">
+                            Neden {integration.name} için Pazaryönetimi?
+                        </h2>
+                        <div className="space-y-4">
+                            {benefits.map((benefit) => (
+                                <div key={benefit} className="flex gap-4 p-6 bg-white dark:bg-slate-900/60 border border-slate-200/70 dark:border-white/10 rounded-2xl">
                                     <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
                                         <CheckCircle2 className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-2">{benefit}</h3>
-                                        <p className="text-slate-500 text-sm leading-relaxed">Otomasyon kurallarımız sayesinde bu işlemi manuel yapmanıza asla gerek kalmaz. Arka planda güvenle çalışır.</p>
+                                        <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-1">{benefit}</h3>
+                                        <p className="text-slate-500 text-sm leading-relaxed">
+                                            Otomasyon kuralları sayesinde bu süreç arka planda güvenle çalışır; manuel müdahaleye gerek kalmaz.
+                                        </p>
                                     </div>
                                 </div>
                             ))}
                         </div>
+
+                        {integration.requirements.length > 0 && (
+                            <div className="mt-10 p-6 rounded-2xl bg-orange-500/5 border border-orange-200/50 dark:border-orange-500/20">
+                                <h3 className="font-black text-slate-900 dark:text-white mb-3">Kurulum gereksinimleri</h3>
+                                <ul className="space-y-2">
+                                    {integration.requirements.map((req) => (
+                                        <li key={req} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                                            <CheckCircle2 size={14} className="text-orange-500 shrink-0" />
+                                            {req}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                     </div>
 
                     <div>
-                        <h2 className="text-3xl font-black mb-8">Teknik Kapasite & Özellikler</h2>
+                        <h2 className="text-3xl font-black mb-8 text-slate-900 dark:text-white">Teknik özellikler</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {data.features.map((feat: string, idx: number) => (
-                                <div key={idx} className="p-6 bg-slate-100 dark:bg-slate-800/50 rounded-2xl border border-transparent hover:border-slate-300 dark:hover:border-slate-700 transition-colors">
+                            {(extraFeatures.length ? extraFeatures : integration.features).map((feat) => (
+                                <div key={feat} className="p-6 bg-white dark:bg-slate-900/60 rounded-2xl border border-slate-200/70 dark:border-white/10">
                                     <Zap className="w-6 h-6 text-amber-500 mb-4" />
                                     <h4 className="font-bold text-sm text-slate-900 dark:text-white">{feat}</h4>
                                 </div>
                             ))}
-                            <div className="p-6 bg-slate-100 dark:bg-slate-800/50 rounded-2xl border border-transparent">
-                                <LayoutDashboard className="w-6 h-6 text-orange-500 mb-4" />
-                                <h4 className="font-bold text-sm text-slate-900 dark:text-white">Tekil UI Kontrolü</h4>
-                            </div>
-                            <div className="p-6 bg-slate-100 dark:bg-slate-800/50 rounded-2xl border border-transparent">
-                                <Lock className="w-6 h-6 text-rose-500 mb-4" />
-                                <h4 className="font-bold text-sm text-slate-900 dark:text-white">Maksimum Veri Güvenliği</h4>
+                        </div>
+
+                        <div className="mt-8 p-6 rounded-2xl bg-slate-900 text-white relative overflow-hidden">
+                            <div className={`absolute inset-0 bg-gradient-to-br ${integration.gradient} opacity-20`} />
+                            <div className="relative">
+                                <p className="text-xs font-bold uppercase tracking-widest text-white/60 mb-2">Fiyatlandırma</p>
+                                <p className="text-3xl font-black">{integration.price}</p>
+                                <p className="text-sm text-white/70 mt-2">Kurulum: {integration.setupTime} · Senkron: {integration.stats.syncTime}</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-        </div>
+        </MarketingPageShell>
     );
 }

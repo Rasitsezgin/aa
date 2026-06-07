@@ -19,7 +19,7 @@ export default function GlobalError({
     }, [error]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#02040a] px-4">
+        <div className="min-h-screen flex items-center justify-center bg-[#FAFAF9] dark:bg-[#0B1120] px-4">
             <div className="max-w-md w-full text-center space-y-6">
                 <div className="w-16 h-16 mx-auto rounded-2xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center">
                     <AlertTriangle size={32} className="text-red-500" />
@@ -37,7 +37,7 @@ export default function GlobalError({
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                     <button
                         onClick={reset}
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white rounded-xl font-semibold transition-colors"
                     >
                         <RefreshCw size={16} />
                         Tekrar Dene

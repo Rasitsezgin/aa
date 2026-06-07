@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 
 const stats = [
     { value: '500+', label: 'Mutlu Müşteri', icon: Users },
@@ -30,11 +31,11 @@ export default function AboutPage() {
     const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.9]);
 
     return (
-        <section className="min-h-screen bg-white dark:bg-[#02040a] transition-colors duration-500 overflow-hidden">
+        <MarketingPageShell as="section" padded={false} className="overflow-hidden pb-20">
             {/* Hero Section */}
             <div className="relative h-[80vh] flex items-center justify-center overflow-hidden">
                 <div className="absolute inset-0 bg-grid-slate-900/[0.04] dark:bg-grid-white/[0.02] bg-[bottom_1px_center]" />
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white dark:to-[#02040a]" />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#FAFAF9] dark:to-[#0B1120]" />
 
                 {/* Animated Background Blobs */}
                 <div className="absolute top-1/4 -left-20 w-[600px] h-[600px] bg-orange-500/10 dark:bg-orange-500/20 rounded-full blur-[120px] animate-blob" />
@@ -194,7 +195,7 @@ export default function AboutPage() {
                                 </div>
 
                                 {/* Dot */}
-                                <div className="relative z-10 w-4 h-4 rounded-full bg-orange-600 border-4 border-white dark:border-[#02040a] shadow-xl" />
+                                <div className="relative z-10 w-4 h-4 rounded-full bg-orange-600 border-4 border-white dark:border-[#0B1120] shadow-xl" />
 
                                 {/* Spacer */}
                                 <div className="flex-1" />
@@ -232,6 +233,6 @@ export default function AboutPage() {
                     </div>
                 </div>
             </div>
-        </section>
+        </MarketingPageShell>
     );
 }

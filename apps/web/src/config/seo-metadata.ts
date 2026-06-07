@@ -54,8 +54,21 @@ export const pageMetadata: Record<string, Metadata> = {
     },
     '/community': {
         title: 'Topluluk — E-ticaret Profesyonelleri Ağı',
-        description: 'Pazaryonetimi topluluğuna katılın. 10.000+ e-ticaret profesyoneli ile deneyim paylaşın, ipuçları alın ve işletmenizi büyütün.',
+        description: 'Pazaryonetimi topluluğuna katılın. E-ticaret satıcılarıyla deneyim paylaşın, forumda soru sorun, etkinliklere katılın ve birlikte büyüyün.',
+        keywords: ['e-ticaret topluluğu', 'pazaryeri forum', 'satıcı ağı', 'trendyol satıcı topluluğu'],
         alternates: { canonical: 'https://pazaryonetimi.com/community' },
+    },
+    '/community/leaderboard': {
+        title: 'Liderlik Tablosu — En Aktif Topluluk Üyeleri',
+        description: 'Pazaryonetimi topluluk liderlik tablosu. Haftalık ve aylık en çok katkı sağlayan e-ticaret satıcılarını görün.',
+        keywords: ['topluluk liderlik tablosu', 'forum puanları', 'e-ticaret uzmanları'],
+        alternates: { canonical: 'https://pazaryonetimi.com/community/leaderboard' },
+    },
+    '/forum': {
+        title: 'Forum — E-ticaret Satıcıları Soru & Cevap',
+        description: 'Trendyol, Hepsiburada, Amazon ve e-ticaret operasyonları hakkında soru sorun, deneyim paylaşın. Uzman satıcı topluluğundan anında yanıt alın.',
+        keywords: ['e-ticaret forumu', 'pazaryeri forum', 'trendyol satıcı forumu', 'hepsiburada soru cevap'],
+        alternates: { canonical: 'https://pazaryonetimi.com/forum' },
     },
     '/case-studies': {
         title: 'Başarı Hikayeleri — Müşterilerimizin Sonuçları',
@@ -118,6 +131,12 @@ export const pageMetadata: Record<string, Metadata> = {
         title: 'Değişiklik Günlüğü — Son Güncellemeler',
         description: 'Pazaryonetimi son güncellemeleri ve yeni özellikler. Platform iyileştirmeleri, hata düzeltmeleri ve yeni entegrasyonlar.',
         alternates: { canonical: 'https://pazaryonetimi.com/changelog' },
+    },
+    '/destek/makaleler': {
+        title: 'Yardım Makaleleri | Pazaryonetimi Destek',
+        description: 'Platform kullanımı, entegrasyon kurulumu ve e-ticaret operasyonları için yardım makaleleri.',
+        keywords: ['yardım makaleleri', 'destek', 'e-ticaret rehberi'],
+        alternates: { canonical: 'https://pazaryonetimi.com/destek/makaleler' },
     },
     '/destek': {
         title: 'Destek Merkezi — 7/24 Yardım',

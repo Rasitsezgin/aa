@@ -87,7 +87,7 @@ export default function AnimatedStats() {
     const isInView = useInView(ref, { once: true, margin: "-100px" });
 
     return (
-        <section ref={ref} className="py-14 sm:py-24 relative overflow-hidden bg-slate-50 dark:bg-[#020617]/50 transition-colors duration-500">
+        <section ref={ref} className="py-14 sm:py-24 relative overflow-hidden bg-[#FAFAF9] dark:bg-[#0B1120]/50 transition-colors duration-500">
             {/* Background */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]" style={{

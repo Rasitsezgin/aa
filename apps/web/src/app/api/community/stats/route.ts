@@ -45,9 +45,18 @@ export async function GET() {
     });
 
     // Yeni üye (son kaydolan)
-    const newestMember = await prisma.forumUserProfile.findFirst({
+    const newestMemberProfile = await prisma.forumUserProfile.findFirst({
       orderBy: {
         joinedAt: 'desc',
+      },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
       },
     });
 
@@ -63,32 +72,38 @@ export async function GET() {
       },
     });
 
+    const newestMemberName = newestMemberProfile
+      ? [newestMemberProfile.user.firstName, newestMemberProfile.user.lastName]
+          .filter(Boolean)
+          .join(' ')
+          .trim() || newestMemberProfile.user.email || 'Yeni Üye'
+      : '—';
+
     return NextResponse.json({
-      totalMembers: totalMembers + 24000, // Gerçek sayı + simülasyon için offset
-      totalTopics: totalTopics + 48000,
-      totalPosts: totalPosts + 95000,
-      solvedTopics: solvedTopics + 4800,
+      totalMembers,
+      totalTopics,
+      totalPosts,
+      solvedTopics,
       monthlyPosts,
-      onlineUsers: onlineUsers + 42,
-      onlineGuests: 128,
-      newestMember: 'Yeni Üye',
-      growthRate: 12.5,
-      activeToday: onlineUsers + 156,
+      onlineUsers,
+      onlineGuests: 0,
+      newestMember: newestMemberName,
+      growthRate: 0,
+      activeToday: onlineUsers,
     });
   } catch (error) {
     console.error('Community stats error:', error);
-    // Fallback veriler
     return NextResponse.json({
-      totalMembers: 25000,
-      totalTopics: 50000,
-      totalPosts: 125000,
-      solvedTopics: 5000,
-      monthlyPosts: 8500,
-      onlineUsers: 42,
-      onlineGuests: 128,
-      newestMember: 'Yeni Üye',
-      growthRate: 12.5,
-      activeToday: 198,
+      totalMembers: 0,
+      totalTopics: 0,
+      totalPosts: 0,
+      solvedTopics: 0,
+      monthlyPosts: 0,
+      onlineUsers: 0,
+      onlineGuests: 0,
+      newestMember: '—',
+      growthRate: 0,
+      activeToday: 0,
     });
   }
 }

@@ -16,7 +16,7 @@ const FEATURES = [
 
 export default function ComparisonTable() {
     return (
-        <section className="py-12 md:py-24 relative overflow-hidden bg-white dark:bg-[#02040a] transition-colors duration-500">
+        <section className="py-12 md:py-24 relative overflow-hidden bg-[#FAFAF9] dark:bg-[#0B1120] transition-colors duration-500">
             {/* Unified Background Pattern */}
             <div className="absolute inset-0 pointer-events-none">
                 {/* Subtle Dot Grid */}

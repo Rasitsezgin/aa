@@ -19,9 +19,12 @@
     "db:migrate": "npx prisma migrate dev",
     "db:deploy": "npx prisma migrate deploy",
     "db:seed": "npx tsx prisma/seed.ts",
+    "db:seed:forum": "npx tsx prisma/seed-forum.ts",
+    "db:seed:help": "npx tsx prisma/seed-help.ts",
     "db:reset": "npx prisma db push --force-reset && npx tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "6.4.1",
     "@prisma/client": "6.4.1",
     "@prisma/config": "6.4.1",
     "@types/bcryptjs": "^2.4.6",

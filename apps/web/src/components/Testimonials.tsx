@@ -37,7 +37,7 @@ export default function Testimonials() {
     }, [testimonials]);
 
     return (
-        <section className="py-20 sm:py-32 relative overflow-hidden bg-white dark:bg-[#0F172A] transition-colors duration-500">
+        <section className="py-20 sm:py-32 relative overflow-hidden bg-[#FAFAF9] dark:bg-[#0B1120] transition-colors duration-500">
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-400/10 rounded-full blur-[120px]" />
             </div>
@@ -73,8 +73,8 @@ export default function Testimonials() {
                 </div>
 
                 <div className="relative w-full -mx-4 sm:mx-0">
-                    <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-r from-white dark:from-[#0F172A] via-white/80 dark:via-[#0F172A]/80 to-transparent z-20 pointer-events-none" />
-                    <div className="absolute right-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-l from-white dark:from-[#0F172A] via-white/80 dark:via-[#0F172A]/80 to-transparent z-20 pointer-events-none" />
+                    <div className="absolute left-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-r from-white dark:from-[#0B1120] via-white/80 dark:via-[#0B1120]/80 to-transparent z-20 pointer-events-none" />
+                    <div className="absolute right-0 top-0 bottom-0 w-24 sm:w-48 bg-gradient-to-l from-white dark:from-[#0B1120] via-white/80 dark:via-[#0B1120]/80 to-transparent z-20 pointer-events-none" />
 
                     <motion.div
                         className="flex gap-6 sm:gap-8 w-max mb-6 sm:mb-8"

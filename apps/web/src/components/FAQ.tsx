@@ -33,7 +33,7 @@ export default function FAQ({ texts = HOMEPAGE_TEXTS.faq }: { texts?: typeof HOM
     const [openIndex, setOpenIndex] = useState<number | null>(0);
 
     return (
-        <section className="py-20 md:py-32 relative overflow-hidden bg-white dark:bg-[#02040a] transition-colors duration-500">
+        <section className="py-20 md:py-32 relative overflow-hidden bg-[#FAFAF9] dark:bg-[#0B1120] transition-colors duration-500">
             {/* Unified Background Pattern */}
             <div className="absolute inset-0 pointer-events-none">
                 {/* Subtle Dot Grid */}

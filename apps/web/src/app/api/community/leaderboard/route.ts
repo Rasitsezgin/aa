@@ -146,7 +146,7 @@ export async function GET(request: Request) {
         isBanned: user.isBanned,
         
         // Değişim (önceki sıralamaya göre)
-        change: Math.floor(Math.random() * 10) - 5, // Mock değişim - gerçek veri için önceki leaderboard karşılaştırması gerekir
+        change: 0,
       };
     });
 

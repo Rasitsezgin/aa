@@ -11,7 +11,7 @@ export default function LandingError({
     reset: () => void;
 }) {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#02040a] px-4">
+        <div className="min-h-screen flex items-center justify-center bg-[#FAFAF9] dark:bg-[#0B1120] px-4">
             <div className="max-w-md w-full text-center space-y-6">
                 <div className="w-16 h-16 mx-auto rounded-2xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center">
                     <AlertTriangle size={32} className="text-red-500" />

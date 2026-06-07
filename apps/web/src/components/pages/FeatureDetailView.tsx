@@ -8,6 +8,7 @@ import {
     Star, ArrowLeft, Sparkles, Play, LucideIcon
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 
 interface FeatureData {
     title: string;
@@ -34,7 +35,7 @@ export default function FeatureDetailView({ feature }: { feature: FeatureData })
     const Icon = resolveIcon(feature.icon);
 
     return (
-        <main className="min-h-screen bg-white dark:bg-slate-950 pt-24">
+        <MarketingPageShell as="main" padded={false} className="pb-20">
             {/* ── Hero ── */}
             <section className="relative overflow-hidden">
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-[0.04] dark:opacity-[0.08]`} />
@@ -293,6 +294,6 @@ export default function FeatureDetailView({ feature }: { feature: FeatureData })
                     </div>
                 </div>
             </section>
-        </main>
+        </MarketingPageShell>
     );
 }

@@ -29,7 +29,7 @@ export default function ChaosVsControl() {
     const stopDragging = () => setIsDragging(false);
 
     return (
-        <section className="pt-4 sm:pt-10 md:pt-16 pb-14 sm:pb-20 md:pb-32 relative overflow-hidden bg-white dark:bg-[#02040a] transition-colors duration-500">
+        <section className="pt-4 sm:pt-10 md:pt-16 pb-14 sm:pb-20 md:pb-32 relative overflow-hidden bg-[#FAFAF9] dark:bg-[#0B1120] transition-colors duration-500">
             {/* Unified Background Pattern */}
             <div className="absolute inset-0 pointer-events-none">
                 {/* Subtle Dot Grid */}
@@ -71,7 +71,7 @@ export default function ChaosVsControl() {
                     onMouseLeave={stopDragging}
                 >
                     {/* RIGHT SIDE: CONTROL (Dashboard) */}
-                    <div className="absolute inset-0 bg-slate-50 dark:bg-[#0F172A] flex items-center justify-center">
+                    <div className="absolute inset-0 bg-[#FAFAF9] dark:bg-[#0B1120] flex items-center justify-center">
                         <ControlUI />
                         <div className="absolute top-3 right-3 sm:top-8 sm:right-8 bg-white/50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 px-2.5 py-1.5 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl font-bold text-[10px] sm:text-xs flex items-center gap-1.5 sm:gap-2 border border-orange-500/10 dark:border-orange-500/20 backdrop-blur-md shadow-lg shadow-orange-500/10 dark:shadow-orange-900/20">
                             <CheckCircle2 size={12} className="text-orange-600 dark:text-orange-400 sm:hidden" />
@@ -214,7 +214,7 @@ function ChaosUI() {
 
 function ControlUI() {
     return (
-        <div className="w-full h-full bg-slate-50 dark:bg-[#0F172A] relative overflow-hidden flex flex-col items-center justify-center transition-colors duration-500">
+        <div className="w-full h-full bg-[#FAFAF9] dark:bg-[#0B1120] relative overflow-hidden flex flex-col items-center justify-center transition-colors duration-500">
             {/* Background Effects */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px]" />
             <div className="absolute w-[800px] h-[800px] bg-orange-500/5 dark:bg-orange-600/10 blur-[150px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />

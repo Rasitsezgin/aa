@@ -1,83 +1,104 @@
 import { MetadataRoute } from 'next';
+import { prisma } from '@/lib/prisma';
+import { SITE_URL } from '@/lib/seo/site-seo';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://pazaryonetimi.com';
-    const buildDate = new Date();
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
-    // Ana sayfalar - Yüksek öncelik
-    const mainPages = [
-        { url: '', priority: 1.0, changeFrequency: 'daily' as const },
-        { url: '/features', priority: 0.9, changeFrequency: 'weekly' as const },
-        { url: '/pricing', priority: 0.9, changeFrequency: 'weekly' as const },
-        { url: '/solutions', priority: 0.9, changeFrequency: 'weekly' as const },
-        { url: '/entegrasyonlar', priority: 0.9, changeFrequency: 'weekly' as const },
-        { url: '/demo', priority: 0.9, changeFrequency: 'monthly' as const },
-        { url: '/signup', priority: 0.9, changeFrequency: 'monthly' as const },
-    ];
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const buildDate = new Date();
 
-    // Çözüm alt sayfaları
-    const solutionPages = [
-        '/solutions/trendyol',
-        '/solutions/hepsiburada',
-        '/solutions/amazon',
-        '/solutions/n11',
-        '/solutions/ciceksepeti',
-    ].map(url => ({ url, priority: 0.8, changeFrequency: 'weekly' as const }));
+  const staticPages: MetadataRoute.Sitemap = [
+    { url: SITE_URL, priority: 1, changeFrequency: 'daily', lastModified: buildDate },
+    { url: `${SITE_URL}/features`, priority: 0.9, changeFrequency: 'weekly', lastModified: buildDate },
+    { url: `${SITE_URL}/pricing`, priority: 0.9, changeFrequency: 'weekly', lastModified: buildDate },
+    { url: `${SITE_URL}/solutions`, priority: 0.9, changeFrequency: 'weekly', lastModified: buildDate },
+    { url: `${SITE_URL}/entegrasyonlar`, priority: 0.9, changeFrequency: 'weekly', lastModified: buildDate },
+    { url: `${SITE_URL}/blog`, priority: 0.8, changeFrequency: 'daily', lastModified: buildDate },
+    { url: `${SITE_URL}/community`, priority: 0.7, changeFrequency: 'daily', lastModified: buildDate },
+    { url: `${SITE_URL}/community/leaderboard`, priority: 0.6, changeFrequency: 'daily', lastModified: buildDate },
+    { url: `${SITE_URL}/forum`, priority: 0.8, changeFrequency: 'hourly', lastModified: buildDate },
+    { url: `${SITE_URL}/faq`, priority: 0.7, changeFrequency: 'monthly', lastModified: buildDate },
+    { url: `${SITE_URL}/destek`, priority: 0.7, changeFrequency: 'weekly', lastModified: buildDate },
+    { url: `${SITE_URL}/destek/makaleler`, priority: 0.7, changeFrequency: 'weekly', lastModified: buildDate },
+    { url: `${SITE_URL}/demo`, priority: 0.8, changeFrequency: 'monthly', lastModified: buildDate },
+    { url: `${SITE_URL}/signup`, priority: 0.8, changeFrequency: 'monthly', lastModified: buildDate },
+    { url: `${SITE_URL}/comparison`, priority: 0.7, changeFrequency: 'weekly', lastModified: buildDate },
+    { url: `${SITE_URL}/iletisim`, priority: 0.6, changeFrequency: 'monthly', lastModified: buildDate },
+  ];
 
-    // İçerik sayfaları - Orta öncelik
-    const contentPages = [
-        { url: '/blog', priority: 0.8, changeFrequency: 'daily' as const },
-        { url: '/case-studies', priority: 0.8, changeFrequency: 'weekly' as const },
-        { url: '/basari-hikayeleri', priority: 0.8, changeFrequency: 'weekly' as const },
-        { url: '/resources', priority: 0.7, changeFrequency: 'weekly' as const },
-        { url: '/resources/2026-rapor', priority: 0.7, changeFrequency: 'monthly' as const },
-        { url: '/video-library', priority: 0.7, changeFrequency: 'weekly' as const },
-        { url: '/webinars', priority: 0.7, changeFrequency: 'weekly' as const },
-        { url: '/docs/api', priority: 0.7, changeFrequency: 'weekly' as const },
-        { url: '/changelog', priority: 0.6, changeFrequency: 'weekly' as const },
-        { url: '/roadmap', priority: 0.6, changeFrequency: 'monthly' as const },
-    ];
+  const [blogPosts, cmsPages, forumBoards, forumTopics, publishedPages, helpArticles] = await Promise.all([
+    prisma.cmsPage.findMany({
+      where: { category: 'blog', isActive: true },
+      select: { slug: true, updatedAt: true },
+      take: 500,
+    }).catch(() => []),
+    prisma.cmsPage.findMany({
+      where: { isActive: true, category: { not: 'blog' } },
+      select: { slug: true, updatedAt: true },
+      take: 200,
+    }).catch(() => []),
+    prisma.forumBoard.findMany({
+      where: { isActive: true },
+      select: { slug: true, updatedAt: true },
+      take: 100,
+    }).catch(() => []),
+    prisma.forumTopic.findMany({
+      where: { status: { not: 'DELETED' } },
+      select: { slug: true, lastPostAt: true },
+      orderBy: { lastPostAt: 'desc' },
+      take: 500,
+    }).catch(() => []),
+    prisma.page.findMany({
+      where: { status: 'PUBLISHED' },
+      select: { slug: true, updatedAt: true },
+      take: 100,
+    }).catch(() => []),
+    prisma.forumHelpArticle.findMany({
+      where: { status: 'PUBLISHED', isInternal: false },
+      select: { slug: true, updatedAt: true },
+      take: 200,
+    }).catch(() => []),
+  ]);
 
-    // Kurumsal sayfalar
-    const corporatePages = [
-        { url: '/contact', priority: 0.7, changeFrequency: 'monthly' as const },
-        { url: '/iletisim', priority: 0.7, changeFrequency: 'monthly' as const },
-        { url: '/faq', priority: 0.7, changeFrequency: 'monthly' as const },
-        { url: '/destek', priority: 0.7, changeFrequency: 'monthly' as const },
-        { url: '/comparison', priority: 0.8, changeFrequency: 'weekly' as const },
-        { url: '/security', priority: 0.6, changeFrequency: 'monthly' as const },
-        { url: '/team', priority: 0.5, changeFrequency: 'monthly' as const },
-        { url: '/careers', priority: 0.6, changeFrequency: 'weekly' as const },
-        { url: '/press', priority: 0.5, changeFrequency: 'monthly' as const },
-        { url: '/partner', priority: 0.6, changeFrequency: 'monthly' as const },
-        { url: '/referral', priority: 0.6, changeFrequency: 'monthly' as const },
-        { url: '/community', priority: 0.5, changeFrequency: 'monthly' as const },
-        { url: '/status', priority: 0.4, changeFrequency: 'daily' as const },
-    ];
+  const dynamicPages: MetadataRoute.Sitemap = [
+    ...blogPosts.map((post) => ({
+      url: `${SITE_URL}/blog/${post.slug}`,
+      lastModified: post.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    })),
+    ...cmsPages.map((page) => ({
+      url: `${SITE_URL}/${page.slug}`,
+      lastModified: page.updatedAt,
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
+    ...publishedPages.map((page) => ({
+      url: `${SITE_URL}/${page.slug}`,
+      lastModified: page.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    })),
+    ...forumBoards.map((board) => ({
+      url: `${SITE_URL}/forum/board/${board.slug}`,
+      lastModified: board.updatedAt,
+      changeFrequency: 'daily' as const,
+      priority: 0.7,
+    })),
+    ...forumTopics.map((topic) => ({
+      url: `${SITE_URL}/forum/topic/${topic.slug}`,
+      lastModified: topic.lastPostAt,
+      changeFrequency: 'daily' as const,
+      priority: 0.6,
+    })),
+    ...helpArticles.map((article) => ({
+      url: `${SITE_URL}/destek/${article.slug}`,
+      lastModified: article.updatedAt,
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    })),
+  ];
 
-    // Kurumsal alt sayfalar
-    const kurumsalPages = [
-        '/kurumsal/hakkimizda',
-        '/kurumsal/gizlilik-politikasi',
-        '/kurumsal/kullanim-sartlari',
-        '/kurumsal/cerez-politikasi',
-        '/kurumsal/kvkk',
-        '/kurumsal/satis-sozlesmesi',
-        '/kurumsal/hizmet-politikalari',
-    ].map(url => ({ url, priority: 0.4, changeFrequency: 'monthly' as const }));
-
-    const allPages = [
-        ...mainPages,
-        ...solutionPages,
-        ...contentPages,
-        ...corporatePages,
-        ...kurumsalPages,
-    ];
-
-    return allPages.map((page, index) => ({
-        url: `${baseUrl}${page.url}`,
-        lastModified: new Date(buildDate.getTime() - index * 60 * 60 * 1000),
-        changeFrequency: page.changeFrequency,
-        priority: page.priority,
-    }));
+  return [...staticPages, ...dynamicPages];
 }

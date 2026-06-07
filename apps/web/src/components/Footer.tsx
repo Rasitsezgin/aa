@@ -15,7 +15,7 @@ const Footer = () => {
     const currentYear = new Date().getFullYear();
 
     return (
-        <footer className="relative w-full bg-white dark:bg-[#0F172A] pt-12 sm:pt-20 overflow-hidden border-t border-slate-100 dark:border-white/5 transition-colors duration-500">
+        <footer className="relative w-full bg-[#FAFAF9] dark:bg-[#0B1120] pt-12 sm:pt-20 overflow-hidden border-t border-slate-100 dark:border-white/5 transition-colors duration-500">
             {/* 3D Multi-Layer Ambient Background */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 {/* Noise Texture Overlay */}

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { DEFAULT_PRICING_CATALOG, type PricingCatalog } from '@/config/pricing-catalog';
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 
 const PRICING_DATA = {
     hero: {
@@ -243,7 +244,7 @@ export default function PricingClient() {
     };
 
     return (
-        <main className="min-h-screen bg-white dark:bg-[#020617] transition-colors duration-500">
+        <MarketingPageShell as="main" padded={false}>
             {/* Background */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]" style={{
@@ -255,7 +256,7 @@ export default function PricingClient() {
             </div>
 
             {/* Hero Section */}
-            <section className="relative pt-32 pb-12 overflow-hidden">
+            <section className="relative pt-8 sm:pt-12 pb-12 overflow-hidden">
                 <div className="container mx-auto px-6 max-w-7xl">
                     <div className="text-center max-w-4xl mx-auto">
                         {/* Badge */}
@@ -633,6 +634,6 @@ export default function PricingClient() {
                     </motion.div>
                 </div>
             </section>
-        </main>
+        </MarketingPageShell>
     );
 }

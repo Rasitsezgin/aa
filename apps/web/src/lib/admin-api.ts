@@ -1,5 +1,17 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
+async function fetchLocalAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(endpoint, {
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    ...options,
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: 'API Hatası' }));
+    throw new Error(error.message || error.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE}/${endpoint.replace(/^\//, '')}`;
   const res = await fetch(url, {
@@ -205,18 +217,19 @@ export const adminApi = {
   // ═══════════════════════════════════════════════════════════════════
   // SEO YÖNETİMİ
   // ═══════════════════════════════════════════════════════════════════
-  getSeoPages: () => fetchAPI<any>('admin/seo/pages'),
-  getSeoStats: () => fetchAPI<any>('admin/seo/stats'),
-  getSeoRedirects: () => fetchAPI<any>('admin/seo/redirects'),
-  getStructuredData: () => fetchAPI<any>('admin/seo/structured-data'),
+  getSeoPages: () => fetchLocalAPI<any>('/api/admin/seo/pages'),
+  getSeoStats: () => fetchLocalAPI<any>('/api/admin/seo/stats'),
+  getSeoRedirects: () => fetchLocalAPI<any>('/api/admin/seo/redirects'),
+  getStructuredData: () => fetchLocalAPI<any>('/api/admin/seo/structured-data'),
   updateSeoPage: (pageId: string, data: any) =>
-    fetchAPI<any>(`admin/seo/pages/${pageId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    fetchLocalAPI<any>(`/api/admin/seo/pages/${encodeURIComponent(pageId)}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
   createRedirect: (data: { source: string; destination: string; type: string }) =>
-    fetchAPI<any>('admin/seo/redirects', { method: 'POST', body: JSON.stringify(data) }),
-  runSeoAudit: () =>
-    fetchAPI<any>('admin/seo/audit', { method: 'POST' }),
-  regenerateSitemap: () =>
-    fetchAPI<any>('admin/seo/sitemap/regenerate', { method: 'POST' }),
+    fetchLocalAPI<any>('/api/admin/seo/redirects', { method: 'POST', body: JSON.stringify(data) }),
+  runSeoAudit: () => fetchLocalAPI<any>('/api/admin/seo/audit', { method: 'POST' }),
+  regenerateSitemap: () => fetchLocalAPI<any>('/api/admin/seo/sitemap/regenerate', { method: 'POST' }),
 
   // ═══════════════════════════════════════════════════════════════════
   // EXISTING

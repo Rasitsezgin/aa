@@ -109,7 +109,7 @@ export function NavSkeleton() {
 // Full Page Loading
 export function PageLoadingSkeleton() {
     return (
-        <div className="min-h-screen pt-32 pb-20 px-6">
+        <div className="min-h-screen pt-[calc(5.25rem+env(safe-area-inset-top,0px))] pb-20 px-6">
             <div className="container mx-auto">
                 <div className="text-center mb-16">
                     <Skeleton className="h-8 w-32 mx-auto mb-6 rounded-full" />

@@ -11,9 +11,15 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Workspace DB package must be transpiled (Turbopack forbids listing it in both lists).
-  transpilePackages: ['@pazaryonetimi/database'],
-  serverExternalPackages: ['@prisma/adapter-pg', 'pg', 'bcryptjs'],
+  // Prisma/pg must not be bundled by Turbopack (breaks driver adapter runtime with "reading 'bind'").
+  // Do not list @pazaryonetimi/database in both transpilePackages and serverExternalPackages.
+  serverExternalPackages: [
+    '@pazaryonetimi/database',
+    '@prisma/client',
+    '@prisma/adapter-pg',
+    'pg',
+    'bcryptjs',
+  ],
   experimental: {
     // Package import optimization for better tree-shaking
     optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion'],

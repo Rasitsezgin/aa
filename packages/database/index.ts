@@ -1,4 +1,7 @@
-import { PrismaClient } from './generated/client'
+import { createRequire } from 'node:module'
+import type { PrismaClient } from './generated/client'
+
+const nodeRequire = createRequire(__filename)
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -12,27 +15,18 @@ const createPrismaClient = (): PrismaClient => {
     process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/postgres'
   }
 
-  // Lazy-require pg and adapter ONLY when actually creating the client.
-  // This prevents Turbopack/Next.js build from loading them during static page-data collection
-  // for routes that transitively import this package (e.g. /api/admin/blog/[id]).
-  // Top-level import of 'pg' + '@prisma/adapter-pg' was causing "Cannot read properties of undefined (reading 'bind')".
-  const nodeRequire = (typeof require !== 'undefined' ? require : (globalThis as any).require) as NodeRequire;
-  const { Pool } = nodeRequire('pg');
-  const { PrismaPg } = nodeRequire('@prisma/adapter-pg');
-
-  let adapter
-  try {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL })
-    adapter = new PrismaPg(pool as any)
-  } catch (error: any) {
-    if (process.env.NODE_ENV === 'production') {
-      throw error
-    }
-    console.error('Failed to create database adapter:', error.message)
+  // Load Prisma runtime via Node require so Turbopack does not bundle generated/client.
+  const { PrismaClient: PrismaClientConstructor } = nodeRequire('./generated/client') as {
+    PrismaClient: new (args?: object) => PrismaClient
   }
+  const { Pool } = nodeRequire('pg') as typeof import('pg')
+  const { PrismaPg } = nodeRequire('@prisma/adapter-pg') as typeof import('@prisma/adapter-pg')
 
-  return new PrismaClient({
-    ...(adapter ? { adapter } : {}),
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+  const adapter = new PrismaPg(pool as any)
+
+  return new PrismaClientConstructor({
+    adapter,
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   } as any)
 }

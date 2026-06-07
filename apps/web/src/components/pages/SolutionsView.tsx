@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 
 const SOLUTIONS_DATA = {
     hero: {
@@ -188,19 +189,9 @@ export default function SolutionsView({ data }: { data: any }) {
     }, []);
 
     return (
-        <main className="min-h-screen bg-white dark:bg-[#020617] transition-colors duration-500">
-            {/* Background */}
-            <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]" style={{
-                    backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
-                    backgroundSize: '32px 32px'
-                }} />
-                <div className="absolute top-0 right-1/4 w-[800px] h-[800px] bg-purple-500/10 dark:bg-purple-500/5 rounded-full blur-[150px]" />
-                <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-orange-500/10 dark:bg-orange-500/5 rounded-full blur-[150px]" />
-            </div>
-
+        <MarketingPageShell as="main" padded={false}>
             {/* Hero Section */}
-            <section className="relative pt-32 pb-20 overflow-hidden">
+            <section className="relative pt-8 sm:pt-12 pb-20 overflow-hidden">
                 <div className="container mx-auto px-6 max-w-7xl">
                     <div className="text-center max-w-5xl mx-auto">
                         {/* Badge */}
@@ -531,6 +522,6 @@ export default function SolutionsView({ data }: { data: any }) {
                     </motion.div>
                 </div>
             </section>
-        </main>
+        </MarketingPageShell>
     );
 }

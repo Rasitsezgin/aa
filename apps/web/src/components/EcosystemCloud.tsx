@@ -61,7 +61,7 @@ export default function EcosystemCloud() {
     }, []);
 
     return (
-        <section className="py-14 md:py-32 relative overflow-hidden bg-white dark:bg-[#02040a] min-h-[350px] sm:min-h-[500px] md:min-h-[900px] flex flex-col items-center justify-center transition-colors duration-500">
+        <section className="py-14 md:py-32 relative overflow-hidden bg-[#FAFAF9] dark:bg-[#0B1120] min-h-[350px] sm:min-h-[500px] md:min-h-[900px] flex flex-col items-center justify-center transition-colors duration-500">
             {/* Unified Background Pattern */}
             <div className="absolute inset-0 pointer-events-none">
                 {/* Subtle Dot Grid */}
@@ -112,7 +112,7 @@ export default function EcosystemCloud() {
 
                         {/* Main Circle */}
                         <div className="relative z-10 w-full h-full bg-white rounded-full flex items-center justify-center border-[6px] border-slate-100 dark:border-white/20 shadow-[0_0_50px_rgba(234,88,12,0.3)] dark:shadow-[0_0_50px_rgba(234,88,12,0.6)]">
-                            <div className="w-24 h-24 bg-white dark:bg-[#02040a] rounded-full flex items-center justify-center border border-slate-200 dark:border-white/10">
+                            <div className="w-24 h-24 bg-[#FAFAF9] dark:bg-[#0B1120] rounded-full flex items-center justify-center border border-slate-200 dark:border-white/10">
                                 <span className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">P</span>
                             </div>
                         </div>
@@ -146,7 +146,7 @@ export default function EcosystemCloud() {
             </div>
 
             {/* Vignette - Adjusted Z-index to allow front planets to pop */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#f8fafc_80%)] dark:bg-[radial-gradient(circle_at_center,transparent_30%,#02040a_80%)] pointer-events-none z-30 transition-colors duration-500" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#f8fafc_80%)] dark:bg-[radial-gradient(circle_at_center,transparent_30%,#0B1120_80%)] pointer-events-none z-30 transition-colors duration-500" />
         </section>
     );
 }

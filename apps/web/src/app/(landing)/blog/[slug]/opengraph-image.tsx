@@ -34,7 +34,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: '#02040a',
+                    backgroundColor: '#0B1120',
                     backgroundImage: 'radial-gradient(circle at 25px 25px, #1e293b 2%, transparent 0%), radial-gradient(circle at 75px 75px, #1e293b 2%, transparent 0%)',
                     backgroundSize: '100px 100px',
                 }}

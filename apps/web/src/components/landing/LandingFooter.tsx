@@ -8,7 +8,7 @@ export function LandingFooter() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative z-20 w-full border-t border-slate-200 dark:border-white/5 bg-white dark:bg-[#020617] py-12">
+    <footer className="relative z-20 w-full border-t border-slate-200 dark:border-white/5 bg-[#FAFAF9] dark:bg-[#0B1120] py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Brand */}

@@ -1,19 +1,12 @@
 "use client";
 
 import React from 'react';
-import { Loader2, Sparkles, Plus, Save, Trash2, RefreshCcw } from 'lucide-react';
-
-type BlogPostItem = {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  readTimeMinutes: number;
-};
+import Link from 'next/link';
+import {
+  ExternalLink, ImagePlus, Loader2, Plus, RefreshCcw, Save, Search, Sparkles, Trash2, Upload,
+} from 'lucide-react';
+import { BLOG_CATEGORIES } from '@/lib/blog-meta';
+import type { BlogPostItem } from '@/lib/blog-types';
 
 type DraftResponse = {
   title: string;
@@ -44,11 +37,21 @@ export default function BlogAdminContent() {
   const [tone, setTone] = React.useState('Profesyonel ve aksiyon odakli');
   const [keywords, setKeywords] = React.useState('trendyol, satis arttirma, pazaryeri, e-ticaret');
 
+  const [uploadingCover, setUploadingCover] = React.useState(false);
+  const coverInputRef = React.useRef<HTMLInputElement>(null);
+
   const [form, setForm] = React.useState({
     title: '',
     slug: '',
     content: '',
     isActive: false,
+    coverImage: '',
+    tags: '',
+    isFeatured: false,
+    category: 'rehber',
+    metaTitle: '',
+    metaDescription: '',
+    metaKeywords: '',
   });
 
   const loadPosts = React.useCallback(async () => {
@@ -73,7 +76,19 @@ export default function BlogAdminContent() {
 
   const resetForm = () => {
     setSelectedId(null);
-    setForm({ title: '', slug: '', content: '', isActive: false });
+    setForm({
+      title: '',
+      slug: '',
+      content: '',
+      isActive: false,
+      coverImage: '',
+      tags: '',
+      isFeatured: false,
+      category: 'rehber',
+      metaTitle: '',
+      metaDescription: '',
+      metaKeywords: '',
+    });
   };
 
   const selectPost = (post: BlogPostItem) => {
@@ -83,7 +98,33 @@ export default function BlogAdminContent() {
       slug: post.slug,
       content: post.content,
       isActive: post.isActive,
+      coverImage: post.coverImage || '',
+      tags: post.tags.join(', '),
+      isFeatured: post.isFeatured,
+      category: post.category || 'rehber',
+      metaTitle: post.metaTitle || '',
+      metaDescription: post.metaDescription || '',
+      metaKeywords: post.metaKeywords || '',
     });
+  };
+
+  const uploadCover = async (file: File) => {
+    setUploadingCover(true);
+    setMessage('');
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      body.append('slug', form.slug || form.title || 'cover');
+      const response = await fetch('/api/admin/blog/upload', { method: 'POST', body });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Kapak yüklenemedi');
+      setForm((prev) => ({ ...prev, coverImage: data.url }));
+      setMessage('Kapak görseli yüklendi.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Kapak yüklenemedi.');
+    } finally {
+      setUploadingCover(false);
+    }
   };
 
   const handleSave = async () => {
@@ -307,7 +348,7 @@ export default function BlogAdminContent() {
               <input
                 value={form.title}
                 onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-                placeholder="Blog basligi"
+                placeholder="Blog başlığı"
                 className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
               />
               <input
@@ -316,7 +357,72 @@ export default function BlogAdminContent() {
                 placeholder="slug"
                 className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
               />
+              <select
+                value={form.category}
+                onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value }))}
+                className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
+              >
+                {BLOG_CATEGORIES.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+              <input
+                value={form.tags}
+                onChange={(event) => setForm((prev) => ({ ...prev, tags: event.target.value }))}
+                placeholder="Etiketler (virgülle)"
+                className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
+              />
             </div>
+
+            <div className="rounded-2xl border border-dashed border-slate-200 dark:border-white/10 p-4">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-500">Kapak görseli</span>
+              <div className="mt-3 flex flex-col sm:flex-row gap-4">
+                <div className="w-full sm:w-40 h-28 rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden bg-slate-100 dark:bg-black/20 flex items-center justify-center">
+                  {form.coverImage ? (
+                    <img src={form.coverImage} alt="Kapak" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImagePlus className="text-slate-400" size={24} />
+                  )}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <input
+                    value={form.coverImage}
+                    onChange={(event) => setForm((prev) => ({ ...prev, coverImage: event.target.value }))}
+                    placeholder="/uploads/blog/..."
+                    className="w-full h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
+                  />
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) await uploadCover(file);
+                      e.target.value = '';
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={uploadingCover}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-violet-500/10 text-violet-600 text-sm font-bold disabled:opacity-50"
+                  >
+                    {uploadingCover ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                    Kapak yükle
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <label className="inline-flex items-center gap-2 text-sm font-semibold">
+              <input
+                type="checkbox"
+                checked={form.isFeatured}
+                onChange={(event) => setForm((prev) => ({ ...prev, isFeatured: event.target.checked }))}
+              />
+              Öne çıkan yazı (blog ana sayfasında büyük kart)
+            </label>
 
             <textarea
               value={form.content}
@@ -325,7 +431,41 @@ export default function BlogAdminContent() {
               className="w-full min-h-[360px] rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 p-4 text-sm font-medium"
             />
 
+            <div className="rounded-2xl border border-slate-200 dark:border-white/10 p-4 space-y-3">
+              <div className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-slate-500">
+                <Search size={14} className="text-orange-500" /> SEO
+              </div>
+              <input
+                value={form.metaTitle}
+                onChange={(event) => setForm((prev) => ({ ...prev, metaTitle: event.target.value }))}
+                placeholder="Meta başlık"
+                className="w-full h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
+              />
+              <textarea
+                value={form.metaDescription}
+                onChange={(event) => setForm((prev) => ({ ...prev, metaDescription: event.target.value }))}
+                placeholder="Meta açıklama"
+                rows={2}
+                className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 p-4 text-sm font-medium resize-none"
+              />
+              <input
+                value={form.metaKeywords}
+                onChange={(event) => setForm((prev) => ({ ...prev, metaKeywords: event.target.value }))}
+                placeholder="Anahtar kelimeler (virgülle)"
+                className="w-full h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
+              />
+            </div>
+
             <div className="flex flex-wrap gap-3">
+              {selectedId && form.slug && (
+                <Link
+                  href={`/blog/${form.slug}`}
+                  target="_blank"
+                  className="inline-flex items-center gap-2 h-11 px-5 rounded-xl border border-slate-200 dark:border-white/10 text-sm font-bold"
+                >
+                  <ExternalLink size={16} /> Önizle
+                </Link>
+              )}
               <button
                 type="button"
                 onClick={handleSave}
@@ -333,7 +473,7 @@ export default function BlogAdminContent() {
                 className="inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm disabled:opacity-60"
               >
                 {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                {selectedId ? 'Blogu Guncelle' : 'Yeni Blog Kaydet'}
+                {selectedId ? 'Blogu güncelle' : 'Yeni blog kaydet'}
               </button>
 
               <button

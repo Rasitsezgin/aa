@@ -7,6 +7,7 @@ import {
     ArrowRight, CheckCircle2, ChevronDown, ChevronUp,
     Star, ArrowLeft, Sparkles, Play
 } from 'lucide-react';
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 
 interface SolutionData {
     title: string;
@@ -25,7 +26,7 @@ export default function SolutionDetailView({ solution }: { solution: SolutionDat
     const [openFaq, setOpenFaq] = useState<number | null>(0);
 
     return (
-        <main className="min-h-screen bg-white dark:bg-slate-950 pt-24">
+        <MarketingPageShell as="main" padded={false} className="pb-20">
             {/* ── Hero ── */}
             <section className="relative overflow-hidden">
                 <div className={`absolute inset-0 bg-gradient-to-br ${solution.gradient} opacity-[0.04] dark:opacity-[0.08]`} />
@@ -256,6 +257,6 @@ export default function SolutionDetailView({ solution }: { solution: SolutionDat
                     </div>
                 </div>
             </section>
-        </main>
+        </MarketingPageShell>
     );
 }

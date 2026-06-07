@@ -9,6 +9,7 @@ import {
     BadgeCheck, AlertTriangle, CheckCircle2
 } from 'lucide-react';
 import Link from 'next/link';
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 
 const COMPARISON_DATA = {
     hero: {
@@ -197,19 +198,9 @@ export default function ComparisonPage() {
     };
 
     return (
-        <main className="min-h-screen bg-white dark:bg-[#020617] transition-colors duration-500">
-            {/* Background */}
-            <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]" style={{
-                    backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
-                    backgroundSize: '32px 32px'
-                }} />
-                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-green-500/10 dark:bg-green-500/5 rounded-full blur-[150px]" />
-                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-500/10 dark:bg-purple-500/5 rounded-full blur-[150px]" />
-            </div>
-
+        <MarketingPageShell as="main" padded={false} className="pb-20">
             {/* Hero Section */}
-            <section className="relative pt-32 pb-16 overflow-hidden">
+            <section className="relative pt-8 sm:pt-12 pb-16 overflow-hidden">
                 <div className="container mx-auto px-6 max-w-7xl">
                     <div className="text-center max-w-4xl mx-auto">
                         <motion.div
@@ -555,6 +546,6 @@ export default function ComparisonPage() {
                     </motion.div>
                 </div>
             </section>
-        </main>
+        </MarketingPageShell>
     );
 }

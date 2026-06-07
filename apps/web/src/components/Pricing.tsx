@@ -13,7 +13,7 @@ export default function Pricing({ texts = HOMEPAGE_TEXTS.pricing }: { texts?: ty
     const [isAnnual, setIsAnnual] = useState(false);
 
     return (
-        <section className="py-20 md:py-32 border-t border-slate-200 dark:border-white/5 bg-white dark:bg-[#02040a] relative overflow-hidden transition-colors duration-500">
+        <section className="py-20 md:py-32 border-t border-slate-200 dark:border-white/5 bg-[#FAFAF9] dark:bg-[#0B1120] relative overflow-hidden transition-colors duration-500">
             {/* Unified Background Pattern */}
             <div className="absolute inset-0 pointer-events-none">
                 {/* Subtle Dot Grid */}

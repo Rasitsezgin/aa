@@ -36,11 +36,11 @@ const INITIAL_CONFIG = [
 ];
 
 const sectionBgClass: Record<string, string> = {
-  'chaos-control': 'bg-slate-50/50 dark:bg-[#020617]/40',
+  'chaos-control': 'bg-slate-50/50 dark:bg-[#0B1120]/40',
   'preview': 'bg-white dark:bg-transparent',
-  'bento': 'bg-slate-50/30 dark:bg-[#020617]/30',
+  'bento': 'bg-slate-50/30 dark:bg-[#0B1120]/30',
   'testimonials': 'bg-white dark:bg-transparent',
-  'pricing': 'bg-slate-50/50 dark:bg-[#020617]/50',
+  'pricing': 'bg-slate-50/50 dark:bg-[#0B1120]/50',
 };
 
 export default function LandingHomeClient() {
@@ -82,10 +82,10 @@ export default function LandingHomeClient() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#FAFAF9] dark:bg-[#0F172A] text-foreground relative selection:bg-orange-500/30 overflow-x-hidden">
+    <main className="min-h-screen bg-[#FAFAF9] dark:bg-[#0B1120] text-foreground relative selection:bg-orange-500/30 overflow-x-hidden">
 
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#FFFCF8] via-[#FAFAF9] to-white dark:from-[#0c1222] dark:via-[#0F172A] dark:to-[#0a0f1a]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#FFFCF8] via-[#FAFAF9] to-white dark:from-[#0c1222] dark:via-[#0B1120] dark:to-[#0B1120]" />
         <div className="absolute top-[30%] left-1/2 -translate-x-1/2 w-[70vw] h-[30vh] bg-orange-500/[0.05] dark:bg-orange-500/[0.07] rounded-full blur-[120px]" />
         <div
           className="absolute inset-0 opacity-[0.12] dark:opacity-[0.06]"

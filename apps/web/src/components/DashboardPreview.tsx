@@ -38,7 +38,7 @@ export default function DashboardPreview() {
     const chartOpacity = useTransform(scrollYProgress, [0.6, 1], [0, 1]);
 
     return (
-        <section ref={containerRef} className="pt-2 pb-12 relative overflow-hidden bg-slate-50 dark:bg-[#02040a] transition-colors duration-500">
+        <section ref={containerRef} className="pt-2 pb-12 relative overflow-hidden bg-[#FAFAF9] dark:bg-[#0B1120] transition-colors duration-500">
 
             {/* Unified Background Pattern */}
             <div className="absolute inset-0 pointer-events-none">
@@ -75,12 +75,12 @@ export default function DashboardPreview() {
                 </div>
 
                 {/* Dashboard Window */}
-                <div className="max-w-6xl mx-auto rounded-[20px] sm:rounded-[32px] md:rounded-[40px] bg-white dark:bg-[#0F172A] border-[4px] sm:border-[6px] md:border-[8px] border-slate-200 dark:border-slate-900 shadow-2xl shadow-slate-200/50 dark:shadow-black/50 relative overflow-hidden h-[350px] sm:h-[500px] md:h-[650px] flex ring-1 ring-slate-900/5 dark:ring-white/10">
+                <div className="max-w-6xl mx-auto rounded-[20px] sm:rounded-[32px] md:rounded-[40px] bg-[#FAFAF9] dark:bg-[#0B1120] border-[4px] sm:border-[6px] md:border-[8px] border-slate-200 dark:border-slate-900 shadow-2xl shadow-slate-200/50 dark:shadow-black/50 relative overflow-hidden h-[350px] sm:h-[500px] md:h-[650px] flex ring-1 ring-slate-900/5 dark:ring-white/10">
 
                     {/* Sidebar: Slides in from left */}
                     <motion.div
                         style={{ x: sidebarX, opacity: sidebarOpacity }}
-                        className="w-72 border-r border-slate-100 dark:border-white/5 bg-white dark:bg-[#0F172A] p-6 hidden md:flex flex-col gap-8 z-20 relative"
+                        className="w-72 border-r border-slate-100 dark:border-white/5 bg-[#FAFAF9] dark:bg-[#0B1120] p-6 hidden md:flex flex-col gap-8 z-20 relative"
                     >
                         <div className="flex items-center gap-3 pl-2">
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-600 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
@@ -130,7 +130,7 @@ export default function DashboardPreview() {
                     </motion.div>
 
                     {/* Main Content */}
-                    <div className="flex-1 flex flex-col relative z-10 bg-slate-50/50 dark:bg-[#0F172A]/50">
+                    <div className="flex-1 flex flex-col relative z-10 bg-slate-50/50 dark:bg-[#0B1120]/50">
                         {/* Header: Slides down from top */}
                         <motion.div
                             style={{ y: headerY, opacity: headerOpacity }}

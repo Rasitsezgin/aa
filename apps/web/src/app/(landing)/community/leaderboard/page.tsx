@@ -10,6 +10,7 @@ import {
   Clock, CheckCircle2, BadgeCheck, Sparkles
 } from 'lucide-react';
 import { communityService } from '@/lib/services/community-service';
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 
 interface LeaderboardUser {
   rank: number;
@@ -91,7 +92,7 @@ export default function LeaderboardPage() {
     if (rank === 1) return 'from-amber-400 to-orange-500';
     if (rank === 2) return 'from-slate-300 to-slate-400';
     if (rank === 3) return 'from-amber-600 to-amber-700';
-    return 'from-cyan-500 to-teal-600';
+    return 'from-orange-500 to-amber-600';
   };
 
   const getChangeIcon = (change: number) => {
@@ -110,7 +111,7 @@ export default function LeaderboardPage() {
   };
 
   return (
-    <section className="min-h-screen pt-32 pb-24 bg-slate-50 dark:bg-[#02040a]">
+    <MarketingPageShell as="section" className="pb-24" padded={false}>
       <div className="container mx-auto px-6 max-w-6xl">
         {/* Header */}
         <motion.div
@@ -120,7 +121,7 @@ export default function LeaderboardPage() {
         >
           <Link 
             href="/community" 
-            className="inline-flex items-center gap-2 text-slate-500 hover:text-cyan-600 transition-colors mb-6"
+            className="inline-flex items-center gap-2 text-slate-500 hover:text-orange-600 transition-colors mb-6"
           >
             <ChevronLeft size={20} />
             Topluluğa Dön
@@ -158,7 +159,7 @@ export default function LeaderboardPage() {
                   onClick={() => setPeriod(key as any)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     period === key
-                      ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/25'
+                      ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/10'
                   }`}
                 >
@@ -174,7 +175,7 @@ export default function LeaderboardPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
               >
                 <option value="points">Puana Göre</option>
                 <option value="reputation">Repütasyona Göre</option>
@@ -191,7 +192,7 @@ export default function LeaderboardPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Kullanıcı ara..."
-                className="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                className="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg text-sm text-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
               />
             </div>
           </div>
@@ -345,7 +346,7 @@ export default function LeaderboardPage() {
                     {/* User */}
                     <div className="col-span-5 md:col-span-4 flex items-center gap-3">
                       <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-sm">
                           {user.avatar}
                         </div>
                         {user.isOnline && (
@@ -356,7 +357,7 @@ export default function LeaderboardPage() {
                         <div className="font-medium text-slate-900 dark:text-white truncate flex items-center gap-2">
                           {user.name}
                           {user.badges.some(b => b.name.includes('Elite') || b.name.includes('Admin')) && (
-                            <BadgeCheck size={14} className="text-cyan-500" />
+                            <BadgeCheck size={14} className="text-orange-500" />
                           )}
                         </div>
                         <div className="flex items-center gap-2">
@@ -451,9 +452,9 @@ export default function LeaderboardPage() {
               transition={{ delay: 0.4 }}
               className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8"
             >
-              <div className="bg-gradient-to-br from-cyan-500/10 to-teal-500/10 dark:from-cyan-500/20 dark:to-teal-500/20 rounded-2xl p-6 border border-cyan-200 dark:border-cyan-800">
+              <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 dark:from-orange-500/20 dark:to-amber-500/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-800">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-600 dark:text-orange-400">
                     <Target size={20} />
                   </div>
                   <h3 className="font-bold text-slate-900 dark:text-white">Nasıl Puan Kazanılır?</h3>
@@ -523,6 +524,6 @@ export default function LeaderboardPage() {
           </>
         )}
       </div>
-    </section>
+    </MarketingPageShell>
   );
 }

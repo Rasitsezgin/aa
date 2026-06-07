@@ -57,6 +57,7 @@ export interface TopContributor {
   helpfulCount: number;
   level: number;
   xp: number;
+  xpProgress?: number;
   badge: string;
   badgeColor: string;
   isOnline?: boolean;
@@ -65,7 +66,47 @@ export interface TopContributor {
     name: string;
     icon: string;
     color: string;
+    isMarketplace?: boolean;
   }>;
+}
+
+export interface GamificationQuest {
+  id: string;
+  title: string;
+  description?: string | null;
+  type: string;
+  action: string;
+  progress: number;
+  targetCount: number;
+  xpReward: number;
+  isCompleted: boolean;
+  percent: number;
+}
+
+export interface GamificationBadge {
+  name: string;
+  icon: string;
+  color: string;
+  description?: string | null;
+  earnedAt?: Date;
+}
+
+export interface CommunityGamification {
+  isAuthenticated: boolean;
+  profileId?: string | null;
+  level?: number;
+  title?: string;
+  currentXp?: number;
+  totalXp?: number;
+  xpToNext?: number;
+  progress?: number;
+  currentStreak?: number;
+  longestStreak?: number;
+  badges?: GamificationBadge[];
+  marketplaceBadges?: GamificationBadge[];
+  quests?: GamificationQuest[];
+  completedQuestsToday?: number;
+  totalDailyQuests?: number;
 }
 
 export interface CommunityEvent {
@@ -82,30 +123,30 @@ export interface CommunityEvent {
   attendeeCount: number;
   maxAttendees?: number;
   status: string;
+  isRegistered?: boolean;
   formattedDate: string;
   formattedTime: string;
 }
 
+export interface OnboardingStep {
+  id: string;
+  label: string;
+  completed: boolean;
+  href: string;
+}
+
+export interface CommunityOnboarding {
+  isAuthenticated: boolean;
+  profileId: string | null;
+  steps: OnboardingStep[];
+  completedCount: number;
+  totalCount: number;
+  isComplete: boolean;
+}
+
 class CommunityService {
   async getStats(): Promise<CommunityStats> {
-    try {
-      return await apiClient.request('/community/stats');
-    } catch (error) {
-      console.error('Failed to fetch community stats:', error);
-      // Return fallback data
-      return {
-        totalMembers: 25000,
-        totalTopics: 50000,
-        totalPosts: 125000,
-        solvedTopics: 5000,
-        monthlyPosts: 8500,
-        onlineUsers: 42,
-        onlineGuests: 128,
-        newestMember: 'Yeni Üye',
-        growthRate: 12.5,
-        activeToday: 198,
-      };
-    }
+    return await apiClient.request('/community/stats');
   }
 
   async getTopics(options?: {
@@ -118,27 +159,16 @@ class CommunityService {
     if (options?.category) params.set('category', options.category);
     if (options?.sortBy) params.set('sortBy', options.sortBy);
 
-    try {
-      const topics = await apiClient.request(`/community/topics?${params}`) as ForumTopic[];
-      // Convert date strings to Date objects
-      return topics.map((t) => ({
-        ...t,
-        lastActivity: new Date(t.lastActivity),
-        createdAt: new Date(t.createdAt),
-      }));
-    } catch (error) {
-      console.error('Failed to fetch topics:', error);
-      return [];
-    }
+    const topics = await apiClient.request(`/community/topics?${params}`) as ForumTopic[];
+    return topics.map((t) => ({
+      ...t,
+      lastActivity: new Date(t.lastActivity),
+      createdAt: new Date(t.createdAt),
+    }));
   }
 
   async getCategories(): Promise<ForumCategory[]> {
-    try {
-      return await apiClient.request('/community/categories');
-    } catch (error) {
-      console.error('Failed to fetch categories:', error);
-      return [];
-    }
+    return await apiClient.request('/community/categories');
   }
 
   async getContributors(options?: {
@@ -149,17 +179,11 @@ class CommunityService {
     if (options?.limit) params.set('limit', options.limit.toString());
     if (options?.period) params.set('period', options.period);
 
-    try {
-      const contributors = await apiClient.request(`/community/contributors?${params}`) as TopContributor[];
-      // Convert date strings to Date objects
-      return contributors.map((c) => ({
-        ...c,
-        lastActivity: c.lastActivity ? new Date(c.lastActivity) : undefined,
-      }));
-    } catch (error) {
-      console.error('Failed to fetch contributors:', error);
-      return [];
-    }
+    const contributors = await apiClient.request(`/community/contributors?${params}`) as TopContributor[];
+    return contributors.map((c) => ({
+      ...c,
+      lastActivity: c.lastActivity ? new Date(c.lastActivity) : undefined,
+    }));
   }
 
   async getEvents(options?: {
@@ -170,18 +194,88 @@ class CommunityService {
     if (options?.limit) params.set('limit', options.limit.toString());
     if (options?.type) params.set('type', options.type);
 
-    try {
-      const events = await apiClient.request(`/community/events?${params}`) as CommunityEvent[];
-      // Convert date strings to Date objects
-      return events.map((e) => ({
-        ...e,
-        startAt: new Date(e.startAt),
-        endAt: e.endAt ? new Date(e.endAt) : undefined,
-      }));
-    } catch (error) {
-      console.error('Failed to fetch events:', error);
-      return [];
+    const events = await apiClient.request(`/community/events?${params}`) as CommunityEvent[];
+    return events.map((e) => ({
+      ...e,
+      startAt: new Date(e.startAt),
+      endAt: e.endAt ? new Date(e.endAt) : undefined,
+    }));
+  }
+
+  async getOnboarding(): Promise<CommunityOnboarding> {
+    return await apiClient.request('/community/onboarding');
+  }
+
+  async getGamification(): Promise<CommunityGamification> {
+    const data = await apiClient.request('/community/gamification') as CommunityGamification;
+    return {
+      ...data,
+      badges: data.badges?.map((b) => ({
+        ...b,
+        earnedAt: b.earnedAt ? new Date(b.earnedAt) : undefined,
+      })),
+      marketplaceBadges: data.marketplaceBadges?.map((b) => ({
+        ...b,
+        earnedAt: b.earnedAt ? new Date(b.earnedAt) : undefined,
+      })),
+    };
+  }
+
+  async search(query: string, types = 'forum,blog,help'): Promise<{
+    query: string;
+    results: Array<{
+      type: string;
+      id: string;
+      title: string;
+      excerpt: string;
+      url: string;
+      updatedAt?: string;
+    }>;
+    total: number;
+  }> {
+    const params = new URLSearchParams({ q: query, types });
+    return await apiClient.request(`/community/search?${params}`);
+  }
+
+  async getNotifications(): Promise<{
+    notifications: Array<{
+      id: string;
+      type: string;
+      title: string;
+      message: string | null;
+      read: boolean;
+      actionUrl: string | null;
+      createdAt: string;
+    }>;
+    unreadCount: number;
+  }> {
+    return await apiClient.request('/community/notifications');
+  }
+
+  async submitReport(data: {
+    postId?: string;
+    topicId?: string;
+    userId?: string;
+    reason: string;
+    description?: string;
+  }): Promise<{ id: string }> {
+    const res = await fetch('/api/community/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.error || 'Rapor gönderilemedi');
+    return body;
+  }
+
+  async joinEvent(eventId: string): Promise<{ success: boolean; attendeeCount: number; alreadyRegistered?: boolean }> {
+    const res = await fetch(`/api/community/events/${eventId}/join`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Katılım başarısız');
     }
+    return data;
   }
 
   // Format relative time for display

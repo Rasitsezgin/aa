@@ -1,5 +1,7 @@
 "use client";
 
+
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Rocket, Check, Clock, Target, TrendingUp } from 'lucide-react';
@@ -74,7 +76,7 @@ export default function RoadmapPage() {
     }, {} as Record<QuarterType, RoadmapFeature[]>);
 
     return (
-        <section className="min-h-screen pt-32 pb-24 relative overflow-hidden bg-white dark:bg-[#02040a] transition-colors duration-500">
+        <MarketingPageShell as="section" className="pb-24" padded={false}>
             {/* Background */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" style={{
@@ -181,6 +183,6 @@ export default function RoadmapPage() {
                     </button>
                 </motion.div>
             </div>
-        </section>
+        </MarketingPageShell>
     );
 }

@@ -26,7 +26,9 @@ import {
     Eye,
     HardDrive,
     Upload,
-    Terminal
+    Terminal,
+    Calendar,
+    BookOpen
 } from 'lucide-react';
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from '@/providers/theme-provider';
@@ -40,10 +42,13 @@ const navigation = [
     { name: 'Siparişler', href: '/admin/orders', icon: CreditCard },
     { name: 'Finans', href: '/admin/finance', icon: BarChart3 },
     { name: 'İçerik', href: '/admin/blog', icon: FileText },
+    { name: 'Yardım Makaleleri', href: '/admin/help', icon: BookOpen },
     { name: 'Forum', href: '/admin/forum', icon: MessageSquare },
+    { name: 'Forum Moderasyon', href: '/admin/forum/moderation', icon: ShieldIcon },
+    { name: 'Topluluk Etkinlikleri', href: '/admin/community/events', icon: Calendar },
     { name: 'Bildirimler', href: '/admin/notifications', icon: Bell },
     { name: 'Popuplar', href: '/admin/popups', icon: Zap },
-    { name: 'Entegrasyonlar', href: '/admin/integrations', icon: Globe },
+    { name: 'Pazaryeri Kataloğu', href: '/admin/integrations', icon: Globe },
     { name: 'Modüller', href: '/admin/modules', icon: Layers },
     { name: 'Güvenlik', href: '/admin/security', icon: ShieldIcon },
     { name: 'Yedekler', href: '/admin/backups', icon: HardDrive },

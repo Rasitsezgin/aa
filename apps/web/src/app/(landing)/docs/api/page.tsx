@@ -1,5 +1,7 @@
 "use client";
 
+
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -359,8 +361,7 @@ export default function APIDocsPage() {
     const totalEndpoints = apiCategories.reduce((acc, cat) => acc + cat.endpoints.length, 0);
 
     return (
-        <section className="min-h-screen pt-32 pb-24 relative overflow-hidden bg-white dark:bg-[#02040a] transition-colors duration-500">
-            {/* Background Effects */}
+        <MarketingPageShell as="section" className="pb-24" padded={false}>
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03]" style={{
                     backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
@@ -368,7 +369,6 @@ export default function APIDocsPage() {
                 }} />
                 <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-orange-500/10 dark:bg-orange-500/5 blur-[150px] rounded-full" />
                 <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-500/10 dark:bg-purple-500/5 blur-[150px] rounded-full" />
-                {/* Code lines decoration */}
                 <div className="absolute top-40 left-10 text-slate-200 dark:text-slate-800 text-xs font-mono opacity-50 hidden lg:block">
                     {Array.from({length: 20}).map((_, i) => (
                         <div key={i} className="py-0.5">{String(i + 1).padStart(2, '0')}</div>
@@ -946,6 +946,6 @@ export default function APIDocsPage() {
                     </div>
                 </motion.div>
             </div>
-        </section>
+        </MarketingPageShell>
     );
 }

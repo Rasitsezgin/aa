@@ -82,17 +82,55 @@ export default function ForumModerationPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedReport, setSelectedReport] = useState<ModerationReport | null>(null);
+  const [moderatorNote, setModeratorNote] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [resolving, setResolving] = useState(false);
+  const [bannedUsers, setBannedUsers] = useState<Array<{ id: string; name: string; reason?: string | null }>>([]);
+
+  const fetchModerationData = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/forum/reports');
+      if (res.ok) {
+        const data = await res.json();
+        setReports(data.reports ?? []);
+        setModerationLogs(data.logs ?? []);
+        setBannedUsers(data.bannedUsers ?? []);
+      }
+    } catch (error) {
+      console.error('Moderation fetch error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const mockReports: ModerationReport[] = [
-      { id: "1", type: "post", reason: "spam", description: "Spam içerik", status: "pending", reporter: { id: "1", name: "Kullanıcı" }, createdAt: "2024-01-15" },
-    ];
-    const mockLogs: UserModerationLog[] = [
-      { id: "1", userId: "1", userName: "Kullanıcı1", action: "warning", reason: "Kural ihlali", moderatorId: "2", moderatorName: "Admin", createdAt: "2024-01-15" },
-    ];
-    setReports(mockReports);
-    setModerationLogs(mockLogs);
+    fetchModerationData();
   }, []);
+
+  const handleResolve = async (action: 'warning' | 'ban' | 'delete' | 'dismiss') => {
+    if (!selectedReport) return;
+    setResolving(true);
+    try {
+      const res = await fetch(`/api/admin/forum/reports/${selectedReport.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, moderatorNote }),
+      });
+      if (res.ok) {
+        setSelectedReport(null);
+        setModeratorNote('');
+        await fetchModerationData();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'İşlem başarısız');
+      }
+    } catch {
+      alert('İşlem başarısız');
+    } finally {
+      setResolving(false);
+    }
+  };
 
   const filteredReports = reports.filter((r) => {
     const matchesSearch = 
@@ -136,6 +174,10 @@ export default function ForumModerationPage() {
         return null;
     }
   };
+
+  if (loading) {
+    return <div className="p-8">Yükleniyor...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -268,7 +310,7 @@ export default function ForumModerationPage() {
                               )}
                               {report.topic && (
                                 <Link 
-                                  href={`/forum/topic/${report.topic.id}`}
+                                  href={`/forum/topic/${(report.topic as { slug?: string }).slug || report.topic.id}`}
                                   className="text-indigo-600 hover:underline"
                                   onClick={(e) => e.stopPropagation()}
                                 >
@@ -360,10 +402,28 @@ export default function ForumModerationPage() {
 
         {/* Banned Users Tab */}
         {activeTab === "banned" && (
-          <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
-            <Ban className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="font-bold text-lg">Yasaklı Kullanıcılar</h3>
-            <p className="text-slate-500 mt-2">Aktif yasaklama bulunmuyor.</p>
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            {bannedUsers.length === 0 ? (
+              <div className="p-8 text-center">
+                <Ban className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="font-bold text-lg">Yasaklı Kullanıcılar</h3>
+                <p className="text-slate-500 mt-2">Aktif yasaklama bulunmuyor.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-200">
+                {bannedUsers.map((user) => (
+                  <div key={user.id} className="p-4 flex items-center justify-between">
+                    <div>
+                      <Link href={`/forum/user/${user.id}`} className="font-medium hover:text-indigo-600">
+                        {user.name}
+                      </Link>
+                      {user.reason && <p className="text-sm text-slate-500 mt-1">{user.reason}</p>}
+                    </div>
+                    <Ban className="w-5 h-5 text-red-500" />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -442,7 +502,8 @@ export default function ForumModerationPage() {
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg"
                     rows={3}
                     placeholder="İşlem notu ekleyin..."
-                    defaultValue={selectedReport.moderatorNote || ""}
+                    value={moderatorNote}
+                    onChange={(e) => setModeratorNote(e.target.value)}
                   />
                 </div>
 
@@ -450,16 +511,36 @@ export default function ForumModerationPage() {
                 <div className="flex gap-3 pt-4">
                   {selectedReport.status === "pending" || selectedReport.status === "investigating" ? (
                     <>
-                      <button className="flex-1 flex items-center justify-center gap-2 py-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 font-medium">
+                      <button
+                        type="button"
+                        disabled={resolving}
+                        onClick={() => handleResolve('warning')}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 font-medium disabled:opacity-60"
+                      >
                         <AlertTriangle className="w-4 h-4" /> Uyar
                       </button>
-                      <button className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium">
+                      <button
+                        type="button"
+                        disabled={resolving}
+                        onClick={() => handleResolve('ban')}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium disabled:opacity-60"
+                      >
                         <Ban className="w-4 h-4" /> Yasakla
                       </button>
-                      <button className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 font-medium">
+                      <button
+                        type="button"
+                        disabled={resolving}
+                        onClick={() => handleResolve('delete')}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 font-medium disabled:opacity-60"
+                      >
                         <Trash2 className="w-4 h-4" /> Sil
                       </button>
-                      <button className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 font-medium">
+                      <button
+                        type="button"
+                        disabled={resolving}
+                        onClick={() => handleResolve('dismiss')}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 font-medium disabled:opacity-60"
+                      >
                         <Check className="w-4 h-4" /> Reddet
                       </button>
                     </>

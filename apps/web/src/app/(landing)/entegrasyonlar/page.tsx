@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import IntegrationsClient from "@/components/landing/IntegrationsClient";
+import { listPublishedLandingIntegrations } from "@/lib/landing-integrations-service";
 
 export const metadata: Metadata = {
   title: 'Pazaryeri Entegrasyonları | Trendyol, Amazon, Hepsiburada | Pazaryonetimi',
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function EntegrasyonlarPage() {
-  return <IntegrationsClient />;
+export default async function EntegrasyonlarPage() {
+  const integrations = await listPublishedLandingIntegrations();
+  return <IntegrationsClient initialIntegrations={integrations} />;
 }

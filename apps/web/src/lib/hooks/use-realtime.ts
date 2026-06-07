@@ -178,60 +178,71 @@ export function useTypingIndicator(topicId: string) {
   return { typingUsers, startTyping };
 }
 
-// Notification hook
-interface Notification {
+export interface ForumNotificationItem {
   id: string;
   title: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
+  message: string | null;
+  type: string;
   read: boolean;
+  actionUrl: string | null;
   createdAt: string;
 }
 
-export function useNotifications() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+export function useForumNotifications(options: UseRealtimeOptions = {}) {
+  const { refreshInterval = 45000, enabled = true } = options;
+  const [notifications, setNotifications] = useState<ForumNotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [dmUnreadCount, setDmUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'read' | 'createdAt'>) => {
-    const newNotification: Notification = {
-      ...notification,
-      id: Math.random().toString(36).substr(2, 9),
-      read: false,
-      createdAt: new Date().toISOString(),
-    };
-
-    setNotifications(prev => [newNotification, ...prev]);
-    setUnreadCount(prev => prev + 1);
-
-    // Auto remove after 5 seconds for toast notifications
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== newNotification.id));
-    }, 5000);
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch('/api/community/notifications');
+      if (!res.ok) return;
+      const data = await res.json();
+      setNotifications(data.notifications ?? []);
+      setUnreadCount(data.unreadCount ?? 0);
+      setDmUnreadCount(data.dmUnreadCount ?? 0);
+    } catch {
+      // silent
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const markAsRead = useCallback((id: string) => {
-    setNotifications(prev => 
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
+  useEffect(() => {
+    if (!enabled) return;
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, refreshInterval);
+    return () => clearInterval(interval);
+  }, [enabled, fetchNotifications, refreshInterval]);
+
+  const markAsRead = useCallback(async (id: string) => {
+    await fetch(`/api/community/notifications/${id}`, { method: 'PATCH' });
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
-    setUnreadCount(prev => Math.max(0, prev - 1));
+    setUnreadCount((prev) => Math.max(0, prev - 1));
   }, []);
 
-  const markAllAsRead = useCallback(() => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    setUnreadCount(0);
-  }, []);
-
-  const clearNotifications = useCallback(() => {
-    setNotifications([]);
+  const markAllAsRead = useCallback(async () => {
+    await fetch('/api/community/notifications', { method: 'PATCH' });
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setUnreadCount(0);
   }, []);
 
   return {
     notifications,
     unreadCount,
-    addNotification,
+    dmUnreadCount,
+    loading,
     markAsRead,
     markAllAsRead,
-    clearNotifications,
+    refetch: fetchNotifications,
   };
+}
+
+/** @deprecated Use useForumNotifications for community forum alerts */
+export function useNotifications() {
+  return useForumNotifications();
 }

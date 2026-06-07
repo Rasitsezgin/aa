@@ -6,10 +6,12 @@ import { prisma } from '@/lib/prisma';
 export async function GET() {
   try {
     const categories = await prisma.forumCategory.findMany({
-      orderBy: { order: 'asc' },
+      where: { isActive: true },
+      orderBy: { displayOrder: 'asc' },
       include: {
         boards: {
-          orderBy: { order: 'asc' },
+          where: { isActive: true },
+          orderBy: { displayOrder: 'asc' },
           include: {
             _count: { select: { topics: true } },
             topics: {

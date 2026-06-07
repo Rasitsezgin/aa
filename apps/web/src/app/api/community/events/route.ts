@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from 'next/server';
+import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request: Request) {
@@ -8,6 +9,17 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '5');
     const type = searchParams.get('type'); // webinar, meetup, workshop, all
+
+    const session = await auth();
+    let profileId: string | null = null;
+
+    if (session?.user?.id) {
+      const profile = await prisma.forumUserProfile.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      });
+      profileId = profile?.id ?? null;
+    }
 
     const now = new Date();
 
@@ -32,8 +44,10 @@ export async function GET(request: Request) {
       },
       include: {
         attendees: {
+          where: { status: { not: 'cancelled' } },
           select: {
             id: true,
+            userId: true,
           },
         },
       },
@@ -53,6 +67,9 @@ export async function GET(request: Request) {
       attendeeCount: event.attendees.length,
       maxAttendees: event.maxAttendees,
       status: event.status,
+      isRegistered: profileId
+        ? event.attendees.some((a) => a.userId === profileId)
+        : false,
       // Formatlanmış tarih
       formattedDate: new Date(event.startAt).toLocaleDateString('tr-TR', {
         day: 'numeric',
@@ -68,43 +85,6 @@ export async function GET(request: Request) {
     return NextResponse.json(formattedEvents);
   } catch (error) {
     console.error('Community events error:', error);
-    
-    // Fallback events
-    const today = new Date();
-    return NextResponse.json([
-      {
-        id: '1',
-        title: 'Aylık Satıcı Buluşması',
-        type: 'webinar',
-        formattedDate: new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
-        formattedTime: '14:00',
-        isOnline: true,
-        location: 'Zoom',
-        attendeeCount: 156,
-        maxAttendees: 500,
-      },
-      {
-        id: '2',
-        title: 'AI Workshop: Fiyatlandırma',
-        type: 'workshop',
-        formattedDate: new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
-        formattedTime: '15:30',
-        isOnline: true,
-        location: 'Discord',
-        attendeeCount: 89,
-        maxAttendees: 200,
-      },
-      {
-        id: '3',
-        title: 'İstanbul Meetup',
-        type: 'meetup',
-        formattedDate: new Date(today.getTime() + 21 * 24 * 60 * 60 * 1000).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }),
-        formattedTime: '18:00',
-        isOnline: false,
-        location: 'Levent, İstanbul',
-        attendeeCount: 45,
-        maxAttendees: 100,
-      },
-    ]);
+    return NextResponse.json([]);
   }
 }

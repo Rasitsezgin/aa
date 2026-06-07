@@ -1,5 +1,7 @@
 "use client";
 
+
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -321,17 +323,7 @@ export default function BasariHikayeleriPage() {
     const featuredStories = successStories.filter(s => s.featured);
 
     return (
-        <section className="min-h-screen pt-32 pb-24 relative overflow-hidden bg-white dark:bg-[#02040a] transition-colors duration-500">
-            {/* Background Effects */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03]" style={{
-                    backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
-                    backgroundSize: '32px 32px'
-                }} />
-                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-emerald-500/10 dark:bg-emerald-500/5 blur-[150px] rounded-full" />
-                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-orange-500/10 dark:bg-orange-500/5 blur-[150px] rounded-full" />
-            </div>
-
+        <MarketingPageShell as="section" className="pb-24" padded={false}>
             <div className="container mx-auto px-6 relative z-10">
                 {/* Hero Section */}
                 <motion.div
@@ -397,8 +389,8 @@ export default function BasariHikayeleriPage() {
                         Türkiye&apos;nin önde gelen e-ticaret markalarının tercihi
                     </p>
                     <div className="relative">
-                        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-white dark:from-[#02040a] to-transparent z-10" />
-                        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-white dark:from-[#02040a] to-transparent z-10" />
+                        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-[#FAFAF9] dark:from-[#0B1120] to-transparent z-10" />
+                        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-[#FAFAF9] dark:from-[#0B1120] to-transparent z-10" />
                         <div className="flex gap-8 animate-marquee">
                             {[...customerLogos, ...customerLogos].map((logo, i) => (
                                 <div key={i} className="flex-shrink-0 px-6 py-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10">
@@ -937,6 +929,6 @@ export default function BasariHikayeleriPage() {
                     animation: marquee 30s linear infinite;
                 }
             `}</style>
-        </section>
+        </MarketingPageShell>
     );
 }

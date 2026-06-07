@@ -1,5 +1,7 @@
 "use client";
 
+
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 import React from 'react';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -51,7 +53,7 @@ export default function LegalPage() {
 
     if (!pageData) {
         return (
-            <div className="min-h-screen pt-40 pb-20 flex items-center justify-center bg-white dark:bg-[#02040a]">
+            <div className="min-h-screen pt-[calc(5.25rem+env(safe-area-inset-top,0px))] pb-20 flex items-center justify-center bg-[#FAFAF9] dark:bg-[#0B1120]">
                 <div className="text-center">
                     <h1 className="text-6xl font-black text-slate-900 dark:text-white mb-4">404</h1>
                     <p className="text-slate-600 dark:text-slate-400 mb-8">Aradığınız belge bulunamadı.</p>
@@ -62,7 +64,7 @@ export default function LegalPage() {
     }
 
     return (
-        <section className="min-h-screen pt-32 pb-24 relative overflow-hidden bg-white dark:bg-[#02040a]">
+        <MarketingPageShell as="section" className="pb-24" padded={false}>
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" style={{
                     backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
@@ -157,6 +159,6 @@ export default function LegalPage() {
                     </main>
                 </div>
             </div>
-        </section>
+        </MarketingPageShell>
     );
 }

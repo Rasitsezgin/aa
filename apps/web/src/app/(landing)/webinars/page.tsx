@@ -1,5 +1,7 @@
 "use client";
 
+
+import MarketingPageShell from '@/components/landing/MarketingPageShell';
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -194,7 +196,7 @@ export default function WebinarsPage() {
     const upcomingWebinars = webinars.filter(w => w.status === 'upcoming');
 
     return (
-        <section className="min-h-screen pt-32 pb-24 relative overflow-hidden bg-white dark:bg-[#02040a] transition-colors duration-500">
+        <MarketingPageShell as="section" className="pb-24" padded={false}>
             {/* Animated Background */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute inset-0 opacity-[0.015] dark:opacity-[0.03]" style={{
@@ -645,6 +647,6 @@ export default function WebinarsPage() {
                     </div>
                 </motion.div>
             </div>
-        </section>
+        </MarketingPageShell>
     );
 }

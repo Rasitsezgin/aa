@@ -36,7 +36,7 @@ export default function GlobalMap() {
     }, []);
 
     return (
-        <section className="py-12 md:py-24 relative overflow-hidden bg-white dark:bg-[#02040a] flex items-center justify-center min-h-[400px] sm:min-h-[600px] md:min-h-[900px] transition-colors duration-500">
+        <section className="py-12 md:py-24 relative overflow-hidden bg-[#FAFAF9] dark:bg-[#0B1120] flex items-center justify-center min-h-[400px] sm:min-h-[600px] md:min-h-[900px] transition-colors duration-500">
             {/* Unified Background Pattern */}
             <div className="absolute inset-0 pointer-events-none">
                 {/* Subtle Dot Grid */}
@@ -85,7 +85,7 @@ export default function GlobalMap() {
                             className="w-full h-full object-cover opacity-40 dark:opacity-80 invert dark:invert-0 dark:mix-blend-screen"
                         />
                         {/* Vignette to blend edges */}
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#ffffff_100%)] dark:bg-[radial-gradient(circle_at_center,transparent_30%,#02040a_100%)]" />
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#ffffff_100%)] dark:bg-[radial-gradient(circle_at_center,transparent_30%,#0B1120_100%)]" />
                     </div>
 
                     {/* Interactive Shell/Overlay for Animations */}
