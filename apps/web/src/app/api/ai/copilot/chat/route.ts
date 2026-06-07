@@ -1,51 +1,88 @@
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
+import { fetchFromApi } from '@/lib/server-api-url';
+import { generateGeminiChatResponse } from '@/lib/gemini-chat';
+import {
+  buildFollowUpSuggestions,
+  COPILOT_SYSTEM_PROMPT,
+} from '@/lib/copilot-local';
 
-function getApiBaseUrl() {
-  const raw = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:3001';
-  const normalized = raw.trim();
-  if (!normalized) return 'http://localhost:3001';
-  if (normalized.startsWith('http://') || normalized.startsWith('https://')) return normalized.replace(/\/$/, '');
-  if (normalized.startsWith('/')) return normalized.replace(/\/$/, '');
-  return `https://${normalized}`.replace(/\/$/, '');
+interface ChatBody {
+  message?: string;
+  history?: Array<{ role: string; content: string }>;
+  context?: string;
 }
 
 export async function POST(request: NextRequest) {
-  const payload = await request.text();
-  const base = getApiBaseUrl();
-  const candidates = [
-    `${base}/ai/copilot/chat`,
-    `${base}/api/ai/copilot/chat`,
-    `${base}/api/v1/ai/copilot/chat`,
-  ];
+  const session = await auth();
+  const sessionTenantId = (session?.user as { tenantId?: string } | undefined)
+    ?.tenantId;
+  const tenantId =
+    sessionTenantId || request.headers.get('x-tenant-id') || undefined;
+  const accessToken = (session as { accessToken?: string } | null)?.accessToken;
 
-  for (const url of candidates) {
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-tenant-id': request.headers.get('x-tenant-id') || 'default',
-        },
-        body: payload,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        return NextResponse.json(data);
-      }
-
-      if (response.status !== 404) {
-        return NextResponse.json({ error: `Backend error: ${response.status}` }, { status: response.status });
-      }
-    } catch {
-      // try next candidate
-    }
+  if (!tenantId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  return NextResponse.json(
-    { error: 'Copilot chat backend tarafinda kullanilamiyor' },
-    { status: 502 }
+  const body = (await request.json()) as ChatBody;
+  const message = body.message?.trim();
+  if (!message) {
+    return NextResponse.json({ error: 'message is required' }, { status: 400 });
+  }
+
+  const history = (body.history || []).map((item) => ({
+    role: item.role as 'user' | 'assistant',
+    content: item.content,
+  }));
+
+  const backend = await fetchFromApi<{
+    message: string;
+    suggestions?: string[];
+    type?: string;
+    credits?: unknown;
+  }>('/ai/copilot/chat', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-tenant-id': tenantId,
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
+    body: JSON.stringify({
+      message,
+      history,
+      context: body.context,
+    }),
+  });
+
+  if (backend.ok && backend.data?.message) {
+    return NextResponse.json(backend.data);
+  }
+
+  const contextSuffix = body.context ? `\n\nKullanıcı şu sayfada: ${body.context}` : '';
+  const geminiText = await generateGeminiChatResponse(
+    `${COPILOT_SYSTEM_PROMPT}${contextSuffix}`,
+    message,
+    history,
   );
+
+  if (geminiText) {
+    return NextResponse.json({
+      message: geminiText,
+      role: 'assistant',
+      suggestions: buildFollowUpSuggestions(geminiText),
+      timestamp: new Date().toISOString(),
+      source: 'gemini-direct',
+    });
+  }
+
+  return NextResponse.json({
+    message:
+      'Yapay zeka şu an yanıt veremiyor. Lütfen biraz sonra tekrar deneyin veya yöneticinize GEMINI_API_KEY ayarını kontrol ettirin.',
+    role: 'assistant',
+    suggestions: [],
+    timestamp: new Date().toISOString(),
+  });
 }

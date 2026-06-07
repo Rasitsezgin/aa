@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getGeminiApiKey } from '@/lib/gemini-config';
+import { generateGeminiJsonResponse } from '@/lib/gemini-chat';
 
 interface StoreDataMetrics {
     storeName?: string;
@@ -68,36 +69,12 @@ async function callOpenAI(apiKey: string, prompt: string): Promise<AIResult> {
     return JSON.parse(data.choices[0].message.content);
 }
 
-async function callGemini(apiKey: string, prompt: string): Promise<AIResult> {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            contents: [{
-                parts: [{
-                    text: prompt
-                }]
-            }],
-            generationConfig: {
-                temperature: 0.7,
-                topK: 40,
-                topP: 0.95,
-            }
-        }),
-    });
-
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-    // JSON bloğunu çıkar
-    const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-        return JSON.parse(jsonMatch[1] || jsonMatch[0]);
+async function callGemini(_apiKey: string, prompt: string): Promise<AIResult> {
+    const result = await generateGeminiJsonResponse<AIResult>(prompt);
+    if (!result?.message) {
+        throw new Error('Invalid response format');
     }
-
-    throw new Error('Invalid response format');
+    return result;
 }
 
 async function callAnthropic(apiKey: string, prompt: string): Promise<AIResult> {

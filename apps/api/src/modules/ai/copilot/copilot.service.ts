@@ -53,27 +53,36 @@ Kuralların:
 ${contextInfo ? `\n--- MAĞAZA VERİLERİ ---\n${contextInfo}\n---` : ''}
 ${context ? `\n--- SAYFA BAĞLAMI ---\n${context}\n---` : ''}`;
 
-    const response = await this.aiService.generateAssistantResponse(
-      enhancedPrompt,
-      message,
-      history.map((h) => ({
-        role: h.role as 'user' | 'model',
-        parts: [{ text: h.content }],
-      })),
-    );
+    try {
+      const response = await this.aiService.generateAssistantResponse(
+        enhancedPrompt,
+        message,
+        history,
+      );
 
-    const suggestions = this.generateFollowUpSuggestions(
-      message,
-      response.text,
-    );
+      const suggestions = this.generateFollowUpSuggestions(
+        message,
+        response.text,
+      );
 
-    return {
-      message: response.text,
-      role: 'assistant',
-      suggestions,
-      timestamp: new Date().toISOString(),
-      credits,
-    };
+      return {
+        message: response.text,
+        role: 'assistant',
+        suggestions,
+        timestamp: new Date().toISOString(),
+        credits,
+      };
+    } catch (error) {
+      this.logger.error('Copilot chat failed:', error);
+      return {
+        message:
+          'Yapay zeka yanıtı şu an oluşturulamadı. Lütfen tekrar deneyin veya GEMINI_API_KEY yapılandırmasını kontrol edin.',
+        role: 'assistant',
+        suggestions: this.generateFollowUpSuggestions(message, ''),
+        timestamp: new Date().toISOString(),
+        credits,
+      };
+    }
   }
 
   async executeQuickAction(

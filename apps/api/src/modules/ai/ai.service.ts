@@ -187,6 +187,19 @@ export class AiService {
     }
   }
 
+  private extractHistoryText(entry: {
+    content?: string;
+    text?: string;
+    parts?: Array<{ text?: string }>;
+  }): string {
+    if (typeof entry.content === 'string') return entry.content;
+    if (typeof entry.text === 'string') return entry.text;
+    if (Array.isArray(entry.parts) && entry.parts[0]?.text) {
+      return entry.parts[0].text;
+    }
+    return '';
+  }
+
   async generateAssistantResponse(
     systemPrompt: string,
     userMessage: string,
@@ -197,12 +210,16 @@ export class AiService {
       throw new Error('AI service is not configured.');
     }
 
+    const mappedHistory = history
+      .map((entry) => ({
+        role: entry.role === 'user' ? 'user' : 'model',
+        parts: [{ text: this.extractHistoryText(entry) }],
+      }))
+      .filter((entry) => entry.parts[0].text.trim().length > 0);
+
     try {
       const chat = this.model.startChat({
-        history: history.map((h) => ({
-          role: h.role === 'user' ? 'user' : 'model',
-          parts: [{ text: h.content || h.text }],
-        })),
+        history: mappedHistory,
         systemInstruction: systemPrompt,
       });
 

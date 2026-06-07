@@ -2,17 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-
-function getApiBaseUrl() {
-  const raw =
-    process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:3001';
-  const normalized = raw.trim();
-  if (!normalized) return 'http://localhost:3001';
-  if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
-    return normalized.replace(/\/$/, '');
-  }
-  return `https://${normalized}`.replace(/\/$/, '');
-}
+import { buildApiUrlCandidates } from '@/lib/server-api-url';
 
 async function proxy(req: NextRequest, pathSegments: string[], method: string) {
   const session = await auth();
@@ -22,11 +12,7 @@ async function proxy(req: NextRequest, pathSegments: string[], method: string) {
 
   const path = pathSegments.join('/');
   const search = req.nextUrl.search;
-  const base = getApiBaseUrl();
-  const candidates = [
-    `${base}/api/growth-ai/${path}${search}`,
-    `${base}/growth-ai/${path}${search}`,
-  ];
+  const candidates = buildApiUrlCandidates(`/growth-ai/${path}${search}`);
   const body = method === 'GET' || method === 'HEAD' ? undefined : await req.text();
 
   for (const url of candidates) {

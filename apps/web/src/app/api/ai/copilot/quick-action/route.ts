@@ -1,51 +1,44 @@
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-
-function getApiBaseUrl() {
-  const raw = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:3001';
-  const normalized = raw.trim();
-  if (!normalized) return 'http://localhost:3001';
-  if (normalized.startsWith('http://') || normalized.startsWith('https://')) return normalized.replace(/\/$/, '');
-  if (normalized.startsWith('/')) return normalized.replace(/\/$/, '');
-  return `https://${normalized}`.replace(/\/$/, '');
-}
+import { auth } from '@/auth';
+import { fetchFromApi } from '@/lib/server-api-url';
 
 export async function POST(request: NextRequest) {
-  const payload = await request.text();
-  const base = getApiBaseUrl();
-  const candidates = [
-    `${base}/ai/copilot/quick-action`,
-    `${base}/api/ai/copilot/quick-action`,
-    `${base}/api/v1/ai/copilot/quick-action`,
-  ];
+  const session = await auth();
+  const sessionTenantId = (session?.user as { tenantId?: string } | undefined)
+    ?.tenantId;
+  const tenantId =
+    sessionTenantId || request.headers.get('x-tenant-id') || undefined;
+  const accessToken = (session as { accessToken?: string } | null)?.accessToken;
 
-  for (const url of candidates) {
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-tenant-id': request.headers.get('x-tenant-id') || 'default',
-        },
-        body: payload,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        return NextResponse.json(data);
-      }
-
-      if (response.status !== 404) {
-        return NextResponse.json({ error: `Backend error: ${response.status}` }, { status: response.status });
-      }
-    } catch {
-      // try next candidate
-    }
+  if (!tenantId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  return NextResponse.json(
-    { error: 'Copilot quick-action backend tarafinda kullanilamiyor' },
-    { status: 502 }
+  const payload = await request.text();
+
+  const backend = await fetchFromApi<{ message: string; type?: string }>(
+    '/ai/copilot/quick-action',
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-tenant-id': tenantId,
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+      body: payload,
+    },
   );
+
+  if (backend.ok && backend.data) {
+    return NextResponse.json(backend.data);
+  }
+
+  return NextResponse.json({
+    message:
+      'Bu aksiyon şu an çalıştırılamadı. Lütfen sayfayı yenileyip tekrar deneyin.',
+    role: 'assistant',
+    fallback: true,
+  });
 }

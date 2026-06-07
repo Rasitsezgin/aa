@@ -2,17 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-
-function getApiBaseUrl() {
-  const raw = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:3001';
-  const normalized = raw.trim();
-  if (!normalized) return 'http://localhost:3001';
-  if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
-    return normalized.replace(/\/$/, '');
-  }
-  if (normalized.startsWith('/')) return normalized.replace(/\/$/, '');
-  return `https://${normalized}`.replace(/\/$/, '');
-}
+import { buildApiUrlCandidates } from '@/lib/server-api-url';
 
 export async function GET() {
   const session = await auth();
@@ -23,12 +13,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const base = getApiBaseUrl();
-  const candidates = [
-    `${base}/api/ai/briefing`,
-    `${base}/ai/briefing`,
-    `${base}/api/v1/ai/briefing`,
-  ];
+  const candidates = buildApiUrlCandidates('/ai/briefing');
 
   for (const url of candidates) {
     try {

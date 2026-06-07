@@ -74,6 +74,10 @@ export class AiAdvisorService {
     message: string,
     history: ChatMessage[] = [],
   ): Promise<string> {
+    if (!this.model) {
+      return this.getFallbackResponse(message);
+    }
+
     try {
       // Tenant verilerini al
       const tenantData = await this.getTenantContext(tenantId);
