@@ -61,6 +61,7 @@ import { EmailModule } from './modules/email/email.module';
 import { AIAssistantModule } from './modules/ai-assistant/ai-assistant.module';
 import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
 import { CleanupService } from './common/services/cleanup.service';
+import { CacheService } from './common/cache.service';
 
 const schedulerEnabled = process.env.ENABLE_SCHEDULER === 'true';
 
@@ -159,6 +160,7 @@ function getBullConnection() {
   controllers: [AppController],
   providers: [
     AppService,
+    CacheService,
     CleanupService,
     // Global JWT auth guard
     {
