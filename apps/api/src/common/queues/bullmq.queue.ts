@@ -1,13 +1,17 @@
 import { Queue, Worker, Job } from 'bullmq';
-import IORedis from 'ioredis';
+import { Redis } from 'ioredis';
+import { createManagedRedisClient } from '../redis.config';
 
-// Redis connection
-const redisConnection = new IORedis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6379'),
-  password: process.env.REDIS_PASSWORD,
+const redisConnection = createManagedRedisClient({
   maxRetriesPerRequest: null,
 });
+
+function requireRedisConnection(): Redis {
+  if (!redisConnection) {
+    throw new Error('Redis is not configured (set REDIS_URL or REDIS_HOST)');
+  }
+  return redisConnection;
+}
 
 // Job types
 type JobType =
@@ -37,7 +41,7 @@ const queues: Record<string, Queue> = {};
 export function getQueue(name: JobType): Queue {
   if (!queues[name]) {
     queues[name] = new Queue(name, {
-      connection: redisConnection,
+      connection: requireRedisConnection(),
       defaultJobOptions: {
         removeOnComplete: { count: 100 },
         removeOnFail: { count: 50 },
@@ -169,6 +173,11 @@ const processors: Record<JobType, (job: Job) => Promise<unknown>> = {
 
 // Start workers
 export function startWorkers(): void {
+  if (!redisConnection) {
+    console.warn('[Worker] Redis not configured, background workers disabled');
+    return;
+  }
+
   Object.entries(processors).forEach(([type, processor]) => {
     const worker = new Worker(type, processor, {
       connection: redisConnection,

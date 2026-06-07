@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NestInterceptor,
   ExecutionContext,
   CallHandler,
@@ -7,6 +8,7 @@ import {
 import { Redis } from 'ioredis';
 import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { createManagedRedisClient } from './redis.config';
 
 interface CacheOptions {
   ttl?: number; // Saniye cinsinde
@@ -28,24 +30,24 @@ interface CacheStats {
  */
 @Injectable()
 export class CacheService {
-  private redis: Redis;
+  private readonly logger = new Logger(CacheService.name);
+  private redis: Redis | null;
   private localCache: Map<string, { value: any; expiry: number }> = new Map();
   private stats = { hits: 0, misses: 0 };
 
   constructor() {
-    this.redis = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
-      password: process.env.REDIS_PASSWORD,
-      db: 2, // Cache için ayrı DB
-      retryStrategy: (times) => {
-        const delay = Math.min(times * 50, 2000);
-        return delay;
-      },
-    });
+    this.redis = createManagedRedisClient({ db: 2 });
+    if (this.redis) {
+      void this.redis.connect().catch((err: Error) => {
+        this.logger.warn(`Redis cache unavailable, using local cache only: ${err.message}`);
+      });
+    }
 
-    // Local cache cleanup
     setInterval(() => this.cleanupLocal(), 60000);
+  }
+
+  private get redisReady(): boolean {
+    return this.redis?.status === 'ready';
   }
 
   /**
@@ -59,6 +61,11 @@ export class CacheService {
       return local.value;
     }
     this.localCache.delete(key);
+
+    if (!this.redisReady || !this.redis) {
+      this.stats.misses++;
+      return null;
+    }
 
     // Tier 2: Redis
     try {
@@ -93,6 +100,14 @@ export class CacheService {
   ): Promise<void> {
     const ttl = options.ttl || 300; // Default 5 dakika
 
+    if (!this.redisReady || !this.redis) {
+      this.localCache.set(key, {
+        value,
+        expiry: Date.now() + ttl * 1000,
+      });
+      return;
+    }
+
     try {
       const serialized = JSON.stringify(value);
 
@@ -121,6 +136,7 @@ export class CacheService {
    */
   async del(key: string): Promise<void> {
     this.localCache.delete(key);
+    if (!this.redisReady || !this.redis) return;
     try {
       await this.redis.del(key);
     } catch (error) {
@@ -132,6 +148,7 @@ export class CacheService {
    * Tag'e göre tüm cache'i temizle
    */
   async invalidateByTag(tag: string): Promise<number> {
+    if (!this.redisReady || !this.redis) return 0;
     try {
       const keys = await this.redis.smembers(`tag:${tag}`);
       if (keys.length === 0) return 0;
@@ -156,6 +173,7 @@ export class CacheService {
    * Pattern ile cache temizleme
    */
   async invalidatePattern(pattern: string): Promise<number> {
+    if (!this.redisReady || !this.redis) return 0;
     try {
       const keys = await this.redis.keys(pattern);
       if (keys.length === 0) return 0;
@@ -182,9 +200,19 @@ export class CacheService {
    */
   async getStats(): Promise<CacheStats> {
     const total = this.stats.hits + this.stats.misses;
+
+    if (!this.redisReady || !this.redis) {
+      return {
+        hits: this.stats.hits,
+        misses: this.stats.misses,
+        hitRate: total > 0 ? (this.stats.hits / total) * 100 : 0,
+        totalKeys: this.localCache.size,
+        memoryUsed: 'local-only',
+      };
+    }
+
     const info = await this.redis.info('memory');
     const memoryMatch = info.match(/used_memory_human:(.+)/);
-
     const keys = await this.redis.keys('cache:*');
 
     return {
@@ -201,6 +229,7 @@ export class CacheService {
    */
   async flush(): Promise<void> {
     this.localCache.clear();
+    if (!this.redisReady || !this.redis) return;
     const keys = await this.redis.keys('cache:*');
     if (keys.length > 0) {
       await this.redis.del(...keys);

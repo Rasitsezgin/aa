@@ -62,25 +62,17 @@ import { AIAssistantModule } from './modules/ai-assistant/ai-assistant.module';
 import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
 import { CleanupService } from './common/services/cleanup.service';
 import { CacheService } from './common/cache.service';
+import { resolveRedisConnectionConfig } from './common/redis.config';
 
 const schedulerEnabled = process.env.ENABLE_SCHEDULER === 'true';
 
 function getBullConnection() {
-  if (process.env.REDIS_URL) {
-    const url = new URL(process.env.REDIS_URL);
-    return {
-      host: url.hostname,
-      port: Number(url.port || '6379'),
-      password: url.password || undefined,
-      username: url.username || undefined,
-    };
-  }
+  const config = resolveRedisConnectionConfig();
+  if (config) return config;
 
   return {
-    host: process.env.REDIS_HOST || '127.0.0.1',
-    port: Number(process.env.REDIS_PORT || '6379'),
-    password: process.env.REDIS_PASSWORD || undefined,
-    username: process.env.REDIS_USERNAME || undefined,
+    host: '127.0.0.1',
+    port: 6379,
   };
 }
 

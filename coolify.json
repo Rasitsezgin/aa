@@ -38,6 +38,7 @@
       },
       "environment": [
         "DATABASE_URL=${DATABASE_URL}",
+        "REDIS_URL=${REDIS_URL}",
         "REDIS_HOST=${REDIS_HOST}",
         "REDIS_PORT=${REDIS_PORT}",
         "REDIS_PASSWORD=${REDIS_PASSWORD}",
@@ -78,6 +79,7 @@
       "command": ["sh", "-c", "cd apps/api && node dist/apps/api/src/worker.js"],
       "environment": [
         "DATABASE_URL=${DATABASE_URL}",
+        "REDIS_URL=${REDIS_URL}",
         "REDIS_HOST=${REDIS_HOST}",
         "REDIS_PORT=${REDIS_PORT}",
         "REDIS_PASSWORD=${REDIS_PASSWORD}",
