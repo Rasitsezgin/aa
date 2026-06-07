@@ -9,6 +9,7 @@ import {
     Sparkles, ShieldCheck, Zap, ArrowRight, Globe
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 
 // Refined Magnetic Button (Same as login)
 const MagneticButton = ({ children, className, onClick, disabled, type = "button" as const }: any) => {
@@ -69,17 +70,64 @@ export default function RegisterPage() {
             return;
         }
 
+        if (!formData.fullName.trim()) {
+            setError('Kullanıcı adı zorunludur.');
+            return;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            setError('Geçerli bir e-posta adresi giriniz.');
+            return;
+        }
+
+        if (formData.password.length < 8) {
+            setError('Şifre en az 8 karakter olmalıdır.');
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
 
         try {
-            // Simulated Register Logic
-            setTimeout(() => {
-                setSuccess(true);
-                setIsLoading(false);
-            }, 2000);
+            const nameParts = formData.fullName.trim().split(/\s+/);
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || '';
+
+            const registerRes = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: formData.email,
+                    password: formData.password,
+                    firstName,
+                    lastName,
+                    company: formData.companyName,
+                }),
+            });
+
+            const data = await registerRes.json().catch(() => ({}));
+
+            if (!registerRes.ok) {
+                throw new Error(data.error || 'Kayıt işlemi başarısız oldu.');
+            }
+
+            const loginResult = await signIn('credentials', {
+                email: formData.email,
+                password: formData.password,
+                redirect: false,
+                callbackUrl: '/dashboard',
+            });
+
+            if (loginResult?.ok) {
+                router.push('/dashboard');
+                router.refresh();
+                return;
+            }
+
+            setSuccess(true);
+            setIsLoading(false);
         } catch (err) {
-            setError('Kayıt protokolü başlatılamadı.');
+            setError(err instanceof Error ? err.message : 'Kayıt protokolü başlatılamadı.');
             setIsLoading(false);
         }
     };

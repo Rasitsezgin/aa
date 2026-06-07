@@ -4,6 +4,10 @@ import { PrismaService } from '../../database/prisma.service';
 import { AiModelsService } from '../ai-models/ai-models.service';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import {
+  resolveGeminiApiKey,
+  resolveGeminiModel,
+} from '../../common/gemini.util';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -53,10 +57,12 @@ export class AiAdvisorService {
     private aiModelsService: AiModelsService,
     private configService: ConfigService,
   ) {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
+    const apiKey = resolveGeminiApiKey(this.configService);
     if (apiKey) {
       this.genAI = new GoogleGenerativeAI(apiKey);
-      this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      this.model = this.genAI.getGenerativeModel({
+        model: resolveGeminiModel(this.configService),
+      });
     }
   }
 

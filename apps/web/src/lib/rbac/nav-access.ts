@@ -19,7 +19,7 @@ const SECTION_ACCESS: Record<PanelRole, string[] | '*'> = {
   ADMIN: '*',
   MANAGER: ['Günlük', 'Büyüme', 'Operasyon', 'Finans', 'Sistem', 'Kişisel'],
   OPERATOR: ['Günlük', 'Operasyon'],
-  USER: ['Günlük', 'Büyüme', 'Sistem'],
+  USER: ['Günlük', 'Büyüme', 'Operasyon', 'Finans', 'Sistem', 'Kişisel'],
   VIEWER: ['Günlük'],
 };
 

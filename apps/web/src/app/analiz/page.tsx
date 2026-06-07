@@ -58,6 +58,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { parseTrendyolStoreUrl } from '@/lib/trendyol-store-url';
 
 const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -2362,20 +2363,14 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
     const extractStoreInfo = (urlString: string): { storeName: string; storeSlug: string; storeId: string; platform: string } => {
         try {
             if (urlString.includes('trendyol.com')) {
-                const match = urlString.match(/\/magaza\/([^/?]+)/);
-                if (match) {
-                    const fullSlug = match[1]; // daily-organics-m-1024688
-                    const parts = fullSlug.split('-');
-                    const storeId = parts.pop();
-                    if (!storeId) throw new Error('Trendyol mağaza kimliği bulunamadı.');
-                    parts.pop(); // 'm' harfini kaldır
-                    const storeSlug = parts.join('-');
-                    // Slug'dan mağaza adını oluştur (tire -> boşluk, ilk harfler büyük)
-                    const storeName = storeSlug
-                        .split('-')
-                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(' ');
-                    return { storeName, storeSlug, storeId, platform: 'TRENDYOL' };
+                const parsed = parseTrendyolStoreUrl(urlString);
+                if (parsed) {
+                    return {
+                        storeName: parsed.storeName,
+                        storeSlug: parsed.storeSlug,
+                        storeId: parsed.storeId,
+                        platform: 'TRENDYOL',
+                    };
                 }
             } else if (urlString.includes('hepsiburada.com')) {
                 const match = urlString.match(/\/magaza\/([^/?]+)/);
@@ -2401,10 +2396,11 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
     const getPlatformFromUrl = (urlString: string): { platform: string; storeId: string } => {
         try {
             if (urlString.includes('trendyol.com')) {
-                const match = urlString.match(/\/magaza\/([^/]+)/);
-                const storeId = match?.[1].split('-').pop();
-                if (!storeId) throw new Error('Trendyol mağaza kimliği URL içinde bulunamadı.');
-                return { platform: 'TRENDYOL', storeId };
+                const parsed = parseTrendyolStoreUrl(urlString);
+                if (!parsed?.storeId) {
+                    throw new Error('Trendyol mağaza kimliği URL içinde bulunamadı.');
+                }
+                return { platform: 'TRENDYOL', storeId: parsed.storeId };
             } else if (urlString.includes('hepsiburada.com')) {
                 const match = urlString.match(/\/magaza\/([^/?]+)/);
                 const storeId = match?.[1] || 'store';

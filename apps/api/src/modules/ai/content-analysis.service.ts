@@ -3,6 +3,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { PrismaService } from '../../database/prisma.service';
+import {
+  resolveGeminiApiKey,
+  resolveGeminiModel,
+} from '../../common/gemini.util';
 
 // Platform bazlı kurallar
 const PLATFORM_RULES: Record<
@@ -84,12 +88,12 @@ export class ContentAnalysisService {
     private configService: ConfigService,
     private prisma: PrismaService,
   ) {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
-    if (apiKey && apiKey !== 'undefined' && apiKey !== '') {
+    const apiKey = resolveGeminiApiKey(this.configService);
+    if (apiKey) {
       try {
         this.genAI = new GoogleGenerativeAI(apiKey);
         this.model = this.genAI.getGenerativeModel({
-          model: 'gemini-1.5-flash',
+          model: resolveGeminiModel(this.configService),
         });
         this.isAvailable = true;
       } catch {

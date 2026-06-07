@@ -32,9 +32,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const { data: session, status } = useSession();
-    const [expandedSection, setExpandedSection] = useState<string | null>('Günlük');
     const { hasModuleAccess, tenantPlan, enabledModules, allModules, panelRole, criticalStockCount } = useModules();
     const sidebarSections = useMemo(() => filterNavSections(getSidebarSections(), panelRole), [panelRole]);
+    const [expandedSections, setExpandedSections] = useState<Set<string>>(() => new Set(['Günlük', 'Büyüme', 'Operasyon', 'Finans', 'Sistem', 'Kişisel']));
     const { data: orderStats } = useOrderStats();
     const { active: activeAnnouncements, unreadCount, markAsRead, dismiss } = useAnnouncements();
     const { theme, toggleTheme, resolvedMode } = useTheme();
@@ -69,14 +69,20 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         }
     }, [status, router, pathname]);
 
-    // Sayfa yüklendiğinde aktif olan bölümü açık getir
+    useEffect(() => {
+        setExpandedSections((prev) => {
+            const next = new Set(prev);
+            sidebarSections.forEach((section) => next.add(section.title));
+            return next;
+        });
+    }, [sidebarSections]);
+
     useEffect(() => {
         const activeSection = sidebarSections.find(s => s.items.some(i => i.href === pathname || (pathname?.startsWith(i.href) && i.href !== '/dashboard')));
         if (activeSection) {
-            const timer = setTimeout(() => setExpandedSection(activeSection.title), 0);
-            return () => clearTimeout(timer);
+            setExpandedSections((prev) => new Set(prev).add(activeSection.title));
         }
-    }, [pathname]);
+    }, [pathname, sidebarSections]);
 
     // Persist LiveFeed preference
     useEffect(() => {
@@ -139,7 +145,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     }
 
     const toggleSection = (title: string) => {
-        setExpandedSection(prev => prev === title ? null : title);
+        setExpandedSections((prev) => {
+            const next = new Set(prev);
+            if (next.has(title)) next.delete(title);
+            else next.add(title);
+            return next;
+        });
     };
 
     return (
@@ -186,7 +197,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                         <div key={section.title} className="mb-1">
                             <button
                                 onClick={() => toggleSection(section.title)}
-                                aria-expanded={expandedSection === section.title}
+                                aria-expanded={expandedSections.has(section.title)}
                                 aria-controls={`nav-section-${section.title}`}
                                 className="w-full flex items-center justify-between px-3 py-2 text-[11px] font-semibold text-slate-500 uppercase tracking-wide hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
                             >
@@ -194,11 +205,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                                 <ChevronDown
                                     size={14}
                                     aria-hidden="true"
-                                    className={`transition-transform duration-200 ${expandedSection === section.title ? 'rotate-180' : ''}`}
+                                    className={`transition-transform duration-200 ${expandedSections.has(section.title) ? 'rotate-180' : ''}`}
                                 />
                             </button>
                             <AnimatePresence>
-                                {expandedSection === section.title && (
+                                {expandedSections.has(section.title) && (
                                     <motion.div
                                         initial={{ height: 0, opacity: 0 }}
                                         animate={{ height: 'auto', opacity: 1 }}
@@ -262,7 +273,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                             <Sparkles size={13} className="text-indigo-500" />
                             <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">{tenantPlan} Plan</span>
                         </div>
-                        <p className="text-sm font-medium text-foreground mb-3">Modül kullanımı</p>
+                        <p className="text-sm font-medium text-foreground mb-1">Modül kullanımı</p>
+                        <p className="text-[10px] text-slate-500 mb-3 leading-snug">Kilitli menüler paketinize göre; Pro rozeti olanlar yükseltme gerektirir.</p>
                         <div className="w-full bg-slate-200/70 dark:bg-white/10 h-1.5 rounded-full overflow-hidden mb-2">
                             <div
                                 className="bg-indigo-600 h-full rounded-full transition-all duration-500"

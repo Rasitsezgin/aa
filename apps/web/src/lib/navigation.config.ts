@@ -49,30 +49,30 @@ export const NAV_ITEMS: NavItemConfig[] = [
   { id: 'ad-campaigns', label: 'Kampanyalar', href: '/dashboard/ad-campaigns', icon: 'Megaphone', section: 'Büyüme', moduleKey: 'CAMPAIGNS', keywords: ['kampanya', 'reklam'], sidebar: true, mobile: true, commandPalette: true },
   { id: 'competitor-tracking', label: 'Rakip Takibi', href: '/dashboard/competitor-tracking', icon: 'TrendingUp', section: 'Büyüme', moduleKey: 'COMPETITOR_ANALYSIS', pro: true, keywords: ['rakip', 'fiyat'], sidebar: true, mobile: true, commandPalette: true },
   { id: 'analytics', label: 'Analitik', href: '/dashboard/analytics', icon: 'LineChart', section: 'Büyüme', moduleKey: 'ANALYTICS_ADVANCED', keywords: ['analitik', 'metrik'], sidebar: true, mobile: true, commandPalette: true },
-  { id: 'seo', label: 'SEO Optimizasyonu', href: '/dashboard/seo', icon: 'Target', section: 'Büyüme', moduleKey: 'AI_SEO', pro: true, keywords: ['seo', 'arama'], mobile: true, commandPalette: true },
-  { id: 'price-optimization', label: 'Fiyat Optimizasyonu', href: '/dashboard/price-optimization', icon: 'Zap', section: 'Büyüme', moduleKey: 'PRICING_ENGINE', pro: true, mobile: true, commandPalette: true },
+  { id: 'seo', label: 'SEO Optimizasyonu', href: '/dashboard/seo', icon: 'Target', section: 'Büyüme', moduleKey: 'AI_SEO', pro: true, keywords: ['seo', 'arama'], sidebar: true, mobile: true, commandPalette: true },
+  { id: 'price-optimization', label: 'Fiyat Optimizasyonu', href: '/dashboard/price-optimization', icon: 'Zap', section: 'Büyüme', moduleKey: 'PRICING_ENGINE', pro: true, sidebar: true, mobile: true, commandPalette: true },
 
   // —— Sistem ——
   { id: 'stores', label: 'Mağazalarım', href: '/dashboard/stores', icon: 'Store', section: 'Sistem', moduleKey: 'STORE_MANAGEMENT', keywords: ['mağaza', 'kanal'], sidebar: true, mobile: true, commandPalette: true },
   { id: 'integrations', label: 'Entegrasyonlar', href: '/dashboard/settings/integrations', icon: 'Globe', section: 'Sistem', moduleKey: 'INTEGRATIONS', keywords: ['entegrasyon', 'api', 'trendyol'], sidebar: true, mobile: true, commandPalette: true },
   { id: 'integration-hub', label: 'Entegrasyon Merkezi', href: '/dashboard/settings/integration-hub', icon: 'Plug', section: 'Sistem', moduleKey: 'INTEGRATIONS', keywords: ['entegrasyon', 'kargo', 'efatura', 'hub'], sidebar: true, mobile: true, commandPalette: true },
   { id: 'settings', label: 'Ayarlar', href: '/dashboard/settings', icon: 'Settings', section: 'Sistem', moduleKey: 'SETTINGS', keywords: ['ayar', 'config'], sidebar: true, mobile: true, commandPalette: true },
-  { id: 'security', label: 'Güvenlik', href: '/dashboard/security', icon: 'Shield', section: 'Sistem', moduleKey: 'SECURITY', keywords: ['güvenlik', '2fa'], mobile: true, commandPalette: true },
+  { id: 'security', label: 'Güvenlik', href: '/dashboard/security', icon: 'Shield', section: 'Sistem', moduleKey: 'SECURITY', keywords: ['güvenlik', '2fa'], sidebar: true, mobile: true, commandPalette: true },
   { id: 'widget-editor', label: 'Panel Özelleştirme', href: '/dashboard/widget-editor', icon: 'LayoutGrid', section: 'Sistem', moduleKey: 'DASHBOARD', keywords: ['widget', 'dashboard'], commandPalette: true },
 
-  // —— Ek modüller (mobil + palette, sidebar dışı) ——
-  { id: 'finance', label: 'Finans & Karlılık', href: '/dashboard/finance', icon: 'Briefcase', section: 'Finans', moduleKey: 'PAYMENTS', mobile: true, commandPalette: true },
-  { id: 'payments', label: 'Ödemeler', href: '/dashboard/payments', icon: 'CreditCard', section: 'Finans', moduleKey: 'PAYMENTS', mobile: true, commandPalette: true },
-  { id: 'reports', label: 'Finansal Raporlar', href: '/dashboard/reports', icon: 'BarChart3', section: 'Finans', moduleKey: 'FINANCIAL_REPORTS', pro: true, mobile: true, commandPalette: true },
-  { id: 'webhooks', label: 'Webhooks', href: '/dashboard/webhooks', icon: 'Webhook', section: 'Sistem', moduleKey: 'INTEGRATIONS', pro: true, mobile: true, commandPalette: true },
+  // —— Finans & operasyon (sidebar dahil) ——
+  { id: 'finance', label: 'Finans & Karlılık', href: '/dashboard/finance', icon: 'Briefcase', section: 'Finans', moduleKey: 'PAYMENTS', sidebar: true, mobile: true, commandPalette: true },
+  { id: 'payments', label: 'Ödemeler', href: '/dashboard/payments', icon: 'CreditCard', section: 'Finans', moduleKey: 'PAYMENTS', sidebar: true, mobile: true, commandPalette: true },
+  { id: 'reports', label: 'Finansal Raporlar', href: '/dashboard/reports', icon: 'BarChart3', section: 'Finans', moduleKey: 'FINANCIAL_REPORTS', pro: true, sidebar: true, mobile: true, commandPalette: true },
+  { id: 'webhooks', label: 'Webhooks', href: '/dashboard/webhooks', icon: 'Webhook', section: 'Sistem', moduleKey: 'INTEGRATIONS', pro: true, sidebar: true, mobile: true, commandPalette: true },
   { id: 'operations', label: 'Operasyon Merkezi', href: '/dashboard/operations', icon: 'Zap', section: 'Operasyon', moduleKey: 'BULK_ACTIONS', pro: true, keywords: ['operasyon', 'buybox', 'bundle', 'otomasyon', 'sentos'], description: 'Ürün, stok, BuyBox ve otomasyon', sidebar: true, mobile: true, commandPalette: true },
-  { id: 'bulk-actions', label: 'Toplu İşlemler', href: '/dashboard/bulk-actions', icon: 'Boxes', section: 'Operasyon', moduleKey: 'BULK_ACTIONS', pro: true, mobile: true, commandPalette: true },
-  { id: 'group-mapping', label: 'SKU Eşleme', href: '/dashboard/inventory/group-mapping', icon: 'Layers', section: 'Operasyon', moduleKey: 'INVENTORY', keywords: ['sku', 'eşleme', 'master'], mobile: true, commandPalette: true },
-  { id: 'shipping', label: 'Kargo Ayarları', href: '/dashboard/shipping', icon: 'Truck', section: 'Operasyon', moduleKey: 'SHIPPING', mobile: true, commandPalette: true },
-  { id: 'notification-center', label: 'Bildirim Merkezi', href: '/dashboard/notification-center', icon: 'Bell', section: 'Sistem', moduleKey: 'DASHBOARD', mobile: true, commandPalette: true },
+  { id: 'bulk-actions', label: 'Toplu İşlemler', href: '/dashboard/bulk-actions', icon: 'Boxes', section: 'Operasyon', moduleKey: 'BULK_ACTIONS', pro: true, sidebar: true, mobile: true, commandPalette: true },
+  { id: 'group-mapping', label: 'SKU Eşleme', href: '/dashboard/inventory/group-mapping', icon: 'Layers', section: 'Operasyon', moduleKey: 'INVENTORY', keywords: ['sku', 'eşleme', 'master'], sidebar: true, mobile: true, commandPalette: true },
+  { id: 'shipping', label: 'Kargo Ayarları', href: '/dashboard/shipping', icon: 'Truck', section: 'Operasyon', moduleKey: 'SHIPPING', sidebar: true, mobile: true, commandPalette: true },
+  { id: 'notification-center', label: 'Bildirim Merkezi', href: '/dashboard/notification-center', icon: 'Bell', section: 'Sistem', moduleKey: 'DASHBOARD', sidebar: true, mobile: true, commandPalette: true },
   { id: 'theme', label: 'Tema & Görünüm', href: '/dashboard/theme', icon: 'Palette', section: 'Sistem', moduleKey: 'SETTINGS', mobile: true, commandPalette: true },
   { id: 'live-analytics', label: 'Canlı Analitik', href: '/dashboard/live-analytics', icon: 'Activity', section: 'Sistem', moduleKey: 'DASHBOARD', mobile: true, commandPalette: true },
-  { id: 'favorites', label: 'Favoriler', href: '/dashboard/favorites', icon: 'Star', section: 'Kişisel', moduleKey: 'DASHBOARD', commandPalette: true },
+  { id: 'favorites', label: 'Favoriler', href: '/dashboard/favorites', icon: 'Star', section: 'Kişisel', moduleKey: 'DASHBOARD', sidebar: true, commandPalette: true },
 ];
 
 export type NavSection = { title: string; items: NavItemConfig[] };

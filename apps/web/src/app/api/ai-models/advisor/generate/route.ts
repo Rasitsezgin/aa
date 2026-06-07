@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getGeminiApiKey } from '@/lib/gemini-config';
 
 interface StoreDataMetrics {
     storeName?: string;
@@ -195,7 +196,7 @@ export async function POST(request: NextRequest) {
 
         // API anahtarlarını kontrol et
         const openaiKey = process.env.OPENAI_API_KEY;
-        const geminiKey = process.env.GOOGLE_GEMINI_API_KEY;
+        const geminiKey = getGeminiApiKey();
         const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
         const prompt = `

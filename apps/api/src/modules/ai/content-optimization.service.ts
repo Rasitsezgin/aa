@@ -4,6 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { PrismaService } from '../../database/prisma.service';
 import { ContentSyncService } from './content-sync.service';
+import {
+  resolveGeminiApiKey,
+  resolveGeminiModel,
+} from '../../common/gemini.util';
 
 const TONE_PROMPTS: Record<string, string> = {
   professional:
@@ -29,12 +33,12 @@ export class ContentOptimizationService {
     private prisma: PrismaService,
     private syncService: ContentSyncService,
   ) {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
-    if (apiKey && apiKey !== 'undefined' && apiKey !== '') {
+    const apiKey = resolveGeminiApiKey(this.configService);
+    if (apiKey) {
       try {
         this.genAI = new GoogleGenerativeAI(apiKey);
         this.model = this.genAI.getGenerativeModel({
-          model: 'gemini-1.5-flash',
+          model: resolveGeminiModel(this.configService),
         });
         this.isAvailable = true;
       } catch {

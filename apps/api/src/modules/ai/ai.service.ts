@@ -2,6 +2,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import {
+  resolveGeminiApiKey,
+  resolveGeminiModel,
+} from '../../common/gemini.util';
 
 @Injectable()
 export class AiService {
@@ -11,12 +15,12 @@ export class AiService {
   private isAvailable: boolean = false;
 
   constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
-    if (apiKey && apiKey !== 'undefined' && apiKey !== '') {
+    const apiKey = resolveGeminiApiKey(this.configService);
+    if (apiKey) {
       try {
         this.genAI = new GoogleGenerativeAI(apiKey);
         this.model = this.genAI.getGenerativeModel({
-          model: 'gemini-1.5-flash',
+          model: resolveGeminiModel(this.configService),
         });
         this.isAvailable = true;
         this.logger.log('Gemini AI service initialized successfully');
@@ -25,7 +29,7 @@ export class AiService {
       }
     } else {
       this.logger.warn(
-        'GEMINI_API_KEY not configured - AI analysis features disabled',
+        'Gemini API key not configured (GEMINI_API_KEY / GOOGLE_API_KEY) - AI analysis features disabled',
       );
     }
   }

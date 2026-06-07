@@ -3,6 +3,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ConfigService } from '@nestjs/config';
+import {
+  resolveGeminiApiKey,
+  resolveGeminiModel,
+} from '../../common/gemini.util';
 import { Anomaly } from '../system/anomaly-detection.service';
 
 export interface AgentAction {
@@ -22,10 +26,12 @@ export class SatisPilotuService {
     private prisma: PrismaService,
     private configService: ConfigService,
   ) {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
+    const apiKey = resolveGeminiApiKey(this.configService);
     if (apiKey) {
       this.genAI = new GoogleGenerativeAI(apiKey);
-      this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      this.model = this.genAI.getGenerativeModel({
+        model: resolveGeminiModel(this.configService),
+      });
     }
   }
 

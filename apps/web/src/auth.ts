@@ -4,7 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import Google from "next-auth/providers/google"
 import Facebook from "next-auth/providers/facebook"
 import Credentials from "next-auth/providers/credentials"
-import bcrypt from "bcryptjs"
+import { verifyCredentials } from "@/lib/auth-credentials"
 
 type AuthProviderSettings = {
     google_id: string;
@@ -94,76 +94,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async () => {
                     if (!credentials?.email || !credentials?.password) return null;
 
                     try {
-                        // 1. Call real backend API for authentication and token procurement
-                        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-                        const res = await fetch(`${apiUrl.replace(/\/$/, '')}/auth/login`, {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                email: credentials.email,
-                                password: credentials.password,
-                            }),
-                            headers: { "Content-Type": "application/json" }
-                        });
+                        const verified = await verifyCredentials(
+                            credentials.email as string,
+                            credentials.password as string,
+                        );
 
-                        const data = await res.json();
+                        if (!verified) return null;
 
-                        if (res.ok && data.accessToken) {
-                            // Log successful login (best effort)
-                            try {
+                        try {
+                            if (verified.tenantId) {
                                 await prisma.activityLog.create({
                                     data: {
-                                        tenantId: data.user.tenantId,
-                                        userId: data.user.id,
+                                        tenantId: verified.tenantId,
+                                        userId: verified.id,
                                         action: 'LOGIN',
                                         resource: 'user',
-                                        resourceId: data.user.id,
-                                        details: { method: 'backend_sync', ip: 'server' },
+                                        resourceId: verified.id,
+                                        details: { method: 'credentials', ip: 'server' },
                                     },
                                 });
-                            } catch { }
-
-                            return {
-                                id: data.user.id,
-                                email: data.user.email,
-                                name: [data.user.firstName, data.user.lastName].filter(Boolean).join(' ') || data.user.email,
-                                type: data.user.type,
-                                tenantId: data.user.tenantId,
-                                accessToken: data.accessToken,
-                                isOnboarded: true, // Backend successful login implies some level of validity
-                            };
-                        }
-
-                        // 2. Fallback to local prisma if backend is down (only for dev/emergency)
-                        if (res.status >= 500 || !res.ok) {
-                            console.warn("[NextAuth] Backend auth failed, falling back to local DB");
-                            const user = await prisma.user.findFirst({
-                                where: { email: credentials.email as string },
-                                include: { tenant: true },
-                            });
-
-                            if (user && user.password) {
-                                const isValid = await bcrypt.compare(
-                                    credentials.password as string,
-                                    user.password
-                                );
-                                if (isValid) {
-                                    return {
-                                        id: user.id,
-                                        email: user.email,
-                                        name: [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email,
-                                        type: user.type,
-                                        tenantId: user.tenantId,
-                                        isOnboarded: user.tenant?.isOnboarded ?? false,
-                                        image: user.image,
-                                    };
-                                }
                             }
-                        }
-                    } catch (dbError) {
-                        console.error("Authentication flow error:", dbError);
-                    }
+                        } catch { }
 
-                    return null;
+                        return verified;
+                    } catch (error) {
+                        console.error("Authentication flow error:", error);
+                        return null;
+                    }
                 }
             })
         ],

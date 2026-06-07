@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from "@/lib/prisma";
+import { fetchFromApi } from '@/lib/server-api-url';
 
 function generateSlug(name: string): string {
     return name
@@ -37,9 +38,48 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Check if user already exists in database
+        const cleanEmail = email.toLowerCase().trim();
+        const payload = {
+            email: cleanEmail,
+            password,
+            firstName: firstName || undefined,
+            lastName: lastName || undefined,
+            company: company || undefined,
+        };
+
+        const apiRegister = await fetchFromApi<{
+            user?: { email: string; tenantId?: string };
+            accessToken?: string;
+            message?: string;
+        }>('/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+
+        if (apiRegister.ok && apiRegister.data?.user?.email) {
+            return NextResponse.json(
+                {
+                    success: true,
+                    message: 'Kayıt başarılı. Yönlendiriliyorsunuz...',
+                    email: apiRegister.data.user.email,
+                    tenantId: apiRegister.data.user.tenantId,
+                    source: 'api',
+                },
+                { status: 201 },
+            );
+        }
+
+        if (apiRegister.status === 409) {
+            return NextResponse.json(
+                { error: 'Bu email adresi zaten kayıtlıdır.' },
+                { status: 409 },
+            );
+        }
+
+        // API erişilemezse yerel veritabanına kaydet (yedek)
         const existingUser = await prisma.user.findUnique({
-            where: { email: email.toLowerCase().trim() },
+            where: { email: cleanEmail },
         });
 
         if (existingUser) {
@@ -49,7 +89,6 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Hash password
         const hashedPassword = await bcrypt.hash(password, 12);
 
         // Create a NEW tenant for each registered user (multi-tenant SaaS)
@@ -95,7 +134,7 @@ export async function POST(request: NextRequest) {
             // Create user as ADMIN of their own tenant
             const user = await tx.user.create({
                 data: {
-                    email: email.toLowerCase().trim(),
+                    email: cleanEmail,
                     password: hashedPassword,
                     firstName: firstName || email.split('@')[0],
                     lastName: lastName || '',
