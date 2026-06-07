@@ -49,6 +49,16 @@ class RateLimiter {
 
   // Check rate limit
   async check(key: string): Promise<RateLimitResult> {
+    if (!redis) {
+      const now = Date.now();
+      return {
+        allowed: true,
+        limit: this.config.requests,
+        remaining: this.config.requests,
+        resetTime: now + this.config.window * 1000,
+      };
+    }
+
     const now = Date.now();
     const windowStart = Math.floor(now / 1000 / this.config.window) * this.config.window;
     const redisKey = `${this.config.keyPrefix}:${key}:${windowStart}`;
@@ -84,6 +94,7 @@ class RateLimiter {
 
   // Reset rate limit for a key
   async reset(key: string): Promise<void> {
+    if (!redis) return;
     const pattern = `${this.config.keyPrefix}:${key}:*`;
     const keys = await redis.keys(pattern);
     if (keys.length > 0) {
@@ -176,6 +187,9 @@ export async function slidingWindowRateLimit(
   windowSeconds: number
 ): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
   const now = Date.now();
+  if (!redis) {
+    return { allowed: true, remaining: limit, resetTime: now + windowSeconds * 1000 };
+  }
   const windowMs = windowSeconds * 1000;
   const keyPrefix = `sliding:${key}`;
 
@@ -215,6 +229,10 @@ export async function tokenBucketRateLimit(
   burstSize: number,
   refillRate: number // tokens per second
 ): Promise<{ allowed: boolean; remaining: number }> {
+  if (!redis) {
+    return { allowed: true, remaining: burstSize };
+  }
+
   const bucketKey = `bucket:${key}`;
   const lastRefillKey = `bucket:${key}:lastrefill`;
   

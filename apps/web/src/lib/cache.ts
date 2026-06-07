@@ -1,41 +1,30 @@
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 
-// Upstash Redis client
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || '',
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
-});
+const upstashUrl = process.env.UPSTASH_REDIS_REST_URL?.trim();
+const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+const upstashEnabled = Boolean(upstashUrl && upstashToken);
 
-// Rate limiters
+// Upstash Redis client (optional — skip when REST credentials are not configured)
+const redis = upstashEnabled
+  ? new Redis({ url: upstashUrl!, token: upstashToken! })
+  : null;
+
+function createLimiter(requests: number, window: `${number}m`) {
+  if (!redis) return null;
+  return new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(requests, window),
+    analytics: true,
+  });
+}
+
+// Rate limiters (no-op when Upstash is not configured)
 export const ratelimit = {
-  // API genel rate limiting
-  api: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(100, '1m'),
-    analytics: true,
-  }),
-
-  // Auth işlemleri için daha sıkı
-  auth: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(5, '1m'),
-    analytics: true,
-  }),
-
-  // Webhook işlemleri
-  webhook: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(50, '1m'),
-    analytics: true,
-  }),
-
-  // AI istekleri
-  ai: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(20, '1m'),
-    analytics: true,
-  }),
+  api: createLimiter(100, '1m'),
+  auth: createLimiter(5, '1m'),
+  webhook: createLimiter(50, '1m'),
+  ai: createLimiter(20, '1m'),
 };
 
 // Cache TTL constants
@@ -87,7 +76,7 @@ export const CACHE_KEYS = {
 
 // Cache wrapper with type safety
 export class CacheService {
-  private redis: Redis;
+  private redis: Redis | null;
 
   constructor() {
     this.redis = redis;
@@ -95,6 +84,7 @@ export class CacheService {
 
   // Get value from cache
   async get<T>(key: string): Promise<T | null> {
+    if (!this.redis) return null;
     try {
       const value = await this.redis.get<T>(key);
       return value ?? null;
@@ -106,6 +96,7 @@ export class CacheService {
 
   // Set value in cache
   async set<T>(key: string, value: T, ttl: number = CACHE_TTL.STANDARD): Promise<void> {
+    if (!this.redis) return;
     try {
       await this.redis.set(key, value, { ex: ttl });
     } catch (error) {
@@ -115,6 +106,7 @@ export class CacheService {
 
   // Delete from cache
   async delete(key: string): Promise<void> {
+    if (!this.redis) return;
     try {
       await this.redis.del(key);
     } catch (error) {
@@ -124,6 +116,7 @@ export class CacheService {
 
   // Delete by pattern
   async deletePattern(pattern: string): Promise<void> {
+    if (!this.redis) return;
     try {
       const keys = await this.redis.keys(pattern);
       if (keys.length > 0) {
@@ -136,6 +129,7 @@ export class CacheService {
 
   // Check if key exists
   async exists(key: string): Promise<boolean> {
+    if (!this.redis) return false;
     try {
       const result = await this.redis.exists(key);
       return result === 1;
@@ -147,6 +141,7 @@ export class CacheService {
 
   // Increment counter
   async increment(key: string, amount = 1): Promise<number> {
+    if (!this.redis) return 0;
     try {
       return await this.redis.incrby(key, amount);
     } catch (error) {
@@ -157,6 +152,7 @@ export class CacheService {
 
   // Set expiry
   async expire(key: string, seconds: number): Promise<void> {
+    if (!this.redis) return;
     try {
       await this.redis.expire(key, seconds);
     } catch (error) {
@@ -205,6 +201,7 @@ export class CacheService {
 
   // Publish message to channel
   async publish(channel: string, message: string): Promise<void> {
+    if (!this.redis) return;
     try {
       await this.redis.publish(channel, message);
     } catch (error) {

@@ -60,10 +60,25 @@ RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 nextjs
 COPY --from=builder /app/apps/web/public ./apps/web/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
-# Monorepo: standalone trace may miss workspace Prisma client
-COPY --from=builder --chown=nextjs:nodejs /app/packages/database/dist ./packages/database/dist
-COPY --from=builder --chown=nextjs:nodejs /app/packages/database/generated ./packages/database/generated
-COPY --from=builder --chown=nextjs:nodejs /app/packages/database/package.json ./packages/database/package.json
+
+# Monorepo: standalone output does not include workspace links / Prisma externals
+COPY --from=builder --chown=nextjs:nodejs /app/packages/database ./packages/database
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@pazaryonetimi ./node_modules/@pazaryonetimi
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/pg ./node_modules/pg
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/pg-protocol ./node_modules/pg-protocol
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/pg-types ./node_modules/pg-types
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/pg-pool ./node_modules/pg-pool
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/pg-connection-string ./node_modules/pg-connection-string
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/postgres-array ./node_modules/postgres-array
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/postgres-bytea ./node_modules/postgres-bytea
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/postgres-date ./node_modules/postgres-date
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/postgres-interval ./node_modules/postgres-interval
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/bcryptjs ./node_modules/bcryptjs
+
+RUN mkdir -p node_modules/@pazaryonetimi && \
+    ln -sfn ../../packages/database node_modules/@pazaryonetimi/database && \
+    chown -h nextjs:nodejs node_modules/@pazaryonetimi/database
 
 USER nextjs
 EXPOSE 3000

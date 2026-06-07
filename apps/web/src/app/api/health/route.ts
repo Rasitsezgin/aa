@@ -48,18 +48,26 @@ export async function GET() {
     overallStatus = 'unhealthy';
   }
 
-  // Cache check
+  // Cache check (Upstash optional)
   try {
-    const cacheStart = Date.now();
-    const testKey = `health:${Date.now()}`;
-    await redis.set(testKey, 'ping', { ex: 5 });
-    const value = await redis.get(testKey);
-    checks.cache = {
-      status: value === 'ping' ? 'ok' : 'error',
-      latency: Date.now() - cacheStart,
-    };
-    if (checks.cache.status === 'error') {
-      overallStatus = overallStatus === 'healthy' ? 'degraded' : overallStatus;
+    if (!redis) {
+      checks.cache = {
+        status: 'ok',
+        latency: 0,
+        message: 'Upstash not configured (skipped)',
+      };
+    } else {
+      const cacheStart = Date.now();
+      const testKey = `health:${Date.now()}`;
+      await redis.set(testKey, 'ping', { ex: 5 });
+      const value = await redis.get(testKey);
+      checks.cache = {
+        status: value === 'ping' ? 'ok' : 'error',
+        latency: Date.now() - cacheStart,
+      };
+      if (checks.cache.status === 'error') {
+        overallStatus = overallStatus === 'healthy' ? 'degraded' : overallStatus;
+      }
     }
   } catch (error) {
     checks.cache = {
