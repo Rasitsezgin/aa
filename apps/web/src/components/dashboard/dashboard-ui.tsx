@@ -17,7 +17,7 @@ export const PLATFORM_COLORS: Record<string, string> = {
   Çiçeksepeti: 'bg-pink-500',
 };
 
-export const CHART_COLORS = ['#ea580c', '#f59e0b', '#8b5cf6', '#10b981', '#3b82f6', '#ec4899'];
+export const CHART_COLORS = ['#4f46e5', '#6366f1', '#818cf8', '#10b981', '#0ea5e9', '#8b5cf6'];
 
 export function DashboardCard({
   children,
@@ -38,20 +38,20 @@ export function DashboardCard({
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-surface border border-border rounded-[1.75rem] p-5 lg:p-6 relative overflow-hidden ${className}`}
+      className={`dash-card p-5 lg:p-6 relative overflow-hidden ${className}`}
     >
       {(title || Icon) && (
         <div className="flex items-center justify-between mb-4 relative z-10">
           <div className="flex items-center gap-2.5 min-w-0">
             {Icon && (
-              <div className="w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0">
-                <Icon className="w-4 h-4 text-orange-500" />
+              <div className="w-9 h-9 rounded-[10px] dash-kpi-icon flex items-center justify-center shrink-0">
+                <Icon className="w-4 h-4" />
               </div>
             )}
-            {title && <h3 className="text-sm font-black text-foreground tracking-tight truncate">{title}</h3>}
+            {title && <h3 className="text-sm font-semibold text-foreground tracking-tight truncate">{title}</h3>}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {loading && <Loader2 className="w-4 h-4 animate-spin text-orange-500" />}
+            {loading && <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />}
             {action}
           </div>
         </div>
@@ -69,15 +69,15 @@ export function PeriodSelector({
   onChange: (p: DashboardPeriod) => void;
 }) {
   return (
-    <div className="inline-flex p-1 rounded-xl bg-background/80 border border-border">
+    <div className="inline-flex p-1 rounded-[10px] bg-slate-100/80 dark:bg-white/5 border border-border">
       {(Object.keys(PERIOD_LABELS) as DashboardPeriod[]).map((p) => (
         <button
           key={p}
           type="button"
           onClick={() => onChange(p)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
             value === p
-              ? 'bg-orange-600 text-white shadow-md shadow-orange-500/25'
+              ? 'bg-indigo-600 text-white shadow-sm'
               : 'text-slate-500 hover:text-foreground'
           }`}
         >
@@ -177,8 +177,8 @@ export function KPICard({
   icon: Icon,
   sparkData,
   loading,
-  accent = 'text-orange-500',
-  glow = 'bg-orange-500',
+  accent = 'text-indigo-600 dark:text-indigo-400',
+  glow = 'bg-indigo-500',
 }: {
   title: string;
   value?: number;
@@ -199,12 +199,12 @@ export function KPICard({
   return (
     <motion.div
       whileHover={{ y: -2, scale: 1.01 }}
-      className="bg-surface border border-border rounded-[1.75rem] p-4 lg:p-5 relative overflow-hidden group"
+      className="dash-card p-4 lg:p-5 relative overflow-hidden group"
     >
       <div className={`absolute -top-8 -right-8 w-24 h-24 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity ${glow}`} />
       {loading ? (
         <div className="flex items-center gap-2 py-6">
-          <Loader2 className="w-5 h-5 animate-spin text-orange-500" />
+          <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
           <span className="text-sm text-slate-500">Yükleniyor...</span>
         </div>
       ) : (
@@ -215,8 +215,8 @@ export function KPICard({
             </div>
             {trend !== undefined && trend !== null && <TrendBadge value={trend} />}
           </div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">{title}</p>
-          <p className="text-2xl font-black text-foreground tracking-tight">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500 mb-1">{title}</p>
+          <p className="text-2xl font-semibold text-foreground tracking-tight tabular-nums">
             {typeof value === 'number' ? <AnimatedNumber value={value} prefix={format === 'currency' ? '₺' : ''} decimals={format === 'percentage' ? 1 : 0} /> : '—'}
             {format === 'currency' && typeof value !== 'number' && '₺0'}
             {format === 'percentage' && typeof value === 'number' && '%'}

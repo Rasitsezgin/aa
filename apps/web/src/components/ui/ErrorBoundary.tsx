@@ -59,44 +59,42 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-[400px] flex items-center justify-center p-8">
-          <div className="max-w-lg w-full text-center space-y-6">
-            {/* Icon */}
-            <div className="mx-auto w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-              <AlertTriangle size={32} className="text-red-400" />
+        <div className="min-h-[320px] flex items-center justify-center p-6">
+          <div className="max-w-md w-full text-center space-y-5 dash-card p-8">
+            <div className="mx-auto w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/20 flex items-center justify-center">
+              <AlertTriangle size={24} className="text-amber-600 dark:text-amber-400" />
             </div>
 
-            {/* Message */}
             <div className="space-y-2">
-              <h2 className="text-xl font-bold text-white">Bir Hata Oluştu</h2>
-              <p className="text-sm text-slate-400">
-                Bu sayfada beklenmeyen bir hata oluştu. Sayfayı yenileyerek tekrar deneyebilirsiniz.
+              <h2 className="text-lg font-semibold text-foreground">Bölüm yüklenemedi</h2>
+              <p className="text-sm text-slate-500">
+                Bu panel geçici olarak kullanılamıyor. Yenileyerek devam edebilirsiniz.
               </p>
             </div>
 
-            {/* Error message */}
             {this.state.error && (
-              <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4 text-left">
-                <p className="text-xs text-red-300 font-mono break-all">
+              <div className="bg-slate-50 dark:bg-white/[0.03] border border-border rounded-xl p-3 text-left">
+                <p className="text-xs text-rose-600 dark:text-rose-400 font-mono break-all">
                   {this.state.error.message}
                 </p>
               </div>
             )}
 
-            {/* Actions */}
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center justify-center gap-2">
               <button
+                type="button"
                 onClick={this.handleRetry}
-                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-colors"
+                className="flex items-center gap-2 px-4 py-2 dash-btn-primary text-sm"
               >
-                <RefreshCcw size={16} />
+                <RefreshCcw size={15} />
                 Tekrar Dene
               </button>
               <button
-                onClick={() => window.location.href = '/dashboard'}
-                className="flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold rounded-xl transition-colors"
+                type="button"
+                onClick={() => { window.location.href = '/dashboard'; }}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200/80 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-xl border border-border transition-colors"
               >
-                <Home size={16} />
+                <Home size={15} />
                 Ana Sayfa
               </button>
             </div>

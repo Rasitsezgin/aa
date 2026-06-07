@@ -859,4 +859,88 @@ export class ScrapingService implements OnModuleInit, OnModuleDestroy {
     if (parsed > 5) return Math.min(5, parsed / 2);
     return parsed;
   }
+
+  /** Tek ürün sayfasından veri çeker — link ile ürün kaydı için */
+  async scrapeProductFromUrl(
+    url: string,
+  ): Promise<(ScrapedProductData & { platform: string; sourceUrl: string }) | null> {
+    const platform = this.detectProductPlatform(url);
+    const extract = ($: any): ScrapedProductData => {
+      const title =
+        $('h1').first().text().trim() ||
+        $('meta[property="og:title"]').attr('content') ||
+        'Ürün';
+      const priceText =
+        $('[data-testid="price-current-price"]').text() ||
+        $('.prc-dsc').text() ||
+        $('#priceblock_ourprice').text() ||
+        $('.a-price .a-offscreen').first().text() ||
+        $('[itemprop="price"]').attr('content') ||
+        '0';
+      const price = this.parsePrice(priceText);
+      const images = $('meta[property="og:image"]')
+        .map((_, el) => $(el).attr('content') || '')
+        .get()
+        .filter(Boolean)
+        .slice(0, 5);
+      const rating = this.parseRating(
+        $('[itemprop="ratingValue"]').text() || $('.rating-score').text(),
+      );
+      const reviewCount = this.parseMetric(
+        $('[itemprop="reviewCount"]').text() || $('.review-count').text(),
+      );
+      return {
+        title,
+        price,
+        images: images.length ? images : [],
+        rating,
+        reviewCount,
+        stockStatus: true,
+      };
+    };
+
+    let page;
+    try {
+      const browser = await this.getBrowser();
+      page = await browser.newPage();
+      await page.setUserAgent(this.getRandomUserAgent());
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      const $ = cheerio.load(await page.content());
+      const data = extract($);
+      if (!data.title) return null;
+      return { ...data, platform, sourceUrl: url };
+    } catch (e) {
+      this.logger.warn(
+        `Product scrape puppeteer failed ${url}: ${(e as Error).message}`,
+      );
+      try {
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': this.getRandomUserAgent(),
+            Accept:
+              'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          },
+        });
+        if (!response.ok) return null;
+        const data = extract(cheerio.load(await response.text()));
+        if (!data.title) return null;
+        return { ...data, platform, sourceUrl: url };
+      } catch (error) {
+        this.logger.warn(
+          `Product scrape failed ${url}: ${(error as Error).message}`,
+        );
+        return null;
+      }
+    } finally {
+      if (page) await page.close().catch(() => {});
+    }
+  }
+
+  private detectProductPlatform(url: string): string {
+    if (url.includes('trendyol.com')) return 'TRENDYOL';
+    if (url.includes('hepsiburada.com')) return 'HEPSIBURADA';
+    if (url.includes('amazon.')) return 'AMAZON';
+    if (url.includes('n11.com')) return 'N11';
+    return 'OTHER';
+  }
 }

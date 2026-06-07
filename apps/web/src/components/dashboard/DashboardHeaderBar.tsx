@@ -58,7 +58,7 @@ function HeaderIconButton({
       onClick={onClick}
       className={`p-2.5 rounded-xl transition-all duration-200 haptic-tap group ${
         active
-          ? 'bg-orange-500/12 text-orange-600 border border-orange-500/20'
+          ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20'
           : 'text-slate-400 hover:text-foreground hover:bg-background/80 border border-transparent'
       } ${className}`}
     >
@@ -107,18 +107,18 @@ export function DashboardHeaderBar({
           </div>
 
           <div className="lg:hidden flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg shadow-orange-500/20 shrink-0">
-              <span className="text-sm font-black italic text-white">P</span>
+            <div className="w-9 h-9 rounded-[10px] bg-indigo-600 flex items-center justify-center shadow-sm shrink-0">
+              <span className="text-sm font-bold text-white">P</span>
             </div>
             <div className="dashboard-mobile-title-chip flex flex-col leading-tight min-w-0">
               <span
-                className={`text-[10px] font-black uppercase tracking-widest text-orange-600/80 transition-all duration-200 ${
+                className={`text-[10px] font-semibold uppercase tracking-wide text-slate-500 transition-all duration-200 ${
                   isCompactHeader ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'
                 }`}
               >
                 Pazar Yönetimi
               </span>
-              <span className="text-sm font-black text-foreground truncate">{currentPageTitle}</span>
+              <span className="text-sm font-semibold text-foreground truncate">{currentPageTitle}</span>
             </div>
           </div>
         </div>

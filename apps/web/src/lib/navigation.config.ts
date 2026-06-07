@@ -64,6 +64,7 @@ export const NAV_ITEMS: NavItemConfig[] = [
   { id: 'payments', label: 'Ödemeler', href: '/dashboard/payments', icon: 'CreditCard', section: 'Finans', moduleKey: 'PAYMENTS', mobile: true, commandPalette: true },
   { id: 'reports', label: 'Finansal Raporlar', href: '/dashboard/reports', icon: 'BarChart3', section: 'Finans', moduleKey: 'FINANCIAL_REPORTS', pro: true, mobile: true, commandPalette: true },
   { id: 'webhooks', label: 'Webhooks', href: '/dashboard/webhooks', icon: 'Webhook', section: 'Sistem', moduleKey: 'INTEGRATIONS', pro: true, mobile: true, commandPalette: true },
+  { id: 'operations', label: 'Operasyon Merkezi', href: '/dashboard/operations', icon: 'Zap', section: 'Operasyon', moduleKey: 'BULK_ACTIONS', pro: true, keywords: ['operasyon', 'buybox', 'bundle', 'otomasyon', 'sentos'], description: 'Ürün, stok, BuyBox ve otomasyon', sidebar: true, mobile: true, commandPalette: true },
   { id: 'bulk-actions', label: 'Toplu İşlemler', href: '/dashboard/bulk-actions', icon: 'Boxes', section: 'Operasyon', moduleKey: 'BULK_ACTIONS', pro: true, mobile: true, commandPalette: true },
   { id: 'group-mapping', label: 'SKU Eşleme', href: '/dashboard/inventory/group-mapping', icon: 'Layers', section: 'Operasyon', moduleKey: 'INVENTORY', keywords: ['sku', 'eşleme', 'master'], mobile: true, commandPalette: true },
   { id: 'shipping', label: 'Kargo Ayarları', href: '/dashboard/shipping', icon: 'Truck', section: 'Operasyon', moduleKey: 'SHIPPING', mobile: true, commandPalette: true },

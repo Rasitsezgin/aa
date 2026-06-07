@@ -60,7 +60,8 @@ export const DynamicDashboard: React.FC<DynamicDashboardProps> = ({ period = '30
 
   const { data: stats, loading: statsLoading } = useDashboardStats(period);
   const comparison = stats?.periodComparison;
-  const { data: orders, loading: ordersLoading } = useRecentOrders(8);
+  const { data: ordersRaw, loading: ordersLoading } = useRecentOrders(8);
+  const orders = ordersRaw ?? [];
   const { data: insights, loading: insightsLoading } = useAiInsights();
   const { data: platforms, loading: platformsLoading } = usePlatformPerformance();
   const { data: activities, loading: activitiesLoading } = useActivityFeed(8);
@@ -138,7 +139,7 @@ export const DynamicDashboard: React.FC<DynamicDashboardProps> = ({ period = '30
 
         {show('orders') && (
           <div className="xl:col-span-8">
-            <DashboardOrdersTable orders={orders as any[]} loading={ordersLoading} />
+            <DashboardOrdersTable orders={orders} loading={ordersLoading} />
           </div>
         )}
       </div>
@@ -147,7 +148,7 @@ export const DynamicDashboard: React.FC<DynamicDashboardProps> = ({ period = '30
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative overflow-hidden p-6 lg:p-8 rounded-[1.75rem] border border-orange-500/20 bg-gradient-to-br from-slate-900 via-slate-900 to-orange-950/40 text-white shadow-2xl shadow-orange-500/10"
+          className="relative overflow-hidden p-6 lg:p-8 rounded-[18px] border border-indigo-500/15 bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/50 text-white shadow-lg"
         >
           <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-orange-500/15 to-transparent pointer-events-none" />
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
@@ -235,7 +236,7 @@ export const DynamicDashboard: React.FC<DynamicDashboardProps> = ({ period = '30
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {show('order-pipeline') && (
             <OrderPipeline
-              orders={orders as any[]}
+              orders={orders}
               counts={orderPipeline}
               loading={ordersLoading}
             />

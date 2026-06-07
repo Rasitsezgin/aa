@@ -20,15 +20,16 @@ interface OrderPipelineProps {
   loading?: boolean;
 }
 
-export function OrderPipeline({ orders, counts, onStatusChange, loading }: OrderPipelineProps) {
+export function OrderPipeline({ orders = [], counts, onStatusChange, loading }: OrderPipelineProps) {
+  const safeOrders = Array.isArray(orders) ? orders : [];
   const byStatus = COLUMNS.map((col) => ({
     ...col,
-    count: counts?.[col.key] ?? orders.filter((o) => o.status === col.key).length,
-    items: orders.filter((o) => o.status === col.key).slice(0, 5),
+    count: counts?.[col.key] ?? safeOrders.filter((o) => o.status === col.key).length,
+    items: safeOrders.filter((o) => o.status === col.key).slice(0, 5),
   }));
 
   return (
-    <div className="bg-surface border border-border rounded-[1.75rem] p-5 lg:p-6">
+    <div className="dash-card p-5 lg:p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-black text-foreground">Sipariş Pipeline</h3>

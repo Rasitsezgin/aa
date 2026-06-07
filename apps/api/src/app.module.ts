@@ -59,6 +59,7 @@ import { CopilotModule } from './modules/ai/copilot/copilot.module';
 import { WorkflowBuilderModule } from './modules/workflow-builder/workflow-builder.module';
 import { ScrapingModule } from './modules/scraping/scraping.module';
 import { SearchModule } from './modules/search/search.module';
+import { CommerceOpsModule } from './modules/commerce-ops/commerce-ops.module';
 import { EmailModule } from './modules/email/email.module';
 import { AIAssistantModule } from './modules/ai-assistant/ai-assistant.module';
 import { RbacModule } from './modules/rbac/rbac.module';
@@ -156,6 +157,7 @@ function getBullConnection() {
     WorkflowBuilderModule,
     ScrapingModule,
     SearchModule,
+    CommerceOpsModule,
   ],
   controllers: [AppController],
   providers: [

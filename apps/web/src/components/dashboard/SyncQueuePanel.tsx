@@ -30,11 +30,11 @@ function formatRelative(iso: string) {
 
 export function SyncQueuePanel({ items, loading, onRetry }: SyncQueuePanelProps) {
   return (
-    <div className="bg-surface border border-border rounded-[1.75rem] p-5 lg:p-6">
+    <div className="dash-card p-5 lg:p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
-            <Globe className="w-4 h-4 text-orange-500" />
+          <div className="w-9 h-9 rounded-[10px] dash-kpi-icon flex items-center justify-center">
+            <Globe className="w-4 h-4" />
           </div>
           <div>
             <h3 className="text-sm font-black text-foreground">Senkron Kuyruğu</h3>

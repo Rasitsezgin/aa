@@ -366,7 +366,7 @@ export class ActivityLogger {
     // console.log(`[ACTIVITY] ${activity.type}: ${activity.description}`);
   }
 
-  private async notifyCriticalActivity(activity: Activity): Promise<void {
+  private async notifyCriticalActivity(activity: Activity): Promise<void> {
     // Would send notification to admins
     console.warn(`[CRITICAL] ${activity.type}: ${activity.description}`);
   }

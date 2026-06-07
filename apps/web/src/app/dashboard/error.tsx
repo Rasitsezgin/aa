@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, RefreshCw, ArrowLeft, LifeBuoy } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DashboardError({
@@ -11,46 +11,55 @@ export default function DashboardError({
     reset: () => void;
 }) {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#0B1121] px-4">
-            <div className="max-w-md w-full text-center space-y-6">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-red-500/10 flex items-center justify-center">
-                    <AlertTriangle size={32} className="text-red-400" />
-                </div>
+        <div className="min-h-[min(70vh,560px)] flex items-center justify-center px-4 py-12" data-dashboard>
+            <div className="max-w-lg w-full">
+                <div className="dash-card p-8 sm:p-10 text-center">
+                    <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/20 flex items-center justify-center mb-6">
+                        <AlertTriangle size={28} className="text-amber-600 dark:text-amber-400" />
+                    </div>
 
-                <div>
-                    <h2 className="text-2xl font-bold text-white mb-2">
-                        Dashboard Hatası
+                    <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">
+                        Sayfa yüklenemedi
                     </h2>
-                    <p className="text-slate-400 text-sm">
-                        Dashboard yüklenirken bir hata oluştu. Sayfayı yenilemeyi deneyin.
+                    <p className="text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">
+                        Kontrol merkezi açılırken beklenmeyen bir sorun oluştu. Yenilemeyi deneyin veya ana panele dönün.
                     </p>
-                </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                    <button
-                        onClick={reset}
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors"
-                    >
-                        <RefreshCw size={16} />
-                        Tekrar Dene
-                    </button>
-                    <Link
-                        href="/dashboard"
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl font-semibold transition-colors border border-white/10"
-                    >
-                        <ArrowLeft size={16} />
-                        Dashboard
-                    </Link>
-                </div>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
+                        <button
+                            type="button"
+                            onClick={reset}
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 dash-btn-primary text-sm"
+                        >
+                            <RefreshCw size={16} />
+                            Tekrar Dene
+                        </button>
+                        <Link
+                            href="/dashboard"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-white/5 hover:bg-slate-200/80 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-semibold transition-colors border border-border"
+                        >
+                            <ArrowLeft size={16} />
+                            Kontrol Merkezi
+                        </Link>
+                    </div>
 
-                {process.env.NODE_ENV === 'development' && error?.message && (
-                    <details className="mt-4 text-left bg-slate-900 rounded-xl p-4 border border-white/10">
-                        <summary className="text-xs font-mono text-slate-500 cursor-pointer">Hata Detayı</summary>
-                        <pre className="mt-2 text-xs text-red-400 font-mono whitespace-pre-wrap break-all">
-                            {error.message}
-                        </pre>
-                    </details>
-                )}
+                    <a
+                        href="/dashboard/support"
+                        className="inline-flex items-center gap-1.5 mt-6 text-xs font-medium text-slate-500 hover:text-indigo-600 transition-colors"
+                    >
+                        <LifeBuoy size={14} />
+                        Destek ile iletişime geç
+                    </a>
+
+                    {process.env.NODE_ENV === 'development' && error?.message && (
+                        <details className="mt-8 text-left rounded-xl border border-border bg-slate-50/80 dark:bg-white/[0.03] p-4">
+                            <summary className="text-xs font-mono text-slate-500 cursor-pointer">Geliştirici detayı</summary>
+                            <pre className="mt-2 text-xs text-rose-600 dark:text-rose-400 font-mono whitespace-pre-wrap break-all">
+                                {error.message}
+                            </pre>
+                        </details>
+                    )}
+                </div>
             </div>
         </div>
     );

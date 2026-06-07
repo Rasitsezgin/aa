@@ -175,6 +175,11 @@ model Tenant {
   priceExperiments PriceExperiment[]
   webhookSecret    String? // Şifreli, per-tenant webhook imzalama
 
+  productBundles   ProductBundle[]
+  stockAlertRules  StockAlertRule[]
+  buyBoxRules      BuyBoxRule[]
+  buyBoxSnapshots  BuyBoxSnapshot[]
+
   // AI İçerik Optimizasyonu
   contentAnalyses      ContentAnalysis[]
   contentOptimizations ContentOptimization[]
@@ -366,6 +371,11 @@ model Product {
   contentAnalyses      ContentAnalysis[]
   contentOptimizations ContentOptimization[]
   contentBatchItems    ContentBatchItem[]
+
+  bundleItems      ProductBundleItem[]
+  stockAlertRules  StockAlertRule[]
+  buyBoxRules      BuyBoxRule[]
+  buyBoxSnapshots  BuyBoxSnapshot[]
 
   @@index([tenantId])
 }
@@ -8254,6 +8264,100 @@ model AuditLog {
   @@index([severity])
   @@index([timestamp])
   @@index([tenantId, timestamp])
+}
+
+// ==================== COMMERCE OPS (Ürün/Stok/BuyBox/Otomasyon) ====================
+
+model ProductBundle {
+  id            String   @id @default(uuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name          String
+  sku           String
+  description   String?
+  status        String   @default("draft")
+  pricingType   String   @default("percentage_off")
+  pricingValue  Decimal  @default(0) @db.Decimal(12, 2)
+  originalTotal Decimal? @db.Decimal(12, 2)
+  finalPrice    Decimal? @db.Decimal(12, 2)
+  platforms     Json?
+  usageLimit    Int?
+  usageCount    Int      @default(0)
+  items         ProductBundleItem[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([tenantId, sku])
+  @@index([tenantId])
+  @@index([status])
+}
+
+model ProductBundleItem {
+  id         String        @id @default(uuid())
+  bundleId   String
+  bundle     ProductBundle @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity   Int           @default(1)
+  isOptional Boolean       @default(false)
+  sortOrder  Int           @default(0)
+
+  @@index([bundleId])
+  @@index([productId])
+}
+
+model StockAlertRule {
+  id               String    @id @default(uuid())
+  tenantId         String
+  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  productId        String?
+  product          Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  criticalLevel    Int       @default(5)
+  reorderLevel     Int       @default(10)
+  autoPauseListing Boolean   @default(false)
+  syncAllChannels  Boolean   @default(true)
+  isActive         Boolean   @default(true)
+  lastTriggeredAt  DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([productId])
+}
+
+model BuyBoxRule {
+  id              String    @id @default(uuid())
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  productId       String?
+  product         Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  platform        Platform
+  minMarginPct    Decimal   @default(10) @db.Decimal(5, 2)
+  maxDropPct      Decimal   @default(5) @db.Decimal(5, 2)
+  competitorFloor Decimal?  @db.Decimal(12, 2)
+  isActive        Boolean   @default(true)
+  lastRunAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([tenantId, platform])
+}
+
+model BuyBoxSnapshot {
+  id              String   @id @default(uuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  platform        Platform
+  ourPrice        Decimal  @db.Decimal(12, 2)
+  competitorPrice Decimal? @db.Decimal(12, 2)
+  hasBuyBox       Boolean  @default(false)
+  rank            Int?
+  capturedAt      DateTime @default(now())
+
+  @@index([tenantId, productId, platform])
+  @@index([capturedAt])
 }
 
 // ==================== FORUM SYSTEM (vBulletin/XenForo Style) ====================

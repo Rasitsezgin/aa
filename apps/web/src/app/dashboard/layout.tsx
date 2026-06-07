@@ -124,14 +124,14 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     // Show loading skeleton while checking auth status
     if (status !== 'authenticated' || !session) {
         return (
-            <div className="min-h-screen bg-[#0B1121] flex items-center justify-center">
+            <div className="min-h-screen bg-background flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
-                    <div className="relative w-12 h-12">
-                        <div className="absolute inset-0 rounded-full border-[3px] border-slate-800" />
-                        <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-blue-600 animate-spin" />
+                    <div className="relative w-11 h-11">
+                        <div className="absolute inset-0 rounded-full border-2 border-border" />
+                        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-indigo-600 animate-spin" />
                     </div>
-                    <p className="text-sm font-medium text-slate-400 animate-pulse">
-                        Yetkilendiriliyor...
+                    <p className="text-sm font-medium text-slate-500">
+                        Oturum doğrulanıyor…
                     </p>
                 </div>
             </div>
@@ -143,39 +143,40 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <div className="dashboard-mobile-shell flex min-h-[100dvh] bg-background text-foreground font-sans selection:bg-primary/30 overflow-x-hidden">
+        <div className="dashboard-pro dashboard-mobile-shell flex min-h-[100dvh] bg-background text-foreground font-sans selection:bg-indigo-500/20 overflow-x-hidden" data-dashboard>
             {/* Sidebar - sadece desktop'ta görünür */}
             <aside
                 role="navigation"
                 aria-label="Ana menü"
-                className="hidden lg:flex w-72 bg-surface border-r border-border flex-col fixed inset-y-0 z-50"
+                className="hidden lg:flex w-[17.5rem] flex-col fixed inset-y-0 z-50 border-r border-border"
+                style={{ background: 'var(--dash-sidebar-bg)' }}
             >
-                <div className="p-6 border-b border-border">
-                    <Link href="/" className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/30">
-                            <span className="text-xl font-black italic text-white">P</span>
+                <div className="px-5 py-5 border-b border-border/80">
+                    <Link href="/" className="flex items-center gap-3 group">
+                        <div className="w-9 h-9 rounded-[10px] bg-indigo-600 flex items-center justify-center shadow-sm group-hover:bg-indigo-500 transition-colors">
+                            <span className="text-base font-bold text-white">P</span>
                         </div>
-                        <div>
-                            <span className="text-lg font-black tracking-tight text-white">PAZARYONETIMI</span>
-                            <div className="text-[10px] font-bold text-primary uppercase tracking-widest">Pro Dashboard</div>
+                        <div className="min-w-0">
+                            <span className="text-[15px] font-semibold tracking-tight text-foreground block truncate">Pazar Yönetimi</span>
+                            <span className="text-[11px] font-medium text-slate-500">İşletme Paneli</span>
                         </div>
                     </Link>
                 </div>
 
                 {/* Quick Actions */}
-                <div className="px-4 py-4 border-b border-border">
+                <div className="px-4 py-3 border-b border-border/60">
                     <div className="flex gap-2">
                         <button
                             onClick={openQuickSale}
-                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-xl text-xs font-bold text-primary transition-all"
+                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/15 border border-indigo-200/80 dark:border-indigo-500/20 rounded-[10px] text-xs font-semibold text-indigo-700 dark:text-indigo-300 transition-colors"
                         >
-                            <Zap size={14} /> Hızlı Satış
+                            <Zap size={13} /> Hızlı Satış
                         </button>
                         <button
                             onClick={openAddProduct}
-                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 rounded-xl text-xs font-bold text-green-500 transition-all"
+                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/8 border border-border rounded-[10px] text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors"
                         >
-                            <Package size={14} /> Ürün Ekle
+                            <Package size={13} /> Ürün Ekle
                         </button>
                     </div>
                 </div>
@@ -187,7 +188,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                                 onClick={() => toggleSection(section.title)}
                                 aria-expanded={expandedSection === section.title}
                                 aria-controls={`nav-section-${section.title}`}
-                                className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-slate-400 transition-colors"
+                                className="w-full flex items-center justify-between px-3 py-2 text-[11px] font-semibold text-slate-500 uppercase tracking-wide hover:text-slate-600 dark:hover:text-slate-400 transition-colors"
                             >
                                 {section.title}
                                 <ChevronDown
@@ -212,13 +213,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                                                 <Link
                                                     key={item.href}
                                                     href={item.href}
-                                                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all group mb-1 ${isActive
-                                                        ? 'bg-orange-500/10 text-orange-600 border border-orange-500/20 shadow-lg shadow-orange-500/5'
-                                                        : 'text-slate-400 hover:bg-white/5 hover:text-foreground'
+                                                    className={`flex items-center gap-3 px-3 py-2 rounded-[10px] transition-all group mb-0.5 ${isActive
+                                                        ? 'dash-nav-active border'
+                                                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-white/5 hover:text-foreground border border-transparent'
                                                         }`}
                                                 >
-                                                    <ItemIcon className={`w-4 h-4 ${isActive ? 'text-orange-500' : 'group-hover:text-orange-500 transition-colors'}`} />
-                                                    <span className="text-sm font-medium flex-1">{item.label}</span>
+                                                    <ItemIcon className={`w-[15px] h-[15px] shrink-0 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 group-hover:text-indigo-500 transition-colors'}`} />
+                                                    <span className="text-[13px] font-medium flex-1">{item.label}</span>
                                                     {item.label === 'Siparişler' ? (
                                                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/20 text-primary">
                                                             {orderStats?.today?.total || '0'}
@@ -255,30 +256,29 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                     ))}
                 </div>
 
-                <div className="p-4 mt-auto border-t border-border">
-                    {/* Subscription Card */}
-                    <div className="bg-gradient-to-br from-primary/20 to-purple-600/20 rounded-2xl p-4 border border-primary/20">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Sparkles size={14} className="text-primary" />
-                            <span className="text-xs font-black text-primary uppercase">{tenantPlan} Plan</span>
+                <div className="p-4 mt-auto border-t border-border/60">
+                    <div className="rounded-[14px] p-4 border border-border bg-slate-50/80 dark:bg-white/[0.03]">
+                        <div className="flex items-center gap-2 mb-1.5">
+                            <Sparkles size={13} className="text-indigo-500" />
+                            <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">{tenantPlan} Plan</span>
                         </div>
-                        <div className="text-sm font-bold text-foreground mb-3">Tüm özelliklere erişin</div>
-                        <div className="w-full bg-background/50 h-2 rounded-full overflow-hidden mb-2">
+                        <p className="text-sm font-medium text-foreground mb-3">Modül kullanımı</p>
+                        <div className="w-full bg-slate-200/70 dark:bg-white/10 h-1.5 rounded-full overflow-hidden mb-2">
                             <div
-                                className="bg-gradient-to-r from-orange-500 to-amber-500 h-full rounded-full transition-all"
+                                className="bg-indigo-600 h-full rounded-full transition-all duration-500"
                                 style={{ width: `${Math.min(100, Math.round((activeModuleCount / Math.max(allModules.length, 1)) * 100))}%` }}
                             />
                         </div>
-                        <div className="flex justify-between text-[10px] text-slate-500">
-                            <span>{activeModuleCount}/{allModules.length} Modül</span>
-                            <Link href="/dashboard/upgrade" className="text-orange-500 font-bold hover:underline">Yükselt →</Link>
+                        <div className="flex justify-between text-[11px] text-slate-500">
+                            <span>{activeModuleCount}/{allModules.length} modül</span>
+                            <Link href="/dashboard/upgrade" className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">Yükselt</Link>
                         </div>
                     </div>
                 </div>
             </aside>
 
             {/* Main Content Area */}
-            <div className="flex-1 lg:ml-72 flex flex-col min-h-[100dvh]">
+            <div className="flex-1 lg:ml-[17.5rem] flex flex-col min-h-[100dvh]">
                 <DashboardHeaderBar
                     currentPageTitle={currentPageTitle}
                     isCompactHeader={isCompactHeader}
