@@ -17,16 +17,40 @@ import {
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { tenantHeaders } from '@/lib/tenant';
+import { PasswordChangeForm } from '@/components/settings/PasswordChangeForm';
+import { useToast } from '@/providers/toast-provider';
+
+const PLAN_LABELS: Record<string, string> = {
+    FREE: 'Ücretsiz',
+    PRO: 'Pro',
+    ENTERPRISE: 'Kurumsal',
+};
+
+function formatDate(iso?: string | null) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleDateString('tr-TR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+}
 
 export default function ProfileSettingsPage() {
     const { data: session, update } = useSession();
+    const toast = useToast();
     const [form, setForm] = useState({
         name: session?.user?.name || '',
         phone: '',
         company: '',
         taxId: '',
         taxOffice: '',
+        address: '',
         language: 'tr',
+    });
+    const [meta, setMeta] = useState({
+        plan: 'FREE',
+        createdAt: null as string | null,
+        hasPassword: true,
     });
     const [isLoading, setIsLoading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -43,7 +67,13 @@ export default function ProfileSettingsPage() {
                     company: data.company || '',
                     taxId: data.taxId || '',
                     taxOffice: data.taxOffice || '',
+                    address: data.address || '',
                     language: data.language || 'tr',
+                });
+                setMeta({
+                    plan: data.plan || 'FREE',
+                    createdAt: data.createdAt || data.tenantCreatedAt || null,
+                    hasPassword: data.hasPassword !== false,
                 });
             })
             .catch(() => {});
@@ -81,11 +111,14 @@ export default function ProfileSettingsPage() {
                 throw new Error('Profil ayarlari kaydedilemedi');
             }
 
-            await update();
+            const saved = await res.json();
+            await update({ name: saved.name || form.name });
+            toast.success('Profil güncellendi', 'Bilgileriniz kaydedildi');
             setStatus('success');
             setTimeout(() => setStatus('idle'), 3000);
         } catch {
             setStatus('error');
+            toast.error('Hata', 'Profil kaydedilemedi');
         } finally {
             setIsLoading(false);
         }
@@ -131,7 +164,7 @@ export default function ProfileSettingsPage() {
 
                         <div className="flex items-center justify-center gap-2 px-4 py-2 bg-primary/10 rounded-xl text-primary text-xs font-black uppercase tracking-wider">
                             <Shield size={14} />
-                            PRO HESAP
+                            {PLAN_LABELS[meta.plan] || meta.plan} HESAP
                         </div>
                     </div>
                     <div className="p-6 bg-surface border border-border rounded-[24px]">
@@ -143,11 +176,11 @@ export default function ProfileSettingsPage() {
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="text-xs text-slate-500">Kayıt Tarihi</span>
-                                <span className="text-xs font-bold text-foreground">Ocak 2024</span>
+                                <span className="text-xs font-bold text-foreground">{formatDate(meta.createdAt)}</span>
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="text-xs text-slate-500">Son Giriş</span>
-                                <span className="text-xs font-bold text-foreground">Az önce</span>
+                                <span className="text-xs text-slate-500">Paket</span>
+                                <span className="text-xs font-bold text-foreground">{PLAN_LABELS[meta.plan] || meta.plan}</span>
                             </div>
                         </div>
                     </div>
@@ -249,6 +282,17 @@ export default function ProfileSettingsPage() {
                                 />
                             </div>
 
+                            <div className="space-y-2">
+                                <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Adres</label>
+                                <input
+                                    type="text"
+                                    value={form.address}
+                                    onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                                    className="w-full px-5 py-4 bg-background border border-border rounded-2xl outline-none focus:border-primary transition-all font-medium text-sm"
+                                    placeholder="Şirket adresi"
+                                />
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Vergi Numarası</label>
@@ -313,6 +357,12 @@ export default function ProfileSettingsPage() {
                             </button>
                         </div>
                     </form>
+
+                    {meta.hasPassword && (
+                        <div className="p-8 bg-surface border border-border rounded-[32px]">
+                            <PasswordChangeForm />
+                        </div>
+                    )}
                 </motion.div>
             </motion.div>
         </div >

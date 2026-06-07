@@ -61,14 +61,18 @@ const PLATFORM_MAP: Record<string, Platform> = {
   hepsiburada: 'HEPSIBURADA',
   n11: 'N11',
   ciceksepeti: 'CICEKSEPETI',
+  gittigidiyor: 'GITTIGIDIYOR',
+  pttavm: 'PTTAVM',
+  morhipo: 'MORHIPO',
   'amazon-tr': 'AMAZON',
-  'amazon-us': 'AMAZON',
-  'amazon-de': 'AMAZON',
-  'amazon-uk': 'AMAZON',
+  'amazon-us': 'AMAZON_US',
+  'amazon-de': 'AMAZON_DE',
+  'amazon-uk': 'AMAZON_UK',
+  'amazon-fr': 'AMAZON_FR',
   'ebay-us': 'EBAY',
   'ebay-uk': 'EBAY',
   'ebay-de': 'EBAY',
-  'aliexpress': 'ALIEXPRESS',
+  aliexpress: 'ALIEXPRESS',
   alibaba: 'ALIBABA',
   'shopee-sg': 'SHOPEE',
   'lazada-sg': 'LAZADA',
@@ -81,8 +85,12 @@ const PLATFORM_MAP: Record<string, Platform> = {
   'mercadolibre-mx': 'MERCADOLIBRE',
   'mercadolibre-br': 'MERCADOLIBRE',
   'walmart-us': 'WALMART',
+  walmart: 'WALMART',
   etsy: 'ETSY',
   wayfair: 'WAYFAIR',
+  coupang: 'COUPANG',
+  shopify: 'SHOPIFY',
+  woocommerce: 'WOOCOMMERCE',
 };
 
 const SUPPORTED_PLATFORMS = Object.keys(PLATFORM_MAP);
@@ -397,6 +405,10 @@ export class IntegrationsService {
         },
       });
     }
+
+    void this.marketplaceService
+      .syncIntegrationByStoreId(tenantId, integration.id, 'all')
+      .catch(() => undefined);
 
     // Bağlantıyı test et
     const testResult = await this.testConnection(integration.id, tenantId);
@@ -811,7 +823,13 @@ export class IntegrationsService {
     tenantId: string,
     marketplaceId: string,
     syncType: 'products' | 'orders' | 'inventory' | 'all',
-  ): Promise<{ success: boolean; message: string; jobId?: string }> {
+  ): Promise<{
+    success: boolean;
+    message: string;
+    jobId?: string;
+    integrationId?: string;
+    result?: unknown;
+  }> {
     const platformEnum = getPlatformEnum(marketplaceId);
     if (!platformEnum) {
       throw new BadRequestException('Desteklenmeyen pazaryeri');

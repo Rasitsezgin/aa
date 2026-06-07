@@ -59,6 +59,7 @@ export const DynamicDashboard: React.FC<DynamicDashboardProps> = ({ period = '30
   }, []);
 
   const { data: stats, loading: statsLoading } = useDashboardStats(period);
+  const comparison = stats?.periodComparison;
   const { data: orders, loading: ordersLoading } = useRecentOrders(8);
   const { data: insights, loading: insightsLoading } = useAiInsights();
   const { data: platforms, loading: platformsLoading } = usePlatformPerformance();
@@ -94,12 +95,12 @@ export const DynamicDashboard: React.FC<DynamicDashboardProps> = ({ period = '30
     <div className="space-y-6">
       {show('kpis') && (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
-          <KPICard title="Toplam Ciro" value={stats?.totalRevenue} trend={comparison?.revenueChange} icon={DollarSign} format="currency" sparkData={buildSparkSeries(stats?.totalRevenue || 0, comparison?.revenueChange)} loading={statsLoading} />
-          <KPICard title="Sipariş" value={stats?.totalOrders} trend={comparison?.ordersChange} icon={ShoppingCart} sparkData={buildSparkSeries(stats?.totalOrders || 0, comparison?.ordersChange)} loading={statsLoading} glow="bg-blue-500" accent="text-blue-500" />
-          <KPICard title="Aktif Ürün" value={stats?.activeProducts} trend={comparison?.productsChange} icon={Package} loading={statsLoading} glow="bg-violet-500" accent="text-violet-500" />
-          <KPICard title="Dönüşüm" value={stats?.conversionRate} trend={comparison?.conversionChange} icon={TrendingUp} format="percentage" loading={statsLoading} glow="bg-emerald-500" accent="text-emerald-500" />
-          <KPICard title="Net Kâr" value={stats?.netProfit} trend={comparison?.profitChange} icon={DollarSign} format="currency" loading={statsLoading} glow="bg-amber-500" accent="text-amber-500" />
-          <KPICard title="Kâr Marjı" value={stats?.profitMargin} trend={comparison?.marginChange} icon={Percent} format="percentage" loading={statsLoading} glow="bg-pink-500" accent="text-pink-500" />
+          <KPICard title="Toplam Ciro" value={stats?.totalRevenue} trend={comparison?.revenueChange ?? 0} icon={DollarSign} format="currency" sparkData={buildSparkSeries(stats?.totalRevenue || 0, comparison?.revenueChange ?? 0)} loading={statsLoading} />
+          <KPICard title="Sipariş" value={stats?.totalOrders} trend={comparison?.ordersChange ?? 0} icon={ShoppingCart} sparkData={buildSparkSeries(stats?.totalOrders || 0, comparison?.ordersChange ?? 0)} loading={statsLoading} glow="bg-blue-500" accent="text-blue-500" />
+          <KPICard title="Aktif Ürün" value={stats?.activeProducts} trend={comparison?.productsChange ?? 0} icon={Package} loading={statsLoading} glow="bg-violet-500" accent="text-violet-500" />
+          <KPICard title="Dönüşüm" value={stats?.conversionRate} trend={comparison?.conversionChange ?? 0} icon={TrendingUp} format="percentage" loading={statsLoading} glow="bg-emerald-500" accent="text-emerald-500" />
+          <KPICard title="Net Kâr" value={stats?.netProfit} trend={comparison?.profitChange ?? 0} icon={DollarSign} format="currency" loading={statsLoading} glow="bg-amber-500" accent="text-amber-500" />
+          <KPICard title="Kâr Marjı" value={stats?.profitMargin} trend={comparison?.marginChange ?? 0} icon={Percent} format="percentage" loading={statsLoading} glow="bg-pink-500" accent="text-pink-500" />
         </div>
       )}
 

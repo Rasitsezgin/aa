@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSecurity } from '@/lib/hooks';
+import { PasswordChangeForm } from '@/components/settings/PasswordChangeForm';
 import {
     Shield,
     Key,
@@ -174,40 +175,7 @@ export default function SecurityPage() {
                         animate={{ opacity: 1, y: 0 }}
                         className="bg-surface rounded-2xl p-6 border border-border"
                     >
-                        <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                            <Key className="w-5 h-5 text-red-500" />
-                            Şifre Ayarları
-                        </h3>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-sm text-slate-600 dark:text-slate-400 block mb-2 font-medium">Mevcut Şifre</label>
-                                <div className="relative">
-                                    <input
-                                        type={showPassword ? 'text' : 'password'}
-                                        defaultValue="••••••••••••"
-                                        className="w-full px-4 py-3 bg-background rounded-xl text-foreground border border-border focus:border-red-500 focus:outline-none pr-12"
-                                    />
-                                    <button
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-foreground"
-                                    >
-                                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between p-3 bg-background rounded-xl border border-border">
-                                <div>
-                                    <span className="text-sm text-slate-600 dark:text-slate-300">Son şifre değişikliği</span>
-                                    <p className="text-xs text-slate-500">90 gün önce</p>
-                                </div>
-                                <span className="px-2 py-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded-lg text-xs font-bold border border-yellow-500/20">
-                                    Güncelleme önerilir
-                                </span>
-                            </div>
-                            <button className="w-full py-3 bg-red-600 rounded-xl text-white font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-500/20">
-                                Şifreyi Değiştir
-                            </button>
-                        </div>
+                        <PasswordChangeForm />
                     </motion.div>
 
                     {/* Two-Factor Auth */}

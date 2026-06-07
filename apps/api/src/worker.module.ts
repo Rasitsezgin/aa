@@ -6,6 +6,7 @@ import { SchedulerModule } from './modules/scheduler/scheduler.module';
 import { MarketIntelligenceModule } from './modules/market-intelligence/market-intelligence.module';
 import { MarketplaceModule } from './modules/marketplace/marketplace.module';
 import { EncryptionModule } from './common/encryption.module';
+import { IntegrationsCoreModule } from './modules/integrations-core/integrations-core.module';
 
 function getBullConnection() {
   if (process.env.REDIS_URL) {
@@ -37,6 +38,7 @@ function getBullConnection() {
     SchedulerModule,
     MarketIntelligenceModule,
     MarketplaceModule,
+    IntegrationsCoreModule,
   ],
 })
 export class WorkerModule {}

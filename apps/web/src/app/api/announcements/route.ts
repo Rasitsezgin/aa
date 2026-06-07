@@ -39,10 +39,21 @@ export async function GET() {
       take: 10,
     });
 
-    const reads = await prisma.announcementRead.findMany({
-      where: { tenantId },
-      select: { announcementId: true, isRead: true, isDismissed: true },
-    });
+    let reads: Array<{
+      announcementId: string;
+      isRead: boolean;
+      isDismissed: boolean;
+    }> = [];
+
+    try {
+      reads = await prisma.announcementRead.findMany({
+        where: { tenantId },
+        select: { announcementId: true, isRead: true, isDismissed: true },
+      });
+    } catch {
+      reads = [];
+    }
+
     const readMap = new Map(reads.map((r) => [r.announcementId, r]));
 
     return NextResponse.json(
@@ -66,6 +77,6 @@ export async function GET() {
     );
   } catch (error) {
     console.error('Announcements error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json([]);
   }
 }

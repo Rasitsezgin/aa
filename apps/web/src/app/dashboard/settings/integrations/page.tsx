@@ -18,6 +18,18 @@ import { ConnectionWizard } from '@/components/integrations/ConnectionWizard';
 import { RealTimeStatusPanel } from '@/components/integrations/RealTimeStatusPanel';
 import { useSession } from 'next-auth/react';
 import apiClient from '@/lib/api-client';
+import {
+  resolvePlatformEnum,
+} from '@/lib/marketplace-platform';
+
+const CONNECTION_READY_IDS = new Set([
+  'trendyol', 'hepsiburada', 'n11', 'ciceksepeti', 'gittigidiyor', 'pttavm', 'morhipo',
+  'amazon-tr', 'amazon-us', 'amazon-uk', 'amazon-de', 'amazon-fr',
+  'ebay-us', 'ebay-uk', 'ebay-de', 'etsy', 'walmart', 'walmart-us',
+  'shopify', 'woocommerce', 'aliexpress', 'alibaba', 'shopee-sg', 'lazada-sg',
+  'rakuten-jp', 'zalando', 'allegro', 'bol-com', 'cdiscount', 'otto',
+  'mercadolibre-mx', 'mercadolibre-br', 'wayfair', 'coupang',
+]);
 
 // Import shared types
 import type { MarketplaceConfig } from '@/types/integrations';
@@ -65,6 +77,45 @@ const MARKETPLACES: MarketplaceConfig[] = [
     ],
     minimumPlan: 'FREE', status: 'ACTIVE', popularity: 85, commissionRange: '%3 - %18',
     brandColor: '#7B28C4', monthlyVisitors: '80M+', sellerCount: '50K+',
+  },
+  {
+    id: 'gittigidiyor', name: 'GittiGidiyor', slug: 'gittigidiyor', logo: '/images/pazaryeri/GittiGidiyor.png',
+    region: 'TURKEY', country: 'Türkiye', countryCode: 'TR', category: 'GENERAL',
+    description: 'eBay TR partneri (platform kapatıldı — sınırlı veri sync).', website: 'https://www.gittigidiyor.com',
+    apiType: 'REST', authType: 'TOKEN', sandboxAvailable: false,
+    features: { productSync: true, orderSync: false, inventorySync: false, priceSync: false, shippingIntegration: false, returnManagement: false, analyticsApi: false, advertisingApi: false, fulfillmentService: false, multiWarehouse: false },
+    requiredFields: [
+      { key: 'apiKey', label: 'API Key', type: 'password', required: true },
+      { key: 'apiSecret', label: 'API Secret', type: 'password', required: true },
+    ],
+    minimumPlan: 'STARTER', status: 'DEPRECATED', popularity: 40, commissionRange: '%5 - %15',
+    brandColor: '#E31E24', monthlyVisitors: '—', sellerCount: '—',
+  },
+  {
+    id: 'pttavm', name: 'PTT AVM', slug: 'pttavm', logo: '/images/pazaryeri/pttavm.png',
+    region: 'TURKEY', country: 'Türkiye', countryCode: 'TR', category: 'GENERAL',
+    description: "PTT'nin e-ticaret platformu.", website: 'https://www.pttavm.com',
+    apiType: 'REST', authType: 'TOKEN', sandboxAvailable: true,
+    features: { productSync: true, orderSync: true, inventorySync: true, priceSync: true, shippingIntegration: true, returnManagement: true, analyticsApi: false, advertisingApi: false, fulfillmentService: true, multiWarehouse: false },
+    requiredFields: [
+      { key: 'shopId', label: 'Mağaza ID', type: 'text', required: true },
+      { key: 'apiKey', label: 'API Anahtarı', type: 'password', required: true },
+    ],
+    minimumPlan: 'FREE', status: 'ACTIVE', popularity: 60, commissionRange: '%3 - %12',
+    brandColor: '#FFD100', monthlyVisitors: '20M+', sellerCount: '10K+',
+  },
+  {
+    id: 'morhipo', name: 'Morhipo', slug: 'morhipo', logo: '/images/pazaryeri/morhipo.png',
+    region: 'TURKEY', country: 'Türkiye', countryCode: 'TR', category: 'FASHION',
+    description: 'Moda ve yaşam ürünleri platformu.', website: 'https://www.morhipo.com',
+    apiType: 'REST', authType: 'API_KEY', sandboxAvailable: false,
+    features: { productSync: true, orderSync: true, inventorySync: true, priceSync: true, shippingIntegration: true, returnManagement: true, analyticsApi: false, advertisingApi: false, fulfillmentService: false, multiWarehouse: false },
+    requiredFields: [
+      { key: 'vendorId', label: 'Vendor ID', type: 'text', required: true },
+      { key: 'apiKey', label: 'API Key', type: 'password', required: true },
+    ],
+    minimumPlan: 'FREE', status: 'ACTIVE', popularity: 55, commissionRange: '%10 - %20',
+    brandColor: '#E4002B', monthlyVisitors: '15M+', sellerCount: '5K+',
   },
   {
     id: 'ciceksepeti', name: 'Çiçeksepeti', slug: 'ciceksepeti', logo: '/images/pazaryeri/ciceksepeti.png',
@@ -464,26 +515,6 @@ export default function IntegrationsPage() {
   const [activeIntegrations, setActiveIntegrations] = useState<any[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const resolvePlatformEnum = (marketplaceId: string) => {
-    switch (marketplaceId) {
-      case 'trendyol':
-        return 'TRENDYOL';
-      case 'hepsiburada':
-        return 'HEPSIBURADA';
-      case 'n11':
-        return 'N11';
-      case 'amazon-tr':
-      case 'amazon-us':
-      case 'amazon-uk':
-      case 'amazon-de':
-        return 'AMAZON';
-      case 'ciceksepeti':
-        return 'CICEKSEPETI';
-      default:
-        return marketplaceId.toUpperCase().replace('-', '_');
-    }
-  };
-
   const fetchActiveIntegrations = async () => {
     try {
       const res = await fetch('/api/integrations');
@@ -540,7 +571,11 @@ export default function IntegrationsPage() {
     return MARKETPLACES.map(mp => {
       // Platform enum matches e.g 'TRENDYOL', 'EBAY_US', etc.
       const platformEnum = resolvePlatformEnum(mp.id);
-      const integration = activeIntegrations.find(i => i.platform === platformEnum);
+      const integration = activeIntegrations.find((i) => {
+        if (i.platform !== platformEnum) return false;
+        const storedMarketplaceId = (i.apiExtra as { marketplaceId?: string } | undefined)?.marketplaceId;
+        return !storedMarketplaceId || storedMarketplaceId === mp.id;
+      });
       if (integration) {
         return {
           ...mp,
@@ -582,6 +617,12 @@ export default function IntegrationsPage() {
   };
 
   const handleConnect = (marketplace: MarketplaceConfig) => {
+    if (!CONNECTION_READY_IDS.has(marketplace.id)) {
+      alert(
+        `${marketplace.name} bağlantısı henüz hazır değil. Desteklenen pazaryerlerinden birini seçin.`,
+      );
+      return;
+    }
     setSelectedMarketplace(marketplace);
     setShowWizard(true);
   };
@@ -759,7 +800,11 @@ export default function IntegrationsPage() {
                 apiClient.setTenantId(tenantId);
 
                 const platformEnum = resolvePlatformEnum(selectedMarketplace.id);
-                const res = await apiClient.connectStore(platformEnum, credentials) as {
+                const res = await apiClient.connectStore(
+                  platformEnum,
+                  credentials,
+                  selectedMarketplace.id,
+                ) as {
                   initialSyncStarted?: boolean;
                   message?: string;
                 };

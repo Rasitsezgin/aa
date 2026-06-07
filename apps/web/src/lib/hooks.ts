@@ -929,11 +929,15 @@ export interface DashboardStats {
   totalOrders: number;
   activeProducts: number;
   conversionRate: number;
+  netProfit?: number;
+  profitMargin?: number;
   periodComparison: {
     revenueChange: number;
     ordersChange: number;
     productsChange: number;
     conversionChange: number;
+    profitChange?: number;
+    marginChange?: number;
   };
 }
 
@@ -1267,10 +1271,18 @@ export function useStores() {
     }
   };
 
-  const connectStore = async (platform: string, credentials: any) => {
+  const connectStore = async (
+    platform: string,
+    credentials: Record<string, unknown>,
+    marketplaceId?: string,
+  ) => {
     setLoading(true);
     try {
-      const result = await apiClient.connectStore(platform, credentials);
+      const result = await apiClient.connectStore(
+        platform,
+        credentials,
+        marketplaceId,
+      );
       await fetchStores();
       return result;
     } finally {
@@ -1930,12 +1942,20 @@ export interface PendingPayment {
 // SECURITY HOOKS
 // ==========================================
 export function useSecurity() {
+  const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [overview, setOverview] = useState<SecurityOverview | null>(null);
   const [loginHistory, setLoginHistory] = useState<LoginEntry[]>([]);
   const [sessions, setSessions] = useState<ActiveSession[]>([]);
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    const tenantId = (session?.user as { tenantId?: string } | undefined)?.tenantId;
+    const accessToken = (session as { accessToken?: string } | null)?.accessToken;
+    if (accessToken) apiClient.setAccessToken(accessToken);
+    if (tenantId) apiClient.setTenantId(tenantId);
+  }, [session]);
 
   const fetchOverview = async () => {
     setLoading(true);
@@ -2009,11 +2029,12 @@ export function useSecurity() {
   };
 
   useEffect(() => {
+    if (!session?.user) return;
     fetchOverview();
     fetchLoginHistory();
     fetchSessions();
     fetchApiKeys();
-  }, []);
+  }, [session?.user]);
 
   return {
     overview, loginHistory, sessions, apiKeys,

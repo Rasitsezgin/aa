@@ -3,6 +3,16 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import { Plan } from '@pazaryonetimi/database';
+
+async function safeQuery<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    console.error('Tenant context partial query failed:', error);
+    return fallback;
+  }
+}
 
 export async function GET() {
   try {
@@ -14,51 +24,115 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const [tenant, user, tenantModules, integrations, orderGroups, settings, criticalStock] = await Promise.all([
-      prisma.tenant.findUnique({
-        where: { id: tenantId },
-        select: { id: true, name: true, plan: true, status: true },
-      }),
-      prisma.user.findUnique({
-        where: { id: userId },
-        select: { type: true, role: { select: { name: true } } },
-      }),
-      prisma.tenantModule.findMany({
-        where: { tenantId, isEnabled: true },
-        include: { module: { select: { key: true } } },
-      }),
-      prisma.integration.findMany({
-        where: { tenantId },
-        select: { id: true, platform: true, isActive: true, updatedAt: true },
-        orderBy: { updatedAt: 'desc' },
-      }),
-      prisma.order.groupBy({
-        by: ['status'],
-        where: { tenantId },
-        _count: { status: true },
-      }),
-      prisma.tenantSettings.findUnique({ where: { tenantId }, select: { config: true } }),
-      prisma.product.count({ where: { tenantId, stock: { lt: 5 } } }),
-    ]);
+    const tenant = await safeQuery(
+      () =>
+        prisma.tenant.findUnique({
+          where: { id: tenantId },
+          select: { id: true, name: true, plan: true, status: true },
+        }),
+      null,
+    );
 
     if (!tenant) {
-      return NextResponse.json({ error: 'Tenant not found' }, { status: 404 });
+      return NextResponse.json({
+        tenantId,
+        plan: 'FREE',
+        tenantName: 'Mağazam',
+        tenantStatus: 'ACTIVE',
+        userType: 'USER',
+        roleName: 'USER',
+        enabledModules: ['DASHBOARD', 'ORDERS', 'PRODUCTS', 'INTEGRATIONS', 'ANALYTICS'],
+        aiCredits: { used: 0, limit: 50 },
+        integrations: [],
+        orderPipeline: {},
+        criticalStockCount: 0,
+        fallback: true,
+      });
     }
+
+    const [user, tenantModules, integrations, orderGroups, settings, criticalStock] =
+      await Promise.all([
+        safeQuery(
+          () =>
+            prisma.user.findUnique({
+              where: { id: userId },
+              select: { type: true, role: { select: { name: true } } },
+            }),
+          null,
+        ),
+        safeQuery(
+          () =>
+            prisma.tenantModule.findMany({
+              where: { tenantId, isEnabled: true },
+              include: { module: { select: { key: true } } },
+            }),
+          [],
+        ),
+        safeQuery(
+          () =>
+            prisma.integration.findMany({
+              where: { tenantId },
+              select: { id: true, platform: true, isActive: true, updatedAt: true },
+              orderBy: { updatedAt: 'desc' },
+            }),
+          [],
+        ),
+        safeQuery(
+          () =>
+            prisma.order.groupBy({
+              by: ['status'],
+              where: { tenantId },
+              _count: { status: true },
+            }),
+          [],
+        ),
+        safeQuery(
+          () =>
+            prisma.tenantSettings.findUnique({
+              where: { tenantId },
+              select: { config: true },
+            }),
+          null,
+        ),
+        safeQuery(
+          () => prisma.product.count({ where: { tenantId, stock: { lt: 5 } } }),
+          0,
+        ),
+      ]);
 
     let enabledModules = tenantModules.map((tm) => tm.module.key);
 
     if (enabledModules.length === 0) {
-      const planOrder = ['FREE', 'PRO', 'ENTERPRISE'] as const;
-      const planIndex = planOrder.indexOf(tenant.plan as (typeof planOrder)[number]);
+      const planOrder: Plan[] = [Plan.FREE, Plan.PRO, Plan.ENTERPRISE];
+      const planIndex = planOrder.indexOf(tenant.plan);
       const accessiblePlans = planOrder.slice(0, Math.max(planIndex + 1, 1));
-      const fallbackModules = await prisma.systemModule.findMany({
-        where: {
-          isActive: true,
-          OR: [{ isCore: true }, { requiredPlan: { in: accessiblePlans as unknown as string[] } }],
-        },
-        select: { key: true },
-      });
+
+      const fallbackModules = await safeQuery(
+        () =>
+          prisma.systemModule.findMany({
+            where: {
+              isActive: true,
+              OR: [
+                { isCore: true },
+                { requiredPlan: { in: accessiblePlans } },
+              ],
+            },
+            select: { key: true },
+          }),
+        [],
+      );
       enabledModules = fallbackModules.map((m) => m.key);
+    }
+
+    if (enabledModules.length === 0) {
+      enabledModules = [
+        'DASHBOARD',
+        'ORDERS',
+        'PRODUCTS',
+        'INVENTORY',
+        'INTEGRATIONS',
+        'ANALYTICS',
+      ];
     }
 
     const config = (settings?.config as Record<string, unknown>) || {};
@@ -98,6 +172,16 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Tenant context error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({
+      tenantId: '',
+      plan: 'FREE',
+      tenantName: 'Mağazam',
+      enabledModules: ['DASHBOARD', 'ORDERS', 'PRODUCTS', 'INTEGRATIONS'],
+      aiCredits: { used: 0, limit: 50 },
+      integrations: [],
+      orderPipeline: {},
+      criticalStockCount: 0,
+      fallback: true,
+    });
   }
 }

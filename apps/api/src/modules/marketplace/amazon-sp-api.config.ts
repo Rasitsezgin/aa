@@ -41,6 +41,11 @@ export const AMAZON_MARKETPLACE_PROFILES: Record<string, AmazonMarketplaceProfil
       region: 'eu',
       currency: 'EUR',
     },
+    'amazon-fr': {
+      spMarketplaceId: 'A13V1IB3VIYZZH',
+      region: 'eu',
+      currency: 'EUR',
+    },
   };
 
 export function resolveAmazonMarketplaceSlug(

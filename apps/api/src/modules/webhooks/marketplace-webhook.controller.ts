@@ -9,7 +9,7 @@ import {
 import { PrismaService } from '../../database/prisma.service';
 import { Public } from '../auth/public.decorator';
 import { MarketplaceService, Platform } from '../marketplace/marketplace.service';
-import type { Platform as PrismaPlatform } from '@pazaryonetimi/database';
+import { Prisma, type Platform as PrismaPlatform } from '@pazaryonetimi/database';
 
 /**
  * Platform Webhook Receivers
@@ -357,7 +357,7 @@ export class MarketplaceWebhookController {
         action: 'webhook.order.received',
         resource: 'integration',
         resourceId: integrationId,
-        details,
+        details: details as Prisma.InputJsonValue,
       },
     });
   }

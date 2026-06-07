@@ -33,6 +33,18 @@ const settingsCategories = [
         featured: true,
     },
     {
+        id: 'integration-hub',
+        title: 'Entegrasyon Merkezi',
+        description: 'Pazaryeri, e-ticaret, kargo ve e-fatura — tek panelden yönetim',
+        icon: Zap,
+        href: '/dashboard/settings/integration-hub',
+        color: 'from-violet-500 to-indigo-500',
+        bgColor: 'bg-violet-500/10',
+        borderColor: 'border-violet-500/20',
+        badge: 'Yeni',
+        featured: true,
+    },
+    {
         id: 'service-integrations',
         title: 'Servis Entegrasyonları',
         description: 'Kargo, ödeme, e-fatura ve SMS servis bağlantılarını yönetin',

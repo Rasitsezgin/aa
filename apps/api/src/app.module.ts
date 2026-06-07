@@ -15,6 +15,7 @@ import { ProductModule } from './modules/product/product.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AiAdvisorModule } from './modules/ai-advisor/ai-advisor.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
+import { IntegrationsCoreModule } from './modules/integrations-core/integrations-core.module';
 import { SystemModule } from './modules/system/system.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { CustomersModule } from './modules/customers/customers.module';
@@ -43,6 +44,7 @@ import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { DemoModule } from './modules/demo/demo.module';
 import { SmsModule } from './modules/sms/sms.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
 import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
 import { MetricsModule } from './modules/metrics/metrics.module';
 import { EncryptionModule } from './common/encryption.module';
@@ -111,6 +113,7 @@ function getBullConnection() {
     AiAdvisorModule,
     AIAssistantModule,
     IntegrationsModule,
+    IntegrationsCoreModule,
     SystemModule,
     OrdersModule,
     CustomersModule,
@@ -140,6 +143,7 @@ function getBullConnection() {
     SmsModule,
     EmailModule,
     AuthModule,
+    UsersModule,
     MetricsModule,
     ShippingModule,
     EInvoiceModule,

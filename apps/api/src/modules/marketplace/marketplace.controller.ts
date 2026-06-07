@@ -259,12 +259,19 @@ export class MarketplaceController {
    */
   @Post('connect')
   async connectStore(
-    @Body() data: { tenantId: string; platform: string; credentials: any },
+    @Body()
+    data: {
+      tenantId: string;
+      platform: string;
+      credentials: Record<string, unknown>;
+      marketplaceId?: string;
+    },
   ) {
     return this.marketplaceService.connectStore(
       data.tenantId,
       data.platform,
       data.credentials,
+      data.marketplaceId,
     );
   }
 

@@ -54,6 +54,7 @@ export const NAV_ITEMS: NavItemConfig[] = [
   // —— Sistem ——
   { id: 'stores', label: 'Mağazalarım', href: '/dashboard/stores', icon: 'Store', section: 'Sistem', moduleKey: 'STORE_MANAGEMENT', keywords: ['mağaza', 'kanal'], sidebar: true, mobile: true, commandPalette: true },
   { id: 'integrations', label: 'Entegrasyonlar', href: '/dashboard/settings/integrations', icon: 'Globe', section: 'Sistem', moduleKey: 'INTEGRATIONS', keywords: ['entegrasyon', 'api', 'trendyol'], sidebar: true, mobile: true, commandPalette: true },
+  { id: 'integration-hub', label: 'Entegrasyon Merkezi', href: '/dashboard/settings/integration-hub', icon: 'Plug', section: 'Sistem', moduleKey: 'INTEGRATIONS', keywords: ['entegrasyon', 'kargo', 'efatura', 'hub'], sidebar: true, mobile: true, commandPalette: true },
   { id: 'settings', label: 'Ayarlar', href: '/dashboard/settings', icon: 'Settings', section: 'Sistem', moduleKey: 'SETTINGS', keywords: ['ayar', 'config'], sidebar: true, mobile: true, commandPalette: true },
   { id: 'security', label: 'Güvenlik', href: '/dashboard/security', icon: 'Shield', section: 'Sistem', moduleKey: 'SECURITY', keywords: ['güvenlik', '2fa'], mobile: true, commandPalette: true },
   { id: 'widget-editor', label: 'Panel Özelleştirme', href: '/dashboard/widget-editor', icon: 'LayoutGrid', section: 'Sistem', moduleKey: 'DASHBOARD', keywords: ['widget', 'dashboard'], commandPalette: true },

@@ -8,6 +8,7 @@ import {
   UnprocessableEntityException,
   Inject,
   forwardRef,
+  Optional,
   Scope,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
@@ -36,6 +37,21 @@ import { OttoBridge } from './otto.bridge';
 import { AllegroBridge } from './allegro.bridge';
 import { CdiscountBridge } from './cdiscount.bridge';
 import { BolBridge } from './bol.bridge';
+import { ShopifyBridge } from './shopify.bridge';
+import { WooCommerceBridge } from './woocommerce.bridge';
+import { PttAvmBridge } from './pttavm.bridge';
+import { MorhipoBridge } from './morhipo.bridge';
+import { GittigidiyorBridge } from './gittigidiyor.bridge';
+import {
+  MARKETPLACE_ID_TO_PLATFORM,
+  normalizeMarketplaceCredentials,
+  resolveIntegrationCategoryFromPlatform,
+  resolvePlatformFromMarketplaceId,
+  resolveProviderIdFromIntegration,
+} from './marketplace-connect.util';
+import { IntegrationSyncQueueService } from '../integrations-core/queue/integration-sync-queue.service';
+import { IntegrationSyncType } from '../integrations-core/enums/integration-category.enum';
+import { IntegrationCategory } from '../integrations-core/enums/integration-category.enum';
 import {
   MarketplaceAnalysisResponse,
   computeConfidenceFromSources,
@@ -103,6 +119,9 @@ export class MarketplaceService {
     private encryption: EncryptionService,
     @Inject(forwardRef(() => OrdersService))
     private ordersService: OrdersService,
+    @Optional()
+    @Inject(forwardRef(() => IntegrationSyncQueueService))
+    private readonly integrationSyncQueue?: IntegrationSyncQueueService,
   ) {}
 
   async getBridgeForTenant(
@@ -287,6 +306,45 @@ export class MarketplaceService {
           this.scrapingService,
           (integration.apiExtra as any)?.isProduction || false,
         );
+      case 'SHOPIFY' as Platform:
+        return new ShopifyBridge(
+          (integration.apiExtra as any)?.shopDomain || apiKey,
+          (integration.apiExtra as any)?.accessToken || apiSecret,
+        );
+      case 'WOOCOMMERCE' as Platform:
+        return new WooCommerceBridge(
+          (integration.apiExtra as any)?.siteUrl || '',
+          apiKey,
+          apiSecret,
+        );
+      case 'PTTAVM' as Platform:
+        return new PttAvmBridge(
+          apiKey,
+          (integration.apiExtra as any)?.shopId || apiSecret,
+          this.scrapingService,
+        );
+      case 'MORHIPO' as Platform:
+        return new MorhipoBridge(
+          (integration.apiExtra as any)?.vendorId || apiKey,
+          apiKey,
+          this.scrapingService,
+        );
+      case 'GITTIGIDIYOR' as Platform:
+        return new GittigidiyorBridge(
+          apiKey,
+          apiSecret,
+          this.scrapingService,
+        );
+      case 'AMAZON_US' as Platform:
+      case 'AMAZON_UK' as Platform:
+      case 'AMAZON_DE' as Platform:
+      case 'AMAZON_FR' as Platform:
+        return new AmazonBridge(
+          apiKey,
+          apiSecret,
+          this.scrapingService,
+          (integration.apiExtra as Record<string, unknown>) ?? {},
+        );
       default:
         throw new Error(`Desteklenmeyen platform: ${platform}`);
     }
@@ -376,12 +434,20 @@ export class MarketplaceService {
     return results;
   }
 
-  async syncProductsForTenant(tenantId: string, platform: Platform) {
+  async syncProductsForTenant(
+    tenantId: string,
+    platform: Platform,
+    integrationId?: string,
+  ) {
     if (!tenantId) {
       throw new BadRequestException('tenantId zorunludur');
     }
 
-    const bridge = await this.getBridgeForTenant(tenantId, platform);
+    const bridge = await this.getBridgeForTenant(
+      tenantId,
+      platform,
+      integrationId,
+    );
     const raw = await bridge.syncProducts();
 
     if (raw && raw.success === false) {
@@ -472,7 +538,11 @@ export class MarketplaceService {
     }
 
     const platform = integration.platform as unknown as Platform;
-    const productResult = await this.syncProductsForTenant(tenantId, platform);
+    const productResult = await this.syncProductsForTenant(
+      tenantId,
+      platform,
+      integration.id,
+    );
 
     let orderResult: Record<string, unknown> | null = null;
     if (syncType === 'all' || syncType === 'orders') {
@@ -616,6 +686,51 @@ export class MarketplaceService {
     });
 
     try {
+      const integration = await this.prisma.integration.findFirst({
+        where: { id: integrationId, tenantId, isActive: true },
+        select: { platform: true, apiExtra: true },
+      });
+
+      if (this.integrationSyncQueue && integration) {
+        const extra = (integration.apiExtra as Record<string, unknown>) ?? {};
+        const providerId = resolveProviderIdFromIntegration(
+          String(integration.platform),
+          extra,
+        );
+        const categoryKey = resolveIntegrationCategoryFromPlatform(
+          String(integration.platform),
+        );
+        const category =
+          categoryKey === 'ECOMMERCE'
+            ? IntegrationCategory.ECOMMERCE
+            : IntegrationCategory.MARKETPLACE;
+
+        const queueResult = await this.integrationSyncQueue.enqueueSync({
+          tenantId,
+          integrationId,
+          providerId,
+          category,
+          syncType: IntegrationSyncType.ALL,
+          platform: String(integration.platform),
+          manual: false,
+        });
+
+        await this.prisma.activityLog.create({
+          data: {
+            tenantId,
+            action: 'integration.initial.sync',
+            resource: 'integration',
+            resourceId: integrationId,
+            details: {
+              trigger: 'connect',
+              status: queueResult.queued ? 'queued' : 'completed',
+              queue: queueResult,
+            } as Prisma.InputJsonValue,
+          },
+        });
+        return;
+      }
+
       const result = await this.syncIntegrationByStoreId(
         tenantId,
         integrationId,
@@ -1391,31 +1506,64 @@ export class MarketplaceService {
     tenantId: string,
     platform: string,
     credentials: Record<string, unknown>,
+    marketplaceId?: string,
   ) {
     if (!tenantId) {
       throw new BadRequestException('tenantId zorunludur');
     }
-    if (!platform) {
-      throw new BadRequestException('platform zorunludur');
+    if (!platform && !marketplaceId) {
+      throw new BadRequestException('platform veya marketplaceId zorunludur');
     }
 
-    const normalizedPlatform = platform.toUpperCase() as PrismaPlatform;
+    const resolvedMarketplaceId =
+      marketplaceId ||
+      (typeof credentials.marketplaceId === 'string'
+        ? credentials.marketplaceId
+        : undefined);
+
+    let normalizedPlatform = (platform || '').toUpperCase() as PrismaPlatform;
+    if (
+      resolvedMarketplaceId &&
+      MARKETPLACE_ID_TO_PLATFORM[resolvedMarketplaceId.toLowerCase()]
+    ) {
+      normalizedPlatform =
+        MARKETPLACE_ID_TO_PLATFORM[resolvedMarketplaceId.toLowerCase()];
+    } else if (!normalizedPlatform && resolvedMarketplaceId) {
+      const mapped = resolvePlatformFromMarketplaceId(resolvedMarketplaceId);
+      if (mapped) normalizedPlatform = mapped;
+    }
+
     if (!Object.values(PrismaPlatform).includes(normalizedPlatform)) {
       throw new BadRequestException(`Desteklenmeyen platform: ${platform}`);
     }
 
-    const sanitizedCredentials = this.validateAndNormalizeCredentials(
+    const sanitizedCredentials = normalizeMarketplaceCredentials(
       normalizedPlatform,
       credentials,
+      resolvedMarketplaceId,
     );
 
     try {
+      const existingWhere: {
+        tenantId: string;
+        platform: PrismaPlatform;
+        isActive: boolean;
+        apiExtra?: { path: string[]; equals: string };
+      } = {
+        tenantId,
+        platform: normalizedPlatform,
+        isActive: true,
+      };
+
+      if (resolvedMarketplaceId) {
+        existingWhere.apiExtra = {
+          path: ['marketplaceId'],
+          equals: resolvedMarketplaceId,
+        };
+      }
+
       const existing = await this.prisma.integration.findFirst({
-        where: {
-          tenantId,
-          platform: normalizedPlatform,
-          isActive: true,
-        },
+        where: existingWhere,
         select: { id: true },
       });
 
@@ -1874,64 +2022,4 @@ export class MarketplaceService {
     throw lastError;
   }
 
-  private validateAndNormalizeCredentials(
-    platform: PrismaPlatform,
-    credentials: Record<string, unknown>,
-  ) {
-    const apiKey =
-      typeof credentials.apiKey === 'string' ? credentials.apiKey.trim() : '';
-    const apiSecret =
-      typeof credentials.apiSecret === 'string'
-        ? credentials.apiSecret.trim()
-        : '';
-
-    if (!apiKey) {
-      throw new UnprocessableEntityException('apiKey zorunludur');
-    }
-
-    if (!apiSecret) {
-      throw new UnprocessableEntityException('apiSecret zorunludur');
-    }
-
-    const apiExtraEntries = Object.entries(credentials).filter(
-      ([key, value]) => {
-        if (key === 'apiKey' || key === 'apiSecret') return false;
-        return value !== undefined;
-      },
-    );
-    const apiExtra: Record<string, unknown> =
-      Object.fromEntries(apiExtraEntries);
-
-    if (platform === PrismaPlatform.TRENDYOL) {
-      const supplierId =
-        typeof credentials.supplierId === 'string'
-          ? credentials.supplierId.trim()
-          : '';
-      if (!supplierId) {
-        throw new UnprocessableEntityException(
-          'Trendyol için supplierId zorunludur',
-        );
-      }
-      apiExtra.supplierId = supplierId;
-    }
-
-    if (platform === PrismaPlatform.HEPSIBURADA) {
-      const merchantId =
-        typeof credentials.merchantId === 'string'
-          ? credentials.merchantId.trim()
-          : '';
-      if (!merchantId) {
-        throw new UnprocessableEntityException(
-          'Hepsiburada için merchantId zorunludur',
-        );
-      }
-      apiExtra.merchantId = merchantId;
-    }
-
-    return {
-      apiKey,
-      apiSecret,
-      apiExtra: apiExtra as Prisma.InputJsonValue,
-    };
-  }
 }

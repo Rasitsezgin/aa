@@ -1,29 +1,41 @@
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { auth } from '@/auth';
 
 function getApiBaseUrl() {
   const raw = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:3001';
   const normalized = raw.trim();
   if (!normalized) return 'http://localhost:3001';
-  if (normalized.startsWith('http://') || normalized.startsWith('https://')) return normalized.replace(/\/$/, '');
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+    return normalized.replace(/\/$/, '');
+  }
   if (normalized.startsWith('/')) return normalized.replace(/\/$/, '');
   return `https://${normalized}`.replace(/\/$/, '');
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
+  const session = await auth();
+  const tenantId = (session?.user as { tenantId?: string } | undefined)?.tenantId;
+  const accessToken = (session as { accessToken?: string } | null)?.accessToken;
+
+  if (!tenantId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const base = getApiBaseUrl();
   const candidates = [
-    `${base}/ai/briefing`,
     `${base}/api/ai/briefing`,
+    `${base}/ai/briefing`,
     `${base}/api/v1/ai/briefing`,
   ];
 
   for (const url of candidates) {
     try {
-      const response = await fetch(url, {
+      const response = await fetch(`${url}?tenantId=${encodeURIComponent(tenantId)}`, {
         headers: {
-          'x-tenant-id': request.headers.get('x-tenant-id') || 'default',
+          'x-tenant-id': tenantId,
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
       });
 
@@ -33,15 +45,26 @@ export async function GET(request: NextRequest) {
       }
 
       if (response.status !== 404) {
-        return NextResponse.json({ error: `Backend error: ${response.status}` }, { status: response.status });
+        if (response.status === 401 || response.status === 403) {
+          return NextResponse.json({
+            message: 'Günlük brifing şu an kullanılamıyor.',
+            stats: { revenue: 0, orders: 0, stockAlerts: 0 },
+            fallback: true,
+          });
+        }
+        return NextResponse.json(
+          { error: `Backend error: ${response.status}` },
+          { status: response.status },
+        );
       }
     } catch {
       // try next candidate
     }
   }
 
-  return NextResponse.json(
-    { error: 'Briefing verisi backend tarafindan saglanamadi' },
-    { status: 502 }
-  );
+  return NextResponse.json({
+    message: 'Günlük brifing şu an kullanılamıyor.',
+    stats: { revenue: 0, orders: 0, stockAlerts: 0 },
+    fallback: true,
+  });
 }

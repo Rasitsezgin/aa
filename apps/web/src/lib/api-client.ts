@@ -104,20 +104,23 @@ class ApiClient {
   private buildUrlCandidates(endpoint: string): string[] {
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     const base = (this.baseUrl || '').replace(/\/$/, '');
-    
-    // In production (if baseUrl starts with http), we only want the configured base
-    // To avoid redundant 404s in logs.
-    if (base.startsWith('http') && !base.includes('localhost')) {
-      return [`${base}${normalizedEndpoint}`];
+    const root = base.replace(/\/api(?:\/v1)?$/, '');
+    const hasApiPrefix = /\/api(?:\/v1)?$/.test(base);
+
+    const prefixes: string[] = [];
+    if (base) {
+      prefixes.push(base);
+      if (!hasApiPrefix) {
+        prefixes.push(`${base}/api`, `${base}/api/v1`);
+      }
+      if (root && root !== base) {
+        prefixes.push(`${root}/api`, `${root}/api/v1`);
+      }
+    } else {
+      prefixes.push('', '/api', '/api/v1');
     }
 
-    const root = base.replace(/\/api(?:\/v1)?$/, '');
-
-    const baseCandidates = base
-      ? [base, `${root}/api`, `${root}/api/v1`]
-      : ['', '/api', '/api/v1'];
-
-    return [...new Set(baseCandidates.map((candidate) => `${candidate}${normalizedEndpoint}`))];
+    return [...new Set(prefixes.map((candidate) => `${candidate}${normalizedEndpoint}`))];
   }
 
   public async request<T>(
@@ -664,10 +667,22 @@ class ApiClient {
     return this.request(`/marketplace/stores?${params}`);
   }
 
-  async connectStore(platform: string, credentials: any) {
+  async connectStore(
+    platform: string,
+    credentials: Record<string, unknown>,
+    marketplaceId?: string,
+  ) {
     return this.request('/marketplace/connect', {
       method: 'POST',
-      body: JSON.stringify({ tenantId: this.tenantId, platform, credentials }),
+      body: JSON.stringify({
+        tenantId: this.tenantId,
+        platform,
+        marketplaceId,
+        credentials: {
+          ...credentials,
+          ...(marketplaceId ? { marketplaceId } : {}),
+        },
+      }),
     });
   }
 

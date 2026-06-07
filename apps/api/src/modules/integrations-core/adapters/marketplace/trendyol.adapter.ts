@@ -1,0 +1,160 @@
+import { Injectable } from '@nestjs/common';
+import { IntegrationCategory } from '../../enums/integration-category.enum';
+import { IntegrationSyncType } from '../../enums/integration-category.enum';
+import { BaseIntegrationAdapter } from '../../base/base-integration.adapter';
+import type { IMarketplaceProvider } from '../../interfaces/integration-provider.interface';
+import type {
+  DecryptedCredentials,
+  TenantIntegrationContext,
+} from '../../interfaces/integration-context.interface';
+import type { NormalizedProductDto } from '../../dto/normalized-product.dto';
+import type { NormalizedOrderDto } from '../../dto/normalized-order.dto';
+import type { SyncResultDto } from '../../dto/sync-result.dto';
+import { normalizeTrendyolProduct } from '../../normalizers/product.normalizer';
+import { normalizeTrendyolOrder } from '../../normalizers/order.normalizer';
+import { TrendyolBridge } from '../../../marketplace/trendyol.bridge';
+import { ScrapingService } from '../../../scraping/scraping.service';
+/**
+ * Trendyol pazaryeri adapter'ı.
+ * Mevcut TrendyolBridge'i sarmalar ve veriyi standart DTO'lara normalize eder.
+ */
+@Injectable()
+export class TrendyolAdapter
+  extends BaseIntegrationAdapter
+  implements IMarketplaceProvider
+{
+  readonly providerId = 'trendyol';
+  readonly displayName = 'Trendyol';
+  readonly category = IntegrationCategory.MARKETPLACE;
+
+  constructor(private readonly scrapingService: ScrapingService) {
+    super();
+  }
+
+  private buildBridge(credentials: DecryptedCredentials): TrendyolBridge {
+    const supplierId = String(
+      credentials.extra.supplierId ?? credentials.apiKey,
+    );
+    const isTestMode = credentials.extra.isTestMode === true;
+    return new TrendyolBridge(
+      credentials.apiKey,
+      credentials.apiSecret,
+      supplierId,
+      this.scrapingService,
+      isTestMode,
+    );
+  }
+
+  async testConnection(
+    ctx: TenantIntegrationContext,
+    credentials: DecryptedCredentials,
+  ) {
+    this.assertContext(ctx);
+    try {
+      const bridge = this.buildBridge(credentials);
+      const products = await bridge.getStoreProducts(
+        String(credentials.extra.supplierId ?? ''),
+        1,
+      );
+      if (products.length >= 0) {
+        return this.ok('Trendyol API bağlantısı doğrulandı');
+      }
+      return this.fail('Trendyol API yanıt vermedi');
+    } catch (error) {
+      return this.fail('Trendyol bağlantı testi başarısız', error);
+    }
+  }
+
+  async syncProducts(
+    ctx: TenantIntegrationContext,
+    credentials: DecryptedCredentials,
+  ): Promise<SyncResultDto<NormalizedProductDto>> {
+    this.assertContext(ctx);
+    const started = Date.now();
+    const bridge = this.buildBridge(credentials);
+    const raw = await bridge.syncProducts();
+
+    if (raw?.success === false) {
+      return {
+        success: false,
+        tenantId: ctx.tenantId,
+        providerId: this.providerId,
+        syncType: IntegrationSyncType.PRODUCTS,
+        total: 0,
+        created: 0,
+        updated: 0,
+        failed: 1,
+        items: [],
+        errors: [String(raw.error ?? 'Sync başarısız')],
+        durationMs: Date.now() - started,
+      };
+    }
+
+    const raws = (raw?.products ?? []) as Record<string, unknown>[];
+    const supplierId = String(credentials.extra.supplierId ?? '');
+    const items = raws.map((p) => normalizeTrendyolProduct(p, supplierId));
+
+    return {
+      success: true,
+      tenantId: ctx.tenantId,
+      providerId: this.providerId,
+      syncType: IntegrationSyncType.PRODUCTS,
+      total: items.length,
+      created: items.length,
+      updated: 0,
+      failed: 0,
+      items,
+      durationMs: Date.now() - started,
+    };
+  }
+
+  async syncOrders(
+    ctx: TenantIntegrationContext,
+    credentials: DecryptedCredentials,
+  ): Promise<SyncResultDto<NormalizedOrderDto>> {
+    this.assertContext(ctx);
+    const started = Date.now();
+    const bridge = this.buildBridge(credentials);
+
+    try {
+      const raw = await bridge.syncOrders();
+      const orders = (raw?.orders ?? raw?.content ?? []) as Record<string, unknown>[];
+      const items = orders.map((o) => normalizeTrendyolOrder(o));
+
+      return {
+        success: true,
+        tenantId: ctx.tenantId,
+        providerId: this.providerId,
+        syncType: IntegrationSyncType.ORDERS,
+        total: items.length,
+        created: items.length,
+        updated: 0,
+        failed: 0,
+        items,
+        durationMs: Date.now() - started,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        tenantId: ctx.tenantId,
+        providerId: this.providerId,
+        syncType: IntegrationSyncType.ORDERS,
+        total: 0,
+        created: 0,
+        updated: 0,
+        failed: 1,
+        items: [],
+        errors: [(error as Error).message],
+        durationMs: Date.now() - started,
+      };
+    }
+  }
+
+  supportedSyncTypes(): IntegrationSyncType[] {
+    return [
+      IntegrationSyncType.PRODUCTS,
+      IntegrationSyncType.ORDERS,
+      IntegrationSyncType.INVENTORY,
+    ];
+  }
+}

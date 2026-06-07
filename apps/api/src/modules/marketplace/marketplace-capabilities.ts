@@ -1,4 +1,8 @@
-const ORDER_SYNC_UNSUPPORTED = new Set<string>(['AMAZON']);
+const ORDER_SYNC_UNSUPPORTED = new Set<string>([
+  'GITTIGIDIYOR',
+  'WEBSITE',
+  'OTHER',
+]);
 
 export interface OrderSyncCapabilityOptions {
   spApiReady?: boolean;
@@ -8,7 +12,7 @@ export function supportsOrderSync(
   platform: string,
   options?: OrderSyncCapabilityOptions,
 ): boolean {
-  if (platform === 'AMAZON') {
+  if (platform.startsWith('AMAZON')) {
     return options?.spApiReady === true;
   }
 
@@ -16,8 +20,11 @@ export function supportsOrderSync(
 }
 
 export function getOrderSyncSkipMessage(platform: string): string {
-  if (platform === 'AMAZON') {
+  if (platform.startsWith('AMAZON')) {
     return 'Amazon sipariş senkronizasyonu için SP-API kimlik bilgileri eksik';
+  }
+  if (platform === 'GITTIGIDIYOR') {
+    return 'GittiGidiyor platformu kapatıldı; sipariş sync kullanılamıyor';
   }
   return `${platform} için sipariş senkronizasyonu desteklenmiyor`;
 }
