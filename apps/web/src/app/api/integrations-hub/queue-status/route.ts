@@ -14,7 +14,7 @@ function getApiBaseUrl() {
   return `https://${normalized}`.replace(/\/$/, '');
 }
 
-/** GET — entegrasyon kataloğu (4 kategori) */
+/** GET — tenant queue durumu */
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
@@ -25,12 +25,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const categoryFilter = req.nextUrl.searchParams.get('category');
+    const providerId = req.nextUrl.searchParams.get('providerId');
+    if (!providerId) {
+      return NextResponse.json({ error: 'providerId zorunlu' }, { status: 400 });
+    }
+
     const base = getApiBaseUrl();
-    const qs = categoryFilter ? `?category=${encodeURIComponent(categoryFilter)}` : '';
+    const qs = `?providerId=${encodeURIComponent(providerId)}`;
     const candidates = [
-      `${base}/api/integrations-hub/catalog${qs}`,
-      `${base}/integrations-hub/catalog${qs}`,
+      `${base}/api/integrations-hub/queue-status${qs}`,
+      `${base}/integrations-hub/queue-status${qs}`,
     ];
 
     for (const url of candidates) {
@@ -53,16 +57,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // API erişilemezse statik katalog fallback
-    const { PROVIDER_CATALOG_FALLBACK } = await import(
-      '@/lib/integrations-hub-catalog-fallback'
-    );
-    const filtered = categoryFilter
-      ? PROVIDER_CATALOG_FALLBACK.filter((p) => p.category === categoryFilter)
-      : PROVIDER_CATALOG_FALLBACK;
-    return NextResponse.json(filtered);
+    return NextResponse.json({ error: 'API erişilemedi' }, { status: 502 });
   } catch (error) {
-    console.error('integrations-hub catalog error:', error);
+    console.error('integrations-hub queue-status error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

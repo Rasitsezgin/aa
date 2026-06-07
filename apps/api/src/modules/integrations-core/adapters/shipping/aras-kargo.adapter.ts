@@ -9,32 +9,31 @@ import type {
 } from '../../interfaces/integration-context.interface';
 import type { CargoShipmentDto } from '../../dto/cargo-shipment.dto';
 import type { CargoTrackingDto } from '../../dto/cargo-tracking.dto';
-import { normalizeYurticiTracking } from '../../normalizers/cargo.normalizer';
-import { YurticiKargoBridge } from '../../../shipping/carriers/yurtici-kargo.bridge';
+import { normalizeGenericTracking } from '../../normalizers/cargo.normalizer';
+import { ArasKargoBridge } from '../../../shipping/carriers/aras-kargo.bridge';
 import type { ShipmentRequest } from '../../../shipping/carriers/carrier.interface';
 
 /**
- * Yurtiçi Kargo adapter'ı — ICargoProvider implementasyonu.
- * Gönderi oluşturma ve takip numarası sorgulama standart DTO'lara normalize edilir.
+ * Aras Kargo adapter'ı — gönderi oluşturma ve takip sorgusu.
  */
 @Injectable()
-export class YurticiKargoAdapter
+export class ArasKargoAdapter
   extends BaseIntegrationAdapter
   implements ICargoProvider
 {
-  readonly providerId = 'yurtici-kargo';
-  readonly displayName = 'Yurtiçi Kargo';
+  readonly providerId = 'aras-kargo';
+  readonly displayName = 'Aras Kargo';
   readonly category = IntegrationCategory.CARGO;
 
-  private buildBridge(credentials: DecryptedCredentials): YurticiKargoBridge {
-    return new YurticiKargoBridge({
+  private buildBridge(credentials: DecryptedCredentials): ArasKargoBridge {
+    return new ArasKargoBridge({
       apiUser: credentials.apiKey,
       apiPassword: credentials.apiSecret,
+      customerCode: String(credentials.extra.customerCode ?? ''),
       apiUrl: String(credentials.extra.apiUrl ?? ''),
     });
   }
 
-  /** KargoShipmentDto → bridge ShipmentRequest dönüşümü */
   private toShipmentRequest(dto: CargoShipmentDto): ShipmentRequest {
     return {
       senderAddress: {
@@ -74,7 +73,7 @@ export class YurticiKargoAdapter
     if (!credentials.apiKey) {
       return this.fail('API Key zorunludur');
     }
-    return this.ok('Yurtiçi Kargo kimlik bilgileri kayıtlı');
+    return this.ok('Aras Kargo kimlik bilgileri kayıtlı');
   }
 
   async createShipment(
@@ -96,7 +95,6 @@ export class YurticiKargoAdapter
     }
   }
 
-  /** Takip numarası sorgusu — CargoTrackingDTO döner */
   async trackShipment(
     ctx: TenantIntegrationContext,
     credentials: DecryptedCredentials,
@@ -105,11 +103,12 @@ export class YurticiKargoAdapter
     this.assertContext(ctx);
     const bridge = this.buildBridge(credentials);
     const raw = await bridge.trackShipment(trackingNumber);
-    return normalizeYurticiTracking(
+    return normalizeGenericTracking(
       trackingNumber,
-      raw,
+      'Aras Kargo',
       ctx.tenantId,
       this.providerId,
+      raw as unknown as Record<string, unknown>,
     );
   }
 

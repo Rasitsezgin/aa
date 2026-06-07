@@ -29,6 +29,23 @@ export class IntegrationsHubController {
     return this.hub.getCatalog(category);
   }
 
+  /** GET /integrations-hub/omnichannel — 8 kategori tam platform listesi */
+  @Get('omnichannel')
+  getOmnichannelCatalog(@Query('category') category?: IntegrationCategory) {
+    return this.hub.getOmnichannelCatalog(category);
+  }
+
+  /** GET /integrations-hub/queue-status — tenant rate limit & circuit durumu */
+  @Get('queue-status')
+  getQueueStatus(
+    @Headers('x-tenant-id') tenantId: string,
+    @Query('providerId') providerId: string,
+    @Query('tenantId') queryTenantId?: string,
+  ) {
+    const resolved = tenantId || queryTenantId || '';
+    return this.hub.getQueueStatus(resolved, providerId);
+  }
+
   /** GET /integrations-hub/connections */
   @Get('connections')
   listConnections(
@@ -82,12 +99,20 @@ export class IntegrationsHubController {
     body: {
       syncType?: IntegrationSyncType;
       tenantId?: string;
+      sku?: string;
+      quantity?: number;
+      price?: number;
     },
   ) {
     return this.hub.triggerSync(
       this.resolveTenantId(tenantId, body.tenantId),
       integrationId,
       body.syncType ?? IntegrationSyncType.ALL,
+      {
+        sku: body.sku,
+        quantity: body.quantity,
+        price: body.price,
+      },
     );
   }
 }

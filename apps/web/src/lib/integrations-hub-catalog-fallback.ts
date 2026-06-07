@@ -16,6 +16,8 @@ export const PROVIDER_CATALOG_FALLBACK: ProviderCatalogEntry[] = [
     ],
     features: { productSync: true, orderSync: true, inventorySync: true },
     status: 'ACTIVE',
+    hasAdapter: true,
+    connectable: true,
   },
   {
     id: 'hepsiburada',
@@ -30,6 +32,8 @@ export const PROVIDER_CATALOG_FALLBACK: ProviderCatalogEntry[] = [
     ],
     features: { productSync: true, orderSync: true, inventorySync: true },
     status: 'ACTIVE',
+    hasAdapter: true,
+    connectable: true,
   },
   {
     id: 'shopify',
@@ -44,11 +48,13 @@ export const PROVIDER_CATALOG_FALLBACK: ProviderCatalogEntry[] = [
     ],
     features: { productSync: true, orderSync: true, inventorySync: true },
     status: 'ACTIVE',
+    hasAdapter: true,
+    connectable: true,
   },
   {
     id: 'yurtici-kargo',
     name: 'Yurtiçi Kargo',
-    category: 'SHIPPING',
+    category: 'CARGO',
     country: 'TR',
     authType: 'API_KEY',
     requiredFields: [
@@ -62,11 +68,13 @@ export const PROVIDER_CATALOG_FALLBACK: ProviderCatalogEntry[] = [
       shipmentCreate: true,
     },
     status: 'ACTIVE',
+    hasAdapter: true,
+    connectable: true,
   },
   {
     id: 'parasut',
     name: 'Paraşüt',
-    category: 'ACCOUNTING',
+    category: 'INVOICE',
     country: 'TR',
     authType: 'OAUTH2',
     requiredFields: [
@@ -80,5 +88,7 @@ export const PROVIDER_CATALOG_FALLBACK: ProviderCatalogEntry[] = [
       invoiceSync: true,
     },
     status: 'ACTIVE',
+    hasAdapter: true,
+    connectable: true,
   },
 ];

@@ -154,11 +154,45 @@ export class HepsiburadaAdapter
     }
   }
 
+  async updateStock(
+    ctx: TenantIntegrationContext,
+    credentials: DecryptedCredentials,
+    sku: string,
+    quantity: number,
+  ) {
+    this.assertContext(ctx);
+    try {
+      const bridge = this.buildBridge(credentials);
+      await bridge.updateStock(sku, quantity);
+      return { success: true, message: `Stok güncellendi: ${sku} → ${quantity}` };
+    } catch (error) {
+      return { success: false, message: (error as Error).message };
+    }
+  }
+
+  async updatePrice(
+    ctx: TenantIntegrationContext,
+    credentials: DecryptedCredentials,
+    sku: string,
+    price: number,
+  ) {
+    this.assertContext(ctx);
+    try {
+      const bridge = this.buildBridge(credentials);
+      await bridge.updatePrice(sku, price);
+      return { success: true, message: `Fiyat güncellendi: ${sku} → ${price}` };
+    } catch (error) {
+      return { success: false, message: (error as Error).message };
+    }
+  }
+
   supportedSyncTypes(): IntegrationSyncType[] {
     return [
       IntegrationSyncType.PRODUCTS,
       IntegrationSyncType.ORDERS,
       IntegrationSyncType.INVENTORY,
+      IntegrationSyncType.STOCK_UPDATE,
+      IntegrationSyncType.PRICE_UPDATE,
     ];
   }
 }

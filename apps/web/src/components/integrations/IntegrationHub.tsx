@@ -17,17 +17,25 @@ import {
   X,
   Eye,
   EyeOff,
+  Globe,
+  Share2,
+  Building2,
+  Package,
+  Activity,
+  Clock,
 } from 'lucide-react';
 import { useToast } from '@/providers/toast-provider';
 import {
   connectProvider,
   fetchIntegrationCatalog,
   fetchTenantConnections,
+  fetchQueueStatus,
   testProviderConnection,
   triggerProviderSync,
   type IntegrationCategory,
   type ProviderCatalogEntry,
   type TenantConnection,
+  type QueueStatus,
 } from '@/lib/integrations-hub-api';
 
 const CATEGORY_TABS: Array<{
@@ -36,10 +44,14 @@ const CATEGORY_TABS: Array<{
   icon: React.ElementType;
 }> = [
   { id: 'ALL', label: 'Tümü', icon: Plug },
-  { id: 'MARKETPLACE', label: 'Pazaryerleri', icon: Store },
+  { id: 'MARKETPLACE', label: 'Pazaryeri', icon: Store },
   { id: 'ECOMMERCE', label: 'E-Ticaret', icon: Store },
-  { id: 'SHIPPING', label: 'Kargo', icon: Truck },
-  { id: 'ACCOUNTING', label: 'E-Fatura', icon: FileText },
+  { id: 'CARGO', label: 'Kargo', icon: Truck },
+  { id: 'INVOICE', label: 'E-Fatura', icon: FileText },
+  { id: 'SOCIAL_FEED', label: 'Sosyal/Feed', icon: Share2 },
+  { id: 'GLOBAL_MARKETPLACE', label: 'Global', icon: Globe },
+  { id: 'ERP', label: 'ERP', icon: Building2 },
+  { id: 'FULFILLMENT', label: 'Fulfillment', icon: Package },
 ];
 
 const PROVIDER_LOGOS: Record<string, string> = {
@@ -55,7 +67,14 @@ const PROVIDER_LOGOS: Record<string, string> = {
   ideasoft: '/images/pazaryeri/ideasoft-logo.webp',
 };
 
-/** Glassmorphism entegrasyon yönetim paneli — 4 kategori */
+const STATUS_COLORS: Record<string, string> = {
+  ACTIVE: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+  BETA: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+  PLANNED: 'text-slate-400 bg-white/5 border-white/10',
+  DEPRECATED: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+};
+
+/** 8 kategorili omnichannel entegrasyon merkezi */
 export function IntegrationHub() {
   const toast = useToast();
   const [catalog, setCatalog] = useState<ProviderCatalogEntry[]>([]);
@@ -68,8 +87,10 @@ export function IntegrationHub() {
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
   const [connecting, setConnecting] = useState(false);
   const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [queueStatus, setQueueStatus] = useState<QueueStatus | null>(null);
+  const [queueLoading, setQueueLoading] = useState(false);
+  const [selectedConnection, setSelectedConnection] = useState<TenantConnection | null>(null);
 
-  /** Katalog ve bağlantıları yükler */
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
@@ -98,8 +119,9 @@ export function IntegrationHub() {
 
   const filteredProviders = useMemo(() => {
     return catalog.filter((p) => {
-      const matchesCategory =
-        activeCategory === 'ALL' || p.category === activeCategory;
+      const cat = p.category === 'SHIPPING' ? 'CARGO' : p.category === 'ACCOUNTING' ? 'INVOICE' : p.category;
+      const activeCat = activeCategory === 'SHIPPING' ? 'CARGO' : activeCategory === 'ACCOUNTING' ? 'INVOICE' : activeCategory;
+      const matchesCategory = activeCategory === 'ALL' || cat === activeCat;
       const matchesSearch =
         p.name.toLowerCase().includes(search.toLowerCase()) ||
         p.id.toLowerCase().includes(search.toLowerCase());
@@ -107,14 +129,21 @@ export function IntegrationHub() {
     });
   }, [catalog, activeCategory, search]);
 
-  const stats = useMemo(() => ({
-    total: catalog.length,
-    connected: connections.filter((c) => c.isActive).length,
-    adapters: connections.filter((c) => c.hasAdapter).length,
-  }), [catalog, connections]);
+  const stats = useMemo(
+    () => ({
+      total: catalog.length,
+      connected: connections.filter((c) => c.isActive).length,
+      adapters: catalog.filter((p) => p.hasAdapter).length,
+      planned: catalog.filter((p) => p.status === 'PLANNED').length,
+    }),
+    [catalog, connections],
+  );
 
-  /** Bağlantı modalını açar */
   const openConnectModal = (provider: ProviderCatalogEntry) => {
+    if (!provider.connectable || !provider.requiredFields?.length) {
+      toast.info('Yakında', `${provider.name} bağlantısı henüz aktif değil`);
+      return;
+    }
     const initial: Record<string, string> = {};
     provider.requiredFields.forEach((f) => {
       initial[f.key] = '';
@@ -123,7 +152,6 @@ export function IntegrationHub() {
     setSelectedProvider(provider);
   };
 
-  /** Sağlayıcı bağlantısı kurar */
   const handleConnect = async () => {
     if (!selectedProvider) return;
     setConnecting(true);
@@ -142,7 +170,6 @@ export function IntegrationHub() {
     }
   };
 
-  /** Bağlantı testi */
   const handleTest = async (connection: TenantConnection) => {
     try {
       const result = await testProviderConnection(connection.id, connection.providerId);
@@ -156,7 +183,6 @@ export function IntegrationHub() {
     }
   };
 
-  /** Manuel sync */
   const handleSync = async (connection: TenantConnection) => {
     setSyncingId(connection.id);
     try {
@@ -172,10 +198,23 @@ export function IntegrationHub() {
     }
   };
 
+  const loadQueueStatus = async (connection: TenantConnection) => {
+    setSelectedConnection(connection);
+    setQueueLoading(true);
+    try {
+      const status = await fetchQueueStatus(connection.providerId);
+      setQueueStatus(status);
+    } catch (err) {
+      toast.error('Kuyruk durumu', (err as Error).message);
+      setQueueStatus(null);
+    } finally {
+      setQueueLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950/40 to-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -187,10 +226,10 @@ export function IntegrationHub() {
                 <span className="p-2 rounded-xl bg-white/10 backdrop-blur border border-white/20">
                   <Plug className="w-7 h-7 text-indigo-300" />
                 </span>
-                Entegrasyon Merkezi
+                Omnichannel Entegrasyon Merkezi
               </h1>
               <p className="mt-2 text-slate-400">
-                Pazaryeri, e-ticaret, kargo ve e-fatura bağlantılarını tek panelden yönetin
+                8 kategori, 90+ platform — pazaryeri, kargo, e-fatura, ERP ve fulfillment
               </p>
             </div>
             <button
@@ -204,12 +243,12 @@ export function IntegrationHub() {
           </div>
         </motion.div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Toplam Sağlayıcı', value: stats.total, color: 'from-indigo-500/20' },
+            { label: 'Toplam Platform', value: stats.total, color: 'from-indigo-500/20' },
             { label: 'Aktif Bağlantı', value: stats.connected, color: 'from-emerald-500/20' },
             { label: 'Adapter Hazır', value: stats.adapters, color: 'from-violet-500/20' },
+            { label: 'Yol Haritası', value: stats.planned, color: 'from-slate-500/20' },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -224,7 +263,6 @@ export function IntegrationHub() {
           ))}
         </div>
 
-        {/* Category tabs + search */}
         <div className="flex flex-col lg:flex-row gap-4 mb-6">
           <div className="flex flex-wrap gap-2">
             {CATEGORY_TABS.map((tab) => {
@@ -234,7 +272,7 @@ export function IntegrationHub() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveCategory(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
                     active
                       ? 'bg-indigo-500/30 text-indigo-200 border border-indigo-400/40'
                       : 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10'
@@ -251,13 +289,12 @@ export function IntegrationHub() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Sağlayıcı ara..."
+              placeholder="Platform ara..."
               className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-white/5 backdrop-blur border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-400/50"
             />
           </div>
         </div>
 
-        {/* Provider grid */}
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
@@ -268,16 +305,17 @@ export function IntegrationHub() {
               const connection = connectionMap.get(provider.id);
               const isConnected = connection?.isActive;
               const logo = PROVIDER_LOGOS[provider.id];
+              const statusClass = STATUS_COLORS[provider.status] ?? STATUS_COLORS.PLANNED;
 
               return (
                 <motion.div
                   key={provider.id}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.03 }}
+                  transition={{ delay: index * 0.02 }}
                   className="group p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:border-white/20 hover:bg-white/[0.07] transition-all"
                 >
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
                       {logo ? (
                         <img
@@ -301,31 +339,41 @@ export function IntegrationHub() {
                         Bağlı
                       </span>
                     ) : (
-                      <span className="text-xs text-slate-500 bg-white/5 px-2 py-1 rounded-full">
+                      <span className={`text-xs px-2 py-1 rounded-full border ${statusClass}`}>
                         {provider.status}
                       </span>
                     )}
                   </div>
 
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {provider.features.productSync && (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {provider.hasAdapter && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-300 border border-violet-500/20">
+                        Adapter
+                      </span>
+                    )}
+                    {provider.features?.productSync && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">
                         Ürün
                       </span>
                     )}
-                    {provider.features.orderSync && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-300 border border-violet-500/20">
+                    {provider.features?.orderSync && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
                         Sipariş
                       </span>
                     )}
-                    {provider.features.shipmentCreate && (
+                    {provider.features?.shipmentCreate && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
                         Kargo
                       </span>
                     )}
-                    {provider.features.invoiceSync && (
+                    {provider.features?.invoiceSync && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20">
                         Fatura
+                      </span>
+                    )}
+                    {provider.rateLimitPerMinute && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-400 border border-slate-500/20">
+                        {provider.rateLimitPerMinute}/dk
                       </span>
                     )}
                   </div>
@@ -341,6 +389,13 @@ export function IntegrationHub() {
                           Test
                         </button>
                         <button
+                          onClick={() => void loadQueueStatus(connection)}
+                          className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10"
+                          title="Kuyruk durumu"
+                        >
+                          <Activity className="w-3.5 h-3.5" />
+                        </button>
+                        <button
                           onClick={() => void handleSync(connection)}
                           disabled={syncingId === connection.id}
                           className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 hover:bg-indigo-500/30 disabled:opacity-50"
@@ -353,7 +408,7 @@ export function IntegrationHub() {
                           Sync
                         </button>
                       </>
-                    ) : (
+                    ) : provider.connectable ? (
                       <button
                         onClick={() => openConnectModal(provider)}
                         className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-medium bg-indigo-500/30 text-indigo-100 border border-indigo-400/40 hover:bg-indigo-500/40 transition-all"
@@ -361,6 +416,11 @@ export function IntegrationHub() {
                         <Plug className="w-4 h-4" />
                         Bağlan
                       </button>
+                    ) : (
+                      <span className="w-full text-center py-2.5 text-xs text-slate-500 flex items-center justify-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5" />
+                        Yakında
+                      </span>
                     )}
                   </div>
                 </motion.div>
@@ -412,7 +472,7 @@ export function IntegrationHub() {
               </div>
 
               <div className="space-y-4 mb-6">
-                {selectedProvider.requiredFields.map((field) => (
+                {(selectedProvider.requiredFields ?? []).map((field) => (
                   <div key={field.key}>
                     <label className="block text-sm font-medium text-slate-300 mb-1.5">
                       {field.label}
@@ -470,6 +530,93 @@ export function IntegrationHub() {
                 )}
                 Bağlantıyı Kur
               </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Queue status panel */}
+      <AnimatePresence>
+        {selectedConnection && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => {
+              setSelectedConnection(null);
+              setQueueStatus(null);
+            }}
+          >
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm p-6 rounded-2xl bg-slate-900/95 backdrop-blur-2xl border border-white/15 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-indigo-400" />
+                  Kuyruk Durumu
+                </h3>
+                <button
+                  onClick={() => {
+                    setSelectedConnection(null);
+                    setQueueStatus(null);
+                  }}
+                  className="p-2 rounded-lg hover:bg-white/10 text-slate-400"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-sm text-slate-400 mb-4">
+                {selectedConnection.providerName}
+              </p>
+              {queueLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+                </div>
+              ) : queueStatus ? (
+                <div className="space-y-3">
+                  <div className="flex justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                    <span className="text-slate-400 text-sm">Circuit Breaker</span>
+                    <span className="text-white font-medium capitalize">
+                      {queueStatus.circuitState}
+                    </span>
+                  </div>
+                  <div className="flex justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                    <span className="text-slate-400 text-sm">Kalan Kota</span>
+                    <span className="text-white font-medium">
+                      {queueStatus.remainingQuota}/dk
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                    <span className="text-slate-400 text-sm block mb-2">
+                      Kayıtlı Adapter ({queueStatus.registeredAdapters.length})
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {queueStatus.registeredAdapters.slice(0, 8).map((id) => (
+                        <span
+                          key={id}
+                          className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300"
+                        >
+                          {id}
+                        </span>
+                      ))}
+                      {queueStatus.registeredAdapters.length > 8 && (
+                        <span className="text-[10px] text-slate-500">
+                          +{queueStatus.registeredAdapters.length - 8}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-slate-500 text-sm text-center py-4">
+                  Durum alınamadı
+                </p>
+              )}
             </motion.div>
           </motion.div>
         )}

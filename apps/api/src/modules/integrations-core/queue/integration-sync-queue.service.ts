@@ -10,7 +10,7 @@ import type { Queue } from 'bullmq';
 import { IntegrationSyncType } from '../enums/integration-category.enum';
 import type { IntegrationCategory } from '../enums/integration-category.enum';
 import type { IntegrationSyncJobPayload } from '../dto/integration-sync-job.dto';
-import { FairQueuePolicy } from './fair-queue.policy';
+import { IntegrationJobExecutor } from './integration-job.executor';
 import { MarketplaceService } from '../../marketplace/marketplace.service';
 
 export const INTEGRATION_SYNC_QUEUE = 'integration-sync';
@@ -22,9 +22,9 @@ export const INTEGRATION_SYNC_QUEUE = 'integration-sync';
 @Injectable()
 export class IntegrationSyncQueueService {
   private readonly logger = new Logger(IntegrationSyncQueueService.name);
-  private readonly fairQueue = new FairQueuePolicy(3);
 
   constructor(
+    private readonly jobExecutor: IntegrationJobExecutor,
     @Optional()
     @InjectQueue(INTEGRATION_SYNC_QUEUE)
     private readonly queue?: Queue,
@@ -42,6 +42,9 @@ export class IntegrationSyncQueueService {
     syncType: IntegrationSyncType;
     platform?: string;
     manual?: boolean;
+    sku?: string;
+    quantity?: number;
+    price?: number;
   }): Promise<{ queued: boolean; jobId?: string | number; message: string }> {
     const payload: IntegrationSyncJobPayload = {
       tenantId: params.tenantId,
@@ -52,10 +55,18 @@ export class IntegrationSyncQueueService {
       platform: params.platform,
       manual: params.manual ?? false,
       enqueuedAt: new Date().toISOString(),
-      priority: this.fairQueue.resolvePriority(params.tenantId),
+      priority: this.jobExecutor.resolvePriority(params.tenantId),
+      sku: params.sku,
+      quantity: params.quantity,
+      price: params.price,
     };
 
-    if (this.queue && this.fairQueue.canEnqueue(params.tenantId)) {
+    const gate = this.jobExecutor.canExecute(payload);
+    if (!gate.success && gate.reason === 'rate-limit') {
+      this.logger.warn(`Rate limit: ${params.tenantId}/${params.providerId}`);
+    }
+
+    if (this.queue && gate.success) {
       const job = await this.queue.add(
         `sync-${params.syncType}`,
         payload,

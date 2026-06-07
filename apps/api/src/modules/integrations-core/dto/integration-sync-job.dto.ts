@@ -13,6 +13,10 @@ export interface IntegrationSyncJobPayload {
   retry?: boolean;
   priority?: number;
   enqueuedAt: string;
+  /** Stok/fiyat güncelleme job'ları için */
+  sku?: string;
+  quantity?: number;
+  price?: number;
 }
 
 /** Fair-queue tenant bucket meta */

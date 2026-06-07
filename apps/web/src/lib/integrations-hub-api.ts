@@ -3,6 +3,12 @@
 export type IntegrationCategory =
   | 'MARKETPLACE'
   | 'ECOMMERCE'
+  | 'CARGO'
+  | 'INVOICE'
+  | 'SOCIAL_FEED'
+  | 'GLOBAL_MARKETPLACE'
+  | 'ERP'
+  | 'FULFILLMENT'
   | 'SHIPPING'
   | 'ACCOUNTING';
 
@@ -12,21 +18,24 @@ export interface ProviderCatalogEntry {
   category: IntegrationCategory;
   platform?: string;
   country: string;
-  authType: string;
-  requiredFields: Array<{
+  authType?: string;
+  requiredFields?: Array<{
     key: string;
     label: string;
     type: 'text' | 'password' | 'url';
     required: boolean;
   }>;
-  features: {
+  features?: {
     productSync: boolean;
     orderSync: boolean;
     inventorySync: boolean;
     invoiceSync?: boolean;
     shipmentCreate?: boolean;
   };
-  status: 'ACTIVE' | 'BETA' | 'DEPRECATED';
+  status: 'ACTIVE' | 'BETA' | 'PLANNED' | 'DEPRECATED';
+  hasAdapter: boolean;
+  connectable: boolean;
+  rateLimitPerMinute?: number;
 }
 
 export interface TenantConnection {
@@ -40,6 +49,15 @@ export interface TenantConnection {
   status: string;
   lastSyncAt: string;
   hasAdapter: boolean;
+  connectionType?: 'integration' | 'service-credential';
+}
+
+export interface QueueStatus {
+  tenantId: string;
+  providerId: string;
+  circuitState: string;
+  remainingQuota: number;
+  registeredAdapters: string[];
 }
 
 async function parseJson<T>(res: Response): Promise<T> {
@@ -54,7 +72,7 @@ async function parseJson<T>(res: Response): Promise<T> {
   return data as T;
 }
 
-/** Katalog listesini getirir */
+/** Birleşik omnichannel katalog */
 export async function fetchIntegrationCatalog(
   category?: IntegrationCategory,
 ): Promise<ProviderCatalogEntry[]> {
@@ -66,6 +84,16 @@ export async function fetchIntegrationCatalog(
 /** Tenant bağlantılarını listeler */
 export async function fetchTenantConnections(): Promise<TenantConnection[]> {
   const res = await fetch('/api/integrations-hub/connections');
+  return parseJson(res);
+}
+
+/** Kuyruk durumu — circuit breaker + rate limit */
+export async function fetchQueueStatus(
+  providerId: string,
+): Promise<QueueStatus> {
+  const res = await fetch(
+    `/api/integrations-hub/queue-status?providerId=${encodeURIComponent(providerId)}`,
+  );
   return parseJson(res);
 }
 
@@ -104,11 +132,12 @@ export async function testProviderConnection(
 export async function triggerProviderSync(
   integrationId: string,
   syncType = 'all',
+  options?: { sku?: string; quantity?: number; price?: number },
 ): Promise<{ queued: boolean; message: string; jobId?: string | number }> {
   const res = await fetch(`/api/integrations-hub/${integrationId}/sync`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ syncType }),
+    body: JSON.stringify({ syncType, ...options }),
   });
   return parseJson(res);
 }

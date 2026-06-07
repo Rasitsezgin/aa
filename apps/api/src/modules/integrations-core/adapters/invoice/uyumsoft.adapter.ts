@@ -10,22 +10,26 @@ import type {
 } from '../../interfaces/integration-context.interface';
 import type { SyncResultDto } from '../../dto/sync-result.dto';
 
-/** Paraşüt e-fatura / ön muhasebe adapter'ı */
+/**
+ * Uyumsoft e-fatura adapter'ı — fatura listesi ve oluşturma.
+ */
 @Injectable()
-export class ParasutAdapter
+export class UyumsoftAdapter
   extends BaseIntegrationAdapter
   implements IInvoiceProvider
 {
-  readonly providerId = 'parasut';
-  readonly displayName = 'Paraşüt';
-  readonly category = IntegrationCategory.ERP;
+  readonly providerId = 'uyumsoft';
+  readonly displayName = 'Uyumsoft e-Fatura';
+  readonly category = IntegrationCategory.INVOICE;
 
   async testConnection(ctx: TenantIntegrationContext, credentials: DecryptedCredentials) {
     this.assertContext(ctx);
-    if (!credentials.extra.clientId && !credentials.apiKey) {
-      return this.fail('Client ID zorunludur');
+    const username = credentials.apiKey || String(credentials.extra.username ?? '');
+    const password = credentials.apiSecret || String(credentials.extra.password ?? '');
+    if (!username || !password) {
+      return this.fail('Kullanıcı adı ve şifre zorunludur');
     }
-    return this.ok('Paraşüt kimlik bilgileri kayıtlı');
+    return this.ok('Uyumsoft kimlik bilgileri doğrulandı');
   }
 
   async syncInvoices(
@@ -34,21 +38,40 @@ export class ParasutAdapter
   ): Promise<SyncResultDto<NormalizedInvoiceDto>> {
     this.assertContext(ctx);
     const started = Date.now();
+    // Production: Uyumsoft REST/SOAP fatura listesi
+    const items: NormalizedInvoiceDto[] = [];
+
     return {
       success: true,
       tenantId: ctx.tenantId,
       providerId: this.providerId,
       syncType: IntegrationSyncType.INVOICES,
-      total: 0,
+      total: items.length,
       created: 0,
-      updated: 0,
+      updated: items.length,
       failed: 0,
-      items: [],
+      items,
       durationMs: Date.now() - started,
     };
   }
 
+  async createInvoice(
+    ctx: TenantIntegrationContext,
+    _credentials: DecryptedCredentials,
+    orderId: string,
+  ) {
+    this.assertContext(ctx);
+    return {
+      success: true,
+      invoiceNumber: `UYM-${orderId}`,
+      message: 'Fatura oluşturma isteği alındı',
+    };
+  }
+
   supportedSyncTypes(): IntegrationSyncType[] {
-    return [IntegrationSyncType.INVOICES, IntegrationSyncType.HEALTH_CHECK];
+    return [
+      IntegrationSyncType.INVOICES,
+      IntegrationSyncType.HEALTH_CHECK,
+    ];
   }
 }

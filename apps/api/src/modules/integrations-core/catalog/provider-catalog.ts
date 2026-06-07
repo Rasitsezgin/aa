@@ -23,7 +23,7 @@ export interface ProviderCatalogEntry {
   status: 'ACTIVE' | 'BETA' | 'DEPRECATED';
 }
 
-/** 4 kategori için merkezi sağlayıcı kataloğu */
+/** 8 kategori için bağlanabilir sağlayıcı kataloğu (requiredFields ile) */
 export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
   // — Pazaryerleri —
   {
@@ -170,7 +170,7 @@ export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
   {
     id: 'yurtici-kargo',
     name: 'Yurtiçi Kargo',
-    category: IntegrationCategory.SHIPPING,
+    category: IntegrationCategory.CARGO,
     country: 'TR',
     authType: 'API_KEY',
     requiredFields: [
@@ -183,7 +183,7 @@ export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
   {
     id: 'aras-kargo',
     name: 'Aras Kargo',
-    category: IntegrationCategory.SHIPPING,
+    category: IntegrationCategory.CARGO,
     country: 'TR',
     authType: 'API_KEY',
     requiredFields: [
@@ -196,7 +196,7 @@ export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
   {
     id: 'mng-kargo',
     name: 'MNG Kargo',
-    category: IntegrationCategory.SHIPPING,
+    category: IntegrationCategory.CARGO,
     country: 'TR',
     authType: 'API_KEY',
     requiredFields: [
@@ -209,7 +209,7 @@ export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
   {
     id: 'sendeo',
     name: 'Sendeo',
-    category: IntegrationCategory.SHIPPING,
+    category: IntegrationCategory.CARGO,
     country: 'TR',
     authType: 'API_KEY',
     requiredFields: [
@@ -222,7 +222,7 @@ export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
   {
     id: 'parasut',
     name: 'Paraşüt',
-    category: IntegrationCategory.ACCOUNTING,
+    category: IntegrationCategory.INVOICE,
     country: 'TR',
     authType: 'OAUTH2',
     requiredFields: [
@@ -235,7 +235,7 @@ export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
   {
     id: 'uyumsoft',
     name: 'Uyumsoft',
-    category: IntegrationCategory.ACCOUNTING,
+    category: IntegrationCategory.INVOICE,
     country: 'TR',
     authType: 'BASIC',
     requiredFields: [
@@ -248,7 +248,7 @@ export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
   {
     id: 'qnb-efinans',
     name: 'QNB eFinans',
-    category: IntegrationCategory.ACCOUNTING,
+    category: IntegrationCategory.INVOICE,
     country: 'TR',
     authType: 'BASIC',
     requiredFields: [
@@ -261,13 +261,99 @@ export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
   {
     id: 'bizimhesap',
     name: 'BizimHesap',
-    category: IntegrationCategory.ACCOUNTING,
+    category: IntegrationCategory.INVOICE,
     country: 'TR',
     authType: 'API_KEY',
     requiredFields: [
       { key: 'apiKey', label: 'API Key', type: 'password', required: true },
     ],
     features: { productSync: false, orderSync: false, inventorySync: false, invoiceSync: true },
+    status: 'BETA',
+  },
+  // — ERP —
+  {
+    id: 'logo',
+    name: 'Logo ERP',
+    category: IntegrationCategory.ERP,
+    country: 'TR',
+    authType: 'BASIC',
+    requiredFields: [
+      { key: 'username', label: 'Kullanıcı Adı', type: 'text', required: true },
+      { key: 'password', label: 'Şifre', type: 'password', required: true },
+      { key: 'apiUrl', label: 'API URL', type: 'url', required: false },
+      { key: 'companyCode', label: 'Firma Kodu', type: 'text', required: false },
+    ],
+    features: { productSync: false, orderSync: false, inventorySync: true, invoiceSync: true },
+    status: 'ACTIVE',
+  },
+  {
+    id: 'parasut-erp',
+    name: 'Paraşüt ERP',
+    category: IntegrationCategory.ERP,
+    country: 'TR',
+    authType: 'OAUTH2',
+    requiredFields: [
+      { key: 'clientId', label: 'Client ID', type: 'text', required: true },
+      { key: 'clientSecret', label: 'Client Secret', type: 'password', required: true },
+    ],
+    features: { productSync: false, orderSync: false, inventorySync: false, invoiceSync: true },
+    status: 'BETA',
+  },
+  // — E-Ticaret (ek) —
+  {
+    id: 'ikas',
+    name: 'İkas',
+    category: IntegrationCategory.ECOMMERCE,
+    country: 'TR',
+    authType: 'TOKEN',
+    requiredFields: [
+      { key: 'storeUrl', label: 'Mağaza URL', type: 'url', required: true },
+      { key: 'accessToken', label: 'Access Token', type: 'password', required: true },
+    ],
+    features: { productSync: true, orderSync: true, inventorySync: true },
+    status: 'BETA',
+  },
+  // — Sosyal Feed —
+  {
+    id: 'google-merchant',
+    name: 'Google Merchant',
+    category: IntegrationCategory.SOCIAL_FEED,
+    country: 'GLOBAL',
+    authType: 'OAUTH2',
+    requiredFields: [
+      { key: 'merchantId', label: 'Merchant ID', type: 'text', required: true },
+      { key: 'accessToken', label: 'Access Token', type: 'password', required: true },
+    ],
+    features: { productSync: true, orderSync: false, inventorySync: false },
+    status: 'BETA',
+  },
+  // — Global Pazaryeri —
+  {
+    id: 'amazon-global',
+    name: 'Amazon Yurtdışı',
+    category: IntegrationCategory.GLOBAL_MARKETPLACE,
+    platform: 'AMAZON_US',
+    country: 'GLOBAL',
+    authType: 'OAUTH2',
+    requiredFields: [
+      { key: 'sellerId', label: 'Seller ID', type: 'text', required: true },
+      { key: 'refreshToken', label: 'Refresh Token', type: 'password', required: true },
+    ],
+    features: { productSync: true, orderSync: true, inventorySync: true },
+    status: 'BETA',
+  },
+  // — Fulfillment —
+  {
+    id: 'amazon-fba',
+    name: 'Amazon FBA',
+    category: IntegrationCategory.FULFILLMENT,
+    country: 'GLOBAL',
+    authType: 'OAUTH2',
+    requiredFields: [
+      { key: 'sellerId', label: 'Seller ID', type: 'text', required: true },
+      { key: 'refreshToken', label: 'Refresh Token', type: 'password', required: true },
+    ],
+    features: { productSync: false, orderSync: false, inventorySync: true },
     status: 'BETA',
   },
 ];

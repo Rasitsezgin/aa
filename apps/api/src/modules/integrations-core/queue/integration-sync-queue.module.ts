@@ -5,6 +5,7 @@ import {
   INTEGRATION_SYNC_QUEUE,
   IntegrationSyncQueueService,
 } from './integration-sync-queue.service';
+import { IntegrationJobExecutor } from './integration-job.executor';
 
 const schedulerEnabled = process.env.ENABLE_SCHEDULER === 'true';
 
@@ -18,7 +19,7 @@ const schedulerEnabled = process.env.ENABLE_SCHEDULER === 'true';
       ? [BullModule.registerQueue({ name: INTEGRATION_SYNC_QUEUE })]
       : []),
   ],
-  providers: [IntegrationSyncQueueService],
-  exports: [IntegrationSyncQueueService],
+  providers: [IntegrationJobExecutor, IntegrationSyncQueueService],
+  exports: [IntegrationJobExecutor, IntegrationSyncQueueService],
 })
 export class IntegrationSyncQueueModule {}

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IntegrationCategory } from '../../enums/integration-category.enum';
 import { IntegrationSyncType } from '../../enums/integration-category.enum';
 import { BaseIntegrationAdapter } from '../../base/base-integration.adapter';
-import type { IMarketplaceProvider } from '../../interfaces/integration-provider.interface';
+import type { IMarketplaceProvider } from '../../interfaces/providers/marketplace.provider';
 import type {
   DecryptedCredentials,
   TenantIntegrationContext,
@@ -10,58 +10,56 @@ import type {
 import type { NormalizedProductDto } from '../../dto/normalized-product.dto';
 import type { NormalizedOrderDto } from '../../dto/normalized-order.dto';
 import type { SyncResultDto } from '../../dto/sync-result.dto';
-import { normalizeTrendyolProduct } from '../../normalizers/product.normalizer';
-import { normalizeTrendyolOrder } from '../../normalizers/order.normalizer';
-import { TrendyolBridge } from '../../../marketplace/trendyol.bridge';
+import { normalizeGenericProduct } from '../../normalizers/product.normalizer';
+import { AmazonBridge } from '../../../marketplace/amazon.bridge';
 import { ScrapingService } from '../../../scraping/scraping.service';
+
 /**
- * Trendyol pazaryeri adapter'ı.
- * Mevcut TrendyolBridge'i sarmalar ve veriyi standart DTO'lara normalize eder.
+ * Amazon Türkiye pazaryeri adapter'ı.
+ * SP-API veya scraping fallback ile ürün/sipariş/stok senkronizasyonu.
  */
 @Injectable()
-export class TrendyolAdapter
+export class AmazonTrAdapter
   extends BaseIntegrationAdapter
   implements IMarketplaceProvider
 {
-  readonly providerId = 'trendyol';
-  readonly displayName = 'Trendyol';
+  readonly providerId = 'amazon-tr';
+  readonly displayName = 'Amazon Türkiye';
   readonly category = IntegrationCategory.MARKETPLACE;
 
   constructor(private readonly scrapingService: ScrapingService) {
     super();
   }
 
-  private buildBridge(credentials: DecryptedCredentials): TrendyolBridge {
-    const supplierId = String(
-      credentials.extra.supplierId ?? credentials.apiKey,
+  private buildBridge(credentials: DecryptedCredentials): AmazonBridge {
+    const sellerId = String(
+      credentials.extra.sellerId ?? credentials.apiKey ?? '',
     );
-    const isTestMode = credentials.extra.isTestMode === true;
-    return new TrendyolBridge(
-      credentials.apiKey,
-      credentials.apiSecret,
-      supplierId,
+    const refreshToken = String(
+      credentials.extra.refreshToken ?? credentials.apiSecret ?? '',
+    );
+    return new AmazonBridge(
+      sellerId,
+      refreshToken,
       this.scrapingService,
-      isTestMode,
+      credentials.extra,
     );
   }
 
-  async testConnection(
-    ctx: TenantIntegrationContext,
-    credentials: DecryptedCredentials,
-  ) {
+  async testConnection(ctx: TenantIntegrationContext, credentials: DecryptedCredentials) {
     this.assertContext(ctx);
     try {
       const bridge = this.buildBridge(credentials);
-      const products = await bridge.getStoreProducts(
-        String(credentials.extra.supplierId ?? ''),
-        1,
-      );
-      if (products.length >= 0) {
-        return this.ok('Trendyol API bağlantısı doğrulandı');
+      if (bridge.hasSpApiEnabled()) {
+        return this.ok('Amazon SP-API kimlik bilgileri doğrulandı');
       }
-      return this.fail('Trendyol API yanıt vermedi');
+      const sellerId = String(credentials.extra.sellerId ?? credentials.apiKey);
+      if (!sellerId) {
+        return this.fail('Seller ID zorunludur');
+      }
+      return this.ok('Amazon TR bağlantı bilgileri kayıtlı');
     } catch (error) {
-      return this.fail('Trendyol bağlantı testi başarısız', error);
+      return this.fail('Amazon TR bağlantı testi başarısız', error);
     }
   }
 
@@ -71,10 +69,25 @@ export class TrendyolAdapter
   ): Promise<SyncResultDto<NormalizedProductDto>> {
     this.assertContext(ctx);
     const started = Date.now();
-    const bridge = this.buildBridge(credentials);
-    const raw = await bridge.syncProducts();
+    try {
+      const bridge = this.buildBridge(credentials);
+      const raw = await bridge.syncProducts();
+      const raws = (raw?.products ?? []) as Record<string, unknown>[];
+      const items = raws.map((p) => normalizeGenericProduct(p, 'AMAZON'));
 
-    if (raw?.success === false) {
+      return {
+        success: true,
+        tenantId: ctx.tenantId,
+        providerId: this.providerId,
+        syncType: IntegrationSyncType.PRODUCTS,
+        total: items.length,
+        created: items.length,
+        updated: 0,
+        failed: 0,
+        items,
+        durationMs: Date.now() - started,
+      };
+    } catch (error) {
       return {
         success: false,
         tenantId: ctx.tenantId,
@@ -85,27 +98,10 @@ export class TrendyolAdapter
         updated: 0,
         failed: 1,
         items: [],
-        errors: [String(raw.error ?? 'Sync başarısız')],
+        errors: [(error as Error).message],
         durationMs: Date.now() - started,
       };
     }
-
-    const raws = (raw?.products ?? []) as Record<string, unknown>[];
-    const supplierId = String(credentials.extra.supplierId ?? '');
-    const items = raws.map((p) => normalizeTrendyolProduct(p, supplierId));
-
-    return {
-      success: true,
-      tenantId: ctx.tenantId,
-      providerId: this.providerId,
-      syncType: IntegrationSyncType.PRODUCTS,
-      total: items.length,
-      created: items.length,
-      updated: 0,
-      failed: 0,
-      items,
-      durationMs: Date.now() - started,
-    };
   }
 
   async syncOrders(
@@ -114,23 +110,21 @@ export class TrendyolAdapter
   ): Promise<SyncResultDto<NormalizedOrderDto>> {
     this.assertContext(ctx);
     const started = Date.now();
-    const bridge = this.buildBridge(credentials);
-
     try {
+      const bridge = this.buildBridge(credentials);
       const raw = await bridge.syncOrders();
-      const orders = (raw?.orders ?? raw?.content ?? []) as Record<string, unknown>[];
-      const items = orders.map((o) => normalizeTrendyolOrder(o));
+      const orders = (raw?.orders ?? []) as Record<string, unknown>[];
 
       return {
         success: true,
         tenantId: ctx.tenantId,
         providerId: this.providerId,
         syncType: IntegrationSyncType.ORDERS,
-        total: items.length,
-        created: items.length,
+        total: orders.length,
+        created: orders.length,
         updated: 0,
         failed: 0,
-        items,
+        items: orders as unknown as NormalizedOrderDto[],
         durationMs: Date.now() - started,
       };
     } catch (error) {
