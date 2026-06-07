@@ -591,6 +591,12 @@ export function IntegrationHub() {
                       {queueStatus.remainingQuota}/dk
                     </span>
                   </div>
+                  <div className="flex justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                    <span className="text-slate-400 text-sm">Toplam Adapter</span>
+                    <span className="text-white font-medium">
+                      {queueStatus.adapterCount ?? queueStatus.registeredAdapters.length}
+                    </span>
+                  </div>
                   <div className="p-3 rounded-xl bg-white/5 border border-white/10">
                     <span className="text-slate-400 text-sm block mb-2">
                       Kayıtlı Adapter ({queueStatus.registeredAdapters.length})

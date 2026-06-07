@@ -1,4 +1,5 @@
 import { IntegrationCategory } from '../enums/integration-category.enum';
+import { buildGeneratedCatalogEntries } from './connectable-catalog.builder';
 
 export interface ProviderCatalogEntry {
   id: string;
@@ -358,12 +359,18 @@ export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
   },
 ];
 
+/** Manuel + otomatik üretilmiş tam bağlanabilir katalog */
+export const FULL_PROVIDER_CATALOG: ProviderCatalogEntry[] = [
+  ...PROVIDER_CATALOG,
+  ...buildGeneratedCatalogEntries(new Set(PROVIDER_CATALOG.map((p) => p.id))),
+];
+
 export function getProvidersByCategory(
   category: IntegrationCategory,
 ): ProviderCatalogEntry[] {
-  return PROVIDER_CATALOG.filter((p) => p.category === category);
+  return FULL_PROVIDER_CATALOG.filter((p) => p.category === category);
 }
 
 export function getProviderById(id: string): ProviderCatalogEntry | undefined {
-  return PROVIDER_CATALOG.find((p) => p.id === id);
+  return FULL_PROVIDER_CATALOG.find((p) => p.id === id);
 }

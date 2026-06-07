@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import type { IntegrationCategory } from '../enums/integration-category.enum';
 import type { IIntegrationProvider } from '../interfaces/providers/base.provider';
 import type { IMarketplaceProvider } from '../interfaces/providers/marketplace.provider';
@@ -22,13 +22,14 @@ import { UyumsoftAdapter } from '../adapters/invoice/uyumsoft.adapter';
 import { LogoAdapter } from '../adapters/erp/logo.adapter';
 import { GoogleMerchantAdapter } from '../adapters/social/google-merchant.adapter';
 import { AmazonFbaAdapter } from '../adapters/fulfillment/amazon-fba.adapter';
+import { IntegrationAdapterFactory } from '../factory/integration-adapter.factory';
 
 /**
- * Abstract Factory + Registry — providerId → adapter instance.
- * 8 kategori için tip-güvenli getter metodları sunar.
+ * Abstract Factory + Registry — 90+ provider adapter yönetimi.
+ * Özel adapter'lar + fabrika üretimi yapılandırılabilir adapter'lar.
  */
 @Injectable()
-export class IntegrationAdapterRegistry {
+export class IntegrationAdapterRegistry implements OnModuleInit {
   private readonly providers = new Map<string, IIntegrationProvider>();
 
   constructor(
@@ -45,6 +46,7 @@ export class IntegrationAdapterRegistry {
     private readonly logoAdapter: LogoAdapter,
     private readonly googleMerchantAdapter: GoogleMerchantAdapter,
     private readonly amazonFbaAdapter: AmazonFbaAdapter,
+    private readonly adapterFactory: IntegrationAdapterFactory,
   ) {
     [
       this.trendyolAdapter,
@@ -61,6 +63,14 @@ export class IntegrationAdapterRegistry {
       this.googleMerchantAdapter,
       this.amazonFbaAdapter,
     ].forEach((a) => this.register(a));
+  }
+
+  onModuleInit(): void {
+    for (const adapter of this.adapterFactory.createSupplementalAdapters()) {
+      if (!this.providers.has(adapter.providerId)) {
+        this.register(adapter);
+      }
+    }
   }
 
   private register(provider: IIntegrationProvider): void {
@@ -125,5 +135,9 @@ export class IntegrationAdapterRegistry {
 
   listRegistered(): string[] {
     return [...this.providers.keys()];
+  }
+
+  count(): number {
+    return this.providers.size;
   }
 }

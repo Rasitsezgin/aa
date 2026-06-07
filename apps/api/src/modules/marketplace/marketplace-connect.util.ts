@@ -36,6 +36,13 @@ export const MARKETPLACE_ID_TO_PLATFORM: Record<string, PrismaPlatform> = {
   coupang: 'COUPANG',
   shopify: 'SHOPIFY',
   woocommerce: 'WOOCOMMERCE',
+  epttavm: 'PTTAVM',
+  'amazon-global': 'AMAZON_US',
+  ebay: 'EBAY',
+  shopee: 'SHOPEE',
+  lazada: 'LAZADA',
+  rakuten: 'RAKUTEN',
+  mercadolibre: 'MERCADOLIBRE',
 };
 
 const OPTIONAL_SECRET_PLATFORMS = new Set<PrismaPlatform>([

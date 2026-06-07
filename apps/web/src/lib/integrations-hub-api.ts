@@ -58,6 +58,7 @@ export interface QueueStatus {
   circuitState: string;
   remainingQuota: number;
   registeredAdapters: string[];
+  adapterCount?: number;
 }
 
 async function parseJson<T>(res: Response): Promise<T> {
