@@ -2,8 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
-import { parseTrendyolStoreUrl } from '@/lib/trendyol-store-url';
-import { fetchTrendyolStoreAnalysis } from '@/lib/trendyol-store-api';
+import { runTrendyolAnalysis } from '@/lib/trendyol-analyze';
 
 interface ScrapedStoreData {
     storeName: string;
@@ -253,33 +252,8 @@ export async function GET(
                 platform.toLowerCase() === 'trendyol' ||
                 url.includes('trendyol.com')
             ) {
-                const parsed =
-                    parseTrendyolStoreUrl(url) ||
-                    (storeId && /^\d+$/.test(storeId)
-                        ? {
-                              storeId,
-                              storeSlug: `magaza-${storeId}`,
-                              storeName: 'Trendyol Mağazası',
-                          }
-                        : null);
-
-                if (parsed) {
-                    const trendyolData = await fetchTrendyolStoreAnalysis(
-                        parsed,
-                        url,
-                    );
-                    return NextResponse.json({
-                        metrics: trendyolData.metrics,
-                        products: trendyolData.products,
-                        seoScore: trendyolData.seoScore,
-                        keywords: trendyolData.keywords,
-                        dataSources: {
-                            overall: 'api',
-                            seoScore: 'calculated',
-                            products: 'api',
-                        },
-                    });
-                }
+                const trendyolData = await runTrendyolAnalysis(url, storeId);
+                return NextResponse.json(trendyolData);
             } else if (url.includes('amazon.')) {
                 store = await scrapeAmazonStore(url);
                 products = await scrapeAmazonProducts(url);

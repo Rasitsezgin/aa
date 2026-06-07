@@ -65,7 +65,10 @@ export class TrendyolBridge implements MarketplaceBridge {
   async getStoreInfo(storeId?: string): Promise<TrendyolStoreData> {
     try {
       // Use ScrapingService for real data if available
-      const url = `https://www.trendyol.com/magaza/${(storeId || this.supplierId).toLowerCase()}-m-${storeId || this.supplierId}`;
+      const resolvedId = storeId || this.supplierId;
+      const url = /^\d+$/.test(String(resolvedId))
+        ? `https://www.trendyol.com/sr?mid=${resolvedId}`
+        : `https://www.trendyol.com/magaza/${String(resolvedId).toLowerCase()}-m-${resolvedId}`;
       const scrapedData = await this.scrapingService.scrapeStore(
         url,
         'TRENDYOL',
@@ -116,7 +119,9 @@ export class TrendyolBridge implements MarketplaceBridge {
       this.logger.warn(
         `Trendyol API ürün çekimi boş döndü, scraping fallback çalışacak. storeId=${resolvedStoreId}`,
       );
-      const url = `https://www.trendyol.com/magaza/${resolvedStoreId.toLowerCase()}-m-${resolvedStoreId}`;
+      const url = /^\d+$/.test(String(resolvedStoreId))
+        ? `https://www.trendyol.com/sr?mid=${resolvedStoreId}`
+        : `https://www.trendyol.com/magaza/${resolvedStoreId.toLowerCase()}-m-${resolvedStoreId}`;
       const scrapedProducts = await this.scrapingService.scrapeStoreProducts(
         url,
         'TRENDYOL',

@@ -81,3 +81,17 @@ export function parseTrendyolStoreUrl(urlString: string): ParsedTrendyolStore | 
     return null;
   }
 }
+
+/** Ürün listesi ve scraping için en stabil Trendyol mağaza URL'si */
+export function resolveTrendyolBrowseUrl(
+  parsed: ParsedTrendyolStore,
+  sourceUrl?: string,
+): string {
+  if (sourceUrl?.includes('trendyol.com')) {
+    return sourceUrl;
+  }
+  if (parsed.storeSlug && !parsed.storeSlug.startsWith('magaza-')) {
+    return `https://www.trendyol.com/magaza/profil/${parsed.storeSlug}-m-${parsed.storeId}`;
+  }
+  return `https://www.trendyol.com/sr?mid=${parsed.storeId}`;
+}

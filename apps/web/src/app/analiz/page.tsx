@@ -2358,6 +2358,7 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [userPlan, _setUserPlan] = useState<'FREE' | 'PRO' | 'ENTERPRISE'>('FREE');
     const [error, setError] = useState<string | null>(null);
+    const [analysisNotice, setAnalysisNotice] = useState<string | null>(null);
 
     // URL'den mağaza adını ve bilgilerini çıkar
     const extractStoreInfo = (urlString: string): { storeName: string; storeSlug: string; storeId: string; platform: string } => {
@@ -2418,6 +2419,7 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
         const loadAnalysis = async () => {
             console.log(`[DEBUG] Starting analysis, url=${url}`);
             setError(null);
+            setAnalysisNotice(null);
             if (!url) {
                 console.log('[DEBUG] No URL provided');
                 setError('Analiz için ?url= parametresi zorunludur.');
@@ -2455,19 +2457,45 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
 
                     if (response.ok) {
                         const analysisData = await response.json();
-                        if (analysisData && analysisData.metrics) {
+                        if (analysisData?.metrics) {
                             setStoreData(analysisData);
                             setScore(hasNumericValue(analysisData.seoScore) ? analysisData.seoScore : 0);
                             setProducts(analysisData.products || []);
+                            if (analysisData.partial && analysisData.notice) {
+                                setAnalysisNotice(analysisData.notice);
+                            }
                             setAnalyzing(false);
                             return;
-                        } else {
-                            throw new Error('Trendyol verileri alınamadı.');
                         }
-                    } else {
-                        const errorData = await response.json().catch(() => null);
-                        throw new Error(errorData?.error || 'Trendyol analizi başarısız oldu.');
                     }
+
+                    const scrapeRes = await fetch('/api/scrape/trendyol', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url }),
+                    });
+                    if (scrapeRes.ok) {
+                        const scrapeData = await scrapeRes.json();
+                        setStoreData({
+                            metrics: scrapeData.metrics,
+                            products: (scrapeData.products || []).map((p: { name: string; price: number; rating: number; reviews: number; stock: number }) => ({
+                                name: p.name,
+                                price: p.price,
+                                rating: p.rating,
+                                reviews: p.reviews,
+                                stock: p.stock,
+                            })),
+                            seoScore: scrapeData.seoScore,
+                            keywords: scrapeData.keywords,
+                        });
+                        setScore(scrapeData.seoScore || 0);
+                        setProducts(scrapeData.products || []);
+                        setAnalyzing(false);
+                        return;
+                    }
+
+                    const errorData = await response.json().catch(() => null);
+                    throw new Error(errorData?.error || errorData?.message || 'Trendyol analizi başarısız oldu.');
                 } else if (url.includes('hepsiburada.com')) {
                     console.log('[DEBUG] Hepsiburada URL detected, calling API...');
                     // Routing Hepsiburada to Backend API for more robust scraping
@@ -2592,7 +2620,7 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
         );
     }
 
-    if (error) {
+    if (error && !storeData) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-[#020617] p-4 text-center">
                 <div className="bg-white dark:bg-white/5 p-8 rounded-[32px] border border-red-500/20 max-w-md w-full">
@@ -2655,6 +2683,12 @@ function AnalysisContent({ initialUrl }: { initialUrl: string }) {
             <Navbar />
 
             <main className="pt-24 md:pt-28 pb-20 container mx-auto px-4 md:px-6 relative z-10">
+                {analysisNotice && (
+                    <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200 flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                        <span>{analysisNotice}</span>
+                    </div>
+                )}
                 {/* Store Header */}
                 <div className="mb-6">
                     <StoreHeaderCard

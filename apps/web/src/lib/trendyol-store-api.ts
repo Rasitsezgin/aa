@@ -158,27 +158,49 @@ export async function fetchTrendyolStoreAnalysis(
     sourceUrl ||
     `https://www.trendyol.com/sr?mid=${storeId}`;
 
-  const sellerApiUrl = `https://public.trendyol.com/discovery-web-searchgw-service/v2/api/infinite-scroll/sr?mid=${storeId}&os=1&sk=1&sst=BEST_SELLER&pi=1&culture=tr-TR&userGenderId=1&pId=0&scoringAlgorithmId=2&categoryRelevancyEnabled=false&isLegalRequirementConfirmed=false&searchStrategyType=DEFAULT&productStampType=TypeA`;
+  const query = `mid=${storeId}&os=1&sk=1&sst=BEST_SELLER&pi=1&culture=tr-TR&userGenderId=1&pId=0&scoringAlgorithmId=2&categoryRelevancyEnabled=false&isLegalRequirementConfirmed=false&searchStrategyType=DEFAULT&productStampType=TypeA`;
+  const apiCandidates = [
+    `https://apigw.trendyol.com/discovery-web-searchgw-service/v2/api/infinite-scroll/sr?${query}`,
+    `https://public.trendyol.com/discovery-web-searchgw-service/v2/api/infinite-scroll/sr?${query}`,
+    `https://www.trendyol.com/api/discovery-web-searchgw-service/v2/api/infinite-scroll/sr?${query}`,
+  ];
 
-  const response = await fetch(sellerApiUrl, {
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      Accept: 'application/json',
-      'Accept-Language': 'tr-TR,tr;q=0.9',
-      Origin: 'https://www.trendyol.com',
-      Referer: referer,
-    },
-    cache: 'no-store',
-  });
+  const headers = {
+    'User-Agent':
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+    Accept: 'application/json, text/plain, */*',
+    'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7',
+    Origin: 'https://www.trendyol.com',
+    Referer: referer,
+  };
 
-  if (!response.ok) {
-    throw new Error(
-      `Trendyol mağaza verisi alınamadı (HTTP ${response.status}).`,
-    );
+  let data: TrendyolApiResponse | null = null;
+  let lastStatus = 0;
+
+  for (const sellerApiUrl of apiCandidates) {
+    try {
+      const response = await fetch(sellerApiUrl, {
+        headers,
+        cache: 'no-store',
+      });
+      lastStatus = response.status;
+      if (!response.ok) continue;
+
+      const json = (await response.json()) as TrendyolApiResponse;
+      if (json?.result?.products?.length) {
+        data = json;
+        break;
+      }
+    } catch {
+      // Sonraki endpoint
+    }
   }
 
-  const data = (await response.json()) as TrendyolApiResponse;
+  if (!data) {
+    throw new Error(
+      `Trendyol mağaza verisi alınamadı${lastStatus ? ` (HTTP ${lastStatus})` : ''}.`,
+    );
+  }
   const rawProducts = data?.result?.products || [];
 
   if (rawProducts.length === 0) {

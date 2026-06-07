@@ -293,14 +293,27 @@ export class MarketplaceController {
       const pathname = urlObj.pathname;
 
       if (platform === Platform.TRENDYOL) {
-        // https://www.trendyol.com/magaza/woys-m-203786
-        const match = pathname.match(/\/magaza\/([^/]+)/);
-        if (match) {
-          const parts = match[1].split('-m-');
-          if (parts.length > 1) return parts[1];
-          return match[1].split('-').pop() || '203786';
+        const mid =
+          urlObj.searchParams.get('mid') ||
+          urlObj.searchParams.get('merchantId');
+        if (mid && /^\d+$/.test(mid)) return mid;
+
+        const slugMatch = pathname.match(
+          /(?:^|\/)((?:[a-z0-9]+-)*m-\d+)$/i,
+        );
+        if (slugMatch?.[1]) {
+          const id = slugMatch[1].split('-m-').pop();
+          if (id && /^\d+$/.test(id)) return id;
         }
-        return '203786';
+
+        const magazaMatch = pathname.match(/\/magaza\/(?:profil\/)?([^/?]+)/i);
+        if (magazaMatch?.[1]) {
+          const slug = magazaMatch[1];
+          const mPart = slug.match(/-m-(\d+)$/i);
+          if (mPart?.[1]) return mPart[1];
+          const tail = slug.split('-').pop();
+          if (tail && /^\d+$/.test(tail)) return tail;
+        }
       }
 
       if (platform === Platform.HEPSIBURADA) {
