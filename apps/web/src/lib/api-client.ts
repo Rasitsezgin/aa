@@ -685,6 +685,11 @@ class ApiClient {
     });
   }
 
+  async getIntegrationSyncStatus(integrationId: string) {
+    const params = this.addTenantParam();
+    return this.request(`/marketplace/sync-status/${integrationId}?${params}`);
+  }
+
   async syncAllProducts() {
     return this.request('/marketplace/sync-all', {
       method: 'POST',

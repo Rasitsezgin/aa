@@ -1,349 +1,292 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { 
-    DollarSign, ShoppingCart,
-    Package, AlertTriangle, Brain, Activity,
-    TrendingUp, ArrowUpRight, ArrowDownRight,
-    Loader2
+import {
+  DollarSign, ShoppingCart, Package, TrendingUp, Brain, Activity,
+  AlertTriangle, LayoutGrid, Percent,
 } from 'lucide-react';
-import { BarChart as RechartsBar, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useDashboardStats, useRecentOrders, useAiInsights, usePlatformPerformance, useActivityFeed, useStockAlerts } from '@/lib/hooks';
-
-interface DashboardConfig {
-    sections: Array<{
-        id: string;
-        title: string;
-        widgets: Array<{
-            id: string;
-            type: 'metric' | 'chart' | 'table' | 'custom';
-            title: string;
-            icon: string;
-            position: { x: number; y: number; w: number; h: number };
-            config: Record<string, any>;
-            enabled: boolean;
-        }>;
-        layout: 'grid' | 'flex' | 'custom';
-        columns: number;
-        enabled: boolean;
-    }>;
-}
+import {
+  useDashboardStats,
+  useRecentOrders,
+  useAiInsights,
+  usePlatformPerformance,
+  useActivityFeed,
+  useStockAlerts,
+  useGoals,
+  useMarketplaceHealth,
+} from '@/lib/hooks';
+import {
+  loadDashboardWidgets,
+  loadDashboardWidgetsFromApi,
+  isWidgetVisible,
+  type DashboardPeriod,
+} from '@/lib/dashboard-layout';
+import {
+  DashboardCard,
+  KPICard,
+  buildSparkSeries,
+  buildRevenueTrend,
+  CHART_COLORS,
+} from './dashboard-ui';
+import { AnimatedAreaChart, AnimatedPieChart } from '@/components/ui/AnimatedCharts';
+import { IntegrationStatusCard } from './IntegrationStatusCard';
+import { DashboardOrdersTable } from './DashboardOrdersTable';
+import GoalTracker from './GoalTracker';
+import MarketplaceHealthMap from './MarketplaceHealthMap';
+import { GhostStockWidget } from './GhostStockWidget';
+import { OrderPipeline } from './OrderPipeline';
+import { SyncQueuePanel } from './SyncQueuePanel';
+import { useModules } from '@/lib/modules';
 
 interface DynamicDashboardProps {
-    config?: DashboardConfig;
-    editable?: boolean;
+  period?: DashboardPeriod;
+  editable?: boolean;
 }
 
-// Gerçek Veri Widget'ları - API'den çekilen veriler
-const RealtimeMetricWidget = ({ title, value, change, icon: Icon, format = 'number', loading }: any) => {
-    const formatValue = (val: number) => {
-        if (format === 'currency') return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(val || 0);
-        if (format === 'percentage') return `${(val || 0).toFixed(1)}%`;
-        return (val || 0).toLocaleString();
-    };
+export const DynamicDashboard: React.FC<DynamicDashboardProps> = ({ period = '30d' }) => {
+  const [widgets, setWidgets] = useState(loadDashboardWidgets);
 
-    if (loading) return (
-        <div className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200">
-            <div className="flex items-center gap-3">
-                <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                <span className="text-sm text-slate-500">Yükleniyor...</span>
-            </div>
+  useEffect(() => {
+    (async () => {
+      const remote = await loadDashboardWidgetsFromApi();
+      setWidgets(remote || loadDashboardWidgets());
+    })();
+    const onStorage = () => setWidgets(loadDashboardWidgets());
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  const { data: stats, loading: statsLoading } = useDashboardStats(period);
+  const { data: orders, loading: ordersLoading } = useRecentOrders(8);
+  const { data: insights, loading: insightsLoading } = useAiInsights();
+  const { data: platforms, loading: platformsLoading } = usePlatformPerformance();
+  const { data: activities, loading: activitiesLoading } = useActivityFeed(8);
+  const { data: stockAlerts, loading: stockLoading } = useStockAlerts();
+  const { data: goals, loading: goalsLoading } = useGoals();
+  const { data: marketplaceHealth, loading: healthLoading } = useMarketplaceHealth();
+  const { syncQueue, orderPipeline, retrySyncIntegration } = useModules();
+
+  const pieData = useMemo(
+    () =>
+      (platforms || []).map((p: any) => ({
+        name: p.platform,
+        value: Math.round(p.revenue || p.orders || 1),
+      })),
+    [platforms],
+  );
+
+  const revenueTrend = useMemo(
+    () =>
+      buildRevenueTrend(
+        stats?.totalRevenue || 0,
+        stats?.totalOrders || 0,
+        comparison?.revenueChange || 0,
+        period,
+      ),
+    [stats, comparison, period],
+  );
+
+  const show = (id: Parameters<typeof isWidgetVisible>[1]) => isWidgetVisible(widgets, id);
+
+  return (
+    <div className="space-y-6">
+      {show('kpis') && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
+          <KPICard title="Toplam Ciro" value={stats?.totalRevenue} trend={comparison?.revenueChange} icon={DollarSign} format="currency" sparkData={buildSparkSeries(stats?.totalRevenue || 0, comparison?.revenueChange)} loading={statsLoading} />
+          <KPICard title="Sipariş" value={stats?.totalOrders} trend={comparison?.ordersChange} icon={ShoppingCart} sparkData={buildSparkSeries(stats?.totalOrders || 0, comparison?.ordersChange)} loading={statsLoading} glow="bg-blue-500" accent="text-blue-500" />
+          <KPICard title="Aktif Ürün" value={stats?.activeProducts} trend={comparison?.productsChange} icon={Package} loading={statsLoading} glow="bg-violet-500" accent="text-violet-500" />
+          <KPICard title="Dönüşüm" value={stats?.conversionRate} trend={comparison?.conversionChange} icon={TrendingUp} format="percentage" loading={statsLoading} glow="bg-emerald-500" accent="text-emerald-500" />
+          <KPICard title="Net Kâr" value={stats?.netProfit} trend={comparison?.profitChange} icon={DollarSign} format="currency" loading={statsLoading} glow="bg-amber-500" accent="text-amber-500" />
+          <KPICard title="Kâr Marjı" value={stats?.profitMargin} trend={comparison?.marginChange} icon={Percent} format="percentage" loading={statsLoading} glow="bg-pink-500" accent="text-pink-500" />
         </div>
-    );
+      )}
 
-    return (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10">
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <Icon className="w-5 h-5 text-primary" />
-                    </div>
-                    <h3 className="text-sm font-bold text-foreground">{title}</h3>
-                </div>
-                {change !== undefined && change !== null && (
-                    <div className={`flex items-center gap-1 text-sm font-bold ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {change >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                        {Math.abs(change).toFixed(1)}%
-                    </div>
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        {show('revenue-chart') && (
+          <div className="xl:col-span-7">
+            <DashboardCard title="Gelir & Sipariş Trendi" icon={TrendingUp} loading={statsLoading}>
+              <div className="h-[280px]">
+                <AnimatedAreaChart data={revenueTrend} colors={[CHART_COLORS[0], CHART_COLORS[1]]} />
+              </div>
+              <p className="text-[10px] text-slate-500 font-bold mt-2">Turuncu: ciro · Amber: sipariş ({period})</p>
+            </DashboardCard>
+          </div>
+        )}
+
+        {show('platform-chart') && (
+          <div className="xl:col-span-5">
+            <DashboardCard title="Platform Dağılımı" icon={Package} loading={platformsLoading}>
+              <div className="h-[280px]">
+                {pieData.length > 0 ? (
+                  <AnimatedPieChart data={pieData} />
+                ) : (
+                  <div className="h-full flex items-center justify-center text-sm text-slate-500">Platform verisi bekleniyor</div>
                 )}
-            </div>
-            <div className="text-2xl font-black text-foreground">{formatValue(value)}</div>
-        </motion.div>
-    );
-};
+              </div>
+            </DashboardCard>
+          </div>
+        )}
 
-// Gerçek Dashboard - API'den veri çeken
-export const DynamicDashboard: React.FC<DynamicDashboardProps> = () => {
-    // Gerçek API'den veri çek
-    const { data: stats, loading: statsLoading } = useDashboardStats('30d');
-    const { data: orders, loading: ordersLoading } = useRecentOrders(5);
-    const { data: insights, loading: insightsLoading } = useAiInsights();
-    const { data: platforms, loading: platformsLoading } = usePlatformPerformance();
-    const { data: activities, loading: activitiesLoading } = useActivityFeed(10);
-    const { data: stockAlerts, loading: stockLoading } = useStockAlerts();
-    // Ana metrikler - DashboardStats interface'ine göre
-    const metrics = [
-        { title: 'Toplam Ciro', value: stats?.totalRevenue, change: stats?.periodComparison?.revenueChange, icon: DollarSign, format: 'currency' },
-        { title: 'Sipariş Sayısı', value: stats?.totalOrders, change: stats?.periodComparison?.ordersChange, icon: ShoppingCart, format: 'number' },
-        { title: 'Aktif Ürün', value: stats?.activeProducts, change: stats?.periodComparison?.productsChange, icon: Package, format: 'number' },
-        { title: 'Dönüşüm Oranı', value: stats?.conversionRate, change: stats?.periodComparison?.conversionChange, icon: TrendingUp, format: 'percentage' },
-    ];
+        {show('integration-status') && (
+          <div className="xl:col-span-4">
+            <IntegrationStatusCard platforms={platforms as any[]} loading={platformsLoading} />
+          </div>
+        )}
 
-    return (
-        <div className="space-y-6">
-            {/* Ana Metrik Kartları */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                {metrics.map((m, i) => (
-                    <RealtimeMetricWidget key={i} {...m} loading={statsLoading} />
-                ))}
-            </div>
+        {show('orders') && (
+          <div className="xl:col-span-8">
+            <DashboardOrdersTable orders={orders as any[]} loading={ordersLoading} />
+          </div>
+        )}
+      </div>
 
-            {/* Grafikler ve Tablolar */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Platform Performansı - Gerçek Veri */}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                    className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-foreground">Platform Performansı</h3>
-                        {platformsLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                    </div>
-                    <ResponsiveContainer width="100%" height={250}>
-                        <RechartsBar data={platforms || []}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis dataKey="platform" stroke="#64748b" fontSize={12} />
-                            <YAxis stroke="#64748b" fontSize={12} />
-                            <Tooltip formatter={(v) => `₺${Number(v).toLocaleString()}`} />
-                            <Bar dataKey="revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="orders" fill="#10b981" radius={[4, 4, 0, 0]} />
-                        </RechartsBar>
-                    </ResponsiveContainer>
-                </motion.div>
-
-                {/* Son Siparişler - Gerçek Veri */}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                    className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-white/10">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-foreground">Son Siparişler</h3>
-                        {ordersLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold tracking-wider">
-                                    <th className="text-left p-2">Sipariş</th>
-                                    <th className="text-left p-2">Platform</th>
-                                    <th className="text-left p-2">Tutar</th>
-                                    <th className="text-left p-2">Durum</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {(orders || []).map((order: any, i: number) => (
-                                    <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                        <td className="p-2 font-medium text-foreground">#{order.id}</td>
-                                        <td className="p-2">
-                                            <span className="flex items-center gap-2">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                                {order.platform}
-                                            </span>
-                                        </td>
-                                        <td className="p-2 font-bold text-foreground">₺{order.price?.toLocaleString()}</td>
-                                        <td className="p-2">
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                                order.status === 'Tamamlandı' ? 'bg-green-100 text-green-700' :
-                                                order.status === 'Kargoda' ? 'bg-blue-100 text-blue-700' :
-                                                order.status === 'İptal' ? 'bg-red-100 text-red-700' :
-                                                'bg-amber-100 text-amber-700'
-                                            }`}>
-                                                {order.status}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {(!orders || orders.length === 0) && !ordersLoading && (
-                                    <tr>
-                                        <td colSpan={4} className="p-8 text-center text-slate-400 italic">Henüz sipariş bulunmuyor</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </motion.div>
-            </div>
-
-            {/* AI Pilot Kontrol Merkezi */}
-            <motion.div 
-                initial={{ opacity: 0, scale: 0.98 }} 
-                animate={{ opacity: 1, scale: 1 }}
-                className="relative overflow-hidden p-8 rounded-2xl bg-slate-900 text-white shadow-2xl"
-            >
-                {/* Background Pattern */}
-                <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/20 to-transparent pointer-events-none" />
-                <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-
-                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-4 gap-8 items-center">
-                    <div className="lg:col-span-2">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-primary rounded-lg shadow-lg shadow-primary/40">
-                                <Brain className="w-6 h-6 text-white" />
-                            </div>
-                            <h2 className="text-2xl font-black tracking-tight">AI-Pilot Kontrol Merkezi</h2>
-                        </div>
-                        <p className="text-slate-400 text-sm leading-relaxed mb-6 max-w-lg">
-                            Yapay zeka asistanınız mağazanızı 7/24 denetliyor. Bugün gerçekleştirilen otomatik aksiyonlar ve iyileştirmeler aşağıdadır.
-                        </p>
-                        <div className="flex flex-wrap gap-4">
-                            <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
-                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Doğruluk Oranı</div>
-                                <div className="text-xl font-black text-primary">%{stats?.aiMetrics?.accuracy || 94.5}</div>
-                            </div>
-                            <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10">
-                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Aktif Modeller</div>
-                                <div className="text-xl font-black text-purple-400">{stats?.aiMetrics?.activeModels || 4}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="lg:col-span-2 grid grid-cols-2 gap-4">
-                        <div className="p-6 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
-                            <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center mb-4">
-                                <Activity className="w-5 h-5 text-green-400" />
-                            </div>
-                            <div className="text-3xl font-black mb-1">{stats?.aiMetrics?.automatedActions || 0}</div>
-                            <div className="text-xs text-slate-400 font-medium">Bugün Tamamlanan Otomatik İşlem</div>
-                        </div>
-                        <motion.div 
-                            whileHover={{ scale: 1.02 }}
-                            className="p-6 bg-primary/20 rounded-2xl border border-primary/30 cursor-pointer"
-                        >
-                            <div className="w-10 h-10 bg-primary/40 rounded-xl flex items-center justify-center mb-4">
-                                <DollarSign className="w-5 h-5 text-white" />
-                            </div>
-                            <div className="text-3xl font-black mb-1">₺{stats?.aiMetrics?.savingsGenerated?.toLocaleString() || '0'}</div>
-                            <div className="text-xs text-slate-300 font-medium italic">AI Tarafından Sağlanan Tasarruf</div>
-                        </motion.div>
-                    </div>
+      {show('ai-hero') && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative overflow-hidden p-6 lg:p-8 rounded-[1.75rem] border border-orange-500/20 bg-gradient-to-br from-slate-900 via-slate-900 to-orange-950/40 text-white shadow-2xl shadow-orange-500/10"
+        >
+          <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-orange-500/15 to-transparent pointer-events-none" />
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
+            <div className="lg:col-span-2">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 bg-orange-600 rounded-xl shadow-lg shadow-orange-500/30">
+                  <Brain className="w-6 h-6" />
                 </div>
-            </motion.div>
-
-            {/* Alt Bilgi Gridi - Finansal Analiz ve AI Bilgileri */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-white/10"
-                >
-                    <h3 className="text-sm font-bold text-foreground mb-6 flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-green-500" />
-                        Kârlılık Analizi (Net)
-                    </h3>
-                    
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center text-sm">
-                            <span className="text-slate-500">Brüt Ciro</span>
-                            <span className="font-bold">₺{stats?.totalRevenue?.toLocaleString()}</span>
-                        </div>
-                        <div className="h-px bg-slate-100 dark:bg-white/5" />
-                        
-                        <div className="space-y-3">
-                            <div className="flex justify-between items-center text-xs text-red-500/80">
-                                <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-red-400" /> Ürün Maliyeti</span>
-                                <span>- ₺{stats?.financialAnalytics?.totalProductCost?.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-xs text-red-500/80">
-                                <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-red-400" /> Komisyon</span>
-                                <span>- ₺{stats?.financialAnalytics?.totalCommission?.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-xs text-red-500/80">
-                                <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-red-400" /> Kargo</span>
-                                <span>- ₺{stats?.financialAnalytics?.totalShipping?.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-xs text-red-500/80">
-                                <span className="flex items-center gap-1"><div className="w-1 h-1 rounded-full bg-red-400" /> KDV / Vergi</span>
-                                <span>- ₺{stats?.financialAnalytics?.totalTax?.toLocaleString()}</span>
-                            </div>
-                        </div>
-
-                        <div className="pt-4 mt-4 border-t-2 border-dashed border-slate-100 dark:border-white/5">
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm font-black text-foreground">Net Kâr</span>
-                                <div className="text-right">
-                                    <div className="text-xl font-black text-green-500">₺{stats?.netProfit?.toLocaleString()}</div>
-                                    <div className="text-[10px] font-bold text-green-600 bg-green-50 dark:bg-green-500/10 px-2 py-0.5 rounded-full inline-block">
-                                        %{stats?.profitMargin} Marj
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
-                {/* AI Önerileri - Gerçek */}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                    className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-xl border border-blue-200">
-                    <div className="flex items-center gap-3 mb-4">
-                        <Brain className="w-5 h-5 text-blue-600" />
-                        <h3 className="text-sm font-bold text-foreground">AI Önerileri</h3>
-                        {insightsLoading && <Loader2 className="w-4 h-4 animate-spin ml-auto" />}
-                    </div>
-                    <div className="space-y-3">
-                        {(insights || []).slice(0, 3).map((insight: any, i: number) => (
-                            <div key={i} className="p-3 bg-white/80 rounded-lg">
-                                <div className="text-xs font-bold text-blue-600 mb-1">{insight.type}</div>
-                                <div className="text-sm text-slate-600">{insight.message}</div>
-                            </div>
-                        ))}
-                        {!insights?.length && !insightsLoading && (
-                            <div className="text-sm text-slate-500">Henüz öneri yok</div>
-                        )}
-                    </div>
-                </motion.div>
-
-                {/* Stok Uyarıları */}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                    className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200">
-                    <div className="flex items-center gap-3 mb-4">
-                        <AlertTriangle className="w-5 h-5 text-amber-500" />
-                        <h3 className="text-sm font-bold text-foreground">Stok Uyarıları</h3>
-                        {stockLoading && <Loader2 className="w-4 h-4 animate-spin ml-auto" />}
-                    </div>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {(stockAlerts || []).slice(0, 5).map((alert: any, i: number) => (
-                            <div key={i} className="flex items-center gap-3 p-2 bg-amber-50 rounded-lg">
-                                <Package className="w-4 h-4 text-amber-500" />
-                                <div className="flex-1">
-                                    <div className="text-sm font-medium">{alert.productName}</div>
-                                    <div className="text-xs text-slate-500">Kalan: {alert.stock} adet</div>
-                                </div>
-                            </div>
-                        ))}
-                        {!stockAlerts?.length && !stockLoading && (
-                            <div className="text-sm text-slate-500">Stok sorunu yok</div>
-                        )}
-                    </div>
-                </motion.div>
-
-                {/* Aktivite Akışı - Gerçek */}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                    className="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200">
-                    <div className="flex items-center gap-3 mb-4">
-                        <Activity className="w-5 h-5 text-primary" />
-                        <h3 className="text-sm font-bold text-foreground">Son Aktiviteler</h3>
-                        {activitiesLoading && <Loader2 className="w-4 h-4 animate-spin ml-auto" />}
-                    </div>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {(activities || []).map((activity: any, i: number) => (
-                            <div key={i} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
-                                <Activity className="w-4 h-4 text-primary" />
-                                <div className="flex-1">
-                                    <div className="text-sm text-foreground">{activity.action}</div>
-                                    <div className="text-xs text-slate-500">{activity.time}</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </motion.div>
+                <h2 className="text-xl lg:text-2xl font-black tracking-tight">AI-Pilot Kontrol Merkezi</h2>
+              </div>
+              <p className="text-slate-400 text-sm leading-relaxed max-w-xl">
+                Yapay zeka mağazanızı izliyor; fiyat, stok ve kampanya önerilerini gerçek zamanlı üretiyor.
+              </p>
             </div>
+            <div className="grid grid-cols-2 gap-3 lg:col-span-2">
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Doğruluk</p>
+                <p className="text-2xl font-black text-orange-400">%{stats?.aiMetrics?.accuracy?.toFixed(1) || '94.5'}</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Otomatik İşlem</p>
+                <p className="text-2xl font-black">{stats?.aiMetrics?.automatedActions || 0}</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-orange-500/15 border border-orange-500/25 col-span-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-orange-200 mb-1">AI Tasarruf</p>
+                <p className="text-2xl font-black">₺{(stats?.aiMetrics?.savingsGenerated || 0).toLocaleString('tr-TR')}</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {show('profitability') && (
+          <DashboardCard title="Kârlılık Analizi" icon={TrendingUp} loading={statsLoading}>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between"><span className="text-slate-500">Brüt Ciro</span><span className="font-bold">₺{(stats?.totalRevenue || 0).toLocaleString('tr-TR')}</span></div>
+              <div className="flex justify-between text-red-500/90 text-xs"><span>Ürün Maliyeti</span><span>- ₺{(stats?.financialAnalytics?.totalProductCost || 0).toLocaleString('tr-TR')}</span></div>
+              <div className="flex justify-between text-red-500/90 text-xs"><span>Komisyon</span><span>- ₺{(stats?.financialAnalytics?.totalCommission || 0).toLocaleString('tr-TR')}</span></div>
+              <div className="flex justify-between text-red-500/90 text-xs"><span>Kargo</span><span>- ₺{(stats?.financialAnalytics?.totalShipping || 0).toLocaleString('tr-TR')}</span></div>
+              <div className="pt-3 mt-3 border-t border-dashed border-border flex justify-between items-center">
+                <span className="font-black">Net Kâr</span>
+                <div className="text-right">
+                  <div className="text-xl font-black text-emerald-500">₺{(stats?.netProfit || 0).toLocaleString('tr-TR')}</div>
+                  <div className="text-[10px] font-bold text-emerald-600">%{stats?.profitMargin || 0} marj</div>
+                </div>
+              </div>
+            </div>
+          </DashboardCard>
+        )}
+
+        {show('ai-insights') && (
+          <DashboardCard title="AI Önerileri" icon={Brain} loading={insightsLoading}>
+            <div className="space-y-2 max-h-56 overflow-y-auto">
+              {(insights || []).slice(0, 4).map((insight: any, i: number) => (
+                <div key={i} className="p-3 rounded-xl bg-orange-500/5 border border-orange-500/10">
+                  <p className="text-[10px] font-black uppercase text-orange-600 mb-1">{insight.type || insight.title || 'Öneri'}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">{insight.message || insight.description}</p>
+                </div>
+              ))}
+              {!insights?.length && !insightsLoading && <p className="text-sm text-slate-500">Henüz öneri yok</p>}
+            </div>
+          </DashboardCard>
+        )}
+
+        {show('stock-alerts') && (
+          <DashboardCard title="Stok Uyarıları" icon={AlertTriangle} loading={stockLoading}>
+            <div className="space-y-2 max-h-56 overflow-y-auto">
+              {(stockAlerts || []).slice(0, 5).map((alert: any, i: number) => (
+                <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                  <Package className="w-4 h-4 text-amber-500 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold truncate">{alert.productName}</p>
+                    <p className="text-xs text-slate-500">Kalan: {alert.currentStock ?? alert.stock} adet</p>
+                  </div>
+                </div>
+              ))}
+              {!stockAlerts?.length && !stockLoading && <p className="text-sm text-slate-500">Kritik stok yok</p>}
+            </div>
+          </DashboardCard>
+        )}
+      </div>
+
+      {(show('order-pipeline') || show('sync-queue')) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {show('order-pipeline') && (
+            <OrderPipeline
+              orders={orders as any[]}
+              counts={orderPipeline}
+              loading={ordersLoading}
+            />
+          )}
+          {show('sync-queue') && (
+            <SyncQueuePanel items={syncQueue} onRetry={retrySyncIntegration} />
+          )}
         </div>
-    );
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {show('ghost-stock') && (
+          <div className="lg:col-span-1">
+            <GhostStockWidget />
+          </div>
+        )}
+        {show('goals') && (
+          <div className="lg:col-span-1">
+            <GoalTracker goals={(goalsLoading ? [] : goals || []) as any} />
+          </div>
+        )}
+        {show('marketplace-health') && (
+          <div className="lg:col-span-1">
+            <MarketplaceHealthMap data={(healthLoading ? [] : marketplaceHealth || []) as any} />
+          </div>
+        )}
+      </div>
+
+      {show('activity') && (
+        <DashboardCard title="Son Aktiviteler" icon={Activity} loading={activitiesLoading}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {(activities || []).map((activity: any, i: number) => (
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-background/60 border border-border">
+                <Activity className="w-4 h-4 text-orange-500 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{activity.action}</p>
+                  <p className="text-xs text-slate-500">{activity.time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DashboardCard>
+      )}
+
+      <div className="flex justify-end">
+        <Link
+          href="/dashboard/widget-editor"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-surface text-xs font-black text-slate-500 hover:text-orange-600 hover:border-orange-500/30 transition-all"
+        >
+          <LayoutGrid size={14} /> Paneli Özelleştir
+        </Link>
+      </div>
+    </div>
+  );
 };

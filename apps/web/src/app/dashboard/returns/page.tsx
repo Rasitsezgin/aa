@@ -7,10 +7,10 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getReturns, processReturnScan } from '../../actions/returns';
-
-const DEMO_TENANT_ID = 'demo-tenant-123';
+import { useTenantId } from '@/lib/tenant';
 
 export default function ReturnsManagementPage() {
+    const tenantId = useTenantId();
     const [barcode, setBarcode] = useState('');
     const [isScanning, setIsScanning] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -22,12 +22,14 @@ export default function ReturnsManagementPage() {
     const completedCount = returns.filter(r => r.status === 'COMPLETED' || r.status === 'REFUNDED').length;
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (tenantId) fetchData();
+        else setIsLoading(false);
+    }, [tenantId]);
 
     const fetchData = async () => {
+        if (!tenantId) return;
         setIsLoading(true);
-        const data = await getReturns(DEMO_TENANT_ID);
+        const data = await getReturns(tenantId);
         setReturns(data);
         setIsLoading(false);
     };
@@ -39,7 +41,8 @@ export default function ReturnsManagementPage() {
         setIsScanning(true);
         setScanResult(null);
         
-        const response = await processReturnScan(DEMO_TENANT_ID, barcode.trim());
+        if (!tenantId) return;
+        const response = await processReturnScan(tenantId, barcode.trim());
         
         setIsScanning(false);
         if (response.success) {
@@ -53,7 +56,8 @@ export default function ReturnsManagementPage() {
 
     const handleManualProcess = async (id: string) => {
         setIsScanning(true);
-        const response = await processReturnScan(DEMO_TENANT_ID, id);
+        if (!tenantId) return;
+        const response = await processReturnScan(tenantId, id);
         setIsScanning(false);
         if(response.success) {
             fetchData();

@@ -29,6 +29,8 @@ import {
 } from 'lucide-react';
 
 import { useOrders, Order, OrderItem } from '@/lib/hooks';
+import { OrderPipeline } from '@/components/dashboard/OrderPipeline';
+import { useModules } from '@/lib/modules';
 
 interface OrderPagination {
     total: number;
@@ -51,6 +53,7 @@ const platformFilters = ["Tümü", "TRENDYOL", "AMAZON", "HEPSIBURADA", "N11"];
 
 export default function OrdersPage() {
     const { getOrders, updateStatus, loading } = useOrders();
+    const { orderPipeline } = useModules();
     const [orders, setOrders] = useState<Order[]>([]);
     const [pagination, setPagination] = useState<OrderPagination | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -110,8 +113,19 @@ export default function OrdersPage() {
         );
     };
 
+    const handlePipelineStatus = async (orderId: string, status: string) => {
+        await updateStatus(orderId, status);
+        fetchOrders();
+    };
+
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+            <OrderPipeline
+                orders={orders}
+                counts={orderPipeline}
+                loading={loading}
+                onStatusChange={handlePipelineStatus}
+            />
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div>

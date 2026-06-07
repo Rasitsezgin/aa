@@ -345,6 +345,70 @@ export class SchedulerService implements OnModuleInit {
     return { jobId: job.id, status: 'queued' };
   }
 
+  async enqueueIntegrationRetry(
+    integrationId: string,
+    tenantId: string,
+    syncType: 'health-check' | 'order-sync' | 'inventory-sync' | 'all' = 'all',
+  ) {
+    const integration = await this.prisma.integration.findFirst({
+      where: { id: integrationId, tenantId, isActive: true },
+      select: { id: true, tenantId: true, platform: true },
+    });
+
+    if (!integration) {
+      throw new Error('Aktif entegrasyon bulunamadı');
+    }
+
+    const jobs: Array<{ name: string; id: string | number | undefined }> = [];
+    const basePayload = {
+      integrationId: integration.id,
+      tenantId: integration.tenantId,
+      platform: integration.platform,
+      manual: true,
+      retry: true,
+    };
+
+    const enqueue = async (name: string) => {
+      const job = await this.syncQueue.add(name, basePayload, {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 },
+        removeOnComplete: 50,
+        removeOnFail: 25,
+      });
+      jobs.push({ name, id: job.id });
+    };
+
+    if (syncType === 'all') {
+      await enqueue('health-check');
+      await enqueue('order-sync');
+      await enqueue('inventory-sync');
+    } else {
+      await enqueue(syncType);
+    }
+
+    await this.prisma.integration.update({
+      where: { id: integration.id },
+      data: { updatedAt: new Date() },
+    });
+
+    await this.prisma.activityLog.create({
+      data: {
+        tenantId,
+        action: 'integration.sync.retry',
+        resource: 'integration',
+        resourceId: integrationId,
+        details: { syncType, jobs },
+      },
+    });
+
+    return {
+      success: true,
+      queued: true,
+      integrationId,
+      jobs,
+    };
+  }
+
   async sendScheduledEmail(
     tenantId: string,
     template: string,

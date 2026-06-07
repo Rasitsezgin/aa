@@ -2,7 +2,10 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Optional,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import type { Queue } from 'bullmq';
 import { PrismaService } from '../../database/prisma.service';
 import type { Platform, Integration } from '@pazaryonetimi/database';
 import {
@@ -25,6 +28,8 @@ import {
   parseAmazonSpApiCredentials,
 } from '../marketplace/amazon-sp-api.config';
 import { AmazonSpApiClient } from '../marketplace/amazon-sp-api.client';
+import { MarketplaceService } from '../marketplace/marketplace.service';
+import { getHepsiburadaListingApiBase } from '../marketplace/marketplace-sync.constants';
 
 export interface IntegrationCredentials {
   [key: string]: string;
@@ -127,6 +132,8 @@ export class IntegrationsService {
   constructor(
     private prisma: PrismaService,
     private encryption: EncryptionService,
+    private marketplaceService: MarketplaceService,
+    @Optional() @InjectQueue('sync') private readonly syncQueue?: Queue,
   ) {}
 
   private encrypt(text: string): string {
@@ -546,9 +553,10 @@ export class IntegrationsService {
       };
     }
 
+    const hbBase = getHepsiburadaListingApiBase();
     const endpoints = [
-      `https://listing-external-sit.hepsiburada.com/ListingExternalService/v1/Listings/merchantid/${encodeURIComponent(merchantId)}?page=1&size=1`,
-      `https://listing-external-sit.hepsiburada.com/ListingExternalService/v1/Listings?merchantId=${encodeURIComponent(merchantId)}&page=1&size=1`,
+      `${hbBase}/ListingExternalService/v1/Listings/merchantid/${encodeURIComponent(merchantId)}?page=1&size=1`,
+      `${hbBase}/ListingExternalService/v1/Listings?merchantId=${encodeURIComponent(merchantId)}&page=1&size=1`,
     ];
 
     for (const url of endpoints) {
@@ -817,19 +825,107 @@ export class IntegrationsService {
       throw new NotFoundException('Aktif entegrasyon bulunamadı');
     }
 
-    // Senkronizasyon işi başlat (gerçek implementasyonda queue kullanılacak)
-    const jobId = `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const mappedSyncType =
+      syncType === 'inventory' ? 'products' : syncType;
 
-    // Son senkronizasyon zamanını güncelle - updatedAt kullanıyoruz
+    const result = await this.marketplaceService.syncIntegrationByStoreId(
+      tenantId,
+      integration.id,
+      mappedSyncType,
+    );
+
+    return {
+      success: true,
+      message: `${syncType} senkronizasyonu tamamlandı`,
+      integrationId: integration.id,
+      result,
+    };
+  }
+
+  async retryIntegrationSync(
+    tenantId: string,
+    integrationId: string,
+    syncType: 'health-check' | 'order-sync' | 'inventory-sync' | 'all' = 'all',
+  ) {
+    const integration = await this.prisma.integration.findFirst({
+      where: { id: integrationId, tenantId, isActive: true },
+      select: { id: true, tenantId: true, platform: true },
+    });
+
+    if (!integration) {
+      throw new NotFoundException('Aktif entegrasyon bulunamadı');
+    }
+
+    const jobs: Array<{ name: string; id?: string | number }> = [];
+    const basePayload = {
+      integrationId: integration.id,
+      tenantId: integration.tenantId,
+      platform: integration.platform,
+      manual: true,
+      retry: true,
+    };
+
+    const jobTypes =
+      syncType === 'all'
+        ? (['health-check', 'order-sync', 'inventory-sync'] as const)
+        : ([syncType] as const);
+
+    if (this.syncQueue) {
+      for (const name of jobTypes) {
+        const job = await this.syncQueue.add(name, basePayload, {
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 2000 },
+          removeOnComplete: 50,
+          removeOnFail: 25,
+        });
+        jobs.push({ name, id: job.id });
+      }
+    }
+
+    let directResult: Record<string, unknown> | null = null;
+    if (jobs.length === 0) {
+      const mappedType =
+        syncType === 'order-sync'
+          ? 'orders'
+          : syncType === 'inventory-sync'
+            ? 'products'
+            : 'all';
+      directResult = (await this.marketplaceService.syncIntegrationByStoreId(
+        tenantId,
+        integration.id,
+        mappedType,
+      )) as Record<string, unknown>;
+    }
+
     await this.prisma.integration.update({
       where: { id: integration.id },
       data: { updatedAt: new Date() },
     });
 
+    await this.prisma.activityLog.create({
+      data: {
+        tenantId,
+        action: 'integration.sync.retry',
+        resource: 'integration',
+        resourceId: integrationId,
+        details: {
+          syncType,
+          jobs,
+          queued: jobs.length > 0,
+          direct: directResult !== null,
+        },
+      },
+    });
+
     return {
       success: true,
-      message: `${syncType} senkronizasyonu başlatıldı`,
-      jobId,
+      queued: jobs.length > 0,
+      message: jobs.length > 0
+        ? 'Senkronizasyon kuyruğa eklendi'
+        : 'Senkronizasyon doğrudan çalıştırıldı',
+      integrationId,
+      jobs,
+      result: directResult,
     };
   }
 

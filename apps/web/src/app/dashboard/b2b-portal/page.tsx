@@ -8,10 +8,10 @@ import {
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSubDealers, createSubDealer, deleteSubDealer } from '../../actions/b2b-portal';
-
-const DEMO_TENANT_ID = 'demo-tenant-123';
+import { useTenantId } from '@/lib/tenant';
 
 export default function B2BPortalPage() {
+    const tenantId = useTenantId();
     const [subStoreLink] = useState('https://b2b.pazaryonetimi.com/m/SizinMagazaniz');
     const [isLinkCopied, setIsLinkCopied] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,12 +27,14 @@ export default function B2BPortalPage() {
     const [selectedGroupId, setSelectedGroupId] = useState('');
 
     useEffect(() => {
-        fetchDealers();
-    }, []);
+        if (tenantId) fetchDealers();
+        else setIsLoading(false);
+    }, [tenantId]);
 
     const fetchDealers = async () => {
+        if (!tenantId) return;
         setIsLoading(true);
-        const data = await getSubDealers(DEMO_TENANT_ID);
+        const data = await getSubDealers(tenantId);
         setDealers(data.dealers);
         setGroups(data.groups);
         if (data.groups.length > 0) setSelectedGroupId(data.groups[0].id);
@@ -42,7 +44,8 @@ export default function B2BPortalPage() {
     const handleCreateDealer = async () => {
         if (!companyName || !email || !selectedGroupId) return;
         setIsPosting(true);
-        const res = await createSubDealer(DEMO_TENANT_ID, companyName, email, selectedGroupId);
+        if (!tenantId) return;
+        const res = await createSubDealer(tenantId, companyName, email, selectedGroupId);
         if (res.success) {
             setCompanyName('');
             setEmail('');

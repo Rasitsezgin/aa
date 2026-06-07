@@ -36,21 +36,27 @@ const loginHistoryData: any[] = [];
 const activeSessionsData: any[] = [];
 const apiKeysData: any[] = [];
 
-// Security alerts
-const securityAlerts = [
-    { id: 1, type: 'warning', message: 'Başarısız giriş denemesi tespit edildi', date: '2024-01-14 09:20' },
-    { id: 2, type: 'info', message: 'Yeni cihazdan giriş yapıldı', date: '2024-01-15 10:15' }
-];
-
 export default function SecurityPage() {
     const [showPassword, setShowPassword] = useState(false);
-    const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
+    const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+    const [securityAlerts, setSecurityAlerts] = useState<Array<{ id: string; type: string; message: string; date: string }>>([]);
     const [emailNotifications, setEmailNotifications] = useState(true);
     const [loginAlerts, setLoginAlerts] = useState(true);
     const [showApiKey, setShowApiKey] = useState<string | number | null>(null);
     const [activeTab, setActiveTab] = useState('overview');
 
     const { loginHistory: apiLoginHistory, sessions: apiSessions, apiKeys: apiApiKeys, loading } = useSecurity();
+
+    useEffect(() => {
+        fetch('/api/security/alerts', { cache: 'no-store' })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+                if (!data) return;
+                setTwoFactorEnabled(Boolean(data.twoFactorEnabled));
+                if (Array.isArray(data.alerts)) setSecurityAlerts(data.alerts);
+            })
+            .catch(() => {});
+    }, []);
 
     const loginHistory = Array.isArray(apiLoginHistory) ? apiLoginHistory : loginHistoryData;
     const activeSessions = Array.isArray(apiSessions) ? apiSessions : activeSessionsData;

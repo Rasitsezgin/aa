@@ -416,6 +416,37 @@ const MARKETPLACES: MarketplaceConfig[] = [
 
 type ViewType = 'grid' | 'list' | 'status';
 
+const OAUTH_MARKETPLACE_IDS = new Set([
+  'amazon-tr',
+  'amazon-us',
+  'amazon-uk',
+  'amazon-de',
+  'hepsiburada',
+]);
+
+function formatSyncResult(result: {
+  products?: { created?: number; updated?: number; failed?: number; total?: number };
+  orders?: { created?: number; updated?: number; skipped?: boolean; message?: string };
+}) {
+  const parts: string[] = [];
+  if (result.products) {
+    parts.push(
+      `Ürün: ${result.products.created ?? 0} yeni, ${result.products.updated ?? 0} güncellendi` +
+        (result.products.failed ? `, ${result.products.failed} hata` : ''),
+    );
+  }
+  if (result.orders) {
+    if (result.orders.skipped) {
+      parts.push(`Sipariş: ${result.orders.message ?? 'atlandı'}`);
+    } else {
+      parts.push(
+        `Sipariş: ${result.orders.created ?? 0} yeni, ${result.orders.updated ?? 0} güncellendi`,
+      );
+    }
+  }
+  return parts.join('\n');
+}
+
 export default function IntegrationsPage() {
   const { data: session } = useSession();
   const tenantId = (session?.user as any)?.tenantId as string | undefined;
@@ -486,9 +517,13 @@ export default function IntegrationsPage() {
       if (accessToken) apiClient.setAccessToken(accessToken);
       apiClient.setTenantId(tenantId);
 
-      await apiClient.syncStore(integration.id, 'all');
+      const result = await apiClient.syncStore(integration.id, 'all') as {
+        products?: { created?: number; updated?: number; failed?: number };
+        orders?: { created?: number; updated?: number; skipped?: boolean; message?: string };
+      };
       await fetchActiveIntegrations();
-      alert(`${mp.name} başarıyla senkronize edildi!`);
+      const detail = formatSyncResult(result);
+      alert(`${mp.name} senkronize edildi.${detail ? `\n${detail}` : ''}`);
     } catch (error) {
       console.error("Sync error:", error);
       alert(`Senkronizasyon hatası oluştu.`);
@@ -549,6 +584,19 @@ export default function IntegrationsPage() {
   const handleConnect = (marketplace: MarketplaceConfig) => {
     setSelectedMarketplace(marketplace);
     setShowWizard(true);
+  };
+
+  const handleOAuth = (marketplace: MarketplaceConfig) => {
+    if (!tenantId) {
+      alert('Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapın.');
+      return;
+    }
+
+    const apiUrl =
+      process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ||
+      'http://localhost:3001';
+    const platform = marketplace.id.startsWith('amazon') ? 'amazon' : 'hepsiburada';
+    window.location.href = `${apiUrl}/oauth/init/${platform}?tenantId=${encodeURIComponent(tenantId)}`;
   };
 
   return (
@@ -676,6 +724,11 @@ export default function IntegrationsPage() {
                         onSync={() => { handleSync(marketplace as MarketplaceConfig); }}
                         onSettings={() => { }}
                         onViewDetails={() => window.open(marketplace.website, '_blank')}
+                        onOAuth={
+                          OAUTH_MARKETPLACE_IDS.has(marketplace.id)
+                            ? (mp) => handleOAuth(mp as MarketplaceConfig)
+                            : undefined
+                        }
                         index={index}
                       />
                     ))}
@@ -706,8 +759,17 @@ export default function IntegrationsPage() {
                 apiClient.setTenantId(tenantId);
 
                 const platformEnum = resolvePlatformEnum(selectedMarketplace.id);
-                await apiClient.connectStore(platformEnum, credentials);
+                const res = await apiClient.connectStore(platformEnum, credentials) as {
+                  initialSyncStarted?: boolean;
+                  message?: string;
+                };
                 await fetchActiveIntegrations();
+                if (res?.initialSyncStarted) {
+                  alert(
+                    res.message ||
+                      'Mağaza bağlandı. İlk senkronizasyon arka planda başlatıldı.',
+                  );
+                }
                 return true;
               } catch (e) {
                 console.error(e);

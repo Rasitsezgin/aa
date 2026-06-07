@@ -11,6 +11,7 @@ import {
   HttpCode,
   HttpStatus,
   UseInterceptors,
+  UseGuards,
 } from '@nestjs/common';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
@@ -21,8 +22,12 @@ import {
   ApprovePaymentDto,
   RejectPaymentDto,
 } from './orders.service';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/require-permission.decorator';
+import { Permission } from '../rbac/rbac.service';
 
 @Controller('orders')
+@UseGuards(PermissionsGuard)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
@@ -31,6 +36,7 @@ export class OrdersController {
    * GET /orders
    */
   @Get()
+  @RequirePermission(Permission.ORDER_VIEW)
   async findAll(
     @Headers('x-tenant-id') tenantId: string,
     @Query('status') status?: string,
@@ -121,6 +127,7 @@ export class OrdersController {
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(Permission.ORDER_CREATE)
   async createManualOrder(
     @Body() dto: CreateOrderDto,
     @Headers('x-tenant-id') tenantId: string,
@@ -140,6 +147,7 @@ export class OrdersController {
    * PATCH /orders/:id/status
    */
   @Patch(':id/status')
+  @RequirePermission(Permission.ORDER_EDIT)
   async updateStatus(
     @Param('id') id: string,
     @Headers('x-tenant-id') tenantId: string,
@@ -153,6 +161,7 @@ export class OrdersController {
    * PUT /orders/:id/approve
    */
   @Put(':id/approve')
+  @RequirePermission(Permission.ORDER_EDIT)
   async approvePayment(
     @Param('id') id: string,
     @Headers('x-tenant-id') tenantId: string,
@@ -178,6 +187,7 @@ export class OrdersController {
    * PUT /orders/:id/reject
    */
   @Put(':id/reject')
+  @RequirePermission(Permission.ORDER_EDIT)
   async rejectPayment(
     @Param('id') id: string,
     @Headers('x-tenant-id') tenantId: string,
@@ -203,6 +213,7 @@ export class OrdersController {
    * POST /orders/bulk/ship
    */
   @Post('bulk/ship')
+  @RequirePermission(Permission.ORDER_SHIP)
   async bulkShip(
     @Headers('x-tenant-id') tenantId: string,
     @Body() body: { orderIds: string[]; shippingProvider: string },

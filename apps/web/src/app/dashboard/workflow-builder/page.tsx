@@ -8,8 +8,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { saveWorkflow, getActiveWorkflows } from '../../actions/workflow-builder';
-
-const DEMO_TENANT_ID = 'demo-tenant-123';
+import { useTenantId } from '@/lib/tenant';
 
 // Helper to map string icon names back to Lucide components if needed in the future
 const getIconFromName = (name: string) => {
@@ -35,6 +34,7 @@ type FlowNode = {
 };
 
 export default function WorkflowBuilderPage() {
+    const tenantId = useTenantId();
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [workflowName, setWorkflowName] = useState('Trendyol Sipariş Otomasyonu');
     const [isSaving, setIsSaving] = useState(false);
@@ -77,7 +77,8 @@ export default function WorkflowBuilderPage() {
 
     const handleDeploy = async () => {
         setIsSaving(true);
-        const res = await saveWorkflow(DEMO_TENANT_ID, workflowName, workflow);
+        if (!tenantId) return;
+        const res = await saveWorkflow(tenantId, workflowName, workflow);
         setIsSaving(false);
         if (res.success) {
             alert('Akış başarıyla Prisma veritabanına kaydedildi! Artık gerçek zamanlı dinleniyor.');

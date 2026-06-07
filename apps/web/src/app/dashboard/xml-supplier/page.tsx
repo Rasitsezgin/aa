@@ -7,10 +7,10 @@ import {
     Percent, Box, PlusCircle, ArrowRightLeft, FileCode2, RefreshCw
 } from 'lucide-react';
 import { getXmlSuppliers, createXmlSupplier, deleteXmlSupplier } from '../../actions/xml-supplier';
-
-const DEMO_TENANT_ID = 'demo-tenant-123';
+import { useTenantId } from '@/lib/tenant';
 
 export default function XMLSupplierPage() {
+    const tenantId = useTenantId();
     const [links, setLinks] = useState<any[]>([]);
     const [showNewModal, setShowNewModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -23,12 +23,14 @@ export default function XMLSupplierPage() {
     const [fixedFee, setFixedFee] = useState('45');
 
     useEffect(() => {
-        fetchSuppliers();
-    }, []);
+        if (tenantId) fetchSuppliers();
+        else setIsLoading(false);
+    }, [tenantId]);
 
     const fetchSuppliers = async () => {
+        if (!tenantId) return;
         setIsLoading(true);
-        const data = await getXmlSuppliers(DEMO_TENANT_ID);
+        const data = await getXmlSuppliers(tenantId);
         setLinks(data);
         setIsLoading(false);
     };
@@ -40,7 +42,8 @@ export default function XMLSupplierPage() {
         const markupVal = parseFloat(markup) || 0;
         const feeVal = parseFloat(fixedFee) || 0;
         
-        const res = await createXmlSupplier(DEMO_TENANT_ID, name, url, markupVal, feeVal);
+        if (!tenantId) return;
+        const res = await createXmlSupplier(tenantId, name, url, markupVal, feeVal);
         if (res.success) {
             setName('');
             setUrl('');

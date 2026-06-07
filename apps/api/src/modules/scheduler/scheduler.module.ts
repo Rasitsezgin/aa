@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { SchedulerService } from './scheduler.service';
+import { SchedulerController } from './scheduler.controller';
 import { ReportJobProcessor } from './processors/report-job.processor';
 import { SyncJobProcessor } from './processors/sync-job.processor';
 import { EmailJobProcessor } from './processors/email-job.processor';
@@ -23,6 +24,7 @@ import { EncryptionModule } from '../../common/encryption.module';
       { name: 'scheduled-tasks' },
     ),
   ],
+  controllers: [SchedulerController],
   providers: [
     SchedulerService,
     ReportJobProcessor,

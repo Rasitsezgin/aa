@@ -108,8 +108,16 @@ export default function StoresPage() {
     const handleSync = useCallback(async (storeId: string) => {
         setSyncingStoreId(storeId);
         try {
-            await syncStore(storeId, 'all');
+            const result = await syncStore(storeId, 'all') as {
+                products?: { created?: number; updated?: number; failed?: number };
+                orders?: { created?: number; updated?: number; skipped?: boolean; message?: string };
+            } | undefined;
             await fetchStores();
+            if (result?.products) {
+                const { created = 0, updated = 0, failed = 0 } = result.products;
+                const msg = `Senkron tamamlandı: ${created} yeni, ${updated} güncellendi${failed ? `, ${failed} hata` : ''} ürün`;
+                if (typeof window !== 'undefined') window.alert(msg);
+            }
         } catch {
             // error handled by hook
         } finally {

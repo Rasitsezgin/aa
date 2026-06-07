@@ -68,6 +68,16 @@ export class MarketplaceController {
     return this.marketplaceService.syncAllOrdersForTenant(tenantId);
   }
 
+  @Get('sync-status/:storeId')
+  async getSyncStatus(
+    @Headers('x-tenant-id') headerTenantId: string,
+    @Param('storeId') storeId: string,
+    @Query('tenantId') queryTenantId?: string,
+  ) {
+    const tenantId = this.resolveTenantId(headerTenantId, queryTenantId);
+    return this.marketplaceService.getIntegrationSyncStatus(tenantId, storeId);
+  }
+
   @Post('sync-store/:storeId')
   async syncStore(
     @Headers('x-tenant-id') headerTenantId: string,

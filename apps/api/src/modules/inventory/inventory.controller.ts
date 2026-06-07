@@ -2,15 +2,22 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Patch,
+  Delete,
   Param,
   Query,
   Body,
   Headers,
+  UseGuards,
 } from '@nestjs/common';
-import { InventoryService, StockUpdateDto } from './inventory.service';
+import { InventoryService, StockUpdateDto, SkuGroupDto } from './inventory.service';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/require-permission.decorator';
+import { Permission } from '../rbac/rbac.service';
 
 @Controller('inventory')
+@UseGuards(PermissionsGuard)
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
@@ -54,6 +61,62 @@ export class InventoryController {
     return this.inventoryService.getStats(finalTenantId);
   }
 
+  @Get('discrepancies')
+  @RequirePermission(Permission.PRODUCT_VIEW)
+  async getDiscrepancies(
+    @Headers('x-tenant-id') tenantId: string,
+    @Query('tenantId') queryTenantId?: string,
+  ) {
+    const finalTenantId = queryTenantId || tenantId;
+    if (!finalTenantId) throw new Error('tenantId is required');
+    return this.inventoryService.getStockDiscrepancies(finalTenantId);
+  }
+
+  @Get('sku-groups')
+  @RequirePermission(Permission.PRODUCT_VIEW)
+  async getSkuGroups(
+    @Headers('x-tenant-id') tenantId: string,
+    @Query('tenantId') queryTenantId?: string,
+  ) {
+    const finalTenantId = queryTenantId || tenantId;
+    if (!finalTenantId) throw new Error('tenantId is required');
+    return this.inventoryService.getSkuGroups(finalTenantId);
+  }
+
+  @Put('sku-groups')
+  @RequirePermission(Permission.PRODUCT_EDIT)
+  async replaceSkuGroups(
+    @Headers('x-tenant-id') tenantId: string,
+    @Body() body: { tenantId?: string; groups: SkuGroupDto[] },
+  ) {
+    const finalTenantId = body.tenantId || tenantId;
+    if (!finalTenantId) throw new Error('tenantId is required');
+    return this.inventoryService.replaceSkuGroups(finalTenantId, body.groups || []);
+  }
+
+  @Post('sku-groups')
+  @RequirePermission(Permission.PRODUCT_EDIT)
+  async upsertSkuGroup(
+    @Headers('x-tenant-id') tenantId: string,
+    @Body() body: { tenantId?: string; group: SkuGroupDto },
+  ) {
+    const finalTenantId = body.tenantId || tenantId;
+    if (!finalTenantId) throw new Error('tenantId is required');
+    return this.inventoryService.upsertSkuGroup(finalTenantId, body.group);
+  }
+
+  @Delete('sku-groups/:masterSku')
+  @RequirePermission(Permission.PRODUCT_EDIT)
+  async deleteSkuGroup(
+    @Param('masterSku') masterSku: string,
+    @Headers('x-tenant-id') tenantId: string,
+    @Query('tenantId') queryTenantId?: string,
+  ) {
+    const finalTenantId = queryTenantId || tenantId;
+    if (!finalTenantId) throw new Error('tenantId is required');
+    return this.inventoryService.deleteSkuGroup(finalTenantId, decodeURIComponent(masterSku));
+  }
+
   @Get('predictions')
   async getAIPredictions(
     @Headers('x-tenant-id') tenantId: string,
@@ -77,6 +140,7 @@ export class InventoryController {
   }
 
   @Patch(':id/stock')
+  @RequirePermission(Permission.PRODUCT_EDIT)
   async updateStock(
     @Param('id') id: string,
     @Headers('x-tenant-id') tenantId: string,
@@ -88,6 +152,7 @@ export class InventoryController {
   }
 
   @Post('bulk-update')
+  @RequirePermission(Permission.PRODUCT_EDIT)
   async bulkUpdate(
     @Headers('x-tenant-id') tenantId: string,
     @Body()

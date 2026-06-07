@@ -2,6 +2,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AiService } from '../ai.service';
 import { PrismaService } from '../../../database/prisma.service';
+import { AiCreditsService } from '../../../common/services/ai-credits.service';
 
 @Injectable()
 export class CopilotService {
@@ -35,6 +36,7 @@ Kuralların:
   constructor(
     private readonly aiService: AiService,
     private readonly prisma: PrismaService,
+    private readonly aiCreditsService: AiCreditsService,
   ) {}
 
   async chat(
@@ -43,6 +45,7 @@ Kuralların:
     history: { role: string; content: string }[] = [],
     context?: string,
   ) {
+    const credits = await this.aiCreditsService.consume(tenantId, 1);
     const contextInfo = await this.gatherContext(tenantId, message);
 
     const enhancedPrompt = `${this.SYSTEM_PROMPT}
@@ -69,6 +72,7 @@ ${context ? `\n--- SAYFA BAĞLAMI ---\n${context}\n---` : ''}`;
       role: 'assistant',
       suggestions,
       timestamp: new Date().toISOString(),
+      credits,
     };
   }
 

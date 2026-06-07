@@ -8,8 +8,7 @@ import {
   AlertTriangle, RefreshCw, ShoppingCart
 } from 'lucide-react';
 import { getInvoices } from '../../actions/e-invoice';
-
-const DEMO_TENANT_ID = 'demo-tenant-123';
+import { useTenantId } from '@/lib/tenant';
 
 interface Invoice {
   id: string;
@@ -42,6 +41,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.C
 };
 
 export default function EInvoicePage() {
+  const tenantId = useTenantId();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [stats, setStats] = useState<InvoiceStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,12 +49,14 @@ export default function EInvoicePage() {
   const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (tenantId) fetchData();
+    else setLoading(false);
+  }, [tenantId]);
 
   const fetchData = async () => {
+    if (!tenantId) return;
     setLoading(true);
-    const res = await getInvoices(DEMO_TENANT_ID);
+    const res = await getInvoices(tenantId);
     if (res.success && res.stats) {
         setInvoices(res.invoices);
         setStats(res.stats);

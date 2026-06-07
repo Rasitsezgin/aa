@@ -11,6 +11,7 @@ import {
     ArrowRight, BarChart3, AlertTriangle, Users,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useMediaQuery';
+import { useTenantId } from '@/lib/tenant';
 
 interface Message {
     id: string;
@@ -53,6 +54,8 @@ export default function AICopilot() {
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const pathname = usePathname();
     const isMobile = useIsMobile();
+    const tenantId = useTenantId();
+    const tenantHeaders = { 'Content-Type': 'application/json', ...(tenantId ? { 'x-tenant-id': tenantId } : {}) };
 
     // Scroll to bottom
     const scrollToBottom = useCallback(() => {
@@ -78,7 +81,7 @@ export default function AICopilot() {
         try {
             const res = await fetch('/api/ai/copilot/suggestions', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-tenant-id': 'default' },
+                headers: tenantHeaders,
                 body: JSON.stringify({ currentPage: pathname }),
             });
             if (res.ok) {
@@ -123,7 +126,7 @@ export default function AICopilot() {
 
             const res = await fetch('/api/ai/copilot/chat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-tenant-id': 'default' },
+                headers: tenantHeaders,
                 body: JSON.stringify({ message: text.trim(), history, context: pathname }),
             });
 
@@ -163,7 +166,7 @@ export default function AICopilot() {
         try {
             const res = await fetch('/api/ai/copilot/quick-action', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-tenant-id': 'default' },
+                headers: tenantHeaders,
                 body: JSON.stringify({ action }),
             });
 

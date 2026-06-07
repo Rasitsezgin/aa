@@ -89,6 +89,7 @@ interface MarketplaceCardProps {
   onSync: (marketplace: MarketplaceConfig) => void;
   onSettings: (marketplace: MarketplaceConfig) => void;
   onViewDetails: (marketplace: MarketplaceConfig) => void;
+  onOAuth?: (marketplace: MarketplaceConfig) => void;
   index?: number;
 }
 
@@ -188,6 +189,7 @@ export const MarketplaceCard: React.FC<MarketplaceCardProps> = ({
   onSync,
   onSettings,
   onViewDetails,
+  onOAuth,
   index = 0,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -503,22 +505,39 @@ export const MarketplaceCard: React.FC<MarketplaceCardProps> = ({
               </motion.button>
             </>
           ) : (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onConnect(marketplace)}
-              disabled={isLocked}
-              style={{
-                background: isLocked ? undefined : `linear-gradient(135deg, ${marketplace.brandColor}, ${marketplace.brandColor}dd)`,
-              }}
-              className={`flex-1 px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-all ${isLocked
-                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
-                  : 'text-white shadow-lg hover:shadow-xl'
-                }`}
-            >
-              <Zap className="w-4 h-4" />
-              Bağlan
-            </motion.button>
+            <>
+              {onOAuth && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => onOAuth(marketplace)}
+                  disabled={isLocked}
+                  className={`flex-1 px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-all ${isLocked
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
+                      : 'bg-blue-600 text-white shadow-lg hover:shadow-xl'
+                    }`}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  OAuth ile Bağlan
+                </motion.button>
+              )}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onConnect(marketplace)}
+                disabled={isLocked}
+                style={{
+                  background: isLocked ? undefined : `linear-gradient(135deg, ${marketplace.brandColor}, ${marketplace.brandColor}dd)`,
+                }}
+                className={`flex-1 px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-all ${isLocked
+                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
+                    : 'text-white shadow-lg hover:shadow-xl'
+                  }`}
+              >
+                <Zap className="w-4 h-4" />
+                {onOAuth ? 'Manuel Bağlan' : 'Bağlan'}
+              </motion.button>
+            </>
           )}
         </div>
 

@@ -1,20 +1,35 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
-    BellRing, AlertTriangle, PlusCircle, Settings2,
-    Mail, Smartphone, Search, Trash2, ShieldAlert
+    BellRing, PlusCircle,
+    Mail, Smartphone, Search, ShieldAlert, Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const mockAlerts = [
-    { id: 1, rule: 'Tişört Grubu (Tüm Bedenler)', condition: '< 5 Adet', channels: ['SMS', 'Mail'], status: 'active', lastTrigger: '2 Saat Önce' },
-    { id: 2, rule: 'iPhone 15 Pro Kılıfları', condition: '< 10 Adet', channels: ['Mail'], status: 'active', lastTrigger: 'Hiç Tetiklenmedi' },
-    { id: 3, rule: 'Tüm Elektronik Ürünler', condition: '< 2 Adet', channels: ['SMS'], status: 'paused', lastTrigger: '3 Gün Önce' }
-];
+import Link from 'next/link';
+import { useStockAlerts } from '@/lib/hooks';
 
 export default function CriticalStockAlertsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [search, setSearch] = useState('');
+    const { data: stockAlerts, loading } = useStockAlerts();
+
+    const alerts = useMemo(() => {
+        const items = (stockAlerts || []).map((a: any) => ({
+            id: a.productId || a.id,
+            rule: a.productName || a.name || 'Ürün',
+            condition: `< ${a.currentStock ?? a.stock ?? 0} Adet`,
+            channels: ['Mail'] as string[],
+            status: a.status === 'critical' ? 'active' : 'paused',
+            lastTrigger: a.status === 'critical' ? 'Aktif uyarı' : 'Düşük stok',
+            sku: a.sku,
+        }));
+        if (!search.trim()) return items;
+        const q = search.toLowerCase();
+        return items.filter((a) => a.rule.toLowerCase().includes(q) || (a.sku || '').toLowerCase().includes(q));
+    }, [stockAlerts, search]);
+
+    const criticalCount = (stockAlerts || []).filter((a: any) => a.status === 'critical').length;
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
@@ -44,13 +59,19 @@ export default function CriticalStockAlertsPage() {
                         <ShieldAlert className="w-6 h-6" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-rose-600 dark:text-rose-400 text-lg">Şu an 4 ürününüz tükenmek üzere!</h3>
-                        <p className="text-sm text-rose-600/80 dark:text-rose-400/80">Belirlediğiniz kurallara göre "Tişört Grubu" sınırın altında işlem görüyor.</p>
+                        <h3 className="font-bold text-rose-600 dark:text-rose-400 text-lg">
+                            {criticalCount > 0 ? `Şu an ${criticalCount} ürününüz kritik stokta!` : 'Kritik stok uyarısı yok'}
+                        </h3>
+                        <p className="text-sm text-rose-600/80 dark:text-rose-400/80">
+                            {alerts.length > 0
+                                ? 'Aşağıdaki ürünler düşük veya kritik stok seviyesinde.'
+                                : 'Stok seviyeleriniz şu an güvenli görünüyor.'}
+                        </p>
                     </div>
                 </div>
-                <button className="px-6 py-2 bg-white dark:bg-surface border border-border rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:shadow-md transition-all whitespace-nowrap">
-                    Tükenenleri Listele
-                </button>
+                <Link href="/dashboard/inventory" className="px-6 py-2 bg-white dark:bg-surface border border-border rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:shadow-md transition-all whitespace-nowrap">
+                    Stok Listesine Git
+                </Link>
             </div>
 
             {/* Rules List */}
@@ -62,15 +83,26 @@ export default function CriticalStockAlertsPage() {
                     <div className="relative w-full sm:w-64">
                         <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input 
-                            type="text" 
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
                             className="w-full bg-background border border-border rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 ring-rose-500/50"
-                            placeholder="Kural ara..."
+                            placeholder="Ürün ara..."
                         />
                     </div>
                 </div>
 
                 <div className="p-6 space-y-4">
-                    {mockAlerts.map(alert => (
+                    {loading && (
+                        <div className="py-10 text-center text-sm text-slate-500">
+                            <Loader2 className="w-5 h-5 animate-spin inline mr-2" />
+                            Stok uyarıları yükleniyor...
+                        </div>
+                    )}
+                    {!loading && alerts.length === 0 && (
+                        <p className="text-center text-sm text-slate-500 py-10">Kritik stok uyarısı bulunamadı.</p>
+                    )}
+                    {!loading && alerts.map(alert => (
                         <div key={alert.id} className="flex flex-col md:flex-row md:items-center justify-between p-5 rounded-2xl border border-border bg-background hover:border-rose-500/30 transition-all gap-4">
                             <div className="flex items-center gap-4 w-full md:w-1/3">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${alert.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>

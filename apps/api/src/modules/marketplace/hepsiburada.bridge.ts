@@ -5,6 +5,14 @@ import {
   MarketplaceAnalysisResponse,
   computeConfidenceFromSources,
 } from './analysis.types';
+import {
+  SYNC_FULL_CATALOG_LIMIT,
+  SYNC_MAX_API_PAGES,
+  getHepsiburadaListingApiBase,
+  isUnlimitedSync,
+  resolveScrapeLimit,
+  resolveSyncPageSize,
+} from './marketplace-sync.constants';
 
 interface HepsiburadaStoreData {
   storeId: string;
@@ -37,9 +45,9 @@ interface HepsiburadaProduct {
 @Injectable()
 export class HepsiburadaBridge implements MarketplaceBridge {
   private readonly logger = new Logger(HepsiburadaBridge.name);
-  private readonly baseUrl = 'https://listing-external-sit.hepsiburada.com';
+  private readonly baseUrl = getHepsiburadaListingApiBase();
   private readonly requestDelayMs = 300;
-  private readonly maxApiPages = 5;
+  private readonly maxApiPages = SYNC_MAX_API_PAGES;
 
   constructor(
     private readonly apiKey: string,
@@ -108,7 +116,7 @@ export class HepsiburadaBridge implements MarketplaceBridge {
       const scrapedProducts = await this.scrapingService.scrapeStoreProducts(
         url,
         'HEPSIBURADA',
-        limit,
+        resolveScrapeLimit(limit),
       );
 
       return scrapedProducts.map((product, index) => ({
@@ -142,12 +150,13 @@ export class HepsiburadaBridge implements MarketplaceBridge {
       return [];
     }
 
-    const pageSize = Math.min(100, Math.max(10, limit));
+    const unlimited = isUnlimitedSync(limit);
+    const pageSize = resolveSyncPageSize(limit);
     const results: HepsiburadaProduct[] = [];
 
     for (
       let page = 1;
-      page <= this.maxApiPages && results.length < limit;
+      page <= this.maxApiPages && (unlimited || results.length < limit);
       page++
     ) {
       const payload = await this.requestHepsiburada(storeId, page, pageSize);
@@ -157,7 +166,7 @@ export class HepsiburadaBridge implements MarketplaceBridge {
       if (!items.length) break;
 
       for (const item of items) {
-        if (results.length >= limit) break;
+        if (!unlimited && results.length >= limit) break;
         results.push(this.mapApiProduct(item, storeId));
       }
 
@@ -488,7 +497,10 @@ export class HepsiburadaBridge implements MarketplaceBridge {
     this.logger.log(
       `Syncing products for Hepsiburada Merchant: ${this.merchantId}`,
     );
-    const products = await this.getStoreProducts(this.merchantId);
+    const products = await this.getStoreProducts(
+      this.merchantId,
+      SYNC_FULL_CATALOG_LIMIT,
+    );
     return {
       success: true,
       platform: 'HEPSIBURADA',

@@ -106,6 +106,20 @@ export class IntegrationsController {
     return this.integrationsService.deleteIntegration(tenantId, marketplaceId);
   }
 
+  // Entegrasyon senkronunu yeniden dene
+  @Post(':integrationId/retry-sync')
+  async retryIntegrationSync(
+    @Param('integrationId') integrationId: string,
+    @Query('tenantId') tenantId: string,
+    @Body() body?: { syncType?: 'health-check' | 'order-sync' | 'inventory-sync' | 'all' },
+  ) {
+    return this.integrationsService.retryIntegrationSync(
+      tenantId,
+      integrationId,
+      body?.syncType || 'all',
+    );
+  }
+
   // Senkronizasyon başlat
   @Post('sync/:marketplaceId')
   async syncMarketplace(

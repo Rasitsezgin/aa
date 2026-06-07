@@ -77,7 +77,7 @@ const settingsCategories = [
         title: 'Güvenlik',
         description: 'Şifre, 2FA ve oturum güvenliği ayarları',
         icon: Shield,
-        href: '/dashboard/settings/security',
+        href: '/dashboard/security',
         color: 'from-red-500 to-rose-500',
         bgColor: 'bg-red-500/10',
         borderColor: 'border-red-500/20',
@@ -87,7 +87,7 @@ const settingsCategories = [
         title: 'Faturalandırma',
         description: 'Abonelik planınız, ödeme geçmişi ve faturalar',
         icon: CreditCard,
-        href: '/dashboard/settings/billing',
+        href: '/dashboard/payments',
         color: 'from-indigo-500 to-violet-500',
         bgColor: 'bg-indigo-500/10',
         borderColor: 'border-indigo-500/20',
@@ -97,7 +97,7 @@ const settingsCategories = [
         title: 'Görünüm',
         description: 'Tema, dil ve arayüz tercihlerinizi özelleştirin',
         icon: Palette,
-        href: '/dashboard/settings/appearance',
+        href: '/dashboard/theme',
         color: 'from-pink-500 to-fuchsia-500',
         bgColor: 'bg-pink-500/10',
         borderColor: 'border-pink-500/20',
@@ -107,7 +107,7 @@ const settingsCategories = [
         title: 'API & Webhooks',
         description: 'API anahtarlarınız ve webhook yapılandırması',
         icon: Key,
-        href: '/dashboard/settings/api',
+        href: '/dashboard/webhooks',
         color: 'from-slate-500 to-zinc-500',
         bgColor: 'bg-slate-500/10',
         borderColor: 'border-slate-500/20',
@@ -237,35 +237,41 @@ export default function SettingsPage() {
                         </button>
                     </Link>
 
-                    <button className="flex items-center gap-3 p-4 bg-background rounded-xl border border-border hover:border-primary/30 transition-all text-left group">
-                        <div className="p-2 rounded-lg bg-blue-500/10">
-                            <Users className="text-blue-500" size={18} />
-                        </div>
-                        <div>
-                            <div className="text-sm font-bold text-foreground">Üye Ekle</div>
-                            <div className="text-xs text-slate-500">Ekibe davet gönder</div>
-                        </div>
-                    </button>
+                    <Link href="/dashboard/settings/team">
+                        <button className="w-full flex items-center gap-3 p-4 bg-background rounded-xl border border-border hover:border-primary/30 transition-all text-left group">
+                            <div className="p-2 rounded-lg bg-blue-500/10">
+                                <Users className="text-blue-500" size={18} />
+                            </div>
+                            <div>
+                                <div className="text-sm font-bold text-foreground">Üye Ekle</div>
+                                <div className="text-xs text-slate-500">Ekibe davet gönder</div>
+                            </div>
+                        </button>
+                    </Link>
 
-                    <button className="flex items-center gap-3 p-4 bg-background rounded-xl border border-border hover:border-primary/30 transition-all text-left group">
-                        <div className="p-2 rounded-lg bg-purple-500/10">
-                            <CreditCard className="text-purple-500" size={18} />
-                        </div>
-                        <div>
-                            <div className="text-sm font-bold text-foreground">Plan Yükselt</div>
-                            <div className="text-xs text-slate-500">Daha fazla özellik</div>
-                        </div>
-                    </button>
+                    <Link href="/dashboard/upgrade">
+                        <button className="w-full flex items-center gap-3 p-4 bg-background rounded-xl border border-border hover:border-primary/30 transition-all text-left group">
+                            <div className="p-2 rounded-lg bg-purple-500/10">
+                                <CreditCard className="text-purple-500" size={18} />
+                            </div>
+                            <div>
+                                <div className="text-sm font-bold text-foreground">Plan Yükselt</div>
+                                <div className="text-xs text-slate-500">Daha fazla özellik</div>
+                            </div>
+                        </button>
+                    </Link>
 
-                    <button className="flex items-center gap-3 p-4 bg-background rounded-xl border border-border hover:border-primary/30 transition-all text-left group">
-                        <div className="p-2 rounded-lg bg-orange-500/10">
-                            <FileText className="text-orange-500" size={18} />
-                        </div>
-                        <div>
-                            <div className="text-sm font-bold text-foreground">Raporlar</div>
-                            <div className="text-xs text-slate-500">Raporları indir</div>
-                        </div>
-                    </button>
+                    <Link href="/dashboard/reports">
+                        <button className="w-full flex items-center gap-3 p-4 bg-background rounded-xl border border-border hover:border-primary/30 transition-all text-left group">
+                            <div className="p-2 rounded-lg bg-orange-500/10">
+                                <FileText className="text-orange-500" size={18} />
+                            </div>
+                            <div>
+                                <div className="text-sm font-bold text-foreground">Raporlar</div>
+                                <div className="text-xs text-slate-500">Raporları indir</div>
+                            </div>
+                        </button>
+                    </Link>
                 </div>
             </motion.div>
         </div>

@@ -59,6 +59,8 @@ import { ScrapingModule } from './modules/scraping/scraping.module';
 import { SearchModule } from './modules/search/search.module';
 import { EmailModule } from './modules/email/email.module';
 import { AIAssistantModule } from './modules/ai-assistant/ai-assistant.module';
+import { RbacModule } from './modules/rbac/rbac.module';
+import { TenantServicesModule } from './common/services/tenant-services.module';
 import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
 import { CleanupService } from './common/services/cleanup.service';
 import { CacheService } from './common/cache.service';
@@ -97,6 +99,8 @@ function getBullConnection() {
         ]
       : []),
     DatabaseModule,
+    RbacModule,
+    TenantServicesModule,
     EncryptionModule,
     AiModule,
     AiModelsModule,

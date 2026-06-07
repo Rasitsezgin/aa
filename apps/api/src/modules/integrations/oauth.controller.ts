@@ -12,6 +12,7 @@ import type { Response } from 'express';
 import { PrismaService } from '../../database/prisma.service';
 import { EncryptionService } from '../../common/encryption.service';
 import { Public } from '../auth/public.decorator';
+import { MarketplaceService } from '../marketplace/marketplace.service';
 
 /**
  * OAuth Callback Handler
@@ -22,6 +23,7 @@ export class OAuthController {
   constructor(
     private prisma: PrismaService,
     private encryption: EncryptionService,
+    private marketplaceService: MarketplaceService,
   ) {}
 
   /**
@@ -102,6 +104,10 @@ export class OAuthController {
         });
       }
 
+      void this.triggerInitialSync(tenantId, 'AMAZON').catch((err) =>
+        console.error('Amazon initial sync failed:', err),
+      );
+
       return res.redirect('/dashboard/stores?success=amazon_connected');
     } catch (err) {
       console.error('Amazon OAuth callback error:', err);
@@ -174,6 +180,10 @@ export class OAuthController {
         });
       }
 
+      void this.triggerInitialSync(tenantId, 'HEPSIBURADA').catch((err) =>
+        console.error('Hepsiburada initial sync failed:', err),
+      );
+
       return res.redirect('/dashboard/stores?success=hepsiburada_connected');
     } catch (err) {
       console.error('Hepsiburada OAuth callback error:', err);
@@ -214,6 +224,20 @@ export class OAuthController {
     }
 
     return res.redirect(authUrl);
+  }
+
+  private async triggerInitialSync(tenantId: string, platform: string) {
+    const integration = await this.prisma.integration.findFirst({
+      where: { tenantId, platform: platform as 'AMAZON' | 'HEPSIBURADA', isActive: true },
+      select: { id: true },
+    });
+    if (!integration) return;
+
+    await this.marketplaceService.syncIntegrationByStoreId(
+      tenantId,
+      integration.id,
+      'all',
+    );
   }
 
   // Private helper methods

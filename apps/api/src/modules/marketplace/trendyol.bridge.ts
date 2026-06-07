@@ -5,6 +5,13 @@ import {
   MarketplaceAnalysisResponse,
   computeConfidenceFromSources,
 } from './analysis.types';
+import {
+  SYNC_FULL_CATALOG_LIMIT,
+  SYNC_MAX_API_PAGES,
+  isUnlimitedSync,
+  resolveScrapeLimit,
+  resolveSyncPageSize,
+} from './marketplace-sync.constants';
 
 interface TrendyolStoreData {
   storeId: string;
@@ -40,7 +47,7 @@ export class TrendyolBridge implements MarketplaceBridge {
   private readonly stageUrl = 'https://stageapi.trendyol.com/sapigw';
   private readonly baseUrl: string;
   private readonly requestDelayMs = 250;
-  private readonly maxApiPages = 5;
+  private readonly maxApiPages = SYNC_MAX_API_PAGES;
 
   constructor(
     private readonly apiKey: string,
@@ -113,7 +120,7 @@ export class TrendyolBridge implements MarketplaceBridge {
       const scrapedProducts = await this.scrapingService.scrapeStoreProducts(
         url,
         'TRENDYOL',
-        limit,
+        resolveScrapeLimit(limit),
       );
 
       return scrapedProducts.map((product, index) => ({
@@ -150,11 +157,12 @@ export class TrendyolBridge implements MarketplaceBridge {
     }
 
     const results: TrendyolProduct[] = [];
-    const size = Math.min(100, Math.max(10, limit));
+    const unlimited = isUnlimitedSync(limit);
+    const size = resolveSyncPageSize(limit);
 
     for (
       let page = 0;
-      page < this.maxApiPages && results.length < limit;
+      page < this.maxApiPages && (unlimited || results.length < limit);
       page++
     ) {
       const endpoint = `/suppliers/${encodeURIComponent(storeId)}/products?page=${page}&size=${size}`;
@@ -165,7 +173,7 @@ export class TrendyolBridge implements MarketplaceBridge {
       if (!items.length) break;
 
       for (const item of items) {
-        if (results.length >= limit) break;
+        if (!unlimited && results.length >= limit) break;
         results.push(this.mapApiProduct(item, storeId));
       }
 
@@ -495,7 +503,10 @@ export class TrendyolBridge implements MarketplaceBridge {
     this.logger.log(
       `Syncing products for Trendyol Supplier: ${this.supplierId}`,
     );
-    const products = await this.getStoreProducts(this.supplierId);
+    const products = await this.getStoreProducts(
+      this.supplierId,
+      SYNC_FULL_CATALOG_LIMIT,
+    );
     return {
       success: true,
       platform: 'TRENDYOL',

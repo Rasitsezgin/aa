@@ -11,16 +11,22 @@ import {
   Req,
   Res,
   UseInterceptors,
+  UseGuards,
 } from '@nestjs/common';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { ProductService } from './product.service';
 import type { Response } from 'express';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/require-permission.decorator';
+import { Permission } from '../rbac/rbac.service';
 
 @Controller('products')
+@UseGuards(PermissionsGuard)
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post('bulk-action')
+  @RequirePermission(Permission.PRODUCT_EDIT)
   async executeBulkAction(
     @Headers('x-tenant-id') tenantId: string,
     @Body() data: { action: string; productIds: string[]; [key: string]: any },
@@ -39,6 +45,7 @@ export class ProductController {
   }
 
   @Post('import')
+  @RequirePermission(Permission.PRODUCT_CREATE)
   async importProducts(
     @Headers('x-tenant-id') tenantId: string,
     @Body() data: { products: any[]; mode: 'create' | 'update' | 'upsert' },
@@ -146,6 +153,7 @@ export class ProductController {
   }
 
   @Post()
+  @RequirePermission(Permission.PRODUCT_CREATE)
   async create(@Headers('x-tenant-id') tenantId: string, @Body() data: any) {
     return this.productService.create(tenantId, data);
   }
@@ -153,6 +161,7 @@ export class ProductController {
   @Get()
   @UseInterceptors(CacheInterceptor)
   @CacheTTL(60000)
+  @RequirePermission(Permission.PRODUCT_VIEW)
   async findAll(
     @Headers('x-tenant-id') tenantId: string,
     @Query('page') page?: string,
@@ -173,6 +182,7 @@ export class ProductController {
   }
 
   @Put(':id')
+  @RequirePermission(Permission.PRODUCT_EDIT)
   async update(
     @Headers('x-tenant-id') tenantId: string,
     @Param('id') id: string,
@@ -182,6 +192,7 @@ export class ProductController {
   }
 
   @Delete(':id')
+  @RequirePermission(Permission.PRODUCT_DELETE)
   async remove(
     @Headers('x-tenant-id') tenantId: string,
     @Param('id') id: string,

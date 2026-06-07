@@ -5,6 +5,9 @@ import { useSession } from 'next-auth/react';
 import { SystemModule, Plan, ModuleAccess, Announcement } from './types';
 import apiClient from '../api-client';
 import { DEFAULT_MODULES, getModuleByKey } from './default-modules';
+import { NAV_ITEMS } from '../navigation.config';
+import { resolvePanelRole, canAccessNavItem, type PanelRole } from '../rbac/nav-access';
+import type { SyncQueueItem } from '@/components/dashboard/SyncQueuePanel';
 
 interface ModuleContextType {
   // Tenant bilgileri
@@ -35,6 +38,18 @@ interface ModuleContextType {
   
   // Loading state
   isLoading: boolean;
+
+  // Tenant context
+  userType: string;
+  roleName: string;
+  panelRole: PanelRole;
+  aiCredits: { used: number; limit: number };
+  syncQueue: SyncQueueItem[];
+  orderPipeline: Record<string, number>;
+  criticalStockCount: number;
+  canAccessNavPath: (path: string) => boolean;
+  refreshTenantContext: () => Promise<boolean>;
+  retrySyncIntegration: (integrationId: string) => Promise<boolean>;
 }
 
 const ModuleContext = createContext<ModuleContextType | undefined>(undefined);
@@ -49,7 +64,74 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
   const [tenantPlan, setTenantPlan] = useState<Plan>('FREE');
   const [enabledModules, setEnabledModules] = useState<string[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  
+  const [userType, setUserType] = useState('USER');
+  const [roleName, setRoleName] = useState('USER');
+  const [aiCredits, setAiCredits] = useState({ used: 0, limit: 200 });
+  const [syncQueue, setSyncQueue] = useState<SyncQueueItem[]>([]);
+  const [orderPipeline, setOrderPipeline] = useState<Record<string, number>>({});
+  const [criticalStockCount, setCriticalStockCount] = useState(0);
+
+  const panelRole = resolvePanelRole(userType, roleName);
+
+  const refreshTenantContext = async (): Promise<boolean> => {
+    const res = await fetch('/api/tenant/context', { cache: 'no-store' });
+    if (!res.ok) return false;
+    const ctx = await res.json();
+    setTenantPlan((ctx.plan as Plan) || 'FREE');
+    setEnabledModules(ctx.enabledModules || []);
+    setUserType(ctx.userType || 'USER');
+    setRoleName(ctx.roleName || 'USER');
+    setAiCredits(ctx.aiCredits || { used: 0, limit: 200 });
+    setSyncQueue(ctx.integrations || []);
+    setOrderPipeline(ctx.orderPipeline || {});
+    setCriticalStockCount(ctx.criticalStockCount ?? 0);
+    return true;
+  };
+
+  const loadAnnouncements = async () => {
+    try {
+      const res = await fetch('/api/announcements', { cache: 'no-store' });
+      if (!res.ok) return;
+      const rows = await res.json();
+      if (!Array.isArray(rows)) return;
+      setAnnouncements(
+        rows.map((a: any) => ({
+          id: a.id,
+          title: a.title,
+          content: a.content,
+          summary: a.summary,
+          type: a.type,
+          target: 'ALL',
+          icon: a.icon,
+          color: a.color,
+          actionUrl: a.actionUrl,
+          actionText: a.actionText,
+          isPinned: a.isPinned,
+          isActive: a.isActive,
+          isRead: a.isRead,
+          isDismissed: a.isDismissed,
+          startsAt: a.startsAt,
+          endsAt: a.endsAt,
+        })),
+      );
+    } catch {
+      // ignore
+    }
+  };
+
+  const retrySyncIntegration = async (integrationId: string) => {
+    try {
+      const res = await fetch(`/api/integrations/${integrationId}/retry-sync`, {
+        method: 'POST',
+      });
+      if (!res.ok) return false;
+      await refreshTenantContext();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       if (!session?.user) {
@@ -59,8 +141,7 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
 
       setIsLoading(true);
       try {
-        // Session'dan tenantId al
-        const tid = (session.user as any)?.tenantId;
+        const tid = (session.user as { tenantId?: string })?.tenantId;
         if (tid) {
           setTenantId(tid);
           try {
@@ -69,45 +150,42 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
             console.warn('Failed to set tenantId on apiClient', e);
           }
         } else {
-          // clear any previous tenant on the client when no tenant in session
-          try { apiClient.setTenantId(''); } catch {};
+          try { apiClient.setTenantId(''); } catch {}
         }
 
-        // TODO: API'den gerçek tenant bilgileri yükle
-        // const response = await fetch(`/api/tenant/${tid}`);
-        // const { tenant, announcements } = await response.json();
-        // setTenantPlan(tenant.plan);
-        // setEnabledModules(tenant.enabledModules);
-        // setAnnouncements(announcements);
-
-        setEnabledModules([]);
-        setAnnouncements([]);
+        const loaded = await refreshTenantContext().catch(() => false);
+        if (!loaded) {
+          setEnabledModules(
+            DEFAULT_MODULES.filter((m) => m.isCore).map((m) => m.key),
+          );
+          setTenantPlan('FREE');
+        }
+        await loadAnnouncements();
       } catch (error) {
         console.error('Failed to load tenant data:', error);
-        setEnabledModules([]);
+        setEnabledModules(DEFAULT_MODULES.map((m) => m.key));
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     loadData();
   }, [session]);
   
   const hasModuleAccess = (moduleKey: string): boolean => {
+    if (!moduleKey) return true;
     const sysModule = getModuleByKey(moduleKey);
-    if (!sysModule) return false;
-    
-    // Core modüller her zaman erişilebilir
+    if (!sysModule) return true;
+
     if (sysModule.isCore) return true;
-    
-    // Plan kontrolü
+
     const planOrder: Plan[] = ['FREE', 'PRO', 'ENTERPRISE'];
     const currentPlanIndex = planOrder.indexOf(tenantPlan);
     const requiredPlanIndex = planOrder.indexOf(sysModule.requiredPlan);
-    
+
     if (requiredPlanIndex > currentPlanIndex) return false;
-    
-    // Modül aktif mi kontrolü
+
+    if (enabledModules.length === 0) return true;
     return enabledModules.includes(moduleKey);
   };
   
@@ -145,8 +223,21 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
     return enabledModules.includes(moduleKey);
   };
   
+  const canAccessNavPath = (path: string): boolean => {
+    const navItem = NAV_ITEMS.find((i) => i.href === path || (path.startsWith(i.href) && i.href !== '/dashboard'));
+    if (navItem && !canAccessNavItem(panelRole, navItem)) return false;
+    return true;
+  };
+
   const canAccessRoute = (path: string): boolean => {
-    const sysModule = DEFAULT_MODULES.find(m => m.menuPath === path);
+    if (!canAccessNavPath(path)) return false;
+    const navItem = NAV_ITEMS.find(
+      (i) => i.href === path || (path.startsWith(`${i.href}/`) && i.href !== '/dashboard'),
+    );
+    if (navItem?.moduleKey) return hasModuleAccess(navItem.moduleKey);
+    const sysModule = DEFAULT_MODULES.find(
+      (m) => m.menuPath === path || (m.menuPath && path.startsWith(`${m.menuPath}/`)),
+    );
     if (!sysModule) return true;
     return hasModuleAccess(sysModule.key);
   };
@@ -198,6 +289,16 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
         toggleModule,
         updateModuleConfig,
         isLoading,
+        userType,
+        roleName,
+        panelRole,
+        aiCredits,
+        syncQueue,
+        orderPipeline,
+        criticalStockCount,
+        canAccessNavPath,
+        refreshTenantContext,
+        retrySyncIntegration,
       }}
     >
       {children}

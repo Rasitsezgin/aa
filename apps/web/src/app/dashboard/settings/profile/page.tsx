@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
     User,
@@ -16,12 +16,38 @@ import {
     Phone
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { tenantHeaders } from '@/lib/tenant';
 
 export default function ProfileSettingsPage() {
     const { data: session, update } = useSession();
+    const [form, setForm] = useState({
+        name: session?.user?.name || '',
+        phone: '',
+        company: '',
+        taxId: '',
+        taxOffice: '',
+        language: 'tr',
+    });
     const [isLoading, setIsLoading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [focusedInput, setFocusedInput] = useState<string | null>(null);
+
+    useEffect(() => {
+        fetch('/api/settings/profile', { cache: 'no-store' })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+                if (!data) return;
+                setForm({
+                    name: data.name || session?.user?.name || '',
+                    phone: data.phone || '',
+                    company: data.company || '',
+                    taxId: data.taxId || '',
+                    taxOffice: data.taxOffice || '',
+                    language: data.language || 'tr',
+                });
+            })
+            .catch(() => {});
+    }, [session?.user?.name]);
 
     const containerVariants = {
         hidden: { opacity: 0, y: 20 },
@@ -47,8 +73,8 @@ export default function ProfileSettingsPage() {
         try {
             const res = await fetch('/api/settings/profile', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-tenant-id': 'default' },
-                body: JSON.stringify({}),
+                headers: tenantHeaders(session),
+                body: JSON.stringify(form),
             });
 
             if (!res.ok) {
@@ -145,7 +171,8 @@ export default function ProfileSettingsPage() {
                                     <div className={`relative transition-all duration-300 ${focusedInput === 'name' ? 'ring-2 ring-primary/20' : ''}`}>
                                         <input
                                             type="text"
-                                            defaultValue={session?.user?.name || ''}
+                                            value={form.name}
+                                            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                                             onFocus={() => setFocusedInput('name')}
                                             onBlur={() => setFocusedInput(null)}
                                             className="w-full px-5 py-4 bg-background border border-border rounded-2xl outline-none focus:border-primary transition-all font-medium text-sm"
@@ -176,6 +203,8 @@ export default function ProfileSettingsPage() {
                                     <div className={`relative transition-all duration-300 ${focusedInput === 'phone' ? 'ring-2 ring-primary/20' : ''}`}>
                                         <input
                                             type="tel"
+                                            value={form.phone}
+                                            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
                                             onFocus={() => setFocusedInput('phone')}
                                             onBlur={() => setFocusedInput(null)}
                                             className="w-full px-5 py-4 bg-background border border-border rounded-2xl outline-none focus:border-primary transition-all font-medium text-sm"
@@ -185,7 +214,11 @@ export default function ProfileSettingsPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Dil</label>
-                                    <select className="w-full px-5 py-4 bg-background border border-border rounded-2xl outline-none focus:border-primary transition-all font-medium text-sm appearance-none">
+                                    <select
+                                        value={form.language}
+                                        onChange={(e) => setForm((f) => ({ ...f, language: e.target.value }))}
+                                        className="w-full px-5 py-4 bg-background border border-border rounded-2xl outline-none focus:border-primary transition-all font-medium text-sm appearance-none"
+                                    >
                                         <option value="tr">Türkçe (TR)</option>
                                         <option value="en">English (US)</option>
                                         <option value="de">Deutsch (DE)</option>
@@ -209,6 +242,8 @@ export default function ProfileSettingsPage() {
                                 <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Şirket Adı</label>
                                 <input
                                     type="text"
+                                    value={form.company}
+                                    onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
                                     className="w-full px-5 py-4 bg-background border border-border rounded-2xl outline-none focus:border-primary transition-all font-medium text-sm"
                                     placeholder="Şirketinizin Resmi Adı"
                                 />
@@ -219,6 +254,8 @@ export default function ProfileSettingsPage() {
                                     <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Vergi Numarası</label>
                                     <input
                                         type="text"
+                                        value={form.taxId}
+                                        onChange={(e) => setForm((f) => ({ ...f, taxId: e.target.value }))}
                                         className="w-full px-5 py-4 bg-background border border-border rounded-2xl outline-none focus:border-primary transition-all font-medium text-sm"
                                         placeholder="Vergi No / TCKN"
                                     />
@@ -227,6 +264,8 @@ export default function ProfileSettingsPage() {
                                     <label className="text-xs font-black text-slate-500 uppercase tracking-widest ml-1">Vergi Dairesi</label>
                                     <input
                                         type="text"
+                                        value={form.taxOffice}
+                                        onChange={(e) => setForm((f) => ({ ...f, taxOffice: e.target.value }))}
                                         className="w-full px-5 py-4 bg-background border border-border rounded-2xl outline-none focus:border-primary transition-all font-medium text-sm"
                                         placeholder="Vergi Dairesi"
                                     />

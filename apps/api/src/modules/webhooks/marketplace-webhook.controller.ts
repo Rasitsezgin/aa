@@ -3,12 +3,13 @@ import {
   Post,
   Headers,
   Body,
-  Query,
-  BadRequestException,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { Public } from '../auth/public.decorator';
+import { MarketplaceService, Platform } from '../marketplace/marketplace.service';
+import type { Platform as PrismaPlatform } from '@pazaryonetimi/database';
 
 /**
  * Platform Webhook Receivers
@@ -16,21 +17,20 @@ import { Public } from '../auth/public.decorator';
  */
 @Controller('webhooks/marketplace')
 export class MarketplaceWebhookController {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(MarketplaceWebhookController.name);
 
-  /**
-   * Trendyol Webhook Handler
-   * POST /webhooks/marketplace/trendyol
-   * Headers: X-Trendyol-Webhook-Secret
-   */
+  constructor(
+    private prisma: PrismaService,
+    private marketplaceService: MarketplaceService,
+  ) {}
+
   @Public()
   @Post('trendyol')
   async handleTrendyolWebhook(
     @Headers('x-trendyol-webhook-secret') secret: string,
     @Headers('x-trendyol-event-type') eventType: string,
-    @Body() payload: any,
+    @Body() payload: Record<string, unknown>,
   ) {
-    // Verify webhook secret
     const expectedSecret = process.env.TRENDYOL_WEBHOOK_SECRET;
     if (expectedSecret && secret !== expectedSecret) {
       throw new UnauthorizedException('Invalid webhook secret');
@@ -51,24 +51,19 @@ export class MarketplaceWebhookController {
         await this.processTrendyolReturn(payload);
         break;
       default:
-        console.log(`Unhandled Trendyol event: ${eventType}`);
+        this.logger.warn(`Unhandled Trendyol event: ${eventType}`);
     }
 
     return { received: true };
   }
 
-  /**
-   * Hepsiburada Webhook Handler
-   * POST /webhooks/marketplace/hepsiburada
-   */
   @Public()
   @Post('hepsiburada')
   async handleHepsiburadaWebhook(
     @Headers('x-hepsiburada-signature') signature: string,
     @Headers('x-hepsiburada-event') eventType: string,
-    @Body() payload: any,
+    @Body() payload: Record<string, unknown>,
   ) {
-    // Verify signature (HMAC)
     const secret = process.env.HEPSIBURADA_WEBHOOK_SECRET;
     if (secret) {
       const crypto = await import('crypto');
@@ -93,41 +88,35 @@ export class MarketplaceWebhookController {
         await this.processHepsiburadaPriceUpdate(payload);
         break;
       default:
-        console.log(`Unhandled Hepsiburada event: ${eventType}`);
+        this.logger.warn(`Unhandled Hepsiburada event: ${eventType}`);
     }
 
     return { received: true };
   }
 
-  /**
-   * Amazon SP-API Notifications (SQS or direct HTTP)
-   * POST /webhooks/marketplace/amazon
-   */
   @Public()
   @Post('amazon')
   async handleAmazonNotification(
     @Headers('x-amz-sns-message-type') messageType: string,
-    @Body() payload: any,
+    @Body() payload: Record<string, unknown>,
   ) {
-    // Amazon SNS message handling
     if (messageType === 'SubscriptionConfirmation') {
-      // Confirm subscription
-      await fetch(payload.SubscribeURL);
+      const subscribeUrl = payload.SubscribeURL as string | undefined;
+      if (subscribeUrl) {
+        await fetch(subscribeUrl);
+      }
       return { confirmed: true };
     }
 
     if (messageType === 'Notification') {
-      const message = JSON.parse(payload.Message);
+      const message = JSON.parse(String(payload.Message));
 
       switch (message.notificationType) {
         case 'ORDER_CHANGE':
           await this.processAmazonOrder(message.payload);
           break;
-        case 'FEE_PROMOTION':
-          // Handle fee changes
-          break;
         default:
-          console.log(
+          this.logger.warn(
             `Unhandled Amazon notification: ${message.notificationType}`,
           );
       }
@@ -136,158 +125,276 @@ export class MarketplaceWebhookController {
     return { received: true };
   }
 
-  /**
-   * N11 Webhook Handler
-   * POST /webhooks/marketplace/n11
-   */
   @Public()
   @Post('n11')
   async handleN11Webhook(
     @Headers('x-n11-api-key') apiKey: string,
-    @Body() payload: any,
+    @Body() payload: Record<string, unknown>,
   ) {
-    // Verify API key
     const validKeys = await this.getValidN11ApiKeys();
     if (!validKeys.includes(apiKey)) {
       throw new UnauthorizedException('Invalid API key');
     }
 
-    switch (payload.event) {
+    const event = payload.event as string | undefined;
+    const data = payload.data as Record<string, unknown> | undefined;
+
+    switch (event) {
       case 'NewOrder':
-        await this.processN11Order(payload.data);
+        if (data) await this.processN11Order(data);
         break;
       case 'OrderStatusUpdate':
-        await this.updateN11OrderStatus(payload.data);
+        if (data) await this.updateN11OrderStatus(data);
         break;
       case 'StockUpdate':
-        await this.processN11StockUpdate(payload.data);
+        if (data) await this.processN11StockUpdate(data);
         break;
       default:
-        console.log(`Unhandled N11 event: ${payload.event}`);
+        this.logger.warn(`Unhandled N11 event: ${event}`);
     }
 
     return { received: true };
   }
 
-  // ==================== PRIVATE PROCESSORS ====================
+  private async processTrendyolOrder(payload: Record<string, unknown>) {
+    const supplierId = String(
+      payload.supplierId ?? payload.merchantId ?? '',
+    );
+    const orderNumber = String(payload.orderNumber ?? '');
 
-  private async processTrendyolOrder(payload: any) {
+    const integration = await this.findIntegrationByExternalId(
+      'TRENDYOL',
+      supplierId,
+    );
+
+    if (!integration) {
+      this.logger.warn(
+        `Trendyol webhook: entegrasyon bulunamadı supplierId=${supplierId}`,
+      );
+      return;
+    }
+
+    await this.logWebhookEvent(integration.tenantId, integration.id, {
+      platform: 'TRENDYOL',
+      event: 'order',
+      orderNumber,
+      status: payload.status,
+    });
+
     try {
-      // Simplified webhook processor - just log for now
-      console.log(`[WEBHOOK] Trendyol order received: ${payload.orderNumber}`, {
-        status: payload.status,
-        totalAmount: payload.totalAmount,
-        customer: `${payload.customerFirstName} ${payload.customerLastName}`,
-      });
-
-      // Trigger event for async processing via BullMQ
-      // await this.webhookQueue.add('process-trendyol-order', payload);
+      await this.marketplaceService.syncPlatformOrdersForTenant(
+        integration.tenantId,
+        Platform.TRENDYOL,
+        integration.id,
+      );
     } catch (error) {
-      console.error('Error processing Trendyol order webhook:', error);
+      this.logger.error(
+        `Trendyol order webhook sync failed: ${(error as Error).message}`,
+      );
     }
   }
 
-  private async processTrendyolStockUpdate(payload: any) {
-    console.log('[WEBHOOK] Trendyol stock update:', {
+  private async processTrendyolStockUpdate(payload: Record<string, unknown>) {
+    await this.logWebhookByBarcode('TRENDYOL', payload, 'stock');
+  }
+
+  private async processTrendyolPriceUpdate(payload: Record<string, unknown>) {
+    await this.logWebhookByBarcode('TRENDYOL', payload, 'price');
+  }
+
+  private async processTrendyolReturn(payload: Record<string, unknown>) {
+    const supplierId = String(payload.supplierId ?? '');
+    const integration = await this.findIntegrationByExternalId(
+      'TRENDYOL',
+      supplierId,
+    );
+    if (!integration) return;
+
+    await this.logWebhookEvent(integration.tenantId, integration.id, {
+      platform: 'TRENDYOL',
+      event: 'return',
+      orderNumber: payload.orderNumber,
+    });
+  }
+
+  private async processHepsiburadaOrder(payload: Record<string, unknown>) {
+    const merchantId = String(payload.merchantId ?? payload.merchant_id ?? '');
+    const integration = await this.findIntegrationByExternalId(
+      'HEPSIBURADA',
+      merchantId,
+    );
+
+    if (!integration) {
+      this.logger.warn(
+        `Hepsiburada webhook: entegrasyon bulunamadı merchantId=${merchantId}`,
+      );
+      return;
+    }
+
+    await this.logWebhookEvent(integration.tenantId, integration.id, {
+      platform: 'HEPSIBURADA',
+      event: 'order',
+      orderNumber: payload.orderNumber,
+      status: payload.status,
+    });
+
+    try {
+      await this.marketplaceService.syncPlatformOrdersForTenant(
+        integration.tenantId,
+        Platform.HEPSIBURADA,
+        integration.id,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Hepsiburada order webhook sync failed: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  private async processHepsiburadaStockUpdate(
+    payload: Record<string, unknown>,
+  ) {
+    await this.logWebhookByMerchant('HEPSIBURADA', payload, 'stock');
+  }
+
+  private async processHepsiburadaPriceUpdate(
+    payload: Record<string, unknown>,
+  ) {
+    await this.logWebhookByMerchant('HEPSIBURADA', payload, 'price');
+  }
+
+  private async processAmazonOrder(payload: Record<string, unknown>) {
+    const sellerId = String(
+      payload.SellerId ?? payload.sellerId ?? '',
+    );
+    const integration = await this.findIntegrationByExternalId(
+      'AMAZON',
+      sellerId,
+    );
+    if (!integration) return;
+
+    await this.logWebhookEvent(integration.tenantId, integration.id, {
+      platform: 'AMAZON',
+      event: 'order',
+      payload: { sellerId },
+    });
+
+    try {
+      await this.marketplaceService.syncPlatformOrdersForTenant(
+        integration.tenantId,
+        Platform.AMAZON,
+        integration.id,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Amazon order webhook sync failed: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  private async processN11Order(payload: Record<string, unknown>) {
+    this.logger.log(`N11 order webhook: ${JSON.stringify(payload)}`);
+  }
+
+  private async updateN11OrderStatus(payload: Record<string, unknown>) {
+    this.logger.log(`N11 order status webhook: ${JSON.stringify(payload)}`);
+  }
+
+  private async processN11StockUpdate(payload: Record<string, unknown>) {
+    this.logger.log(`N11 stock webhook: ${JSON.stringify(payload)}`);
+  }
+
+  private async logWebhookByBarcode(
+    platform: PrismaPlatform,
+    payload: Record<string, unknown>,
+    event: string,
+  ) {
+    const supplierId = String(payload.supplierId ?? '');
+    const integration = await this.findIntegrationByExternalId(
+      platform,
+      supplierId,
+    );
+    if (!integration) return;
+
+    await this.logWebhookEvent(integration.tenantId, integration.id, {
+      platform,
+      event,
       barcode: payload.barcode,
       quantity: payload.quantity,
-    });
-  }
-
-  private async processTrendyolPriceUpdate(payload: any) {
-    console.log('[WEBHOOK] Trendyol price update:', {
-      barcode: payload.barcode,
       salePrice: payload.salePrice,
-      listPrice: payload.listPrice,
     });
   }
 
-  private async processTrendyolReturn(payload: any) {
-    console.log('[WEBHOOK] Trendyol return:', {
-      orderNumber: payload.orderNumber,
-      reason: payload.reason,
-      status: payload.status,
+  private async logWebhookByMerchant(
+    platform: PrismaPlatform,
+    payload: Record<string, unknown>,
+    event: string,
+  ) {
+    const merchantId = String(payload.merchantId ?? '');
+    const integration = await this.findIntegrationByExternalId(
+      platform,
+      merchantId,
+    );
+    if (!integration) return;
+
+    await this.logWebhookEvent(integration.tenantId, integration.id, {
+      platform,
+      event,
+      sku: payload.sku,
+      stock: payload.stock,
+      price: payload.price,
     });
   }
 
-  private async processHepsiburadaOrder(payload: any) {
-    console.log('[WEBHOOK] Hepsiburada order:', {
-      orderNumber: payload.orderNumber,
-      status: payload.status,
-      customer: payload.customerName,
-    });
-  }
-
-  private async processHepsiburadaStockUpdate(payload: any) {
-    // Similar to Trendyol
-    console.log('Hepsiburada stock update:', payload);
-  }
-
-  private async processHepsiburadaPriceUpdate(payload: any) {
-    console.log('Hepsiburada price update:', payload);
-  }
-
-  private async processAmazonOrder(payload: any) {
-    console.log('Amazon order:', payload);
-  }
-
-  private async processN11Order(payload: any) {
-    console.log('N11 order:', payload);
-  }
-
-  private async updateN11OrderStatus(payload: any) {
-    console.log('N11 order status update:', payload);
-  }
-
-  private async processN11StockUpdate(payload: any) {
-    console.log('N11 stock update:', payload);
-  }
-
-  // ==================== HELPERS ====================
-
-  private mapTrendyolStatus(status: string): string {
-    const statusMap: Record<string, string> = {
-      Created: 'PENDING',
-      Picking: 'PROCESSING',
-      Invoiced: 'CONFIRMED',
-      Shipped: 'SHIPPED',
-      Delivered: 'DELIVERED',
-      Cancelled: 'CANCELLED',
-      Returned: 'RETURNED',
-    };
-    return statusMap[status] || 'PENDING';
-  }
-
-  private mapHepsiburadaStatus(status: string): string {
-    const statusMap: Record<string, string> = {
-      Awaiting: 'PENDING',
-      Processing: 'PROCESSING',
-      Shipped: 'SHIPPED',
-      Delivered: 'DELIVERED',
-      Cancelled: 'CANCELLED',
-    };
-    return statusMap[status] || 'PENDING';
-  }
-
-  private formatAddress(address: any): string {
-    if (!address) return '';
-    return `${address.fullAddress}, ${address.district}/${address.city}`;
-  }
-
-  private async getTenantIdForIntegration(
-    platform: string,
-    externalId: string,
-  ): Promise<string> {
-    const integration = await this.prisma.integration.findFirst({
-      where: {
-        platform: platform as any,
-        apiExtra: {
-          path: ['supplierId'],
-          equals: externalId,
-        },
+  private async logWebhookEvent(
+    tenantId: string,
+    integrationId: string,
+    details: Record<string, unknown>,
+  ) {
+    await this.prisma.activityLog.create({
+      data: {
+        tenantId,
+        action: 'webhook.order.received',
+        resource: 'integration',
+        resourceId: integrationId,
+        details,
       },
     });
-    return integration?.tenantId || 'default';
+  }
+
+  private async findIntegrationByExternalId(
+    platform: PrismaPlatform,
+    externalId: string,
+  ) {
+    if (!externalId) return null;
+
+    const integrations = await this.prisma.integration.findMany({
+      where: { platform, isActive: true },
+      select: {
+        id: true,
+        tenantId: true,
+        apiExtra: true,
+        apiKey: true,
+      },
+    });
+
+    const normalized = externalId.toLowerCase();
+
+    return (
+      integrations.find((integration) => {
+        const extra = (integration.apiExtra ?? {}) as Record<string, unknown>;
+        const candidates = [
+          extra.supplierId,
+          extra.merchantId,
+          extra.sellerId,
+          extra.storeId,
+        ]
+          .filter(Boolean)
+          .map((v) => String(v).toLowerCase());
+
+        return candidates.includes(normalized);
+      }) ?? null
+    );
   }
 
   private async getValidN11ApiKeys(): Promise<string[]> {

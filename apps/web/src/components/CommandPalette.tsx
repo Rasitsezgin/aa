@@ -41,6 +41,8 @@ import {
     ChevronRight
 } from 'lucide-react';
 import { useQuickActions } from '@/providers/quick-actions-provider';
+import { getCommandPaletteNavItems } from '@/lib/navigation.config';
+import { resolveNavIcon } from '@/lib/navigation-icons';
 
 interface CommandItem {
     id: string;
@@ -54,48 +56,21 @@ interface CommandItem {
     shortcut?: string;
 }
 
+const navCommands: CommandItem[] = getCommandPaletteNavItems().map((item) => ({
+    id: item.id,
+    title: item.label,
+    description: item.description || `${item.label} sayfasına git`,
+    icon: resolveNavIcon(item.icon),
+    href: item.href,
+    category: item.section,
+    keywords: item.keywords,
+}));
+
 const allCommands: CommandItem[] = [
-    // Navigasyon
-    { id: 'dashboard', title: 'Dashboard', description: 'Ana kontrol paneli', icon: LayoutDashboard, href: '/dashboard', category: 'Sayfalar', keywords: ['ana sayfa', 'panel', 'özet'] },
-    { id: 'orders', title: 'Siparişler', description: 'Sipariş yönetimi', icon: ShoppingCart, href: '/dashboard/orders', category: 'Sayfalar', keywords: ['sipariş', 'satış', 'kargo'] },
-    { id: 'products', title: 'Ürünler', description: 'Ürün kataloğu', icon: Package, href: '/dashboard/products', category: 'Sayfalar', keywords: ['ürün', 'katalog', 'envanter'] },
-    { id: 'inventory', title: 'Stok Yönetimi', description: 'Stok takibi ve uyarılar', icon: Warehouse, href: '/dashboard/inventory', category: 'Sayfalar', keywords: ['stok', 'depo', 'envanter'] },
-    { id: 'customers', title: 'Müşteriler', description: 'Müşteri CRM', icon: Users, href: '/dashboard/customers', category: 'Sayfalar', keywords: ['müşteri', 'crm', 'kullanıcı'] },
-    { id: 'stores', title: 'Mağazalarım', description: 'Bağlı mağazalar', icon: Store, href: '/dashboard/stores', category: 'Sayfalar', keywords: ['mağaza', 'pazaryeri'] },
-    { id: 'integrations', title: 'Entegrasyonlar', description: 'API bağlantıları', icon: Globe, href: '/dashboard/settings/integrations', category: 'Sayfalar', keywords: ['entegrasyon', 'api', 'bağlantı'] },
-    { id: 'notifications', title: 'Bildirimler', description: 'Tüm bildirimler', icon: Bell, href: '/dashboard/notifications', category: 'Sayfalar', keywords: ['bildirim', 'uyarı', 'haber'] },
-    { id: 'settings', title: 'Ayarlar', description: 'Sistem ayarları', icon: Settings, href: '/dashboard/settings', category: 'Sayfalar', keywords: ['ayar', 'yapılandırma', 'config'] },
-
-    // AI Araçları
-    { id: 'ai-advisor', title: 'AI Danışman', description: 'Yapay zeka destekli öneriler', icon: Bot, href: '/dashboard/ai-advisor', category: 'AI Araçları', keywords: ['ai', 'yapay zeka', 'öneri', 'danışman'], shortcut: '⌘A' },
-    { id: 'ai-tools', title: 'AI Araçları', description: 'Tüm AI özellikleri', icon: Sparkles, href: '/dashboard/ai-tools', category: 'AI Araçları', keywords: ['ai', 'araçlar', 'otomasyon'] },
-    { id: 'seo', title: 'SEO Optimizasyonu', description: 'AI destekli SEO analizi', icon: Target, href: '/dashboard/seo', category: 'AI Araçları', keywords: ['seo', 'arama', 'optimizasyon'] },
-    { id: 'competitor', title: 'Rakip Analizi', description: 'Rakip takibi', icon: TrendingUp, href: '/dashboard/competitor', category: 'AI Araçları', keywords: ['rakip', 'analiz', 'pazar'] },
-    { id: 'predictions', title: 'Satış Tahminleri', description: 'AI tahminleme', icon: PieChart, href: '/dashboard/predictions', category: 'AI Araçları', keywords: ['tahmin', 'forecast', 'satış'] },
-
-    // Finans
-    { id: 'payments', title: 'Ödemeler', description: 'Ödeme takibi', icon: CreditCard, href: '/dashboard/payments', category: 'Finans', keywords: ['ödeme', 'para', 'gelir'] },
-    { id: 'invoices', title: 'Faturalar', description: 'Fatura yönetimi', icon: Receipt, href: '/dashboard/invoices', category: 'Finans', keywords: ['fatura', 'belge'] },
-    { id: 'reports', title: 'Finansal Raporlar', description: 'Detaylı raporlar', icon: BarChart3, href: '/dashboard/reports', category: 'Finans', keywords: ['rapor', 'analiz', 'finans'] },
-    { id: 'analytics', title: 'Analitik', description: 'Performans metrikleri', icon: LineChart, href: '/dashboard/analytics', category: 'Finans', keywords: ['analitik', 'metrik', 'performans'] },
-
-    // Pazarlama
-    { id: 'campaigns', title: 'Kampanyalar', description: 'Pazarlama kampanyaları', icon: Megaphone, href: '/dashboard/campaigns', category: 'Pazarlama', keywords: ['kampanya', 'pazarlama', 'reklam'] },
-    { id: 'reviews', title: 'Yorumlar', description: 'Müşteri yorumları', icon: MessageSquare, href: '/dashboard/reviews', category: 'Pazarlama', keywords: ['yorum', 'değerlendirme', 'feedback'] },
-
-    // Pazaryeri
-    { id: 'bulk-actions', title: 'Toplu İşlemler', description: 'Toplu güncelleme', icon: Boxes, href: '/dashboard/bulk-actions', category: 'Pazaryeri', keywords: ['toplu', 'güncelleme', 'import'] },
-    { id: 'pricing', title: 'Fiyat Yönetimi', description: 'Fiyat stratejileri', icon: Tags, href: '/dashboard/pricing', category: 'Pazaryeri', keywords: ['fiyat', 'fiyatlandırma', 'indirim'] },
-    { id: 'shipping', title: 'Kargo Ayarları', description: 'Kargo konfigürasyonu', icon: Truck, href: '/dashboard/shipping', category: 'Pazaryeri', keywords: ['kargo', 'teslimat', 'shipping'] },
-    { id: 'service-integrations', title: 'Servis Entegrasyonları', description: 'Kargo, ödeme, e-fatura ve SMS servisleri', icon: Truck, href: '/dashboard/settings/service-integrations', category: 'Ayarlar', keywords: ['kargo', 'ödeme', 'e-fatura', 'sms', 'servis', 'entegrasyon', 'aras', 'iyzico', 'foriba'] },
-
-    // Hızlı İşlemler
+    ...navCommands,
     { id: 'quick-sale', title: 'Hızlı Satış', description: 'Yeni satış oluştur', icon: Zap, category: 'Hızlı İşlemler', keywords: ['satış', 'yeni', 'hızlı'] },
     { id: 'add-product', title: 'Yeni Ürün Ekle', description: 'Ürün oluştur', icon: Package, category: 'Hızlı İşlemler', keywords: ['ürün', 'ekle', 'yeni'] },
     { id: 'sync-all', title: 'Tümünü Senkronize Et', description: 'Tüm pazaryerlerini güncelle', icon: Globe, category: 'Hızlı İşlemler', keywords: ['sync', 'senkron', 'güncelle'] },
-
-    // Sistem
-    { id: 'security', title: 'Güvenlik', description: 'Güvenlik ayarları', icon: Shield, href: '/dashboard/security', category: 'Sistem', keywords: ['güvenlik', 'şifre', 'koruma'] },
     { id: 'upgrade', title: 'Planı Yükselt', description: 'Pro özelliklere geç', icon: Star, href: '/dashboard/upgrade', category: 'Sistem', keywords: ['upgrade', 'yükselt', 'pro'] },
 ];
 
@@ -137,7 +112,7 @@ function getAISuggestions(): CommandItem[] {
       description: 'AI: Yarın için %23 artış öngörülüyor',
       icon: Sparkles,
       category: 'AI Önerileri',
-      href: '/dashboard/predictions',
+      href: '/dashboard/analytics',
       keywords: ['tahmin', 'satış', 'forecast'],
     },
     {
@@ -146,7 +121,7 @@ function getAISuggestions(): CommandItem[] {
       description: 'AI: 5 üründe fiyat ayarlaması öneriliyor',
       icon: Sparkles,
       category: 'AI Önerileri',
-      href: '/dashboard/pricing',
+      href: '/dashboard/price-optimization',
       keywords: ['fiyat', 'optimizasyon', 'kar'],
     },
     {
@@ -155,7 +130,7 @@ function getAISuggestions(): CommandItem[] {
       description: 'AI: 3 rakip yeni kampanya başlatmış',
       icon: Sparkles,
       category: 'AI Önerileri',
-      href: '/dashboard/competitor',
+      href: '/dashboard/competitor-tracking',
       keywords: ['rakip', 'analiz', 'pazar'],
     }
   );
@@ -279,7 +254,7 @@ export function CommandPalette() {
             {/* Trigger Button */}
             <button
                 onClick={() => setIsOpen(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-slate-400 hover:text-white transition-all"
+                className="flex items-center gap-2 px-3 py-2 bg-surface/60 hover:bg-surface border border-border rounded-xl text-sm text-slate-500 hover:text-foreground transition-all w-full"
             >
                 <Search size={16} />
                 <span className="hidden md:inline">Ara...</span>

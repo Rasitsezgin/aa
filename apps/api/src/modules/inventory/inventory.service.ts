@@ -18,6 +18,12 @@ export class StockUpdateDto {
   reason?: string;
 }
 
+export interface SkuGroupDto {
+  masterSku: string;
+  masterStock: number;
+  variantIds: string[];
+}
+
 @Injectable()
 export class InventoryService {
   constructor(private prisma: PrismaService) {}
@@ -273,6 +279,122 @@ export class InventoryService {
         balance: log.newStock,
         note: log.note || log.description || log.type,
       })),
+    };
+  }
+
+  async getSkuGroups(tenantId: string) {
+    const rows = await this.prisma.skuGroup.findMany({
+      where: { tenantId },
+      orderBy: { updatedAt: 'desc' },
+    });
+    return rows.map((row) => ({
+      masterSku: row.masterSku,
+      masterStock: row.masterStock,
+      variantIds: (row.variantIds as string[]) || [],
+      updatedAt: row.updatedAt.toISOString(),
+    }));
+  }
+
+  async replaceSkuGroups(tenantId: string, groups: SkuGroupDto[]) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.skuGroup.deleteMany({ where: { tenantId } });
+      if (groups.length > 0) {
+        await tx.skuGroup.createMany({
+          data: groups.map((g) => ({
+            tenantId,
+            masterSku: g.masterSku.trim(),
+            masterStock: g.masterStock,
+            variantIds: g.variantIds,
+          })),
+        });
+      }
+    });
+    return this.getSkuGroups(tenantId);
+  }
+
+  async upsertSkuGroup(tenantId: string, group: SkuGroupDto) {
+    await this.prisma.skuGroup.upsert({
+      where: {
+        tenantId_masterSku: { tenantId, masterSku: group.masterSku.trim() },
+      },
+      create: {
+        tenantId,
+        masterSku: group.masterSku.trim(),
+        masterStock: group.masterStock,
+        variantIds: group.variantIds,
+      },
+      update: {
+        masterStock: group.masterStock,
+        variantIds: group.variantIds,
+      },
+    });
+    return this.getSkuGroups(tenantId);
+  }
+
+  async deleteSkuGroup(tenantId: string, masterSku: string) {
+    await this.prisma.skuGroup.deleteMany({
+      where: { tenantId, masterSku },
+    });
+    return { success: true };
+  }
+
+  async getStockDiscrepancies(tenantId: string) {
+    const products = await this.prisma.product.findMany({
+      where: { tenantId },
+      select: {
+        id: true,
+        sku: true,
+        title: true,
+        stock: true,
+        marketplaceLinks: {
+          select: { id: true, platform: true, stock: true, lastSyncAt: true },
+        },
+      },
+      take: 500,
+    });
+
+    const items: Array<{
+      id: string;
+      sku: string;
+      name: string;
+      localStock: number;
+      marketStock: number;
+      marketplace: string;
+      status: 'critical' | 'warning' | 'synced';
+      lastSyncAt: string | null;
+    }> = [];
+
+    for (const product of products) {
+      for (const link of product.marketplaceLinks) {
+        const diff = Math.abs(product.stock - link.stock);
+        let status: 'critical' | 'warning' | 'synced' = 'synced';
+        if (
+          diff > 5 ||
+          (product.stock === 0 && link.stock > 0) ||
+          (product.stock > 0 && link.stock === 0)
+        ) {
+          status = 'critical';
+        } else if (diff > 0) {
+          status = 'warning';
+        }
+        if (status !== 'synced') {
+          items.push({
+            id: `${product.id}-${link.id}`,
+            sku: product.sku,
+            name: product.title,
+            localStock: product.stock,
+            marketStock: link.stock,
+            marketplace: link.platform,
+            status,
+            lastSyncAt: link.lastSyncAt?.toISOString() || null,
+          });
+        }
+      }
+    }
+
+    return {
+      items: items.sort((a, b) => (a.status === 'critical' ? -1 : 1)),
+      scannedAt: new Date().toISOString(),
     };
   }
 }

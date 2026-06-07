@@ -521,6 +521,138 @@ export class MarketplaceService {
     };
   }
 
+  async getIntegrationSyncStatus(tenantId: string, integrationId: string) {
+    if (!tenantId || !integrationId) {
+      throw new BadRequestException('tenantId ve integrationId zorunludur');
+    }
+
+    const integration = await this.prisma.integration.findFirst({
+      where: { id: integrationId, tenantId },
+      select: {
+        id: true,
+        platform: true,
+        isActive: true,
+        updatedAt: true,
+        createdAt: true,
+      },
+    });
+
+    if (!integration) {
+      throw new NotFoundException('Entegrasyon bulunamadı');
+    }
+
+    const [productCount, orderCount, recentLogs] = await Promise.all([
+      this.prisma.marketplaceProduct.count({
+        where: {
+          product: { tenantId },
+          platform: integration.platform,
+        },
+      }),
+      this.prisma.order.count({
+        where: { tenantId, platform: integration.platform },
+      }),
+      this.prisma.activityLog.findMany({
+        where: {
+          tenantId,
+          OR: [
+            { resource: 'integration', resourceId: integrationId },
+            {
+              action: {
+                in: [
+                  'marketplace.products.sync',
+                  'integration.initial.sync',
+                  'integration.sync.retry',
+                  'sync.error',
+                  'webhook.order.received',
+                ],
+              },
+            },
+          ],
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 12,
+        select: {
+          id: true,
+          action: true,
+          resource: true,
+          resourceId: true,
+          details: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    return {
+      integrationId: integration.id,
+      platform: integration.platform,
+      isActive: integration.isActive,
+      lastSyncAt: integration.updatedAt.toISOString(),
+      connectedAt: integration.createdAt.toISOString(),
+      productCount,
+      orderCount,
+      recentLogs: recentLogs.map((log) => ({
+        id: log.id,
+        action: log.action,
+        resource: log.resource,
+        resourceId: log.resourceId,
+        details: log.details,
+        createdAt: log.createdAt.toISOString(),
+      })),
+    };
+  }
+
+  private async runInitialSyncAfterConnect(
+    tenantId: string,
+    integrationId: string,
+  ) {
+    await this.prisma.activityLog.create({
+      data: {
+        tenantId,
+        action: 'integration.initial.sync',
+        resource: 'integration',
+        resourceId: integrationId,
+        details: { trigger: 'connect', status: 'started' },
+      },
+    });
+
+    try {
+      const result = await this.syncIntegrationByStoreId(
+        tenantId,
+        integrationId,
+        'all',
+      );
+
+      await this.prisma.activityLog.create({
+        data: {
+          tenantId,
+          action: 'integration.initial.sync',
+          resource: 'integration',
+          resourceId: integrationId,
+          details: {
+            trigger: 'connect',
+            status: 'completed',
+            products: result.products,
+            orders: result.orders,
+          } as Prisma.InputJsonValue,
+        },
+      });
+    } catch (error) {
+      await this.prisma.activityLog.create({
+        data: {
+          tenantId,
+          action: 'sync.error',
+          resource: 'integration',
+          resourceId: integrationId,
+          details: {
+            trigger: 'connect',
+            error: (error as Error).message,
+          },
+        },
+      });
+      throw error;
+    }
+  }
+
   async probeAllIntegrationsForTenant(
     tenantId: string,
     options?: { includeOrders?: boolean; productLimit?: number },
@@ -1303,10 +1435,26 @@ export class MarketplaceService {
           apiExtra: sanitizedCredentials.apiExtra,
         },
       });
+
+      void this.runInitialSyncAfterConnect(tenantId, integration.id).catch(
+        (err) => {
+          this.logger.error(
+            `Initial sync failed for integration ${integration.id}`,
+            err as Error,
+          );
+        },
+      );
+
       return {
         success: true,
-        integration,
-        message: `${normalizedPlatform} mağazası başarıyla bağlandı`,
+        integration: {
+          id: integration.id,
+          platform: integration.platform,
+          isActive: integration.isActive,
+          createdAt: integration.createdAt,
+        },
+        initialSyncStarted: true,
+        message: `${normalizedPlatform} mağazası bağlandı. İlk senkronizasyon arka planda başlatıldı.`,
       };
     } catch (error) {
       if (

@@ -71,7 +71,9 @@ export default function GoalTracker({ goals: propGoals }: GoalTrackerProps) {
                 </div>
                 <div className="flex items-center gap-1 text-[10px] text-slate-500">
                     <Calendar size={12} />
-                    <span>Şubat 2026</span>
+                    <span>
+                      {new Date().toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}
+                    </span>
                 </div>
             </div>
 

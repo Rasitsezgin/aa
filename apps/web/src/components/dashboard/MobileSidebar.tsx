@@ -3,47 +3,10 @@
 import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-    LayoutDashboard,
-    Package,
-    Sparkles,
-    Settings,
-    Users,
-    TrendingUp,
-    LogOut,
-    Bell,
-    X,
-    Briefcase,
-    ShoppingCart,
-    BarChart3,
-    Warehouse,
-    Receipt,
-    Globe,
-    CreditCard,
-    FileText,
-    Target,
-    Megaphone,
-    MessageSquare,
-    Shield,
-    Boxes,
-    Truck,
-    Tags,
-    PieChart,
-    Zap,
-    Bot,
-    LineChart,
-    Store,
-    Lock,
-    Crown,
-    Palette,
-    Workflow,
-    Webhook,
-    Activity,
-    LayoutGrid,
-    Image as ImageIcon,
-    ChevronRight,
-    ArrowUpRight,
-} from 'lucide-react';
+import { Package, Sparkles, X, Zap, Lock, Crown, ChevronRight, ArrowUpRight } from 'lucide-react';
+import { getMobileSections } from '@/lib/navigation.config';
+import { filterNavSections } from '@/lib/rbac/nav-access';
+import { resolveNavIcon } from '@/lib/navigation-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { useModules } from '@/lib/modules';
@@ -56,90 +19,12 @@ interface MobileSidebarProps {
     onHaptic?: () => void;
 }
 
-interface MenuItem {
-    icon: any;
-    label: string;
-    href: string;
-    badge?: string;
-    pro?: boolean;
-    moduleKey?: string;
-}
-
-interface Section {
-    title: string;
-    items: MenuItem[];
-}
-
-const sections: Section[] = [
-    {
-        title: "Genel",
-        items: [
-            { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard", moduleKey: "DASHBOARD" },
-            { icon: ShoppingCart, label: "Siparişler", href: "/dashboard/orders", moduleKey: "ORDERS" },
-            { icon: Package, label: "Ürünler", href: "/dashboard/products", moduleKey: "PRODUCTS" },
-            { icon: Warehouse, label: "Stok Yönetimi", href: "/dashboard/inventory", badge: "!", moduleKey: "INVENTORY" },
-            { icon: Users, label: "Müşteriler", href: "/dashboard/customers", moduleKey: "CUSTOMERS" },
-            { icon: Bell, label: "Bildirimler", href: "/dashboard/notifications", moduleKey: "DASHBOARD" },
-        ]
-    },
-    {
-        title: "AI Araçları",
-        items: [
-            { icon: Bot, label: "AI Danışman", href: "/dashboard/ai-advisor", pro: true, moduleKey: "AI_ADVISOR" },
-            { icon: ImageIcon, label: "Görsel Stüdyo", href: "/dashboard/ai-tools/image-studio", pro: true, moduleKey: "IMAGE_AI" },
-            { icon: Sparkles, label: "İçerik Editörü", href: "/dashboard/ai-tools/content-optimizer", pro: true, moduleKey: "AI_CONTENT" },
-            { icon: Target, label: "SEO Denetleyici", href: "/dashboard/seo", pro: true, moduleKey: "AI_SEO" },
-            { icon: TrendingUp, label: "Rakip Analizi", href: "/dashboard/competitor", pro: true, moduleKey: "COMPETITOR_ANALYSIS" },
-            { icon: PieChart, label: "Satış Tahminleri", href: "/dashboard/predictions", pro: true, moduleKey: "PREDICTIONS" },
-        ]
-    },
-    {
-        title: "Pazaryeri",
-        items: [
-            { icon: Store, label: "Mağazalarım", href: "/dashboard/stores", moduleKey: "STORE_MANAGEMENT" },
-            { icon: Globe, label: "Entegrasyonlar", href: "/dashboard/settings/integrations", moduleKey: "INTEGRATIONS" },
-            { icon: Boxes, label: "Toplu İşlemler", href: "/dashboard/bulk-actions", pro: true, moduleKey: "BULK_ACTIONS" },
-            { icon: Tags, label: "Fiyat Yönetimi", href: "/dashboard/pricing", pro: true, moduleKey: "PRICING_ENGINE" },
-            { icon: Truck, label: "Kargo Ayarları", href: "/dashboard/shipping", moduleKey: "STORE_MANAGEMENT" },
-            { icon: Truck, label: "Servis Entegrasyonları", href: "/dashboard/settings/service-integrations", moduleKey: "SETTINGS" },
-        ]
-    },
-    {
-        title: "Finans & Raporlar",
-        items: [
-            { icon: Briefcase, label: "Finans & Karlılık", href: "/dashboard/finance", moduleKey: "PAYMENTS" },
-            { icon: CreditCard, label: "Ödemeler", href: "/dashboard/payments", moduleKey: "PAYMENTS" },
-            { icon: Receipt, label: "Faturalar", href: "/dashboard/invoices", moduleKey: "PAYMENTS" },
-            { icon: LineChart, label: "Analitik", href: "/dashboard/analytics", moduleKey: "DASHBOARD" },
-            { icon: BarChart3, label: "Finansal Raporlar", href: "/dashboard/reports", pro: true, moduleKey: "FINANCIAL_REPORTS" },
-        ]
-    },
-    {
-        title: "Pazarlama",
-        items: [
-            { icon: Megaphone, label: "Kampanyalar", href: "/dashboard/campaigns", pro: true, moduleKey: "CAMPAIGNS" },
-            { icon: MessageSquare, label: "Yorumlar", href: "/dashboard/reviews", moduleKey: "REVIEWS" },
-        ]
-    },
-    {
-        title: "Sistem",
-        items: [
-            { icon: Workflow, label: "Otomasyonlar", href: "/dashboard/automation", pro: true, moduleKey: "INTEGRATIONS" },
-            { icon: Webhook, label: "Webhooks", href: "/dashboard/webhooks", pro: true, moduleKey: "INTEGRATIONS" },
-            { icon: Activity, label: "Aktivite Logu", href: "/dashboard/activity", moduleKey: "DASHBOARD" },
-            { icon: LayoutGrid, label: "Widget'lar", href: "/dashboard/widgets", moduleKey: "DASHBOARD" },
-            { icon: Sparkles, label: "Geri Bildirim", href: "/dashboard/feedback", moduleKey: "DASHBOARD" },
-            { icon: Palette, label: "Tema", href: "/dashboard/theme", moduleKey: "SETTINGS" },
-            { icon: Shield, label: "Güvenlik", href: "/dashboard/security", moduleKey: "SECURITY" },
-            { icon: Settings, label: "Ayarlar", href: "/dashboard/settings", moduleKey: "SETTINGS" },
-        ]
-    }
-];
 
 export default function MobileSidebar({ isOpen, onClose, onHaptic }: MobileSidebarProps) {
     const pathname = usePathname();
     const { data: session } = useSession();
-    const { hasModuleAccess, tenantPlan } = useModules();
+    const { hasModuleAccess, tenantPlan, panelRole, criticalStockCount } = useModules();
+    const mobileSections = filterNavSections(getMobileSections(), panelRole);
     const { data: orderStats } = useOrderStats();
     const { openQuickSale, openAddProduct } = useQuickActions();
     const sidebarRef = useRef<HTMLDivElement>(null);
@@ -246,29 +131,34 @@ export default function MobileSidebar({ isOpen, onClose, onHaptic }: MobileSideb
 
                         {/* Navigation */}
                         <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 space-y-4 mobile-scroll">
-                            {sections.map((section) => (
+                            {mobileSections.map((section) => (
                                 <div key={section.title}>
                                     <div className="px-2 mb-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
                                         {section.title}
                                     </div>
                                     <div className="space-y-0.5">
                                         {section.items.map((item) => {
-                                            const isActive = pathname === item.href;
+                                            const isActive = pathname === item.href || (pathname?.startsWith(item.href) && item.href !== '/dashboard');
+                                            const ItemIcon = resolveNavIcon(item.icon);
                                             return (
                                                 <Link
                                                     key={item.href}
                                                     href={item.href}
                                                     onClick={onHaptic}
                                                     className={`flex items-center gap-3 px-3 py-3 rounded-2xl transition-all active:scale-[0.98] haptic-tap ${isActive
-                                                        ? 'bg-primary/10 text-primary border border-primary/20'
+                                                        ? 'bg-orange-500/10 text-orange-600 border border-orange-500/20'
                                                         : 'text-slate-400 hover:bg-surface active:bg-surface'
                                                         }`}
                                                 >
-                                                    <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary' : ''}`} />
+                                                    <ItemIcon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-orange-500' : ''}`} />
                                                     <span className="text-sm font-medium flex-1">{item.label}</span>
                                                     {item.label === 'Siparişler' ? (
                                                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/20 text-primary">
                                                             {orderStats?.today?.total || '0'}
+                                                        </span>
+                                                    ) : item.id === 'inventory' && criticalStockCount > 0 ? (
+                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400">
+                                                            {criticalStockCount}
                                                         </span>
                                                     ) : item.badge && (
                                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${item.badge === '!'

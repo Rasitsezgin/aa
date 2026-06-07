@@ -94,52 +94,33 @@ export class SchedulerController {
   @Get('queues')
   @ApiOperation({ summary: 'Get queue statistics' })
   @ApiResponse({ status: 200, description: 'Queue stats retrieved' })
-  async getQueueStats(): Promise<{
-    queues: Array<{
-      name: string;
-      waiting: number;
-      active: number;
-      completed: number;
-      failed: number;
-      delayed: number;
-    }>;
-  }> {
+  async getQueueStats() {
+    const stats = await this.schedulerService.getQueueStats();
     return {
-      queues: [
-        {
-          name: 'reports',
-          waiting: 0,
-          active: 0,
-          completed: 0,
-          failed: 0,
-          delayed: 0,
-        },
-        {
-          name: 'sync',
-          waiting: 0,
-          active: 0,
-          completed: 0,
-          failed: 0,
-          delayed: 0,
-        },
-        {
-          name: 'emails',
-          waiting: 0,
-          active: 0,
-          completed: 0,
-          failed: 0,
-          delayed: 0,
-        },
-        {
-          name: 'scheduled-tasks',
-          waiting: 0,
-          active: 0,
-          completed: 0,
-          failed: 0,
-          delayed: 0,
-        },
-      ],
+      queues: Object.values(stats).map((q: any) => ({
+        name: q.name,
+        waiting: q.waiting ?? 0,
+        active: q.active ?? 0,
+        completed: q.completed ?? 0,
+        failed: q.failed ?? 0,
+        delayed: q.delayed ?? 0,
+      })),
     };
+  }
+
+  @Post('sync/retry/:integrationId')
+  @ApiOperation({ summary: 'Retry sync for an integration' })
+  @ApiResponse({ status: 201, description: 'Sync jobs queued' })
+  async retryIntegrationSync(
+    @Headers('x-tenant-id') tenantId: string,
+    @Param('integrationId') integrationId: string,
+    @Body() body?: { syncType?: 'health-check' | 'order-sync' | 'inventory-sync' | 'all' },
+  ) {
+    return this.schedulerService.enqueueIntegrationRetry(
+      integrationId,
+      tenantId,
+      body?.syncType || 'all',
+    );
   }
 
   @Post('queues/:name/pause')

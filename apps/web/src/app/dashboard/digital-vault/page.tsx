@@ -7,11 +7,10 @@ import {
     ShieldCheck, Smartphone, Mail, AlertTriangle, FileText, Search, PlusCircle, X
 } from 'lucide-react';
 import { getVaultPools, createVaultPool, addPinsToPool } from '../../actions/digital-vault';
-
-// Note: In a real app, tenantId is fetched from session.
-const DEMO_TENANT_ID = 'demo-tenant-123';
+import { useTenantId } from '@/lib/tenant';
 
 export default function DigitalVaultPage() {
+    const tenantId = useTenantId();
     const [activeTab, setActiveTab] = useState<'pool' | 'logs'>('pool');
     const [isUploading, setIsUploading] = useState(false);
     const [pools, setPools] = useState<any[]>([]);
@@ -26,19 +25,22 @@ export default function DigitalVaultPage() {
     const [pinCodes, setPinCodes] = useState('');
 
     useEffect(() => {
-        fetchPools();
-    }, []);
+        if (tenantId) fetchPools();
+        else setIsLoading(false);
+    }, [tenantId]);
 
     const fetchPools = async () => {
+        if (!tenantId) return;
         setIsLoading(true);
-        const data = await getVaultPools(DEMO_TENANT_ID);
+        const data = await getVaultPools(tenantId);
         setPools(data);
         setIsLoading(false);
     };
 
     const handleCreatePool = async () => {
         if (!newPoolTitle) return;
-        const res = await createVaultPool(DEMO_TENANT_ID, newPoolTitle, 'Genel', 'Mail');
+        if (!tenantId) return;
+        const res = await createVaultPool(tenantId, newPoolTitle, 'Genel', 'Mail');
         if (res.success) {
             setNewPoolTitle('');
             setNewPoolModalOpen(false);
