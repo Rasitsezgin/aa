@@ -60,6 +60,7 @@ import { WorkflowBuilderModule } from './modules/workflow-builder/workflow-build
 import { ScrapingModule } from './modules/scraping/scraping.module';
 import { SearchModule } from './modules/search/search.module';
 import { CommerceOpsModule } from './modules/commerce-ops/commerce-ops.module';
+import { GrowthAiModule } from './modules/growth-ai/growth-ai.module';
 import { EmailModule } from './modules/email/email.module';
 import { AIAssistantModule } from './modules/ai-assistant/ai-assistant.module';
 import { RbacModule } from './modules/rbac/rbac.module';
@@ -158,6 +159,7 @@ function getBullConnection() {
     ScrapingModule,
     SearchModule,
     CommerceOpsModule,
+    GrowthAiModule,
   ],
   controllers: [AppController],
   providers: [

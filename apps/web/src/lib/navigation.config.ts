@@ -44,6 +44,7 @@ export const NAV_ITEMS: NavItemConfig[] = [
   { id: 'returns', label: 'İadeler', href: '/dashboard/returns', icon: 'RefreshCw', section: 'Günlük', moduleKey: 'ORDERS', keywords: ['iade', 'rma'], sidebar: true, mobile: true, commandPalette: true },
 
   // —— Büyüme ——
+  { id: 'growth-hub', label: 'AI Büyüme Merkezi', href: '/dashboard/growth', icon: 'Sparkles', section: 'Büyüme', moduleKey: 'AI_ADVISOR', pro: true, keywords: ['ai', 'müşteri yanıt', 'seo', 'buybox', 'iade', 'pazarus'], description: 'AI müşteri yanıt, SEO, BuyBox, iade analizi', sidebar: true, mobile: true, commandPalette: true },
   { id: 'ai-advisor', label: 'AI Asistan', href: '/dashboard/ai-advisor', icon: 'Bot', section: 'Büyüme', moduleKey: 'AI_ADVISOR', pro: true, keywords: ['ai', 'danışman', 'yapay zeka'], description: 'Tek AI merkezi', sidebar: true, mobile: true, commandPalette: true, bottomNav: true },
   { id: 'ad-campaigns', label: 'Kampanyalar', href: '/dashboard/ad-campaigns', icon: 'Megaphone', section: 'Büyüme', moduleKey: 'CAMPAIGNS', keywords: ['kampanya', 'reklam'], sidebar: true, mobile: true, commandPalette: true },
   { id: 'competitor-tracking', label: 'Rakip Takibi', href: '/dashboard/competitor-tracking', icon: 'TrendingUp', section: 'Büyüme', moduleKey: 'COMPETITOR_ANALYSIS', pro: true, keywords: ['rakip', 'fiyat'], sidebar: true, mobile: true, commandPalette: true },
