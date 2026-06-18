@@ -1,220 +1,192 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { MessageSquare, User, Clock, CheckCircle, AlertCircle, Sparkles, Send, MoreVertical, Paperclip } from 'lucide-react';
-import { useSupport } from '@/lib/hooks';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { adminApi } from '@/lib/admin-api';
+import { MessageSquare, User, Clock, CheckCircle, AlertCircle, Send, Search, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 
 interface SupportMessage {
-    id?: string;
-    content: string;
-    senderType: 'AGENT' | 'CUSTOMER';
-    createdAt: string;
+  id: string;
+  content: string;
+  senderType: string;
+  createdAt: string;
 }
 
 interface SupportTicket {
-    id: string;
-    subject: string;
-    customerName: string;
-    company?: string;
-    status: 'OPEN' | 'PENDING' | 'RESOLVED';
-    priority?: string;
-    platform: string;
-    updatedAt: string;
-    messages?: SupportMessage[];
+  id: string;
+  subject: string;
+  customerName?: string | null;
+  customerEmail?: string | null;
+  status: string;
+  priority?: string;
+  platform?: string;
+  updatedAt: string;
+  createdAt: string;
+  messages?: SupportMessage[];
 }
 
 export default function SupportPage() {
-    const { getTickets, getTicketDetails, sendMessage, loading } = useSupport();
-    const [tickets, setTickets] = useState<SupportTicket[]>([]);
-    const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
-    const [messages, setMessages] = useState<SupportMessage[]>([]);
-    const [newMessage, setNewMessage] = useState("");
-    const [searchQuery, setSearchQuery] = useState("");
+  const queryClient = useQueryClient();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [newMessage, setNewMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
-    const loadTickets = async () => {
-        // use demo-tenant-id or admin to get all. In our mock it returns all sorted by date.
-        const response = await getTickets('admin') as SupportTicket[];
-        if (response) {
-            setTickets(response);
-        }
-    };
+  const { data: listData, isLoading: listLoading } = useQuery({
+    queryKey: ['admin-support-tickets-inbox'],
+    queryFn: () => adminApi.getSupportTickets({ page: 1 }),
+  });
 
-    useEffect(() => {
-        loadTickets();
-    }, []);
+  const { data: detail, isLoading: detailLoading } = useQuery({
+    queryKey: ['admin-support-ticket-detail', selectedId],
+    queryFn: () => adminApi.getSupportTicketDetail(selectedId!),
+    enabled: !!selectedId,
+  });
 
-    const loadTicketDetails = async (id: string) => {
-        const response = await getTicketDetails(id, 'admin') as SupportTicket;
-        if (response) {
-            setSelectedTicket(response);
-            setMessages(response.messages || []);
-        }
-    };
+  const replyMutation = useMutation({
+    mutationFn: () => adminApi.replyToSupportTicket(selectedId!, newMessage),
+    onSuccess: () => {
+      setNewMessage("");
+      queryClient.invalidateQueries({ queryKey: ['admin-support-ticket-detail', selectedId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-support-tickets-inbox'] });
+    },
+  });
 
-    const handleSendMessage = async () => {
-        if (!newMessage.trim() || !selectedTicket) return;
+  const tickets: SupportTicket[] = listData?.tickets ?? [];
+  const selectedTicket = detail as SupportTicket | undefined;
+  const messages = selectedTicket?.messages ?? [];
 
-        const content = newMessage;
-        setNewMessage("");
+  const filteredTickets = tickets.filter((t) =>
+    t.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    t.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    t.id.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
-        const response = await sendMessage({
-            ticketId: selectedTicket.id,
-            content,
-            senderType: "AGENT",
-            tenantId: 'admin'
-        }) as SupportMessage;
+  const statusIcon = (status: string) => {
+    switch (status) {
+      case 'RESOLVED':
+      case 'CLOSED':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'PENDING':
+        return <Clock className="w-4 h-4 text-amber-500" />;
+      default:
+        return <AlertCircle className="w-4 h-4 text-blue-500" />;
+    }
+  };
 
-        if (response) {
-            setMessages(prev => [...prev, response]);
-            loadTickets(); // fresh ticket list
-        }
-    };
-
-    const filteredTickets = tickets.filter(t =>
-        t.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.id.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    const openCount = tickets.filter(t => t.status === 'OPEN').length;
-    const pendingCount = tickets.filter(t => t.status === 'PENDING').length;
-    const closedCount = tickets.filter(t => t.status === 'RESOLVED').length;
-
-    return (
-        <div className="space-y-8 animate-in fade-in duration-500 h-[calc(100vh-140px)] flex flex-col">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-black text-foreground tracking-tight mb-1">Destek Merkezi</h1>
-                    <p className="text-slate-600 dark:text-slate-500 font-medium">Kullanıcı taleplerini yanıtlayın ve yönetin.</p>
-                </div>
-                <div className="flex gap-2">
-                    <button className="px-4 py-2 bg-blue-500/10 dark:bg-white/5 hover:bg-blue-500/20 dark:hover:bg-white/10 text-blue-600 dark:text-white rounded-xl font-bold text-xs transition-colors border border-blue-500/20 dark:border-white/10">
-                        Açık ({openCount})
-                    </button>
-                    <button className="px-4 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 rounded-xl font-bold text-xs transition-colors border border-slate-200 dark:border-white/10">
-                        Bekleyen ({pendingCount})
-                    </button>
-                    <button className="px-4 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 rounded-xl font-bold text-xs transition-colors border border-slate-200 dark:border-white/10">
-                        Kapalı ({closedCount})
-                    </button>
-                </div>
-            </div>
-
-            <div className="flex-1 grid grid-cols-12 gap-8 min-h-0">
-                {/* Ticket List */}
-                <div className="col-span-4 bg-white dark:bg-slate-900/50 rounded-[32px] border border-slate-200 dark:border-white/5 flex flex-col overflow-hidden shadow-sm dark:shadow-none">
-                    <div className="p-4 border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02]">
-                        <input
-                            type="text"
-                            placeholder="Talep ara..."
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full h-10 bg-slate-100 dark:bg-black/20 rounded-xl px-4 text-xs font-bold text-foreground outline-none border border-transparent focus:border-blue-500/30" />
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                        {filteredTickets.map((ticket) => (
-                            <div
-                                key={ticket.id}
-                                onClick={() => loadTicketDetails(ticket.id)}
-                                className={`p-4 rounded-2xl border cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-white/5 ${selectedTicket?.id === ticket.id
-                                    ? 'bg-blue-50 dark:bg-blue-600/10 border-blue-500/30 shadow-lg shadow-blue-900/10'
-                                    : 'bg-transparent border-slate-200 dark:border-white/5'
-                                    }`}
-                            >
-                                <div className="flex justify-between items-start mb-2">
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-2 h-2 rounded-full ${ticket.priority === 'high' ? 'bg-red-500' : ticket.priority === 'medium' ? 'bg-amber-500' : 'bg-blue-500'}`} />
-                                        <span className="text-[10px] font-black text-slate-400 uppercase">#{ticket.id}</span>
-                                    </div>
-                                    <span className="text-[10px] font-bold text-slate-500">
-                                        {format(new Date(ticket.updatedAt), 'HH:mm', { locale: tr })}
-                                    </span>
-                                </div>
-                                <h4 className={`text-sm font-bold mb-1 ${selectedTicket?.id === ticket.id ? 'text-foreground' : 'text-slate-700 dark:text-slate-300'}`}>{ticket.subject}</h4>
-                                <div className="flex items-center gap-2">
-                                    <User size={12} className="text-slate-500" />
-                                    <span className="text-xs text-slate-500 font-medium">{ticket.customerName} - {ticket.company || ticket.platform}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Ticket Detail / Chat */}
-                <div className="col-span-8 bg-white dark:bg-slate-900/50 rounded-[32px] border border-slate-200 dark:border-white/5 flex flex-col overflow-hidden relative shadow-sm dark:shadow-none">
-                    {selectedTicket ? (
-                        <>
-                            {/* Header */}
-                            <div className="p-6 border-b border-slate-200 dark:border-white/5 flex justify-between items-center bg-slate-50 dark:bg-white/[0.02]">
-                                <div>
-                                    <div className="flex items-center gap-3 mb-1">
-                                        <h3 className="text-lg font-bold text-foreground">#{selectedTicket.id} - {selectedTicket.subject}</h3>
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${selectedTicket.priority === 'high' ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20' : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'}`}>
-                                            {selectedTicket.priority || 'Normal'} Öncelik
-                                        </span>
-                                    </div>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{selectedTicket.customerName} • {selectedTicket.company || selectedTicket.platform}</p>
-                                </div>
-                                <button className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors">
-                                    <MoreVertical size={20} />
-                                </button>
-                            </div>
-
-                            {/* Chat Area */}
-                            <div className="flex-1 overflow-y-auto p-8 space-y-8">
-                                {messages.map((msg, idx) => (
-                                    <div key={msg.id || idx} className={`flex gap-4 ${msg.senderType === 'AGENT' ? 'flex-row-reverse' : ''}`}>
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${msg.senderType === 'AGENT' ? 'bg-blue-600 text-white' : 'bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-white'}`}>
-                                            {msg.senderType === 'AGENT' ? <Sparkles size={14} className="text-white" /> : (selectedTicket.customerName?.[0] || 'C')}
-                                        </div>
-                                        <div className={`flex-1 space-y-2 flex flex-col ${msg.senderType === 'AGENT' ? 'items-end' : 'items-start'}`}>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-sm font-bold text-foreground">{msg.senderType === 'AGENT' ? 'AI Asistan / Yönetici' : selectedTicket.customerName}</span>
-                                                <span className="text-xs text-slate-500">{format(new Date(msg.createdAt), 'HH:mm', { locale: tr })}</span>
-                                            </div>
-                                            <div className={`p-4 rounded-2xl text-sm leading-relaxed ${msg.senderType === 'AGENT'
-                                                ? 'rounded-tr-none bg-blue-50 dark:bg-blue-600/10 border border-blue-200 dark:border-blue-500/20 text-blue-800 dark:text-blue-100'
-                                                : 'rounded-tl-none bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300'}`}>
-                                                {msg.content}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Input Area */}
-                            <div className="p-6 border-t border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02]">
-                                <div className="relative">
-                                    <textarea
-                                        placeholder="Yanıtınızı yazın..."
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
-                                        className="w-full h-32 bg-slate-100 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-sm text-foreground outline-none focus:border-blue-500/50 resize-none pr-32" />
-                                    <div className="absolute bottom-4 right-4 flex items-center gap-2">
-                                        <button className="p-2 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-white transition-colors">
-                                            <Paperclip size={18} />
-                                        </button>
-                                        <button
-                                            onClick={handleSendMessage}
-                                            disabled={loading || !newMessage.trim()}
-                                            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 active:scale-95 disabled:opacity-50 text-white rounded-xl font-bold text-sm flex items-center gap-2 transition-all">
-                                            Gönder <Send size={14} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
-                            <MessageSquare size={48} className="mb-4 opacity-20" />
-                            <p className="font-bold">Bir talep seçin</p>
-                        </div>
-                    )}
-                </div>
-            </div>
+  return (
+    <div className="h-[calc(100vh-8rem)] flex flex-col">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <MessageSquare className="w-6 h-6 text-purple-600" />
+            Destek Gelen Kutusu
+          </h1>
+          <p className="text-slate-500 text-sm">Platform geneli destek talepleri</p>
         </div>
-    );
+        <Link href="/admin/support-tickets" className="text-sm text-purple-600 font-medium hover:underline">
+          Detaylı liste →
+        </Link>
+      </div>
+
+      <div className="flex-1 flex gap-4 min-h-0">
+        <div className="w-80 flex flex-col bg-white dark:bg-slate-900 border rounded-2xl overflow-hidden">
+          <div className="p-3 border-b">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Ara..."
+                className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg"
+              />
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {listLoading ? (
+              <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-purple-500" /></div>
+            ) : filteredTickets.length === 0 ? (
+              <p className="text-center text-slate-500 text-sm py-8">Talep bulunamadı</p>
+            ) : (
+              filteredTickets.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setSelectedId(t.id)}
+                  className={`w-full text-left p-4 border-b hover:bg-slate-50 dark:hover:bg-white/5 ${selectedId === t.id ? 'bg-purple-50 dark:bg-purple-500/10' : ''}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-medium text-sm line-clamp-1">{t.subject}</p>
+                    {statusIcon(t.status)}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">{t.customerName ?? t.customerEmail ?? 'Müşteri'}</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    {format(new Date(t.updatedAt ?? t.createdAt), 'dd MMM HH:mm', { locale: tr })}
+                  </p>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col bg-white dark:bg-slate-900 border rounded-2xl overflow-hidden">
+          {!selectedId ? (
+            <div className="flex-1 flex items-center justify-center text-slate-400">
+              <div className="text-center">
+                <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>Bir talep seçin</p>
+              </div>
+            </div>
+          ) : detailLoading ? (
+            <div className="flex-1 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-purple-500" /></div>
+          ) : (
+            <>
+              <div className="p-4 border-b">
+                <h2 className="font-bold">{selectedTicket?.subject}</h2>
+                <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
+                  <User className="w-4 h-4" />
+                  {selectedTicket?.customerName ?? selectedTicket?.customerEmail ?? 'Bilinmiyor'}
+                  <span className="px-2 py-0.5 bg-slate-100 rounded text-xs">{selectedTicket?.status}</span>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {messages.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`max-w-[80%] p-3 rounded-xl text-sm ${
+                      m.senderType === 'AGENT'
+                        ? 'ml-auto bg-purple-600 text-white'
+                        : 'bg-slate-100 dark:bg-white/10'
+                    }`}
+                  >
+                    <p>{m.content}</p>
+                    <p className={`text-xs mt-1 ${m.senderType === 'AGENT' ? 'text-purple-200' : 'text-slate-400'}`}>
+                      {format(new Date(m.createdAt), 'dd MMM HH:mm', { locale: tr })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="p-4 border-t flex gap-2">
+                <input
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && newMessage.trim() && replyMutation.mutate()}
+                  placeholder="Yanıt yazın..."
+                  className="flex-1 px-4 py-2 border rounded-xl"
+                />
+                <button
+                  onClick={() => replyMutation.mutate()}
+                  disabled={!newMessage.trim() || replyMutation.isPending}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-xl disabled:opacity-50"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

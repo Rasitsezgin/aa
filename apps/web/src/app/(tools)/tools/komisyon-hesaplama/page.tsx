@@ -1,15 +1,28 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Calculator, Tag, Percent, Banknote, HelpCircle, Building2 } from 'lucide-react';
 import Head from 'next/head';
 
-export default function CommissionCalculatorPage() {
+function CommissionCalculatorContent() {
+    const searchParams = useSearchParams();
     const [price, setPrice] = useState<number>(100);
     const [cost, setCost] = useState<number>(50);
     const [commissionRate, setCommissionRate] = useState<number>(15);
     const [shippingCost, setShippingCost] = useState<number>(30);
     const [kdvRate, setKdvRate] = useState<number>(20);
+
+    useEffect(() => {
+        const priceParam = searchParams.get('price');
+        if (priceParam) {
+            const parsed = Number(priceParam);
+            if (Number.isFinite(parsed) && parsed > 0) setPrice(parsed);
+        }
+        const platform = searchParams.get('platform');
+        if (platform === 'trendyol') setCommissionRate(15);
+        else if (platform === 'hepsiburada') setCommissionRate(12);
+    }, [searchParams]);
 
     const marketplaces = [
         { name: 'Trendyol', rate: 15, color: 'bg-orange-500' },
@@ -188,5 +201,13 @@ export default function CommissionCalculatorPage() {
                 <p>İşletmenizi her siparişte kârlı tutmak, sadece güçlü bir e-ticaret stratejisi değil, doğru entegrasyonlar yönetimiyle mümkündür. <strong>Pazaryonetimi</strong> yazılımını kullanarak tüm kâr-zarar hesaplarınızı tek panelden otomatikleştirebilirsiniz.</p>
             </div>
         </div>
+    );
+}
+
+export default function CommissionCalculatorPage() {
+    return (
+        <Suspense fallback={<div className="p-8 text-center text-slate-500">Yükleniyor…</div>}>
+            <CommissionCalculatorContent />
+        </Suspense>
     );
 }

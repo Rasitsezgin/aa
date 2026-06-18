@@ -1,12 +1,13 @@
 import { Shield } from "lucide-react"
 import AuthSettingsForm from "./auth-settings-form"
+import { getStringSettings } from "@/lib/admin-settings-store"
 
-// Force dynamic rendering to avoid build-time DB calls
 export const dynamic = 'force-dynamic'
 
 export default async function AuthSettingsPage() {
-    // Mock settings for now - will be fetched from DB at runtime
-    const settings: Record<string, string> = {}
+    const settings = await getStringSettings([
+        'google_id', 'google_secret', 'facebook_id', 'facebook_secret',
+    ])
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
@@ -24,4 +25,3 @@ export default async function AuthSettingsPage() {
         </div>
     )
 }
-

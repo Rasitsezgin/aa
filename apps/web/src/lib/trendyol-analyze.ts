@@ -8,6 +8,8 @@ import {
   resolveTrendyolBrowseUrl,
   type ParsedTrendyolStore,
 } from '@/lib/trendyol-store-url';
+import { scrapeTrendyolWithBrowser, scrapeTrendyolStoreMetaOnly } from '@/lib/marketplace-browser-scraper';
+import { mapProductsToAnalysis } from '@/lib/marketplace-analysis-metrics';
 
 export type TrendyolAnalyzeResponse = TrendyolAnalysisResult & {
   partial?: boolean;
@@ -16,43 +18,10 @@ export type TrendyolAnalyzeResponse = TrendyolAnalysisResult & {
     overall?: string;
     seoScore?: string;
     products?: string;
+    metrics?: Record<string, string>;
+    reasons?: Record<string, string>;
   };
 };
-
-function buildFallbackAnalysis(
-  parsed: ParsedTrendyolStore,
-  notice: string,
-): TrendyolAnalyzeResponse {
-  const titleScore = 55;
-  const seoScore = 48;
-
-  return {
-    metrics: {
-      storeName: parsed.storeName,
-      storeId: parsed.storeId,
-      platform: 'TRENDYOL',
-      rating: 0,
-      followers: 0,
-      productCount: 0,
-      totalProducts: 0,
-      titleOptimization: titleScore,
-      imageOptimization: 0,
-      priceCompetitiveness: 60,
-      stockHealth: 0,
-      responseTime: 'Veri yok',
-    },
-    products: [],
-    seoScore,
-    keywords: [],
-    partial: true,
-    notice,
-    dataSources: {
-      overall: 'estimated',
-      seoScore: 'estimated',
-      products: 'not_available',
-    },
-  };
-}
 
 function mapBackendScrape(data: {
   metrics?: Record<string, unknown>;
@@ -80,44 +49,25 @@ function mapBackendScrape(data: {
     };
   });
 
-  if (products.length === 0 && !data.metrics?.storeName) {
-    return null;
-  }
+  if (products.length === 0) return null;
 
   const metrics = data.metrics || {};
   const storeName =
     (typeof metrics.storeName === 'string' && metrics.storeName) ||
     'Trendyol Mağazası';
 
-  return {
-    metrics: {
+  return mapProductsToAnalysis(
+    products,
+    {
       storeName,
       storeId: String(metrics.storeId || ''),
       platform: 'TRENDYOL',
       rating: Number(metrics.rating) || 0,
       followers: Number(metrics.followers) || 0,
-      productCount: Number(metrics.productCount) || products.length,
       totalProducts: Number(metrics.productCount) || products.length,
-      titleOptimization: 70,
-      imageOptimization: products.some((p) => p.images.length > 0) ? 85 : 40,
-      priceCompetitiveness: 72,
-      stockHealth: products.length
-        ? Math.round(
-            (products.filter((p) => p.stockStatus).length / products.length) *
-              100,
-          )
-        : 0,
-      responseTime: 'Veri yok',
     },
-    products,
-    seoScore: Number(data.seoScore) || 55,
-    keywords: [],
-    dataSources: {
-      overall: 'scraped',
-      seoScore: 'calculated',
-      products: 'scraped',
-    },
-  };
+    'scraped',
+  );
 }
 
 export async function runTrendyolAnalysis(
@@ -143,17 +93,56 @@ export async function runTrendyolAnalysis(
   try {
     const live = await fetchTrendyolStoreAnalysis(parsed, browseUrl);
     if (live.products.length > 0) {
-      return {
-        ...live,
-        dataSources: {
-          overall: 'api',
-          seoScore: 'calculated',
-          products: 'api',
+      const mapped = mapProductsToAnalysis(
+        live.products,
+        {
+          storeName: live.metrics.storeName,
+          storeId: parsed.storeId,
+          platform: 'TRENDYOL',
+          rating: live.metrics.rating,
+          followers: live.metrics.followers,
+          totalProducts: live.metrics.totalProducts,
         },
-      };
+        'api',
+      );
+
+      if ((mapped.metrics.followers ?? 0) === 0) {
+        try {
+          const meta = await scrapeTrendyolStoreMetaOnly(parsed, url);
+          if (meta?.followers) {
+            mapped.metrics.followers = meta.followers;
+            if (mapped.dataSources?.metrics) {
+              mapped.dataSources.metrics.followers = 'scraped';
+            }
+          }
+          if (meta?.rating && (mapped.metrics.rating ?? 0) === 0) {
+            mapped.metrics.rating = meta.rating;
+          }
+        } catch {
+          // API ürünleri yeterli; takipçi platform API'sinde yoksa -- gösterilir
+        }
+      }
+
+      return mapped;
     }
   } catch (error) {
     console.warn('[Trendyol] Public API failed:', error);
+  }
+
+  const browserScrape = await scrapeTrendyolWithBrowser(parsed, url);
+  if (browserScrape && browserScrape.products.length > 0) {
+    return mapProductsToAnalysis(
+      browserScrape.products,
+      {
+        storeName: browserScrape.storeName || parsed.storeName,
+        storeId: parsed.storeId,
+        platform: 'TRENDYOL',
+        rating: browserScrape.rating,
+        followers: browserScrape.followers,
+        totalProducts: browserScrape.totalProducts || browserScrape.products.length,
+      },
+      'scraped',
+    );
   }
 
   const scrapePath = `/scraping/analyze/trendyol/${parsed.storeId}?url=${encodeURIComponent(browseUrl)}`;
@@ -167,9 +156,7 @@ export async function runTrendyolAnalysis(
     const mapped = mapBackendScrape(
       backendScrape.data as Parameters<typeof mapBackendScrape>[0],
     );
-    if (mapped && mapped.products.length > 0) {
-      return mapped;
-    }
+    if (mapped) return mapped;
   }
 
   const marketplacePath = `/marketplace/analyze/trendyol/${parsed.storeId}?url=${encodeURIComponent(browseUrl)}`;
@@ -181,22 +168,8 @@ export async function runTrendyolAnalysis(
 
   if (backendMarketplace.ok && backendMarketplace.data?.products?.length) {
     const m = backendMarketplace.data;
-    return {
-      metrics: {
-        storeName: m.metrics?.storeName || parsed.storeName,
-        storeId: parsed.storeId,
-        platform: 'TRENDYOL',
-        rating: m.metrics?.rating || 0,
-        followers: 0,
-        productCount: m.metrics?.totalProducts || m.products?.length || 0,
-        totalProducts: m.metrics?.totalProducts || m.products?.length || 0,
-        titleOptimization: 68,
-        imageOptimization: 75,
-        priceCompetitiveness: 70,
-        stockHealth: 80,
-        responseTime: 'Veri yok',
-      },
-      products: (m.products || []).map((p) => ({
+    return mapProductsToAnalysis(
+      (m.products || []).map((p) => ({
         name: p.name || 'Ürün',
         title: p.name || 'Ürün',
         price: p.price || 0,
@@ -205,18 +178,18 @@ export async function runTrendyolAnalysis(
         reviewCount: 0,
         stockStatus: true,
       })),
-      seoScore: m.seoScore || 55,
-      keywords: [],
-      dataSources: {
-        overall: 'api+scraped',
-        seoScore: 'calculated',
-        products: 'api',
+      {
+        storeName: m.metrics?.storeName || parsed.storeName,
+        storeId: parsed.storeId,
+        platform: 'TRENDYOL',
+        rating: m.metrics?.rating || 0,
+        totalProducts: m.metrics?.totalProducts || m.products?.length || 0,
       },
-    };
+      'api',
+    );
   }
 
-  return buildFallbackAnalysis(
-    parsed,
-    'Trendyol geçici olarak tam veri paylaşmıyor. Mağaza kimliği doğrulandı; sınırlı önizleme gösteriliyor.',
+  throw new Error(
+    'Trendyol mağaza verisi alınamadı. Mağaza sayfasına erişilemedi veya ürün listesi boş.',
   );
 }

@@ -4,6 +4,7 @@ import {
   Post,
   Put,
   Delete,
+  Patch,
   Body,
   Param,
   Query,
@@ -577,6 +578,35 @@ export class AdminController {
     @Body() body: { variants: any[] },
   ) {
     return this.adminService.bulkUpdateVariants(id, body.variants);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // ORDERS (Platform-wide)
+  // ═══════════════════════════════════════════════════════════════════
+
+  @Get('orders')
+  async getOrders(
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('tenantId') tenantId?: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '50',
+  ) {
+    return this.adminService.getOrders({
+      search,
+      status,
+      tenantId,
+      page: parseInt(page),
+      limit: parseInt(limit),
+    });
+  }
+
+  @Patch('orders/:id/status')
+  async updateOrderStatus(
+    @Param('id') id: string,
+    @Body() body: { status: string },
+  ) {
+    return this.adminService.updateOrderStatus(id, body.status);
   }
 
   // ═══════════════════════════════════════════════════════════════════

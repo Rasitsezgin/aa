@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getGeminiApiKey } from '@/lib/gemini-config';
+import { checkAnalyzeRateLimit } from '@/lib/analysis-rate-limit';
 import { generateGeminiJsonResponse } from '@/lib/gemini-chat';
 
 interface StoreDataMetrics {
@@ -9,6 +8,8 @@ interface StoreDataMetrics {
     rating?: number;
     followers?: number;
     totalProducts?: number;
+    totalReviews?: number;
+    avgProductPrice?: number;
     titleOptimization?: number;
     imageOptimization?: number;
     priceCompetitiveness?: number;
@@ -111,63 +112,70 @@ async function callAnthropic(apiKey: string, prompt: string): Promise<AIResult> 
 function getDefaultResponse(data: AdvisorRequest): AdvisorResponse {
     const { domain, score, storeData } = data;
     const storeName = storeData?.metrics?.storeName || domain;
+    const m = storeData?.metrics;
+    const weak: string[] = [];
+    if ((m?.titleOptimization ?? 100) < 70) weak.push(`başlık optimizasyonu (%${m?.titleOptimization})`);
+    if ((m?.imageOptimization ?? 100) < 80) weak.push(`görsel kapsamı (%${m?.imageOptimization})`);
+    if ((m?.priceCompetitiveness ?? 100) < 90) weak.push(`fiyat verisi (%${m?.priceCompetitiveness})`);
+    if ((m?.stockHealth ?? 100) < 100) weak.push(`stok sağlığı (%${m?.stockHealth})`);
+
+    const weakText = weak.length > 0 ? ` Zayıf alanlar: ${weak.join(', ')}.` : '';
+    const ratingText = m?.rating ? ` Mağaza puanı: ${m.rating}/5.` : '';
+    const productText = m?.totalProducts ? ` ${m.totalProducts} ürün listelendi.` : '';
 
     let message = '';
     let suggestions: string[] = [];
 
     if (score < 40) {
-        message = `🚨 ${storeName} mağazasının performansı kritik seviyede (%${score}). Acil optimizasyon gerekiyor! Özellikle ürün başlıkları, görsel kalitesi ve müşteri deneyimi üzerinde çalışmanızı öneriyorum. Bu iyileştirmeler satışlarınızı %50'ye kadar artırabilir.`;
-        suggestions = [
-            'Ürün başlıklarını SEO uyumlu hale getir - Anahtar kelimeleri başlıklara ekle',
-            'Yüksek çözünürlüklü ve WebP formatında görseller kullan',
-            'Müşteri yorumlarına 24 saat içinde yanıt ver',
-            'Fiyat rekabetçiliğini analiz et ve dinamik fiyatlandırma stratejisi oluştur',
-            'Stok takibini otomatikleştir, "stokta yok" durumunu minimize et',
-            'Ürün açıklamalarını zenginleştir ve detaylandır'
-        ];
+        message = `🚨 ${storeName} SEO skoru kritik (%${score}).${ratingText}${productText}${weakText}`;
+        suggestions = weak.length > 0
+            ? weak.map((w) => `${w.charAt(0).toUpperCase() + w.slice(1)} — ürün listesindeki örnek verilere göre iyileştirin`)
+            : ['Ürün başlıklarına anahtar kelime ekleyin', 'Eksik görselleri tamamlayın', 'Sıfır fiyatlı ürünleri güncelleyin'];
     } else if (score < 60) {
-        message = `⚠️ ${storeName} ortalama altı performans gösteriyor (%${score}). Birkaç kritik iyileştirme ile skor %80'in üzerine çıkarılabilir. SEO optimizasyonu ve müşteri deneyimi iyileştirmeleri öncelikli olmalı.`;
+        message = `⚠️ ${storeName} orta düzey SEO skoru (%${score}).${ratingText}${weakText}`;
         suggestions = [
-            'Anahtar kelime optimizasyonu yap - Ürün başlıklarını ve açıklamalarını güncelle',
-            'Görsel kalitesini artır - Profesyonel ürün fotoğrafları kullan',
-            'Müşteri yorumlarına hızlı ve profesyonel yanıtlar ver',
-            'Kampanya ve indirim stratejisi oluştur',
-            'Ürün kategori yapısını optimize et'
+            m?.titleOptimization && m.titleOptimization < 70 ? `Başlık skorunu %${m.titleOptimization} → %75+ hedefleyin` : 'Başlık uzunluklarını 50–100 karakter aralığına çekin',
+            m?.imageOptimization && m.imageOptimization < 80 ? `Görsel skorunu %${m.imageOptimization} artırın` : 'Tüm ürünlere kaliteli görsel ekleyin',
+            'Örneklenen ürünlerdeki düşük puanlı listelemeleri önceliklendirin',
         ];
     } else if (score < 80) {
-        message = `📊 ${storeName} iyi performans gösteriyor (%${score}). Birkaç ince ayar ile satışlarınızı %30 artırabilirsiniz. Özellikle müşteri deneyimi ve görsel optimizasyonu üzerinde çalışmanızı öneriyorum.`;
+        message = `📊 ${storeName} iyi SEO performansı (%${score}).${ratingText}${weakText || ' Temel metrikler güçlü.'}`;
         suggestions = [
-            'Ürün açıklamalarını AI ile zenginleştir',
-            'Mobil deneyimi optimize et',
-            'Çapraz satış ve ürün öneri sistemlerini aktifleştir',
-            'Müşteri sadakat programı başlat'
+            'En düşük puanlı 5 ürünü başlık ve görsel açısından güncelleyin',
+            'Anahtar kelime listesindeki yüksek frekanslı terimleri yeni ürünlerde kullanın',
+            'Stokta olmayan ürünleri yeniden listeleyin',
         ];
     } else {
-        message = `🎉 Tebrikler! ${storeName} mükemmel performans gösteriyor (%${score}). Premium özelliklerle ve çoklu pazaryeri entegrasyonu ile daha da büyüyebilirsiniz. Şu anki başarınızı sürdürmek için düzenli analiz yapmayı unutmayın.`;
+        message = `🎉 ${storeName} güçlü SEO skoru (%${score}).${ratingText}${productText}`;
         suggestions = [
-            'Reklam stratejisi ile görünürlüğü daha da artır',
-            'Yeni ürün kategorileri ve pazar alanları keşfet',
-            'VIP müşteri programı oluştur',
-            'Çoklu pazaryeri entegrasyonu yap (Amazon, Hepsiburada)',
-            'Uluslararası pazarlara açıl'
+            'Mevcut başlık ve görsel performansını koruyun',
+            'Yeni ürünlerde aynı başlık kalıbını uygulayın',
+            'Düşük yorumlu ürünlerde müşteri geri bildirimi toplayın',
         ];
     }
 
     return {
         message,
-        suggestions,
+        suggestions: suggestions.filter(Boolean).slice(0, 5),
         aiModel: 'Pazaryonetimi AI',
         confidence: 0.85,
         insights: {
             scoreCategory: score >= 80 ? 'excellent' : score >= 60 ? 'good' : score >= 40 ? 'average' : 'critical',
-            priorityAreas: score < 60 ? ['SEO', 'Görseller', 'Fiyatlandırma'] : ['Büyüme', 'Sadakat'],
-            estimatedImprovementPotential: Math.min(100 - score, 40)
-        }
+            weakMetrics: weak,
+        },
     };
 }
 
 export async function POST(request: NextRequest) {
     try {
+        const rate = await checkAnalyzeRateLimit(request);
+        if (!rate.allowed) {
+            return NextResponse.json(
+                { error: 'RATE_LIMIT', message: 'Çok fazla istek. Lütfen bekleyin.' },
+                { status: 429 },
+            );
+        }
+
         const body: AdvisorRequest = await request.json();
         const { domain, score, url, storeData } = body;
 
@@ -188,11 +196,13 @@ ${storeData ? `Detaylı Metrikler:
 - Mağaza Adı: ${storeData.metrics?.storeName || 'Bilinmiyor'}
 - Mağaza Puanı: ${storeData.metrics?.rating || 'Bilinmiyor'}
 - Takipçi Sayısı: ${storeData.metrics?.followers || 'Bilinmiyor'}
+- Toplam Değerlendirme: ${storeData.metrics?.totalReviews ?? 'Bilinmiyor'}
 - Toplam Ürün Sayısı: ${storeData.metrics?.totalProducts || 'Bilinmiyor'}
 - Başlık Optimizasyonu: %${storeData.metrics?.titleOptimization || 'Bilinmiyor'}
 - Görsel Optimizasyonu: %${storeData.metrics?.imageOptimization || 'Bilinmiyor'}
 - Fiyat Rekabetçiliği: %${storeData.metrics?.priceCompetitiveness || 'Bilinmiyor'}
 - Stok Sağlığı: %${storeData.metrics?.stockHealth || 'Bilinmiyor'}
+- Ortalama Ürün Fiyatı: ${storeData.metrics?.avgProductPrice ?? 'Bilinmiyor'} TL
 - Yanıt Süresi: ${storeData.metrics?.responseTime || 'Bilinmiyor'}` : ''}
 
 Lütfen aşağıdaki formatta JSON yanıt ver:

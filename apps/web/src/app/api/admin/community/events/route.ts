@@ -1,18 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import { requirePlatformAdmin } from '@/lib/admin-auth';
 import { prisma } from '@/lib/prisma';
 
-function requireSuperAdmin(session: Awaited<ReturnType<typeof auth>>) {
-  return session?.user?.type === 'SUPERADMIN';
-}
-
 export async function GET() {
-  const session = await auth();
-  if (!requireSuperAdmin(session)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
 
   try {
     const events = await prisma.forumEvent.findMany({
@@ -47,10 +41,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!requireSuperAdmin(session) || !session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
 
   try {
     const body = await request.json();
@@ -81,7 +73,7 @@ export async function POST(request: NextRequest) {
         location: location?.trim() || null,
         meetingUrl: meetingUrl?.trim() || null,
         maxAttendees: maxAttendees ? Number(maxAttendees) : null,
-        organizerId: session.user.id,
+        organizerId: authResult.user.id,
         status: 'upcoming',
       },
     });

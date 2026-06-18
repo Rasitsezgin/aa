@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -74,14 +74,39 @@ export default function ContentTemplatesPage() {
   const [editingTemplate, setEditingTemplate] = useState<ContentTemplate | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
 
-  // Initialize mock data
-  useState(() => {
-    const mockTemplates: ContentTemplate[] = [
-      { id: "1", name: "Varsayılan Blog Şablonu", slug: "default-blog", type: "BLOG_POST", structure: { sections: [] }, defaultTags: [], isActive: true, isPublic: true, usageCount: 10, createdBy: "Admin", createdAt: "2024-01-15" },
-    ];
-    setTemplates(mockTemplates);
-  });
+  useEffect(() => {
+    async function loadTemplates() {
+      try {
+        const res = await fetch("/api/admin/blog/templates");
+        if (!res.ok) throw new Error("failed");
+        const data = await res.json();
+        setTemplates(
+          (data.templates ?? []).map((t: Record<string, unknown>) => ({
+            id: String(t.id ?? ""),
+            name: String(t.name ?? ""),
+            slug: String(t.slug ?? t.id ?? ""),
+            description: t.description as string | undefined,
+            type: (t.type as ContentTemplate["type"]) ?? "BLOG_POST",
+            structure: (t.structure as ContentTemplate["structure"]) ?? { sections: [] },
+            defaultTags: (t.defaultTags as string[]) ?? [],
+            isActive: t.isActive !== false,
+            isPublic: Boolean(t.isPublic),
+            usageCount: Number(t.usageCount ?? 0),
+            createdBy: String(t.createdBy ?? "Admin"),
+            createdAt: String(t.createdAt ?? new Date().toISOString()),
+            aiPrompts: t.aiPrompts as ContentTemplate["aiPrompts"],
+          }))
+        );
+      } catch {
+        setTemplates([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadTemplates();
+  }, []);
 
   const filteredTemplates = templates.filter((t) => {
     const matchesSearch =
@@ -167,6 +192,10 @@ export default function ContentTemplatesPage() {
             <option value="VIDEO">Video</option>
           </select>
         </div>
+
+        {loading && (
+          <div className="text-center py-12 text-slate-500">Yükleniyor...</div>
+        )}
 
         {/* Templates Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -255,7 +284,7 @@ export default function ContentTemplatesPage() {
         </div>
 
         {/* Empty State */}
-        {filteredTemplates.length === 0 && (
+        {!loading && filteredTemplates.length === 0 && (
           <div className="text-center py-12">
             <LayoutTemplate className="w-12 h-12 text-slate-300 mx-auto mb-4" />
             <p className="text-slate-500">Henüz şablon bulunmuyor.</p>

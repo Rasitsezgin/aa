@@ -1,18 +1,15 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { requirePlatformAdmin } from '@/lib/admin-auth';
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await auth();
-
-  if (!session?.user || session.user.type !== "SUPERADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
 
   try {
     const popup = await prisma.popup.findUnique({
@@ -33,11 +30,8 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await auth();
-
-  if (!session?.user || session.user.type !== "SUPERADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
 
   try {
     const data = await request.json();
@@ -74,11 +68,8 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await auth();
-
-  if (!session?.user || session.user.type !== "SUPERADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
 
   try {
     await prisma.popup.delete({

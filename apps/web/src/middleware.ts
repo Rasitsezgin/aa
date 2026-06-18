@@ -1,4 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isPlatformAdmin } from "@/lib/platform-admin";
+
+function getSessionPayload(sessionToken: string): Record<string, unknown> | null {
+    try {
+        const parts = sessionToken.split('.');
+        if (parts.length < 2) return null;
+        return JSON.parse(Buffer.from(parts[1], 'base64').toString()) as Record<string, unknown>;
+    } catch {
+        return null;
+    }
+}
 
 export const config = {
     matcher: [
@@ -119,30 +130,32 @@ export default async function middleware(req: NextRequest) {
     }
 
     // Redirect to onboarding if tenant is not yet onboarded
-    // Check JWT token for isOnboarded flag (set during login in auth.ts)
     if (pathname.startsWith('/dashboard') && sessionToken) {
-        try {
-            // JWT payload is base64 encoded in second part of the token
-            const parts = sessionToken.split('.');
-            if (parts.length >= 2) {
-                const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-                if (payload.isOnboarded === false && !pathname.startsWith('/onboarding')) {
-                    const onboardingUrl = new URL('/onboarding', req.url);
-                    const response = NextResponse.redirect(onboardingUrl);
-                    return addSecurityHeaders(response);
-                }
-            }
-        } catch {
-            // If JWT parsing fails, let the request continue
+        const payload = getSessionPayload(sessionToken);
+        if (payload?.isOnboarded === false && !pathname.startsWith('/onboarding')) {
+            const onboardingUrl = new URL('/onboarding', req.url);
+            const response = NextResponse.redirect(onboardingUrl);
+            return addSecurityHeaders(response);
         }
     }
 
-    // Protect /admin/* routes (except /admin/login) - require authentication
+    // Protect /admin/* routes — platform admin only
     if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
         if (!sessionToken) {
             const loginUrl = new URL('/admin/login', req.url);
             loginUrl.searchParams.set('callbackUrl', pathname);
             const response = NextResponse.redirect(loginUrl);
+            return addSecurityHeaders(response);
+        }
+
+        const payload = getSessionPayload(sessionToken);
+        if (payload && !isPlatformAdmin({
+            type: payload.type as string | undefined,
+            tenantId: (payload.tenantId as string | null | undefined) ?? null,
+        })) {
+            const unauthorizedUrl = new URL('/unauthorized', req.url);
+            unauthorizedUrl.searchParams.set('from', 'admin');
+            const response = NextResponse.redirect(unauthorizedUrl);
             return addSecurityHeaders(response);
         }
     }

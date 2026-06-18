@@ -11,10 +11,10 @@
     }
   },
   "scripts": {
-    "build": "prisma generate && tsc && node -e \"require('node:fs').cpSync('generated','dist/generated',{recursive:true})\"",
-    "prisma:generate": "prisma generate",
+    "build": "npx prisma generate && tsc && node -e \"require('node:fs').cpSync('generated','dist/generated',{recursive:true})\"",
+    "prisma:generate": "npx prisma generate",
     "generate": "npm run prisma:generate",
-    "postinstall": "prisma generate",
+    "postinstall": "npx prisma generate",
     "db:push": "npx prisma db push",
     "db:migrate": "npx prisma migrate dev",
     "db:deploy": "npx prisma migrate deploy",

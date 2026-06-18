@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { adminApi } from "@/lib/admin-api";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -68,14 +69,25 @@ export default function SpecialOffersPage() {
   const [activeTab, setActiveTab] = useState<"active" | "draft" | "expired">("active");
   const [selectedOffer, setSelectedOffer] = useState<SpecialOffer | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Initialize mock data
-  useState(() => {
-    const mockOffers: SpecialOffer[] = [
-      { id: "1", title: "Yıllık Abonelik", type: "SUBSCRIPTION", bgColor: "from-purple-600 to-blue-600", showCountdown: false, ctaText: "Hemen Başvur", ctaUrl: "/subscribe", showEmailForm: true, location: "HEADER", isActive: true, status: "ACTIVE", viewCount: 1000, clickCount: 100, emailCount: 50, conversionCount: 20, leads: [], createdAt: "2024-01-15" },
-    ];
-    setOffers(mockOffers);
-  });
+  useEffect(() => {
+    async function loadOffers() {
+      try {
+        const data = await adminApi.getOffers();
+        setOffers((data.offers ?? []).map((o: any) => ({
+          ...o,
+          leads: o.leads ?? [],
+          createdAt: o.createdAt ?? new Date().toISOString(),
+        })));
+      } catch {
+        setOffers([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadOffers();
+  }, []);
 
   const filteredOffers = offers.filter((offer) => {
     if (activeTab === "active") return offer.isActive;

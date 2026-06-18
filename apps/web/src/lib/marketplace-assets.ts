@@ -1,115 +1,69 @@
 // Marketplace Logo and Brand Configuration
-// This file provides fallback logos and brand colors for marketplaces
+// Paths match files in public/images/pazaryeri/
+
+const P = '/images/pazaryeri';
 
 export const MARKETPLACE_LOGOS: Record<string, string> = {
   // Turkey
-  trendyol: '/images/pazaryeri/trendyol.svg',
-  hepsiburada: '/images/pazaryeri/hepsiburada.svg',
-  n11: '/images/pazaryeri/n11.svg',
-  'amazon-tr': '/images/pazaryeri/amazon.svg',
-  ciceksepeti: '/images/pazaryeri/ciceksepeti.svg',
-  gittigidiyor: '/images/pazaryeri/gittigidiyor.svg',
-  pttavm: '/images/pazaryeri/pttavm.svg',
-  morhipo: '/images/pazaryeri/morhipo.svg',
-  lcwaikiki: '/images/pazaryeri/lcwaikiki.svg',
-  defacto: '/images/pazaryeri/defacto.svg',
-  koton: '/images/pazaryeri/koton.svg',
-  boyner: '/images/pazaryeri/boyner.svg',
-  teknosa: '/images/pazaryeri/teknosa.svg',
-  mediamarkt: '/images/pazaryeri/mediamarkt.svg',
-  akakce: '/images/pazaryeri/akakce.svg',
-  cimri: '/images/pazaryeri/cimri.svg',
+  trendyol: `${P}/Trendyol.png`,
+  hepsiburada: `${P}/Hepsiburada.png`,
+  n11: `${P}/N11.png`,
+  'amazon-tr': `${P}/Amazon.png`,
+  ciceksepeti: `${P}/ciceksepeti.png`,
+  pazarama: `${P}/Pazarama.png`,
+  akinon: `${P}/akinon.webp`,
+  ikas: `${P}/ikas.png`,
+  ideasoft: `${P}/ideasoft-logo.webp`,
+  ticimax: `${P}/ticimax.webp`,
+  tsoft: `${P}/tsoft.webp`,
+  faprika: `${P}/faprika.png`,
+  platinmarket: `${P}/platinmarketlogo.png`,
+  inveon: `${P}/inveon.webp`,
 
   // Amazon variants
-  'amazon-us': '/images/pazaryeri/amazon.svg',
-  'amazon-uk': '/images/pazaryeri/amazon.svg',
-  'amazon-de': '/images/pazaryeri/amazon.svg',
-  'amazon-fr': '/images/pazaryeri/amazon.svg',
-  'amazon-it': '/images/pazaryeri/amazon.svg',
-  'amazon-es': '/images/pazaryeri/amazon.svg',
-  'amazon-jp': '/images/pazaryeri/amazon.svg',
-  'amazon-au': '/images/pazaryeri/amazon.svg',
-  'amazon-ca': '/images/pazaryeri/amazon.svg',
-  'amazon-mx': '/images/pazaryeri/amazon.svg',
-  'amazon-br': '/images/pazaryeri/amazon.svg',
-  'amazon-ae': '/images/pazaryeri/amazon.svg',
-  'amazon-sa': '/images/pazaryeri/amazon.svg',
-  'amazon-in': '/images/pazaryeri/amazon.svg',
-  'amazon-sg': '/images/pazaryeri/amazon.svg',
+  'amazon-us': `${P}/Amazon.png`,
+  'amazon-uk': `${P}/Amazon.png`,
+  'amazon-de': `${P}/Amazon.png`,
+  'amazon-fr': `${P}/Amazon.png`,
+  'amazon-it': `${P}/Amazon.png`,
+  'amazon-es': `${P}/Amazon.png`,
+  'amazon-jp': `${P}/Amazon.png`,
+  'amazon-au': `${P}/Amazon.png`,
+  'amazon-ca': `${P}/Amazon.png`,
+  'amazon-mx': `${P}/Amazon.png`,
+  'amazon-br': `${P}/Amazon.png`,
+  'amazon-ae': `${P}/Amazon.png`,
+  'amazon-sa': `${P}/Amazon.png`,
+  'amazon-in': `${P}/Amazon.png`,
+  'amazon-sg': `${P}/Amazon.png`,
 
   // eBay variants
-  'ebay-us': '/images/pazaryeri/ebay.svg',
-  'ebay-uk': '/images/pazaryeri/ebay.svg',
-  'ebay-de': '/images/pazaryeri/ebay.svg',
-  'ebay-au': '/images/pazaryeri/ebay.svg',
-  'ebay-fr': '/images/pazaryeri/ebay.svg',
-  'ebay-it': '/images/pazaryeri/ebay.svg',
-  'ebay-es': '/images/pazaryeri/ebay.svg',
-  'ebay-ca': '/images/pazaryeri/ebay.svg',
+  'ebay-us': `${P}/EBay.png`,
+  'ebay-uk': `${P}/EBay.png`,
+  'ebay-de': `${P}/EBay.png`,
+  'ebay-au': `${P}/EBay.png`,
+  'ebay-fr': `${P}/EBay.png`,
+  'ebay-it': `${P}/EBay.png`,
+  'ebay-es': `${P}/EBay.png`,
+  'ebay-ca': `${P}/EBay.png`,
 
   // Global
-  etsy: '/images/pazaryeri/etsy.svg',
-  shopify: '/images/pazaryeri/shopify.svg',
-  woocommerce: '/images/pazaryeri/woocommerce.svg',
-  magento: '/images/pazaryeri/magento.svg',
-  bigcommerce: '/images/pazaryeri/bigcommerce.svg',
-  prestashop: '/images/pazaryeri/prestashop.svg',
-  opencart: '/images/pazaryeri/opencart.svg',
-
-  // Europe
-  zalando: '/images/pazaryeri/zalando.svg',
-  'bol-com': '/images/pazaryeri/bol.svg',
-  allegro: '/images/pazaryeri/allegro.svg',
-  cdiscount: '/images/pazaryeri/cdiscount.svg',
-  otto: '/images/pazaryeri/otto.svg',
-  manomano: '/images/pazaryeri/manomano.svg',
-  fnac: '/images/pazaryeri/fnac.svg',
-  emag: '/images/pazaryeri/emag.svg',
-  asos: '/images/pazaryeri/asos.svg',
-
-  // Asia Pacific
-  'shopee-sg': '/images/pazaryeri/shopee.svg',
-  'shopee-my': '/images/pazaryeri/shopee.svg',
-  'shopee-th': '/images/pazaryeri/shopee.svg',
-  'shopee-vn': '/images/pazaryeri/shopee.svg',
-  'shopee-ph': '/images/pazaryeri/shopee.svg',
-  'shopee-id': '/images/pazaryeri/shopee.svg',
-  'shopee-tw': '/images/pazaryeri/shopee.svg',
-  lazada: '/images/pazaryeri/lazada.svg',
-  tokopedia: '/images/pazaryeri/tokopedia.svg',
-  bukalapak: '/images/pazaryeri/bukalapak.svg',
-  rakuten: '/images/pazaryeri/rakuten.svg',
-  'yahoo-jp': '/images/pazaryeri/yahoojp.svg',
-  qoo10: '/images/pazaryeri/qoo10.svg',
-  flipkart: '/images/pazaryeri/flipkart.svg',
-  snapdeal: '/images/pazaryeri/snapdeal.svg',
-
-  // China
-  aliexpress: '/images/pazaryeri/aliexpress.svg',
-  alibaba: '/images/pazaryeri/alibaba.svg',
-  '1688': '/images/pazaryeri/1688.svg',
-  taobao: '/images/pazaryeri/taobao.svg',
-  tmall: '/images/pazaryeri/tmall.svg',
-  jd: '/images/pazaryeri/jd.svg',
-  pinduoduo: '/images/pazaryeri/pinduoduo.svg',
-
-  // Americas
-  walmart: '/images/pazaryeri/walmart.svg',
-  target: '/images/pazaryeri/target.svg',
-  wish: '/images/pazaryeri/wish.svg',
-  wayfair: '/images/pazaryeri/wayfair.svg',
-  newegg: '/images/pazaryeri/newegg.svg',
-  overstock: '/images/pazaryeri/overstock.svg',
-  'mercadolibre-mx': '/images/pazaryeri/mercadolibre.svg',
-  'mercadolibre-br': '/images/pazaryeri/mercadolibre.svg',
-  'mercadolibre-ar': '/images/pazaryeri/mercadolibre.svg',
-  'mercadolibre-co': '/images/pazaryeri/mercadolibre.svg',
-  'mercadolibre-cl': '/images/pazaryeri/mercadolibre.svg',
-
-  // Middle East
-  noon: '/images/pazaryeri/noon.svg',
-  souq: '/images/pazaryeri/souq.svg',
-  namshi: '/images/pazaryeri/namshi.svg',
+  etsy: `${P}/Etsy.png`,
+  shopify: `${P}/Shopify.png`,
+  woocommerce: `${P}/WooCommerce.png`,
+  magento: `${P}/magento.png`,
+  bigcommerce: `${P}/bigcommerce.webp`,
+  prestashop: `${P}/prestashop.webp`,
+  opencart: `${P}/opencart.webp`,
+  salesforce: `${P}/Salesforce.png`,
+  vtex: `${P}/VTEX_logo.png`,
+  sap: `${P}/sap-commerce-cloud.webp`,
+  oracle: `${P}/oracle-commerce-cloud.webp`,
+  facebook: `${P}/facebook-marketplace.png`,
+  instagram: `${P}/Insta_Logo.webp`,
+  pinterest: `${P}/pinterest.webp`,
+  tiktok: `${P}/tiktok-shop.png`,
+  walmart: `${P}/walmart.png`,
 };
 
 export const MARKETPLACE_BRAND_COLORS: Record<string, string> = {
@@ -235,7 +189,47 @@ export function getMarketplaceInitials(name: string): string {
 
 // Get logo URL or generate fallback
 export function getMarketplaceLogo(marketplaceId: string): string {
-  return MARKETPLACE_LOGOS[marketplaceId] || '/images/pazaryeri/default.svg';
+  return MARKETPLACE_LOGOS[marketplaceId] || `${P}/Bc-logo-dark.svg`;
+}
+
+/** Uppercase platform keys used in analiz / admin UI */
+export const PLATFORM_KEY_TO_MARKETPLACE_ID: Record<string, string> = {
+  TRENDYOL: 'trendyol',
+  HEPSIBURADA: 'hepsiburada',
+  AMAZON: 'amazon-tr',
+  N11: 'n11',
+  CICEKSEPETI: 'ciceksepeti',
+  ETSY: 'etsy',
+  EBAY: 'ebay-us',
+  SHOPIFY: 'shopify',
+  WOOCOMMERCE: 'woocommerce',
+  WALMART: 'walmart',
+  MAGENTO: 'magento',
+  PRESTASHOP: 'prestashop',
+  OPENCART: 'opencart',
+  BIGCOMMERCE: 'bigcommerce',
+  VTEX: 'vtex',
+  IDEASOFT: 'ideasoft',
+  IKAS: 'ikas',
+  TICIMAX: 'ticimax',
+  TSOFT: 'tsoft',
+  FAPRIKA: 'faprika',
+  PLATINMARKET: 'platinmarket',
+  AKINON: 'akinon',
+  INVEON: 'inveon',
+  SAP: 'sap',
+  ORACLE: 'oracle',
+  SALESFORCE: 'salesforce',
+  TIKTOK: 'tiktok',
+  FACEBOOK: 'facebook',
+  INSTAGRAM: 'instagram',
+  PINTEREST: 'pinterest',
+  PAZARAMA: 'pazarama',
+};
+
+export function getPlatformLogoByKey(platformKey: string): string {
+  const id = PLATFORM_KEY_TO_MARKETPLACE_ID[platformKey];
+  return getMarketplaceLogo(id ?? '');
 }
 
 // Get brand color or default

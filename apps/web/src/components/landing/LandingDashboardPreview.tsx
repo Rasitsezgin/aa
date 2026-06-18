@@ -58,12 +58,23 @@ const syncChannels = [
     { name: 'N11', ok: false },
 ];
 
-export default function LandingDashboardPreview({ className = '' }: { className?: string }) {
+type Props = {
+    className?: string;
+    /** Hero logo rotasyonu ile senkron — kanal vurgusu */
+    highlightPlatform?: string;
+};
+
+export default function LandingDashboardPreview({ className = '', highlightPlatform }: Props) {
+    const stockAlertPlatform = highlightPlatform && platformBars.some((b) => b.name === highlightPlatform)
+        ? highlightPlatform
+        : 'Trendyol';
+
     return (
         <div className={`relative ${className}`}>
-            <div className="absolute -inset-4 rounded-[28px] bg-orange-500/[0.06] blur-2xl pointer-events-none" />
+            <div className="absolute -inset-6 sm:-inset-8 rounded-[32px] bg-gradient-to-br from-orange-500/10 via-orange-400/5 to-transparent blur-2xl pointer-events-none" />
+            <div className="absolute -inset-2 rounded-[24px] bg-orange-500/[0.04] blur-xl pointer-events-none" />
 
-            <div className="relative rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0c1222] shadow-[0_24px_64px_-28px_rgba(15,23,42,0.28)] dark:shadow-[0_24px_64px_-28px_rgba(0,0,0,0.6)] overflow-hidden">
+            <div className="relative rounded-2xl sm:rounded-[1.25rem] border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0c1222] shadow-[0_8px_30px_rgba(15,23,42,0.08),0_32px_64px_-16px_rgba(15,23,42,0.18)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.3),0_32px_64px_-16px_rgba(0,0,0,0.5)] overflow-hidden hero-mockup-card transition-shadow duration-500">
                 {/* Browser chrome */}
                 <div className="flex items-center h-10 px-3 border-b border-slate-100 dark:border-white/[0.06] bg-slate-50/90 dark:bg-white/[0.02]">
                     <div className="flex gap-1.5">
@@ -85,7 +96,7 @@ export default function LandingDashboardPreview({ className = '' }: { className?
                     </div>
                 </div>
 
-                <div className="flex min-h-[340px]">
+                <div className="flex min-h-[300px] sm:min-h-[340px]">
                     {/* Sidebar */}
                     <aside className="hidden sm:flex w-[132px] shrink-0 flex-col border-r border-slate-100 dark:border-white/[0.06] bg-slate-50/60 dark:bg-white/[0.02]">
                         <div className="flex items-center gap-2 px-3 py-2.5 border-b border-slate-100/80 dark:border-white/[0.04]">
@@ -128,7 +139,6 @@ export default function LandingDashboardPreview({ className = '' }: { className?
 
                     {/* Main */}
                     <div className="flex-1 min-w-0 flex flex-col">
-                        {/* Header */}
                         <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-slate-100/80 dark:border-white/[0.04] bg-white dark:bg-transparent">
                             <div className="min-w-0">
                                 <h3 className="text-[11px] font-bold text-slate-900 dark:text-white truncate">Kontrol Merkezi</h3>
@@ -141,24 +151,27 @@ export default function LandingDashboardPreview({ className = '' }: { className?
                         </div>
 
                         <div className="flex-1 p-2.5 sm:p-3 space-y-2.5 overflow-hidden">
-                            {/* Sync strip */}
                             <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-                                {syncChannels.map((ch) => (
-                                    <span
-                                        key={ch.name}
-                                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-medium whitespace-nowrap border ${
-                                            ch.ok
-                                                ? 'bg-emerald-50/80 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20'
-                                                : 'bg-amber-50/80 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-500/20'
-                                        }`}
-                                    >
-                                        <span className={`w-1 h-1 rounded-full ${ch.ok ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
-                                        {ch.name}
-                                    </span>
-                                ))}
+                                {syncChannels.map((ch) => {
+                                    const active = highlightPlatform === ch.name;
+                                    return (
+                                        <span
+                                            key={ch.name}
+                                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-medium whitespace-nowrap border transition-all duration-300 ${
+                                                active
+                                                    ? 'bg-orange-50 dark:bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-500/40 ring-1 ring-orange-400/30 scale-105'
+                                                    : ch.ok
+                                                        ? 'bg-emerald-50/80 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/20 opacity-80'
+                                                        : 'bg-amber-50/80 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-500/20 opacity-80'
+                                            }`}
+                                        >
+                                            <span className={`w-1 h-1 rounded-full ${ch.ok ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'} ${active ? '!bg-orange-500' : ''}`} />
+                                            {ch.name}
+                                        </span>
+                                    );
+                                })}
                             </div>
 
-                            {/* Stats */}
                             <div className="grid grid-cols-4 gap-1.5">
                                 {stats.map((stat) => (
                                     <div
@@ -178,23 +191,37 @@ export default function LandingDashboardPreview({ className = '' }: { className?
                                 ))}
                             </div>
 
-                            {/* Chart + search row */}
                             <div className="grid grid-cols-5 gap-2">
-                                <div className="col-span-3 rounded-lg border border-slate-100 dark:border-white/[0.06] p-2 bg-white dark:bg-white/[0.02]">
+                                <div className={`col-span-3 rounded-lg border p-2 bg-white dark:bg-white/[0.02] transition-colors duration-300 ${
+                                    highlightPlatform ? 'border-orange-200 dark:border-orange-500/25' : 'border-slate-100 dark:border-white/[0.06]'
+                                }`}>
                                     <div className="flex items-center justify-between mb-1.5">
                                         <span className="text-[8px] font-semibold text-slate-600 dark:text-slate-300">Kanal cirosu</span>
                                         <TrendingUp size={10} className="text-slate-400" />
                                     </div>
                                     <div className="space-y-1">
-                                        {platformBars.map((bar) => (
-                                            <div key={bar.name} className="flex items-center gap-1.5">
-                                                <span className="w-14 text-[7px] text-slate-500 truncate">{bar.name}</span>
-                                                <div className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
-                                                    <div className={`h-full rounded-full ${bar.color}`} style={{ width: `${bar.pct}%` }} />
+                                        {platformBars.map((bar) => {
+                                            const active = highlightPlatform === bar.name;
+                                            return (
+                                                <div
+                                                    key={bar.name}
+                                                    className={`flex items-center gap-1.5 rounded px-0.5 transition-all duration-300 ${active ? 'opacity-100' : 'opacity-50'}`}
+                                                >
+                                                    <span className={`w-14 text-[7px] truncate ${active ? 'font-bold text-orange-600 dark:text-orange-400' : 'text-slate-500'}`}>
+                                                        {bar.name}
+                                                    </span>
+                                                    <div className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
+                                                        <div
+                                                            className={`h-full rounded-full transition-all duration-500 ${bar.color} ${active ? 'shadow-sm shadow-orange-500/40' : ''}`}
+                                                            style={{ width: `${active ? Math.min(bar.pct + 8, 100) : bar.pct}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className={`text-[7px] font-semibold tabular-nums w-8 text-right ${active ? 'text-orange-600 dark:text-orange-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                                                        {bar.revenue}
+                                                    </span>
                                                 </div>
-                                                <span className="text-[7px] font-semibold text-slate-600 dark:text-slate-300 tabular-nums w-8 text-right">{bar.revenue}</span>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                                 <div className="col-span-2 flex flex-col gap-1.5">
@@ -204,12 +231,13 @@ export default function LandingDashboardPreview({ className = '' }: { className?
                                     </div>
                                     <div className="flex-1 rounded-lg border border-amber-100 dark:border-amber-500/20 bg-amber-50/60 dark:bg-amber-500/5 p-2">
                                         <p className="text-[7px] font-semibold text-amber-800 dark:text-amber-300 uppercase tracking-wide mb-0.5">Stok uyarısı</p>
-                                        <p className="text-[8px] text-amber-700/90 dark:text-amber-400/90 leading-snug">3 SKU kritik seviyede · Trendyol senkron bekliyor</p>
+                                        <p className="text-[8px] text-amber-700/90 dark:text-amber-400/90 leading-snug">
+                                            3 SKU kritik seviyede · {stockAlertPlatform} senkron bekliyor
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Orders table */}
                             <div className="rounded-lg border border-slate-100 dark:border-white/[0.06] overflow-hidden bg-white dark:bg-white/[0.01]">
                                 <div className="flex items-center justify-between px-2.5 py-1.5 bg-slate-50/90 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/[0.05]">
                                     <span className="text-[9px] font-bold text-slate-700 dark:text-slate-200">Son siparişler</span>
@@ -241,13 +269,16 @@ export default function LandingDashboardPreview({ className = '' }: { className?
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {recentOrders.map((order, idx) => {
+                                            {recentOrders.map((order) => {
                                                 const status = statusConfig[order.status];
+                                                const active = highlightPlatform === order.platform;
                                                 return (
                                                     <tr
                                                         key={order.id}
-                                                        className={`border-b border-slate-50 dark:border-white/[0.03] last:border-0 hover:bg-slate-50/80 dark:hover:bg-white/[0.02] transition-colors ${
-                                                            idx === 0 ? 'bg-orange-50/40 dark:bg-orange-500/[0.04]' : ''
+                                                        className={`border-b border-slate-50 dark:border-white/[0.03] last:border-0 transition-colors ${
+                                                            active
+                                                                ? 'bg-orange-50/70 dark:bg-orange-500/[0.08]'
+                                                                : 'opacity-60 hover:opacity-100 hover:bg-slate-50/80 dark:hover:bg-white/[0.02]'
                                                         }`}
                                                     >
                                                         <td className="px-2 py-1.5">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -60,14 +60,47 @@ export default function ContentQualityPage() {
   const [selectedReport, setSelectedReport] = useState<QualityReport | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState<string | null>(null);
   const [filterScore, setFilterScore] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
 
-  // Initialize mock data
-  useState(() => {
-    const mockReports: QualityReport[] = [
-      { postId: "1", postTitle: "Blog Yazısı", overallScore: 85, readabilityScore: 90, seoScore: 80, engagementScore: 85, originalityScore: 95, completenessScore: 80, issues: [], suggestions: [], aiAnalysis: "Kaliteli içerik", lastChecked: "2024-01-15" },
-    ];
-    setReports(mockReports);
-  });
+  useEffect(() => {
+    async function loadReports() {
+      try {
+        const res = await fetch("/api/admin/blog/quality");
+        if (!res.ok) throw new Error("failed");
+        const data = await res.json();
+        setReports(
+          (data.reports ?? []).map((r: Record<string, unknown>) => {
+            const score = Number(r.score ?? r.overallScore ?? 0);
+            const issues = (r.issues as string[] | undefined) ?? [];
+            return {
+              postId: String(r.id ?? r.postId ?? ""),
+              postTitle: String(r.postTitle ?? ""),
+              overallScore: score,
+              readabilityScore: score,
+              seoScore: score,
+              engagementScore: score,
+              originalityScore: score,
+              completenessScore: score,
+              issues: issues.map((message) => ({
+                type: "warning" as const,
+                category: "content",
+                message,
+                suggestion: "İçeriği geliştirin",
+              })),
+              suggestions: [],
+              aiAnalysis: `Kelime sayısı: ${Number(r.wordCount ?? 0)}`,
+              lastChecked: String(r.checkedAt ?? r.lastChecked ?? new Date().toISOString()),
+            };
+          })
+        );
+      } catch {
+        setReports([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadReports();
+  }, []);
 
   const filteredReports = reports.filter((report) => {
     if (filterScore === "excellent") return report.overallScore >= 90;
@@ -136,6 +169,10 @@ export default function ContentQualityPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {loading ? (
+          <div className="text-center py-12 text-slate-500">Yükleniyor...</div>
+        ) : (
+        <>
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <div className="bg-white p-4 rounded-xl border border-slate-200">
@@ -258,6 +295,8 @@ export default function ContentQualityPage() {
             </motion.div>
           ))}
         </div>
+        </>
+        )}
       </div>
 
       {/* Detail Modal */}

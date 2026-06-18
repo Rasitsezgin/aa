@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Lock, Mail, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 
+import { isPlatformAdmin } from '@/lib/platform-admin';
+
 export default function LoginForm() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -29,10 +31,21 @@ export default function LoginForm() {
             if (!result?.ok || result?.error) {
                 setError("Geçersiz e-posta veya şifre.");
                 setIsLoading(false);
-            } else {
-                // Success - full page reload to /admin
-                window.location.href = "/admin";
+                return;
             }
+
+            const sessionRes = await fetch('/api/auth/session');
+            const sessionData = await sessionRes.json();
+
+            if (!isPlatformAdmin(sessionData?.user)) {
+                const { signOut } = await import('next-auth/react');
+                await signOut({ redirect: false });
+                setError("Bu panele erişim yetkiniz bulunmuyor. Platform yöneticisi hesabı gereklidir.");
+                setIsLoading(false);
+                return;
+            }
+
+            window.location.href = "/admin";
         } catch (err) {
             console.error('Login error:', err);
             setError("Bir hata oluştu. Lütfen tekrar deneyin.");

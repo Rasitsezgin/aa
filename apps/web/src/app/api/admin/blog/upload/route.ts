@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import { requirePlatformAdmin } from '@/lib/admin-auth';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -22,10 +22,8 @@ function sanitizeSlug(value: string): string {
 }
 
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
 
   try {
     const formData = await request.formData();

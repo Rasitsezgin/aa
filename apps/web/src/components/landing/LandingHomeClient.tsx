@@ -45,27 +45,38 @@ const sectionBgClass: Record<string, string> = {
 
 export default function LandingHomeClient() {
   const [texts, setTexts] = useState(HOMEPAGE_TEXTS);
+  const [sections, setSections] = useState(INITIAL_CONFIG);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const timer = setTimeout(() => {
-      const savedTexts = localStorage.getItem('homepage_texts');
-      if (savedTexts) {
-        try {
-          setTexts(JSON.parse(savedTexts));
-        } catch (e) {
-          console.error("Failed to load homepage texts", e);
+    async function loadHomepage() {
+      try {
+        const res = await fetch('/api/public/homepage', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.texts) setTexts(data.texts);
+          if (data.sections?.length) {
+            const activeMap = Object.fromEntries(
+              data.sections.map((s: { id: string; isActive: boolean }) => [s.id, s.isActive]),
+            );
+            setSections((prev) =>
+              prev.map((s) => ({
+                ...s,
+                isActive: activeMap[s.id] !== undefined ? activeMap[s.id] : s.isActive,
+              })),
+            );
+          }
+        }
+      } catch {
+        const savedTexts = localStorage.getItem('homepage_texts');
+        if (savedTexts) {
+          try { setTexts(JSON.parse(savedTexts)); } catch { /* ignore */ }
         }
       }
-    }, 0);
 
-    const pricingTimer = setTimeout(async () => {
       try {
         const res = await fetch('/api/pricing-catalog', { cache: 'no-store' });
         if (!res.ok) return;
         const catalog = (await res.json()) as PricingCatalog;
-
         setTexts((prev) => ({
           ...prev,
           pricing: mapCatalogToHomepagePricing(catalog),
@@ -73,12 +84,8 @@ export default function LandingHomeClient() {
       } catch {
         // Varsayilan metinler ile devam et
       }
-    }, 0);
-
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(pricingTimer);
-    };
+    }
+    void loadHomepage();
   }, []);
 
   return (
@@ -97,7 +104,7 @@ export default function LandingHomeClient() {
       </div>
 
       <div className="relative z-10 flex flex-col gap-0 pb-8 sm:pb-0">
-        {INITIAL_CONFIG.map((section) => {
+        {sections.map((section) => {
           if (!section.isActive) return null;
           const Component = section.component as React.ComponentType<Record<string, unknown>>;
 

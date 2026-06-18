@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { adminApi } from '@/lib/admin-api';
 import {
     Layers, Shield, Zap, Sparkles, Plus, Search, Filter,
     Package, Settings, Edit3, Trash2, Eye, EyeOff, Star, TrendingUp,
@@ -138,11 +139,37 @@ const ICON_MAP: Record<string, any> = {
 
 export default function ModuleManagement() {
     const [modules, setModules] = useState(MODULES_DATA);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
     const [showOnlyActive, setShowOnlyActive] = useState(false);
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+
+    useEffect(() => {
+        async function loadModules() {
+            try {
+                const data = await adminApi.getModules();
+                if (data.modules?.length) {
+                    setModules(data.modules);
+                }
+            } catch {
+                // Fallback: MODULES_DATA
+            } finally {
+                setLoading(false);
+            }
+        }
+        void loadModules();
+    }, []);
+
+    const handleToggleActive = async (id: string, isActive: boolean) => {
+        try {
+            await adminApi.updateModule(id, { isActive: !isActive });
+            setModules((prev) => prev.map((m) => (m.id === id ? { ...m, isActive: !isActive } : m)));
+        } catch {
+            // ignore
+        }
+    };
 
     const filteredModules = useMemo(() => {
         return modules.filter(mod => {

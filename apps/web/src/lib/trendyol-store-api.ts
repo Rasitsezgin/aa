@@ -92,9 +92,10 @@ function calculateStockHealth(
 function calculatePriceScore(
   products: Array<{ price: number }>,
 ): number {
-  if (products.length === 0) return 65;
+  if (products.length === 0) return 0;
   const priced = products.filter((p) => p.price > 0);
-  return priced.length > 0 ? 78 : 55;
+  if (priced.length === 0) return 0;
+  return Math.round((priced.length / products.length) * 100);
 }
 
 function calculateSeoScore(

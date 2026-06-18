@@ -55,49 +55,45 @@ export default function HomepageAdminClient() {
     });
 
     useEffect(() => {
-        // Load Layout
-        const savedLayout = localStorage.getItem('homepage_config');
-        if (savedLayout) {
+        async function loadHomepage() {
             try {
-                const parsed = JSON.parse(savedLayout);
-                // Use setTimeout to avoid synchronous setState in effect
-                setTimeout(() => {
-                    setSections(prev => prev.map(s => {
-                        const match = parsed.find((p: { id: string, isActive: boolean }) => p.id === s.id);
-                        return match ? { ...s, isActive: match.isActive } : s;
-                    }));
-                }, 0);
-            } catch (e) {
+                const res = await fetch('/api/admin/homepage');
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.sections?.length) setSections(data.sections);
+                if (data.texts) setTexts(data.texts);
+                if (data.features && Object.keys(data.features).length) setFeatures(data.features);
+            } catch {
+                const savedLayout = localStorage.getItem('homepage_config');
+                if (savedLayout) {
+                    try {
+                        const parsed = JSON.parse(savedLayout);
+                        setSections(prev => prev.map(s => {
+                            const match = parsed.find((p: { id: string, isActive: boolean }) => p.id === s.id);
+                            return match ? { ...s, isActive: match.isActive } : s;
+                        }));
+                    } catch { /* ignore */ }
+                }
             }
         }
-
-        // Load Texts
-        const savedTexts = localStorage.getItem('homepage_texts');
-        if (savedTexts) {
-            try {
-                const parsed = JSON.parse(savedTexts);
-                setTimeout(() => {
-                    setTexts(parsed);
-                }, 0);
-            } catch (e) { }
-        }
-
-        // Load Features
-        const savedFeatures = localStorage.getItem('homepage_features');
-        if (savedFeatures) {
-            try {
-                const parsed = JSON.parse(savedFeatures);
-                setTimeout(() => {
-                    setFeatures(parsed);
-                }, 0);
-            } catch (e) { }
-        }
+        void loadHomepage();
     }, []);
 
-    const handleSave = () => {
-        localStorage.setItem('homepage_config', JSON.stringify(sections));
-        localStorage.setItem('homepage_texts', JSON.stringify(texts));
-        localStorage.setItem('homepage_features', JSON.stringify(features));
+    const handleSave = async () => {
+        try {
+            await fetch('/api/admin/homepage', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sections, texts, features }),
+            });
+            localStorage.setItem('homepage_config', JSON.stringify(sections));
+            localStorage.setItem('homepage_texts', JSON.stringify(texts));
+            localStorage.setItem('homepage_features', JSON.stringify(features));
+        } catch {
+            localStorage.setItem('homepage_config', JSON.stringify(sections));
+            localStorage.setItem('homepage_texts', JSON.stringify(texts));
+            localStorage.setItem('homepage_features', JSON.stringify(features));
+        }
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
     };
@@ -212,37 +208,99 @@ export default function HomepageAdminClient() {
                 )}
 
                 {activeTab === 'hero' && (
-                    <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-300">
-                        <div className="text-center py-12 text-slate-500">
-                            <Type size={48} className="mx-auto mb-4 opacity-50" />
-                            <p>Hero metin düzenleme özelliği yakında eklenecek...</p>
-                        </div>
+                    <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+                        <h3 className="font-bold text-lg">Hero Metinleri</h3>
+                        {[
+                            ['badge', 'Rozet'],
+                            ['titleLine1', 'Başlık Satır 1'],
+                            ['titleSuffix', 'Başlık Soneki'],
+                            ['subtitlePrefix', 'Alt Başlık'],
+                            ['signupCta', 'Kayıt Butonu'],
+                            ['demoCta', 'Demo Butonu'],
+                        ].map(([key, label]) => (
+                            <div key={key}>
+                                <label className="text-xs font-bold text-slate-500 uppercase">{label}</label>
+                                <input
+                                    className="w-full mt-1 px-4 py-2 border rounded-xl bg-white dark:bg-slate-800"
+                                    value={(texts as any).hero?.[key] ?? ''}
+                                    onChange={(e) => setTexts({
+                                        ...texts,
+                                        hero: { ...texts.hero, [key]: e.target.value },
+                                    })}
+                                />
+                            </div>
+                        ))}
                     </div>
                 )}
 
                 {activeTab === 'bento' && (
-                    <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-300">
-                        <div className="text-center py-12 text-slate-500">
-                            <Box size={48} className="mx-auto mb-4 opacity-50" />
-                            <p>Bento grid düzenleme özelliği yakında eklenecek...</p>
-                        </div>
+                    <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+                        <h3 className="font-bold text-lg">Bento Bölümü</h3>
+                        <input
+                            className="w-full px-4 py-2 border rounded-xl"
+                            placeholder="Başlık"
+                            value={texts.bento?.title ?? ''}
+                            onChange={(e) => setTexts({ ...texts, bento: { ...texts.bento, title: e.target.value } })}
+                        />
+                        <textarea
+                            className="w-full px-4 py-2 border rounded-xl"
+                            rows={3}
+                            placeholder="Alt başlık"
+                            value={texts.bento?.subtitle ?? ''}
+                            onChange={(e) => setTexts({ ...texts, bento: { ...texts.bento, subtitle: e.target.value } })}
+                        />
                     </div>
                 )}
 
                 {activeTab === 'pricing' && (
-                    <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-300">
-                        <div className="text-center py-12 text-slate-500">
-                            <DollarSign size={48} className="mx-auto mb-4 opacity-50" />
-                            <p>Fiyatlandırma düzenleme özelliği yakında eklenecek...</p>
-                        </div>
+                    <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+                        <h3 className="font-bold text-lg">Fiyatlandırma Metinleri</h3>
+                        <input
+                            className="w-full px-4 py-2 border rounded-xl"
+                            value={texts.pricing?.title ?? ''}
+                            onChange={(e) => setTexts({ ...texts, pricing: { ...texts.pricing, title: e.target.value } })}
+                        />
+                        <textarea
+                            className="w-full px-4 py-2 border rounded-xl"
+                            rows={3}
+                            value={texts.pricing?.subtitle ?? ''}
+                            onChange={(e) => setTexts({ ...texts, pricing: { ...texts.pricing, subtitle: e.target.value } })}
+                        />
                     </div>
                 )}
 
                 {activeTab === 'faq' && (
-                    <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-300">
-                        <div className="text-center py-12 text-slate-500">
-                            <MessageSquare size={48} className="mx-auto mb-4 opacity-50" />
-                            <p>SSS düzenleme özelliği yakında eklenecek...</p>
+                    <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+                        <h3 className="font-bold text-lg">SSS Metinleri</h3>
+                        <input
+                            className="w-full px-4 py-2 border rounded-xl"
+                            value={texts.faq?.title ?? ''}
+                            onChange={(e) => setTexts({ ...texts, faq: { ...texts.faq, title: e.target.value } })}
+                        />
+                        <div className="space-y-4">
+                            {(texts.faq?.items ?? []).map((item: { q: string; a: string }, i: number) => (
+                                <div key={i} className="p-4 border rounded-xl space-y-2">
+                                    <input
+                                        className="w-full px-3 py-2 border rounded-lg font-medium"
+                                        value={item.q}
+                                        onChange={(e) => {
+                                            const items = [...(texts.faq?.items ?? [])];
+                                            items[i] = { ...items[i], q: e.target.value };
+                                            setTexts({ ...texts, faq: { ...texts.faq, items } });
+                                        }}
+                                    />
+                                    <textarea
+                                        className="w-full px-3 py-2 border rounded-lg text-sm"
+                                        rows={2}
+                                        value={item.a}
+                                        onChange={(e) => {
+                                            const items = [...(texts.faq?.items ?? [])];
+                                            items[i] = { ...items[i], a: e.target.value };
+                                            setTexts({ ...texts, faq: { ...texts.faq, items } });
+                                        }}
+                                    />
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}

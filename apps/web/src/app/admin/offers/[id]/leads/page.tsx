@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -41,19 +41,31 @@ export default function OfferLeadsPage() {
   const [offer, setOffer] = useState<Offer | null>(null);
   const [leads, setLeads] = useState<OfferLead[]>([]);
   const router = useRouter();
+  const params = useParams();
+  const offerId = params?.id as string;
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "new" | "contacted">("all");
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
 
-  // Initialize mock data
-  useState(() => {
-    const mockOffer: Offer = { id: "1", title: "Özel Teklif" };
-    const mockLeads: OfferLead[] = [
-      { id: "1", email: "user@example.com", name: "Kullanıcı", createdAt: "2024-01-15", isNotified: true, isContacted: false },
-    ];
-    setOffer(mockOffer);
-    setLeads(mockLeads);
-  });
+  useEffect(() => {
+    if (!offerId) return;
+    async function load() {
+      try {
+        const [offersRes, leadsRes] = await Promise.all([
+          fetch('/api/admin/offers'),
+          fetch(`/api/admin/offers/${offerId}/leads`),
+        ]);
+        const offersData = await offersRes.json();
+        const leadsData = await leadsRes.json();
+        const found = (offersData.offers ?? []).find((o: Offer) => o.id === offerId);
+        setOffer(found ?? { id: offerId, title: 'Teklif' });
+        setLeads(Array.isArray(leadsData) ? leadsData : leadsData.leads ?? []);
+      } catch {
+        setLeads([]);
+      }
+    }
+    void load();
+  }, [offerId]);
 
   const filteredLeads = leads.filter((lead) => {
     const matchesSearch =

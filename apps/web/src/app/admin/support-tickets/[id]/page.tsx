@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/lib/admin-api';
 import { useParams, useRouter } from 'next/navigation';
 import {
-    ArrowLeft, LifeBuoy, AlertTriangle, Loader2, Send, CheckCircle, Clock, MoreVertical, Shield
+    ArrowLeft, LifeBuoy, AlertTriangle, Loader2, Send, CheckCircle, Clock, MoreVertical, Shield, Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -18,6 +18,7 @@ export default function SupportTicketDetailPage() {
     const ticketId = params.id as string;
 
     const [replyContent, setReplyContent] = useState('');
+    const [isSuggesting, setIsSuggesting] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const { data: ticket, isLoading, error } = useQuery({
@@ -72,6 +73,21 @@ export default function SupportTicketDetailPage() {
         e.preventDefault();
         if (!replyContent.trim()) return;
         replyMutation.mutate();
+    };
+
+    const handleSuggest = async () => {
+        setIsSuggesting(true);
+        try {
+            const res = await fetch(`/api/admin/support-tickets/${ticketId}/suggest`, { method: 'POST' });
+            if (res.ok) {
+                const data = await res.json();
+                setReplyContent(data.suggestion || '');
+            }
+        } catch (error) {
+            console.error('AI öneri hatası:', error);
+        } finally {
+            setIsSuggesting(false);
+        }
     };
 
     return (
@@ -140,6 +156,17 @@ export default function SupportTicketDetailPage() {
 
                     {/* Chat Input */}
                     <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-white/5">
+                        <div className="flex justify-end mb-2">
+                            <button
+                                type="button"
+                                onClick={handleSuggest}
+                                disabled={isSuggesting}
+                                className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-100 disabled:opacity-50"
+                            >
+                                {isSuggesting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                                AI Taslak Öner
+                            </button>
+                        </div>
                         <form onSubmit={handleReplySubmit} className="relative">
                             <textarea
                                 value={replyContent}
@@ -200,9 +227,18 @@ export default function SupportTicketDetailPage() {
                             <Shield size={20} className="text-purple-200" />
                             <h3 className="font-bold">AI Asistan</h3>
                         </div>
-                        <p className="text-sm font-medium text-purple-100 leading-relaxed opacity-90">
-                            Bu talebin içeriği sistem tarafından analiz edildi. Yakında burada, geçmiş çözümlere dayalı olarak AI destekli otomatik taslak yanıtları önerilecektir.
+                        <p className="text-sm font-medium text-purple-100 leading-relaxed opacity-90 mb-4">
+                            Talep konusu ve son mesaja göre otomatik taslak yanıt oluşturur.
                         </p>
+                        <button
+                            type="button"
+                            onClick={handleSuggest}
+                            disabled={isSuggesting}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 disabled:opacity-50 rounded-xl text-sm font-bold transition-colors"
+                        >
+                            {isSuggesting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                            Taslak Oluştur
+                        </button>
                     </div>
                 </div>
 

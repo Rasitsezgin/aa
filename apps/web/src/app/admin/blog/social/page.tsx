@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -64,18 +64,25 @@ export default function SocialSharingPage() {
   const [shares, setShares] = useState<SocialShare[]>([]);
   const [activeTab, setActiveTab] = useState<"overview" | "accounts" | "scheduled">("overview");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Initialize mock data
-  useState(() => {
-    const mockAccounts: SocialAccount[] = [
-      { id: "1", platform: "TWITTER", accountName: "@pazaryonetimi", followerCount: 5000, isActive: true, autoShare: true },
-    ];
-    const mockShares: SocialShare[] = [
-      { id: "1", postTitle: "Blog Yazısı", platform: "TWITTER", message: "Yeni blog yazısı!", status: "published", publishedAt: "2024-01-15", impressions: 1000, clicks: 50, likes: 20, shares: 5, comments: 2 },
-    ];
-    setAccounts(mockAccounts);
-    setShares(mockShares);
-  });
+  useEffect(() => {
+    async function loadSocial() {
+      try {
+        const res = await fetch("/api/admin/blog/social");
+        if (!res.ok) throw new Error("failed");
+        const data = await res.json();
+        setAccounts(data.accounts ?? []);
+        setShares(data.shares ?? []);
+      } catch {
+        setAccounts([]);
+        setShares([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadSocial();
+  }, []);
 
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
@@ -136,6 +143,10 @@ export default function SocialSharingPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {loading ? (
+          <div className="text-center py-12 text-slate-500">Yükleniyor...</div>
+        ) : (
+        <>
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white p-4 rounded-xl border border-slate-200">
@@ -258,6 +269,8 @@ export default function SocialSharingPage() {
             ))}
           </div>
         </div>
+        </>
+        )}
       </div>
 
       {/* Create Share Modal */}

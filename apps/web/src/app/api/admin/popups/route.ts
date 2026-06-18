@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { requirePlatformAdmin } from '@/lib/admin-auth';
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/admin/popups - Tüm popup'ları listele
 export async function GET() {
-  const session = await auth();
-
-  if (!session?.user || session.user.type !== "SUPERADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
 
   try {
     const popups = await prisma.popup.findMany({
@@ -29,11 +26,8 @@ export async function GET() {
 
 // POST /api/admin/popups - Yeni popup oluştur
 export async function POST(request: NextRequest) {
-  const session = await auth();
-
-  if (!session?.user || session.user.type !== "SUPERADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
 
   try {
     const data = await request.json();

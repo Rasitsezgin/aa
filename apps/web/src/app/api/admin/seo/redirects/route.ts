@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import { requirePlatformAdmin } from '@/lib/admin-auth';
 
 const REDIRECTS: Array<{
   id: string;
@@ -24,17 +24,13 @@ const REDIRECTS: Array<{
 ];
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user || session.user.type !== 'SUPERADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
   return NextResponse.json({ redirects: REDIRECTS });
 }
 
 export async function POST() {
-  const session = await auth();
-  if (!session?.user || session.user.type !== 'SUPERADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
   return NextResponse.json({ success: true, message: 'Yönlendirme kaydı eklendi (statik liste)' });
 }

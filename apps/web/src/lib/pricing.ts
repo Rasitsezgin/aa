@@ -37,7 +37,8 @@ export async function getPricingCatalog(): Promise<PricingCatalog> {
                 errAny?.code === 'P1002' ||
                 errorMessage.includes('ECONNREFUSED') ||
                 errorMessage.includes('ETIMEDOUT') ||
-                errorMessage.includes("Can't reach database server");
+                errorMessage.includes("Can't reach database server") ||
+                errorMessage.includes('require is not a function');
 
             if (isDbConnectivityIssue) {
                 if (!hasLoggedPricingReadFailure) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -93,60 +93,43 @@ const fontFamilies = [
 
 export default function OfferDesignPage() {
   const router = useRouter();
+  const params = useParams();
+  const offerId = params?.id as string;
   const [offer, setOffer] = useState<SpecialOffer | null>(null);
   const [settings, setSettings] = useState<DesignSettings | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"colors" | "images" | "typography" | "layout">("colors");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [uploadingImage, setUploadingImage] = useState<string | null>(null);
   const [gallery, setGallery] = useState<string[]>([]);
 
-  // Initialize mock data
-  useState(() => {
-    const mockOffer: SpecialOffer = {
-      id: "1",
-      title: "Özel Teklif",
-      subtitle: "Sınırlı süreli fırsat",
-      design: {
-        bgColor: "from-purple-600",
-        bgColorTo: "to-blue-600",
-        textColor: "text-white",
-        accentColor: "#FF4081",
-        buttonColor: "#FFFFFF",
-        buttonTextColor: "#000000",
-        cardBgColor: "#FFFFFF",
-        overlayOpacity: 0,
-        titleSize: "text-5xl",
-        titleWeight: "font-bold",
-        subtitleSize: "text-lg",
-        bodySize: "text-base",
-        fontFamily: "Inter",
-        textAlign: "center",
-        paddingY: "py-24",
-        paddingX: "px-12",
-        maxWidth: "max-w-7xl",
-        borderRadius: "rounded-xl",
-        contentLayout: "center",
-        showParticles: false,
-        showGlow: false,
-        animationSpeed: "normal",
-        shadowIntensity: "shadow-lg",
-      }
-    };
-    setOffer(mockOffer);
-    setSettings(mockOffer.design);
-  });
-
   useEffect(() => {
-    fetchGallery();
-  }, []);
+    if (!offerId) return;
+    async function loadOffer() {
+      try {
+        const res = await fetch(`/api/admin/offers/${offerId}`);
+        if (!res.ok) throw new Error('failed');
+        const data = await res.json();
+        setOffer({ ...data.offer, design: data.offer.design });
+        setSettings(data.offer.design);
+      } catch {
+        setOffer(null);
+        setSettings(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadOffer();
+    void fetchGallery();
+  }, [offerId]);
 
   const fetchGallery = async () => {
     try {
-      const response = await fetch("/api/admin/media");
+      const response = await fetch("/api/admin/blog/media");
       if (response.ok) {
         const data = await response.json();
-        setGallery(data.map((m: any) => m.url));
+        setGallery((data.media ?? []).map((m: { url: string }) => m.url));
       }
     } catch (error) {
       console.error("Error fetching gallery:", error);
@@ -154,13 +137,13 @@ export default function OfferDesignPage() {
   };
 
   const handleSave = async () => {
-    if (!offer || !settings) return;
+    if (!offer || !settings || !offerId) return;
     setIsSaving(true);
     try {
-      await fetch(`/api/admin/offers/${offer.id}/design`, {
+      await fetch(`/api/admin/offers/${offerId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ design: settings }),
+        body: JSON.stringify({ design: settings, bgColor: settings.bgColor, textColor: settings.textColor }),
       });
       router.refresh();
     } catch (error) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -68,22 +68,62 @@ export default function ForumGamificationPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [activeTab, setActiveTab] = useState<"levels" | "quests" | "leaderboard" | "activity">("levels");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Initialize mock data
-  useState(() => {
-    const mockLevelRewards: LevelReward[] = [
-      { id: "1", level: 1, title: "Yeni Üye", xpRequired: 0, color: "#22c55e" },
-    ];
-    const mockDailyQuests: DailyQuest[] = [
-      { id: "1", title: "Gönderi Paylaş", type: "daily", action: "post", targetCount: 1, xpReward: 10, isActive: true, participants: 50, completions: 30 },
-    ];
-    const mockLeaderboard: LeaderboardEntry[] = [
-      { id: "1", userId: "1", userName: "Kullanıcı1", rank: 1, score: 1000, xpEarned: 500 },
-    ];
-    setLevelRewards(mockLevelRewards);
-    setDailyQuests(mockDailyQuests);
-    setLeaderboard(mockLeaderboard);
-  });
+  useEffect(() => {
+    async function loadGamification() {
+      try {
+        const res = await fetch("/api/admin/forum/gamification");
+        if (!res.ok) throw new Error("failed");
+        const data = await res.json();
+        setLevelRewards(
+          (data.levelRewards ?? []).map((l: Record<string, unknown>) => ({
+            id: String(l.id ?? ""),
+            level: Number(l.level ?? 0),
+            title: String(l.title ?? l.name ?? ""),
+            description: l.description as string | undefined,
+            xpRequired: Number(l.xpRequired ?? 0),
+            icon: l.icon as string | undefined,
+            color: String(l.color ?? "#8b5cf6"),
+            badgeId: l.badgeId as string | undefined,
+          }))
+        );
+        setDailyQuests(
+          (data.dailyQuests ?? []).map((q: Record<string, unknown>) => ({
+            id: String(q.id ?? ""),
+            title: String(q.title ?? ""),
+            description: q.description as string | undefined,
+            type: (q.type as DailyQuest["type"]) ?? "daily",
+            action: String(q.action ?? ""),
+            targetCount: Number(q.targetCount ?? 0),
+            xpReward: Number(q.xpReward ?? 0),
+            isActive: q.isActive !== false,
+            participants: Number(q.participants ?? 0),
+            completions: Number(q.completions ?? 0),
+          }))
+        );
+        setLeaderboard(
+          (data.leaderboard ?? []).map((e: Record<string, unknown>) => ({
+            id: String(e.id ?? ""),
+            userId: String(e.userId ?? e.id ?? ""),
+            userName: String(e.userName ?? e.name ?? "Kullanıcı"),
+            userAvatar: e.userAvatar as string | undefined,
+            rank: Number(e.rank ?? 0),
+            score: Number(e.score ?? 0),
+            previousRank: e.previousRank as number | undefined,
+            xpEarned: Number(e.xpEarned ?? e.xp ?? e.score ?? 0),
+          }))
+        );
+      } catch {
+        setLevelRewards([]);
+        setDailyQuests([]);
+        setLeaderboard([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadGamification();
+  }, []);
 
   const stats = {
     totalLevels: levelRewards.length,
@@ -121,6 +161,10 @@ export default function ForumGamificationPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {loading ? (
+          <div className="text-center py-12 text-slate-500">Yükleniyor...</div>
+        ) : (
+        <>
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
@@ -432,6 +476,8 @@ export default function ForumGamificationPage() {
               <p className="text-slate-500 mt-2">Kullanıcı aktiviteleri burada görüntülenecek.</p>
             </div>
           </div>
+        )}
+        </>
         )}
       </div>
     </div>

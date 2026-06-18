@@ -24,7 +24,7 @@ import {
   RefreshCw,
   Download,
 } from 'lucide-react';
-import { useOrders } from '@/lib/hooks';
+import { adminApi } from '@/lib/admin-api';
 
 // Types
 export type OrderStatus = 
@@ -507,72 +507,86 @@ function OrderDetailModal({
 
 // Main Admin Order Management Component
 export function AdminOrderManagement() {
-  const { getOrders } = useOrders();
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'processing'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const mapDbStatus = (status: string): OrderStatus => {
+    const map: Record<string, OrderStatus> = {
+      PENDING: 'pending_payment',
+      CONFIRMED: 'payment_confirmed',
+      SHIPPED: 'shipped',
+      DELIVERED: 'delivered',
+      CANCELLED: 'cancelled',
+      RETURNED: 'refunded',
+    };
+    return map[status] ?? 'processing';
+  };
+
+  const mapPaymentStatus = (status: string): Order['paymentStatus'] => {
+    if (status === 'PAID') return 'confirmed';
+    if (status === 'REFUNDED' || status === 'PARTIALLY_REFUNDED') return 'failed';
+    return 'pending';
+  };
 
   useEffect(() => {
     const loadOrders = async () => {
+      setLoading(true);
       try {
-        const response: any = await getOrders({ limit: 100, page: 1 });
-        const incoming = Array.isArray(response?.items)
-          ? response.items
-          : Array.isArray(response?.data)
-            ? response.data
-            : Array.isArray(response)
-              ? response
-              : [];
+        const response: any = await adminApi.getOrders({ limit: 100, page: 1 });
+        const incoming = Array.isArray(response?.orders)
+          ? response.orders
+          : Array.isArray(response?.items)
+            ? response.items
+            : [];
 
         const normalized: Order[] = incoming.map((o: any) => ({
           id: String(o.id ?? ''),
-          orderNumber: String(o.orderNumber ?? o.marketplaceOrderId ?? ''),
+          orderNumber: String(o.marketplaceOrderId ?? o.orderNumber ?? o.id ?? ''),
           customerId: String(o.customerId ?? ''),
-          customerName: String(o.customerName ?? ''),
+          customerName: String(o.customerName ?? 'Bilinmiyor'),
           customerEmail: String(o.customerEmail ?? ''),
           customerPhone: String(o.customerPhone ?? ''),
           items: Array.isArray(o.items) ? o.items.map((it: any, i: number) => ({
             id: String(it.id ?? i),
-            name: String(it.name ?? ''),
+            name: String(it.productName ?? it.name ?? ''),
             quantity: Number(it.quantity ?? 0),
-            price: Number(it.price ?? 0),
+            price: Number(it.unitPrice ?? it.price ?? 0),
             variant: it.variant ? String(it.variant) : undefined,
           })) : [],
-          subtotal: Number(o.subtotal ?? 0),
+          subtotal: Number(o.totalAmount ?? 0) - Number(o.shippingCost ?? 0),
           shippingCost: Number(o.shippingCost ?? 0),
-          discount: Number(o.discount ?? 0),
-          total: Number(o.total ?? o.totalAmount ?? 0),
-          paymentMethod: o.paymentMethod === 'bank_transfer' ? 'bank_transfer' : 'credit_card',
-          paymentStatus: (['pending', 'confirmed', 'failed'].includes(o.paymentStatus) ? o.paymentStatus : 'pending') as Order['paymentStatus'],
-          status: (['pending_payment', 'payment_confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'].includes(o.status)
-            ? o.status
-            : 'pending_payment') as OrderStatus,
+          discount: 0,
+          total: Number(o.totalAmount ?? o.total ?? 0),
+          paymentMethod: 'credit_card' as PaymentMethod,
+          paymentStatus: mapPaymentStatus(String(o.paymentStatus ?? 'UNPAID')),
+          status: mapDbStatus(String(o.status ?? 'PENDING')),
           shippingAddress: {
-            fullName: String(o.shippingAddress?.fullName ?? o.customerName ?? ''),
-            address: String(o.shippingAddress?.address ?? ''),
-            city: String(o.shippingAddress?.city ?? ''),
-            district: String(o.shippingAddress?.district ?? ''),
-            postalCode: String(o.shippingAddress?.postalCode ?? ''),
+            fullName: String(o.customerName ?? ''),
+            address: String(o.shippingAddress ?? ''),
+            city: '',
+            district: '',
+            postalCode: '',
           },
-          transferReceipt: o.transferReceipt ? String(o.transferReceipt) : undefined,
           notes: o.notes ? String(o.notes) : undefined,
-          createdAt: o.createdAt ? new Date(o.createdAt) : new Date(),
+          createdAt: o.orderDate ? new Date(o.orderDate) : o.createdAt ? new Date(o.createdAt) : new Date(),
           updatedAt: o.updatedAt ? new Date(o.updatedAt) : new Date(),
-          confirmedAt: o.confirmedAt ? new Date(o.confirmedAt) : undefined,
-          confirmedBy: o.confirmedBy ? String(o.confirmedBy) : undefined,
         }));
 
         setOrders(normalized);
       } catch {
         setOrders([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     void loadOrders();
-  }, [getOrders]);
+  }, []);
 
   const pendingCount = orders.filter(
     o => o.status === 'pending_payment' && o.paymentMethod === 'bank_transfer'
@@ -593,40 +607,56 @@ export function AdminOrderManagement() {
     return matchesFilter && matchesSearch;
   });
 
-  const handleApprove = (id: string) => {
-    setOrders(prev =>
-      prev.map(o =>
-        o.id === id
-          ? {
-              ...o,
-              status: 'payment_confirmed' as OrderStatus,
-              paymentStatus: 'confirmed' as const,
-              confirmedAt: new Date(),
-              confirmedBy: 'Admin',
-            }
-          : o
-      )
-    );
-    setSelectedOrder(null);
-    showNotificationToast('✅ Ödeme onaylandı ve müşteriye bildirim gönderildi!');
+  const handleApprove = async (id: string) => {
+    try {
+      await adminApi.updateOrderStatus(id, 'CONFIRMED');
+      setOrders(prev =>
+        prev.map(o =>
+          o.id === id
+            ? { ...o, status: 'payment_confirmed' as OrderStatus, paymentStatus: 'confirmed' as const, confirmedAt: new Date(), confirmedBy: 'Admin' }
+            : o
+        )
+      );
+      setSelectedOrder(null);
+      showNotificationToast('Ödeme onaylandı ve müşteriye bildirim gönderildi!');
+    } catch {
+      showNotificationToast('Durum güncellenemedi.');
+    }
   };
 
-  const handleReject = (id: string) => {
-    setOrders(prev =>
-      prev.map(o =>
-        o.id === id
-          ? { ...o, status: 'cancelled' as OrderStatus, paymentStatus: 'failed' as const }
-          : o
-      )
-    );
-    setSelectedOrder(null);
-    showNotificationToast('❌ Sipariş reddedildi ve müşteriye bildirim gönderildi.');
+  const handleReject = async (id: string) => {
+    try {
+      await adminApi.updateOrderStatus(id, 'CANCELLED');
+      setOrders(prev =>
+        prev.map(o =>
+          o.id === id ? { ...o, status: 'cancelled' as OrderStatus, paymentStatus: 'failed' as const } : o
+        )
+      );
+      setSelectedOrder(null);
+      showNotificationToast('Sipariş reddedildi.');
+    } catch {
+      showNotificationToast('Durum güncellenemedi.');
+    }
   };
 
-  const handleUpdateStatus = (id: string, status: OrderStatus) => {
-    setOrders(prev => prev.map(o => (o.id === id ? { ...o, status } : o)));
-    setSelectedOrder(null);
-    showNotificationToast(`📦 Sipariş durumu güncellendi: ${statusConfig[status].label}`);
+  const handleUpdateStatus = async (id: string, status: OrderStatus) => {
+    const dbMap: Record<OrderStatus, string> = {
+      pending_payment: 'PENDING',
+      payment_confirmed: 'CONFIRMED',
+      processing: 'CONFIRMED',
+      shipped: 'SHIPPED',
+      delivered: 'DELIVERED',
+      cancelled: 'CANCELLED',
+      refunded: 'RETURNED',
+    };
+    try {
+      await adminApi.updateOrderStatus(id, dbMap[status]);
+      setOrders(prev => prev.map(o => (o.id === id ? { ...o, status } : o)));
+      setSelectedOrder(null);
+      showNotificationToast(`Sipariş durumu güncellendi: ${statusConfig[status].label}`);
+    } catch {
+      showNotificationToast('Durum güncellenemedi.');
+    }
   };
 
   const showNotificationToast = (message: string) => {

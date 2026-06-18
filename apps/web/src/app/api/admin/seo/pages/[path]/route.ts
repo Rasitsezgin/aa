@@ -1,17 +1,15 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import { requirePlatformAdmin } from '@/lib/admin-auth';
 import { readSeoOverrides, writeSeoOverrides } from '@/lib/seo/seo-admin-service';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ path: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user || session.user.type !== 'SUPERADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
 
   const { path: encodedPath } = await params;
   const routePath = decodeURIComponent(encodedPath);

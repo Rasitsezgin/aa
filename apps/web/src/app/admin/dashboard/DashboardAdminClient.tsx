@@ -27,7 +27,11 @@ interface DashboardSection {
 
 export default function DashboardAdminClient() {
     const [saved, setSaved] = useState(false);
+    const [contentSaved, setContentSaved] = useState(false);
+    const [contentSaving, setContentSaving] = useState(false);
+    const [widgetsLoading, setWidgetsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'layout' | 'widgets' | 'content'>('layout');
+    const [widgetEnabled, setWidgetEnabled] = useState<Record<string, boolean>>({});
     
     const [sections, setSections] = useState<DashboardSection[]>([
         {
@@ -284,28 +288,93 @@ export default function DashboardAdminClient() {
     ]);
 
     useEffect(() => {
-        // Load dashboard config from localStorage
-        const savedConfig = localStorage.getItem('dashboard_config');
-        if (savedConfig) {
+        async function loadWidgetsConfig() {
             try {
-                const parsed = JSON.parse(savedConfig);
-                setSections(parsed.sections || sections);
-            } catch (e) {
-                console.error('Failed to load dashboard config', e);
+                const res = await fetch('/api/admin/dashboard/widgets');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.widgetEnabled) {
+                        setWidgetEnabled(data.widgetEnabled);
+                    }
+                    if (data.sections?.length) {
+                        setSections(data.sections);
+                    }
+                } else {
+                    const savedConfig = localStorage.getItem('dashboard_config');
+                    if (savedConfig) {
+                        try {
+                            const parsed = JSON.parse(savedConfig);
+                            if (parsed.sections?.length) {
+                                setSections(parsed.sections);
+                            }
+                        } catch (e) {
+                            console.error('Failed to load dashboard config', e);
+                        }
+                    }
+                }
+            } catch {
+                const savedConfig = localStorage.getItem('dashboard_config');
+                if (savedConfig) {
+                    try {
+                        const parsed = JSON.parse(savedConfig);
+                        if (parsed.sections?.length) {
+                            setSections(parsed.sections);
+                        }
+                    } catch (e) {
+                        console.error('Failed to load dashboard config', e);
+                    }
+                }
+            } finally {
+                setWidgetsLoading(false);
             }
         }
+        void loadWidgetsConfig();
     }, []);
 
-    const handleSave = () => {
+    const handleSave = async () => {
         const config = {
             sections,
             lastUpdated: new Date().toISOString()
         };
         
         localStorage.setItem('dashboard_config', JSON.stringify(config));
+        try {
+            await fetch('/api/admin/dashboard/widgets', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sections, widgetEnabled }),
+            });
+        } catch (e) {
+            console.error('Failed to save dashboard config', e);
+        }
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
     };
+
+    const handleSaveWidgets = async () => {
+        setContentSaving(true);
+        try {
+            const enabledMap = availableWidgets.reduce<Record<string, boolean>>((acc, widget) => {
+                acc[widget.id] = widgetEnabled[widget.id] ?? widget.enabled;
+                return acc;
+            }, {});
+            await fetch('/api/admin/dashboard/widgets', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ widgetEnabled: enabledMap, sections }),
+            });
+            setWidgetEnabled(enabledMap);
+            setContentSaved(true);
+            setTimeout(() => setContentSaved(false), 2000);
+        } catch (e) {
+            console.error('Failed to save widget config', e);
+        } finally {
+            setContentSaving(false);
+        }
+    };
+
+    const isWidgetEnabled = (widgetId: string, defaultEnabled: boolean) =>
+        widgetEnabled[widgetId] ?? defaultEnabled;
 
     const toggleSection = (sectionId: string) => {
         setSections(prev => prev.map(section => 
@@ -562,11 +631,59 @@ export default function DashboardAdminClient() {
 
                 {activeTab === 'content' && (
                     <div className="space-y-6">
-                        <h2 className="text-lg font-black text-foreground mb-4">Widget İçerik Ayarları</h2>
-                        <div className="text-center py-12 text-slate-500">
-                            <Settings size={48} className="mx-auto mb-4 opacity-50" />
-                            <p>Widget içerik düzenleme özelliği yakında eklenecek...</p>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-lg font-black text-foreground mb-1">Widget İçerik Ayarları</h2>
+                                <p className="text-sm text-slate-500">Dashboard widget görünürlüğünü yönetin.</p>
+                            </div>
+                            <button
+                                onClick={handleSaveWidgets}
+                                disabled={contentSaving || widgetsLoading}
+                                className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all shadow-lg ${
+                                    contentSaved
+                                        ? 'bg-green-500 text-white shadow-green-500/20'
+                                        : 'bg-primary text-white hover:bg-primary/80 shadow-primary/20'
+                                } disabled:opacity-50`}
+                            >
+                                {contentSaved ? <Check size={16} /> : <Save size={16} />}
+                                {contentSaved ? 'Kaydedildi!' : contentSaving ? 'Kaydediliyor...' : 'Widget Ayarlarını Kaydet'}
+                            </button>
                         </div>
+
+                        {widgetsLoading ? (
+                            <div className="text-center py-12 text-slate-500">Yükleniyor...</div>
+                        ) : (
+                            <div className="space-y-3">
+                                {availableWidgets.map((widget) => (
+                                    <label
+                                        key={widget.id}
+                                        className="flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 cursor-pointer hover:border-primary/30 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                                                <span className="text-xs font-bold">{widget.icon}</span>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-bold text-foreground">{widget.title}</h4>
+                                                <p className="text-xs text-slate-500">{widget.description}</p>
+                                                <span className="text-xs text-primary mt-1 inline-block">{widget.category} • {widget.type}</span>
+                                            </div>
+                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            checked={isWidgetEnabled(widget.id, widget.enabled)}
+                                            onChange={(e) =>
+                                                setWidgetEnabled((prev) => ({
+                                                    ...prev,
+                                                    [widget.id]: e.target.checked,
+                                                }))
+                                            }
+                                            className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
+                                        />
+                                    </label>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

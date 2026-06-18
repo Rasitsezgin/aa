@@ -188,35 +188,24 @@ export class ScrapingService implements OnModuleInit, OnModuleDestroy {
       const rating =
         parseFloat(
           $('.seller-store-rating-score').text().trim().replace(',', '.'),
-        ) || 9.0;
+        ) || 0;
 
-      // "2.2M Takipçi" parsing
       const followerText = $('.seller-follower-count').text().trim();
       const followerCount = this.parseMetric(followerText);
 
-      // Extract review count
       const reviewCountText = $('.seller-store-rating-count').text().trim();
       const totalReviews = this.parseMetric(reviewCountText);
 
-      // Heuristic updates
-      const estimatedAgeYears = Math.min((totalReviews || 100) / 500, 5);
-      const establishedDate = new Date();
-      establishedDate.setFullYear(
-        establishedDate.getFullYear() - estimatedAgeYears,
-      );
-
-      // Try to find product count from filters or headers if possible, usually "1023 ürün listeleniyor"
       const productCountText =
         $('.search-result-count-text').text() || $('.dscrptn').text() || '';
-      const productCount = this.parseMetric(productCountText) || 150;
+      const productCount = this.parseMetric(productCountText);
 
       return {
         storeName,
         rating,
-        followerCount: followerCount || 1200,
-        productCount: productCount,
-        totalReviews: totalReviews || 500,
-        establishedDate: establishedDate.toISOString().split('T')[0],
+        followerCount,
+        productCount,
+        totalReviews,
         platform: 'TRENDYOL',
       };
     });
@@ -225,12 +214,11 @@ export class ScrapingService implements OnModuleInit, OnModuleDestroy {
   private async scrapeHepsiburadaStore(url: string): Promise<ScrapedStoreData> {
     return this.navAndScrape(url, ($) => {
       const data: ScrapedStoreData = {
-        storeName: 'Hepsiburada Mağazası',
-        rating: 8.8,
-        followerCount: 2500,
-        productCount: 300,
-        totalReviews: 250,
-        establishedDate: '2022-05-15',
+        storeName: '',
+        rating: 0,
+        followerCount: 0,
+        productCount: 0,
+        totalReviews: 0,
         platform: 'HEPSIBURADA',
       };
 
@@ -281,16 +269,15 @@ export class ScrapingService implements OnModuleInit, OnModuleDestroy {
       // --- Fallbacks for missing or default values ---
 
       // Store Name Fallback
-      if (!data.storeName || data.storeName === 'Hepsiburada Mağazası') {
+      if (!data.storeName) {
         data.storeName =
           $('h1.merchant-name').text().trim() ||
           $('#page_title').text().trim() ||
           $('h1#page-title').text().trim() ||
-          data.storeName;
+          'Hepsiburada Mağazası';
       }
 
-      // Follower Count Fallback
-      if (data.followerCount === 2500) {
+      if (data.followerCount === 0) {
         const followerText =
           $('[data-testid="followerCount"]').text() ||
           $('.follower-count').text() ||
@@ -309,8 +296,7 @@ export class ScrapingService implements OnModuleInit, OnModuleDestroy {
         }
       }
 
-      // Product Count Fallback
-      if (data.productCount === 300) {
+      if (data.productCount === 0) {
         const productCountText = $('.search-result-count').text() || '';
         if (productCountText)
           data.productCount = this.parseMetric(productCountText);

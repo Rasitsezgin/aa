@@ -1,15 +1,14 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import { requirePlatformAdmin } from '@/lib/admin-auth';
 import { deleteBlogPost, updateBlogPost } from '@/lib/blog-service';
 
 export const dynamic = 'force-dynamic';
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
+
   const { id } = await params;
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
 
   try {
     const body = (await request.json()) as {
@@ -35,11 +34,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
+
   const { id } = await params;
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
 
   try {
     await deleteBlogPost(id);

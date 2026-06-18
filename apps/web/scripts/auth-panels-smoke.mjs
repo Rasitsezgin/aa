@@ -3,6 +3,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const TENANT_ADMIN_EMAIL = process.env.SMOKE_TENANT_ADMIN_EMAIL || 'admin@pazaryonetimi.com';
+const TENANT_ADMIN_PASSWORD = process.env.SMOKE_TENANT_ADMIN_PASSWORD || 'PazarYonetimi2024!';
 const OUT_DIR = path.resolve(process.cwd(), 'artifacts', 'auth-smoke');
 
 async function ensureDir(dir) {
@@ -168,6 +170,51 @@ async function run() {
   results.push('admin-callback-internal:ok');
 
   await page.screenshot({ path: path.join(OUT_DIR, 'admin-login-mobile.png'), fullPage: true });
+
+  // 5) Unauthenticated /admin access should redirect to admin login
+  await page.goto(`${BASE_URL}/admin`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.waitForTimeout(1500);
+  if (!page.url().includes('/admin/login')) {
+    throw new Error(`Yetkisiz /admin erisimi login'e yonlendirilmedi: ${page.url()}`);
+  }
+  results.push('admin-unauth-redirect:ok');
+
+  // 6) Admin API should reject unauthenticated requests
+  const apiRes = await page.request.get(`${BASE_URL}/api/admin/forms`);
+  if (apiRes.status() !== 401 && apiRes.status() !== 403) {
+    throw new Error(`Admin API yetkisiz istek reddetmedi: status=${apiRes.status()}`);
+  }
+  results.push('admin-api-unauth:ok');
+
+  // 7) Tenant admin should be blocked from /admin panel
+  const tenantContext = await browser.newContext({
+    viewport: { width: 1280, height: 720 },
+    locale: 'tr-TR',
+  });
+  const tenantPage = await tenantContext.newPage();
+
+  await tenantPage.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await tenantPage.fill('input[type="email"]', TENANT_ADMIN_EMAIL);
+  await tenantPage.fill('input[type="password"]', TENANT_ADMIN_PASSWORD);
+  await tenantPage.click('button[type="submit"]');
+  await tenantPage.waitForTimeout(3000);
+
+  await tenantPage.goto(`${BASE_URL}/admin`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await tenantPage.waitForTimeout(1500);
+
+  const tenantAdminUrl = tenantPage.url();
+  const allowedAdminAccess =
+    tenantAdminUrl.includes('/admin') &&
+    !tenantAdminUrl.includes('/admin/login') &&
+    !tenantAdminUrl.includes('/unauthorized');
+
+  if (allowedAdminAccess) {
+    throw new Error(`Tenant admin /admin erisimine izin verildi: ${tenantAdminUrl}`);
+  }
+  results.push('tenant-admin-blocked:ok');
+
+  await tenantPage.screenshot({ path: path.join(OUT_DIR, 'tenant-admin-blocked.png'), fullPage: true });
+  await tenantContext.close();
 
   await context.close();
   await browser.close();

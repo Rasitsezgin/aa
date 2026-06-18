@@ -1,8 +1,7 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
-
 async function fetchLocalAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const res = await fetch(endpoint, {
     headers: { 'Content-Type': 'application/json', ...options?.headers },
+    credentials: 'include',
     ...options,
   });
   if (!res.ok) {
@@ -12,23 +11,10 @@ async function fetchLocalAPI<T>(endpoint: string, options?: RequestInit): Promis
   return res.json();
 }
 
+/** NestJS admin API — oturum üzerinden BFF proxy */
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE}/${endpoint.replace(/^\//, '')}`;
-  const res = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      'x-admin-id': 'admin-user', // Gerçek uygulamada session'dan alınır
-      ...options?.headers,
-    },
-    ...options,
-  });
-
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: 'API Hatası' }));
-    throw new Error(error.message || `HTTP ${res.status}`);
-  }
-
-  return res.json();
+  const path = endpoint.replace(/^\//, '');
+  return fetchLocalAPI<T>(`/api/admin/proxy/${path}`, options);
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -136,6 +122,31 @@ export const adminApi = {
     if (params?.page) qs.set('page', params.page.toString());
     return fetchAPI<any>(`admin/products?${qs}`);
   },
+
+  getOrders: (params?: { search?: string; status?: string; tenantId?: string; page?: number; limit?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.search) qs.set('search', params.search);
+    if (params?.status) qs.set('status', params.status);
+    if (params?.tenantId) qs.set('tenantId', params.tenantId);
+    if (params?.page) qs.set('page', params.page.toString());
+    if (params?.limit) qs.set('limit', (params.limit ?? 50).toString());
+    return fetchAPI<any>(`admin/orders?${qs}`);
+  },
+  updateOrderStatus: (id: string, status: string) =>
+    fetchAPI<any>(`admin/orders/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+
+  getModules: () => fetchLocalAPI<any>('/api/admin/modules'),
+  updateModule: (id: string, data: Record<string, unknown>) =>
+    fetchLocalAPI<any>(`/api/admin/modules/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  getForumOverview: () => fetchLocalAPI<any>('/api/admin/forum'),
+  getOffers: () => fetchLocalAPI<any>('/api/admin/offers'),
+  createOffer: (data: Record<string, unknown>) =>
+    fetchLocalAPI<any>('/api/admin/offers', { method: 'POST', body: JSON.stringify(data) }),
+  updateOffer: (id: string, data: Record<string, unknown>) =>
+    fetchLocalAPI<any>(`/api/admin/offers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteOffer: (id: string) =>
+    fetchLocalAPI<any>(`/api/admin/offers/${id}`, { method: 'DELETE' }),
 
   // ═══════════════════════════════════════════════════════════════════
   sendMessageToAiAssistant: (message: string, history: any[] = []) =>

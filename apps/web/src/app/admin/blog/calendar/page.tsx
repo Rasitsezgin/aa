@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -60,18 +60,50 @@ export default function EditorialCalendarPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Initialize mock data
-  useState(() => {
-    const mockItems: CalendarItem[] = [
-      { id: "1", title: "Blog Yazısı", type: "BLOG_POST", status: "SCHEDULED", date: "2024-01-15", timeSlot: "10:00", tags: ["blog"], campaign: "Kampanya 1" },
-    ];
-    const mockCampaigns: Campaign[] = [
-      { id: "1", name: "Kampanya 1", color: "blue", startDate: "2024-01-01", endDate: "2024-12-31" },
-    ];
-    setItems(mockItems);
-    setCampaigns(mockCampaigns);
-  });
+  useEffect(() => {
+    async function loadCalendar() {
+      try {
+        const res = await fetch("/api/admin/blog/calendar");
+        if (!res.ok) throw new Error("failed");
+        const data = await res.json();
+        setItems(
+          (data.items ?? []).map((item: Record<string, unknown>) => ({
+            id: String(item.id ?? ""),
+            title: String(item.title ?? ""),
+            type: item.type === "campaign" ? "SOCIAL_POST" : "BLOG_POST",
+            status:
+              item.status === "published" || item.status === "active"
+                ? "PUBLISHED"
+                : item.status === "draft"
+                  ? "IN_PROGRESS"
+                  : "PLANNED",
+            date: String(item.date ?? ""),
+            timeSlot: "10:00",
+            tags: (item.tags as string[]) ?? [],
+            blogPostId: item.type === "blog_post" ? String(item.id) : undefined,
+            campaign: item.type === "campaign" ? String(item.title) : undefined,
+          }))
+        );
+        setCampaigns(
+          (data.campaigns ?? []).map((c: Record<string, unknown>) => ({
+            id: String(c.id ?? ""),
+            name: String(c.title ?? c.name ?? ""),
+            color: String(c.color ?? "blue"),
+            startDate: String(c.date ?? c.startDate ?? ""),
+            endDate: String(c.endDate ?? c.date ?? ""),
+          }))
+        );
+      } catch {
+        setItems([]);
+        setCampaigns([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadCalendar();
+  }, []);
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -214,6 +246,10 @@ export default function EditorialCalendarPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {loading ? (
+          <div className="text-center py-12 text-slate-500">Yükleniyor...</div>
+        ) : (
+        <>
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <div className="bg-white p-4 rounded-xl border border-slate-200">
@@ -470,6 +506,8 @@ export default function EditorialCalendarPage() {
               </div>
             )}
           </div>
+        )}
+        </>
         )}
       </div>
 

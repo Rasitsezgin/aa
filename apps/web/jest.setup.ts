@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom';
-
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
   useRouter() {
@@ -29,13 +27,3 @@ jest.mock('next-auth/react', () => ({
   signIn: jest.fn(),
   signOut: jest.fn(),
 }));
-
-// Extend matchers
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toBeInTheDocument(): R;
-      toHaveClass(className: string): R;
-    }
-  }
-}

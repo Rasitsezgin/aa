@@ -1,11 +1,13 @@
 import RoleForm from "./role-form";
+import { prisma } from "@/lib/prisma";
 
-// Force dynamic rendering to avoid build-time DB calls
 export const dynamic = 'force-dynamic';
 
 export default async function NewRolePage() {
-    // Mock permissions for now - will be fetched from DB at runtime
-    const permissions: any[] = [];
+    const permissions = await prisma.permission.findMany({
+        orderBy: [{ resource: 'asc' }, { action: 'asc' }],
+        take: 500,
+    });
 
     return (
         <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500">

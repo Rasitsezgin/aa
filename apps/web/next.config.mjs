@@ -54,16 +54,18 @@ const nextConfig = {
     ];
   },
 
-  // API Proxy to backend
+  // API Proxy to backend (analyze routes stay on Next.js — see app/api/marketplace/analyze/)
   async rewrites() {
+    const apiBase = (
+      process.env.API_INTERNAL_URL ||
+      process.env.API_URL ||
+      'http://localhost:3001'
+    ).replace(/\/$/, '');
+
     return [
       {
         source: '/api/scraping/:path*',
-        destination: 'http://api:3001/api/scraping/:path*',
-      },
-      {
-        source: '/api/marketplace/:path*',
-        destination: 'http://api:3001/api/marketplace/:path*',
+        destination: `${apiBase}/api/scraping/:path*`,
       },
     ];
   },

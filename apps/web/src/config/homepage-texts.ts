@@ -2,19 +2,26 @@ export const HOMEPAGE_TEXTS = {
     hero: {
         badge: "Stok ve siparişleriniz 200ms'de senkron",
         badgeLabel: "CANLI",
-        titlePrefix: "için",
+        titleLine1: "mağazanızı",
         titleSuffix: "tek panelden yönetin.",
         subtitlePrefix: "Trendyol'dan Amazon'a tüm kanallarınızı tek merkezden bağlayın.",
         subtitleHighlight: " Çifte satış riski olmadan",
         subtitleSuffix: " stok, sipariş ve kargoyu gerçek zamanlı yönetin.",
-        analyzerPlaceholder: "Mağaza linkinizi yapıştırın...",
+        analyzerPlaceholder: "Mağaza linki yapıştırın...",
         analyzerButton: "Ücretsiz Analiz Et",
-        analyzerNote: "* Analiz ücretsizdir, kredi kartı gerekmez.",
+        analyzerNote: "Trendyol ve Hepsiburada mağaza linkleri ücretsiz · diğer platformlar premium.",
+        analyzerExamples: [
+            { label: "Trendyol örneği", url: "https://www.trendyol.com/magaza/atn-m-107368" },
+            { label: "Hepsiburada örneği", url: "https://www.hepsiburada.com/magaza/erogluoto" },
+        ],
+        freeTrialNote: "14 gün ücretsiz · kredi kartı gerekmez",
+        signupCta: "Ücretsiz Başla",
+        demoCta: "Demo İzle",
         stats: [
-            { text: "Kurulum 2 dk" },
+            { text: "7+ Pazaryeri" },
             { text: "KVKK Uyumlu" },
-            { text: "200ms Senkron" }
-        ]
+            { text: "200ms Senkron" },
+        ],
     },
     bento: {
         title: "Operasyonunuz",
@@ -39,10 +46,10 @@ export const HOMEPAGE_TEXTS = {
             }
         ]
     },
-    pricing: {
+        pricing: {
         badge: "Şeffaf Fiyatlandırma",
         title: "Basit, Şeffaf Fiyatlandırma.",
-        subtitle: "Gizli ücret yok. Kredi kartı gerekmez. 14 gün ücretsiz deneyin.",
+        subtitle: "Ücretsiz mağaza analizi: Trendyol ve Hepsiburada. Diğer platformlar ve gelişmiş özellikler PRO planında. 14 gün ücretsiz deneyin.",
         plans: [
             {
                 id: 'starter',

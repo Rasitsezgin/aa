@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -32,14 +32,22 @@ export default function FormBuilderPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Initialize mock data
-  useState(() => {
-    const mockForms: Form[] = [
-      { id: "1", name: "İletişim Formu", slug: "iletisim", isActive: true, submitButtonText: "Gönder", responseCount: 15, createdAt: "2024-01-15" },
-    ];
-    setForms(mockForms);
-  });
+  useEffect(() => {
+    async function loadForms() {
+      try {
+        const res = await fetch('/api/admin/forms');
+        const data = await res.json();
+        setForms(data.forms ?? []);
+      } catch {
+        setForms([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadForms();
+  }, []);
 
   const filteredForms = forms.filter(
     (form) =>
@@ -57,7 +65,7 @@ export default function FormBuilderPage() {
       });
 
       if (response.ok) {
-        router.refresh();
+        setForms((prev) => prev.filter((f) => f.id !== formId));
       } else {
         alert("Form silinirken bir hata oluştu.");
       }

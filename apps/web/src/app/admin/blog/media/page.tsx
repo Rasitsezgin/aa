@@ -74,18 +74,57 @@ export default function MediaLibraryPage() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showAIFilter, setShowAIFilter] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Initialize mock data
-  useState(() => {
-    const mockMedia: MediaItem[] = [
-      { id: "1", name: "Resim 1", url: "/img1.jpg", type: "IMAGE", size: 1024, aiTags: [], tags: [], folders: [], usedInPosts: [], useCount: 1, uploadedBy: "Admin", createdAt: "2024-01-15" },
-    ];
-    const mockFolders: Folder[] = [
-      { id: "1", name: "Resimler", path: "/images", itemCount: 10 },
-    ];
-    setMedia(mockMedia);
-    setFolders(mockFolders);
-  });
+  useEffect(() => {
+    async function loadMedia() {
+      try {
+        const res = await fetch("/api/admin/blog/media");
+        if (!res.ok) throw new Error("failed");
+        const data = await res.json();
+        setMedia(
+          (data.media ?? []).map((m: Record<string, unknown>) => ({
+            id: String(m.id ?? ""),
+            name: String(m.name ?? ""),
+            url: String(m.url ?? ""),
+            type: (String(m.type ?? "IMAGE").toUpperCase() as MediaItem["type"]),
+            size: Number(m.size ?? 0),
+            width: m.width as number | undefined,
+            height: m.height as number | undefined,
+            duration: m.duration as number | undefined,
+            aiTags: (m.aiTags as string[]) ?? [],
+            aiDescription: m.aiDescription as string | undefined,
+            tags: (m.tags as string[]) ?? [],
+            folders: m.folders
+              ? (m.folders as string[])
+              : m.folder
+                ? [String(m.folder)]
+                : [],
+            alt: m.alt as string | undefined,
+            caption: m.caption as string | undefined,
+            usedInPosts: (m.usedInPosts as string[]) ?? [],
+            useCount: Number(m.useCount ?? 0),
+            uploadedBy: String(m.uploadedBy ?? "Sistem"),
+            createdAt: String(m.createdAt ?? new Date().toISOString()),
+          }))
+        );
+        setFolders(
+          (data.folders ?? []).map((f: Record<string, unknown>) => ({
+            id: String(f.id ?? ""),
+            name: String(f.name ?? ""),
+            path: String(f.path ?? f.id ?? ""),
+            itemCount: Number(f.itemCount ?? 0),
+          }))
+        );
+      } catch {
+        setMedia([]);
+        setFolders([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadMedia();
+  }, []);
   const [isDragging, setIsDragging] = useState(false);
 
   const filteredMedia = media.filter((item) => {
@@ -214,6 +253,10 @@ export default function MediaLibraryPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {loading ? (
+          <div className="text-center py-12 text-slate-500">Yükleniyor...</div>
+        ) : (
+        <>
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <div className="bg-white p-4 rounded-xl border border-slate-200">
@@ -520,6 +563,8 @@ export default function MediaLibraryPage() {
             </div>
           </div>
         </div>
+        </>
+        )}
       </div>
 
       {/* Upload Modal */}

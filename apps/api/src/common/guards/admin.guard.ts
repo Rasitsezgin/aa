@@ -72,6 +72,7 @@ export class AdminGuard implements CanActivate {
         id: true,
         email: true,
         type: true,
+        tenantId: true,
         firstName: true,
         lastName: true,
       },
@@ -81,9 +82,13 @@ export class AdminGuard implements CanActivate {
       throw new UnauthorizedException('Geçersiz admin kullanıcısı');
     }
 
-    if (user.type !== 'SUPERADMIN' && user.type !== 'ADMIN') {
+    const isPlatformAdmin =
+      user.type === 'SUPERADMIN' ||
+      (user.type === 'ADMIN' && !user.tenantId);
+
+    if (!isPlatformAdmin) {
       throw new ForbiddenException(
-        'Bu işlem için ADMIN veya SUPERADMIN yetkisi gerekli',
+        'Bu işlem için platform yöneticisi yetkisi gerekli',
       );
     }
 

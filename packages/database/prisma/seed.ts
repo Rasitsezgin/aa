@@ -171,7 +171,28 @@ async function main() {
       tenantId: tenant.id,
     },
   });
+
+  const PLATFORM_ADMIN_EMAIL = process.env.SEED_PLATFORM_ADMIN_EMAIL || 'superadmin@pazaryonetimi.com';
+  const platformAdmin = await prisma.user.upsert({
+    where: { email: PLATFORM_ADMIN_EMAIL },
+    update: {
+      password: hashedPassword,
+      type: UserType.SUPERADMIN,
+      tenantId: null,
+      firstName: process.env.SEED_PLATFORM_ADMIN_FIRST_NAME || 'Platform',
+      lastName: process.env.SEED_PLATFORM_ADMIN_LAST_NAME || 'Süper Admin',
+    },
+    create: {
+      email: PLATFORM_ADMIN_EMAIL,
+      password: hashedPassword,
+      firstName: process.env.SEED_PLATFORM_ADMIN_FIRST_NAME || 'Platform',
+      lastName: process.env.SEED_PLATFORM_ADMIN_LAST_NAME || 'Süper Admin',
+      type: UserType.SUPERADMIN,
+      tenantId: null,
+    },
+  });
   console.log(`✅ Kullanıcılar oluşturuldu`);
+  console.log(`   Platform admin: ${platformAdmin.email} (SUPERADMIN, tenant yok)`);
 
   // ==================== 3. INTEGRATIONS ====================
   const platforms: Platform[] = [Platform.TRENDYOL, Platform.HEPSIBURADA, Platform.AMAZON, Platform.N11];
@@ -795,6 +816,10 @@ async function main() {
   console.log(`   - ${await prisma.review.count({ where: { tenantId: tenant.id } })} yorum`);
   console.log(`   - ${await prisma.store.count({ where: { tenantId: tenant.id } })} mağaza`);
   console.log(`   - ${await prisma.seoAnalysis.count({ where: { tenantId: tenant.id } })} SEO analizi`);
+  console.log('\n🔐 Giriş bilgileri:');
+  console.log(`   Tenant panel:  ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
+  console.log(`   Platform admin: ${PLATFORM_ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
+  console.log(`   Operatör:      ${USER_EMAIL} / ${ADMIN_PASSWORD}`);
 
   if (process.env.SEED_FORUM === 'true') {
     console.log('\n🗣️  Forum seed başlatılıyor (SEED_FORUM=true)...');

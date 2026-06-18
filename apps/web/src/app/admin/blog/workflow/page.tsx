@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -69,18 +69,59 @@ export default function ContentWorkflowPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
   const [selectedInstance, setSelectedInstance] = useState<WorkflowInstance | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Initialize mock data
-  useState(() => {
-    const mockWorkflows: Workflow[] = [
-      { id: "1", name: "Varsayılan Akış", steps: [], isActive: true, autoPublish: false, requireApproval: true },
-    ];
-    const mockInstances: WorkflowInstance[] = [
-      { id: "1", workflow: mockWorkflows[0], postTitle: "Blog Yazısı", currentStep: 0, status: "active", history: [] },
-    ];
-    setWorkflows(mockWorkflows);
-    setActiveInstances(mockInstances);
-  });
+  useEffect(() => {
+    async function loadWorkflow() {
+      try {
+        const res = await fetch("/api/admin/blog/workflow");
+        if (!res.ok) throw new Error("failed");
+        const data = await res.json();
+        const stageTypeMap: Record<string, WorkflowStep["type"]> = {
+          draft: "DRAFT",
+          review: "REVIEW",
+          scheduled: "APPROVAL",
+          published: "PUBLISH",
+        };
+        const steps: WorkflowStep[] = (data.stages ?? []).map((s: Record<string, unknown>) => ({
+          id: String(s.id ?? ""),
+          type: stageTypeMap[String(s.id)] ?? "DRAFT",
+          name: String(s.name ?? ""),
+          assigneeRole: "Editör",
+          required: true,
+        }));
+        const workflow: Workflow = {
+          id: "default",
+          name: "Varsayılan İş Akışı",
+          description: "Blog içerik onay süreci",
+          steps,
+          isActive: true,
+          autoPublish: false,
+          requireApproval: true,
+        };
+        setWorkflows([workflow]);
+        const stageIndex = (stage: string) =>
+          Math.max(0, steps.findIndex((step) => step.id === stage));
+        setActiveInstances(
+          (data.items ?? []).map((item: Record<string, unknown>) => ({
+            id: String(item.id ?? ""),
+            workflow,
+            postTitle: String(item.title ?? ""),
+            currentStep: stageIndex(String(item.stage ?? "draft")),
+            status: item.stage === "published" ? "completed" : "active",
+            assignedTo: String(item.author ?? "Editör"),
+            history: [],
+          }))
+        );
+      } catch {
+        setWorkflows([]);
+        setActiveInstances([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadWorkflow();
+  }, []);
 
   const getStepIcon = (type: string) => {
     switch (type) {
@@ -134,6 +175,10 @@ export default function ContentWorkflowPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {loading ? (
+          <div className="text-center py-12 text-slate-500">Yükleniyor...</div>
+        ) : (
+        <>
         {/* Active Workflows */}
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6">
           <div className="p-4 border-b border-slate-200">
@@ -266,6 +311,8 @@ export default function ContentWorkflowPage() {
             </motion.div>
           ))}
         </div>
+        </>
+        )}
       </div>
 
       {/* Create Workflow Modal */}

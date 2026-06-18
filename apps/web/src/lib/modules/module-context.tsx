@@ -255,16 +255,26 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
   };
   
   const toggleModule = async (moduleKey: string, enabled: boolean) => {
-    // TODO: API çağrısı yap module durumunu güncelle
+    const res = await fetch(`/api/tenant/modules/${encodeURIComponent(moduleKey)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled }),
+    });
+    if (!res.ok) throw new Error('Modül güncellenemedi');
     if (enabled) {
-      setEnabledModules(prev => [...prev, moduleKey]);
+      setEnabledModules(prev => [...new Set([...prev, moduleKey])]);
     } else {
       setEnabledModules(prev => prev.filter(k => k !== moduleKey));
     }
   };
   
   const updateModuleConfig = async (moduleKey: string, config: Record<string, unknown>) => {
-    // TODO: API çağrısı yap module config'i güncelle
+    const res = await fetch(`/api/tenant/modules/${encodeURIComponent(moduleKey)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ config }),
+    });
+    if (!res.ok) throw new Error('Modül yapılandırması güncellenemedi');
   };
   
   const unreadAnnouncementCount = announcements.filter(

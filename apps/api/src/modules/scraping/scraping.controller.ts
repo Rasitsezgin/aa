@@ -187,25 +187,7 @@ export class ScrapingController {
       };
     } catch (error: any) {
       this.logger.error(`Analysis failed for ${url}: ${error.message}`);
-      // Return fallback data instead of throwing
-      return {
-        metrics: {
-          storeName: storeId,
-          storeId: storeId,
-          platform: platform.toUpperCase(),
-          rating: 0,
-          followers: 0,
-          productCount: 0,
-        },
-        products: [],
-        seoScore: 0,
-        analysis: {
-          avgPrice: 0,
-          avgRating: 0,
-          totalProducts: 0,
-          platform: platform.toUpperCase(),
-        },
-      };
+      throw error;
     }
   }
 

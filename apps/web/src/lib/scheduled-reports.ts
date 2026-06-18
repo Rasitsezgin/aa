@@ -195,6 +195,22 @@ async function generateSalesSummary(
     return acc;
   }, {} as Record<string, number>);
 
+  const productSales: Record<string, { name: string; quantity: number; revenue: number }> = {};
+  for (const order of orders) {
+    for (const item of order.items) {
+      const key = item.title ?? item.sku ?? item.id;
+      if (!productSales[key]) {
+        productSales[key] = { name: key, quantity: 0, revenue: 0 };
+      }
+      productSales[key].quantity += item.quantity;
+      productSales[key].revenue += Number(item.unitPrice ?? 0) * item.quantity;
+    }
+  }
+
+  const topProducts = Object.values(productSales)
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 10);
+
   return {
     summary: {
       totalRevenue,
@@ -204,7 +220,7 @@ async function generateSalesSummary(
     },
     platformBreakdown,
     dailySales,
-    topProducts: [], // TODO: Calculate from order items
+    topProducts,
   };
 }
 
@@ -219,6 +235,12 @@ async function generateInventoryStatus(tenantId: string): Promise<Record<string,
   const outOfStock = products.filter(p => p.stock === 0);
   const totalValue = products.reduce((sum, p) => sum + Number(p.price) * p.stock, 0);
 
+  const categoryBreakdown = products.reduce((acc, p) => {
+    const cat = p.category ?? 'Diğer';
+    acc[cat] = (acc[cat] ?? 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
   return {
     summary: {
       totalProducts: products.length,
@@ -232,7 +254,7 @@ async function generateInventoryStatus(tenantId: string): Promise<Record<string,
       sku: p.sku,
       currentStock: p.stock,
     })),
-    categoryBreakdown: {}, // TODO: Group by category
+    categoryBreakdown,
   };
 }
 

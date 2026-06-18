@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run db:generate --prefix ../.. && next dev",
-    "build": "npm run db:generate --prefix ../.. && next build",
+    "dev": "node ../../scripts/ensure-prisma.mjs && node ../../scripts/next-dev.mjs",
+    "dev:webpack": "node ../../scripts/ensure-prisma.mjs && node ../../scripts/next-dev.mjs --webpack",
+    "dev:clean": "node -e \"const fs=require('fs'),p=require('path'),os=require('os');const next=p.resolve('.next');try{if(fs.existsSync(next)&&fs.lstatSync(next).isSymbolicLink())fs.rmSync(next);else if(fs.existsSync(next))fs.rmSync(next,{recursive:true,force:true});console.log('Silindi:',next)}catch{};const local=p.join(process.env.LOCALAPPDATA||os.tmpdir(),'pazaryonetimi-next-dev');try{fs.rmSync(local,{recursive:true,force:true});console.log('Silindi:',local)}catch{};\"",
+    "build": "node ../../scripts/ensure-prisma.mjs && next build",
     "start": "next start",
     "lint": "eslint .",
     "test": "jest",

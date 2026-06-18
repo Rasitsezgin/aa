@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { isPlatformAdmin } from "@/lib/platform-admin";
 import { prisma } from "@pazaryonetimi/database";
 import EnhancedMenuAdminClient from "./EnhancedMenuAdminClient";
 
@@ -12,8 +13,8 @@ export const metadata: Metadata = {
 export default async function MenuAdminPage() {
   const session = await auth();
 
-  if (!session?.user || session.user.type !== "SUPERADMIN") {
-    redirect("/admin/login");
+  if (!session?.user || !isPlatformAdmin(session.user as { type?: string; tenantId?: string | null })) {
+    redirect("/unauthorized?from=admin");
   }
 
   try {

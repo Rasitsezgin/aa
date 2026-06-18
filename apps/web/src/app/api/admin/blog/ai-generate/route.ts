@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import { requirePlatformAdmin } from '@/lib/admin-auth';
 import { buildExcerpt, slugifyTitle } from '@/lib/blog-service';
 
 export const dynamic = 'force-dynamic';
@@ -100,10 +100,8 @@ async function requestAiDraft(topic: string, audience: string, tone: string, key
 }
 
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
 
   const body = (await request.json()) as {
     topic?: string;

@@ -23,11 +23,15 @@ export class AdminService {
   async impersonateTenant(adminUserId: string, tenantId: string) {
     const admin = await this.prisma.user.findUnique({
       where: { id: adminUserId },
-      select: { type: true, email: true },
+      select: { type: true, email: true, tenantId: true },
     });
 
-    if (!admin || admin.type !== 'ADMIN') {
-      throw new ForbiddenException('Bu işlem için admin yetkisi gerekli');
+    const isPlatformAdmin =
+      admin?.type === 'SUPERADMIN' ||
+      (admin?.type === 'ADMIN' && !admin.tenantId);
+
+    if (!admin || !isPlatformAdmin) {
+      throw new ForbiddenException('Bu işlem için platform yöneticisi yetkisi gerekli');
     }
 
     const tenant = await this.prisma.tenant.findUnique({
@@ -2008,5 +2012,60 @@ export class AdminService {
         }
       }),
     );
+  }
+
+  async getOrders(query: {
+    search?: string;
+    status?: string;
+    tenantId?: string;
+    page: number;
+    limit: number;
+  }) {
+    const { search, status, tenantId, page, limit } = query;
+    const where: Record<string, unknown> = {};
+
+    if (status) where.status = status;
+    if (tenantId) where.tenantId = tenantId;
+    if (search) {
+      where.OR = [
+        { customerName: { contains: search, mode: 'insensitive' } },
+        { customerEmail: { contains: search, mode: 'insensitive' } },
+        { marketplaceOrderId: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [orders, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        include: {
+          tenant: { select: { id: true, name: true, slug: true } },
+          items: true,
+        },
+        orderBy: { orderDate: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+
+    return {
+      orders,
+      items: orders,
+      pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async updateOrderStatus(id: string, status: string) {
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) throw new NotFoundException('Sipariş bulunamadı');
+
+    return this.prisma.order.update({
+      where: { id },
+      data: { status: status as never },
+      include: {
+        tenant: { select: { id: true, name: true } },
+        items: true,
+      },
+    });
   }
 }

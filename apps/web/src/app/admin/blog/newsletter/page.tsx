@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -73,23 +73,28 @@ export default function NewsletterPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "subscribers" | "campaigns">("overview");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCampaignModal, setShowCampaignModal] = useState(false);
-
-  // Initialize mock data
-  useState(() => {
-    const mockNewsletters: Newsletter[] = [
-      { id: "1", name: "Haftalık Bülten", fromName: "Pazaryönetimi", fromEmail: "info@pazaryonetimi.com", subscriberCount: 1250, template: "default", isActive: true },
-    ];
-    const mockSubscribers: Subscriber[] = [
-      { id: "1", email: "user@example.com", name: "Kullanıcı", isActive: true, isVerified: true, openCount: 5, clickCount: 2, subscribedAt: "2024-01-15" },
-    ];
-    const mockCampaigns: Campaign[] = [
-      { id: "1", subject: "Yeni Özellikler", status: "sent", sentAt: "2024-01-15", recipientCount: 1250, openCount: 600, clickCount: 200 },
-    ];
-    setNewsletters(mockNewsletters);
-    setSubscribers(mockSubscribers);
-    setCampaigns(mockCampaigns);
-  });
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadNewsletter() {
+      try {
+        const res = await fetch("/api/admin/blog/newsletter");
+        if (!res.ok) throw new Error("failed");
+        const data = await res.json();
+        setNewsletters(data.newsletters ?? []);
+        setSubscribers(data.subscribers ?? []);
+        setCampaigns(data.campaigns ?? []);
+      } catch {
+        setNewsletters([]);
+        setSubscribers([]);
+        setCampaigns([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadNewsletter();
+  }, []);
 
   const filteredSubscribers = subscribers.filter(
     (s) =>
@@ -141,6 +146,10 @@ export default function NewsletterPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {loading ? (
+          <div className="text-center py-12 text-slate-500">Yükleniyor...</div>
+        ) : (
+        <>
         {/* Tabs */}
         <div className="flex gap-1 bg-white p-1 rounded-xl border border-slate-200 mb-6 w-fit">
           {[
@@ -319,6 +328,8 @@ export default function NewsletterPage() {
               ))}
             </div>
           </div>
+        )}
+        </>
         )}
       </div>
 

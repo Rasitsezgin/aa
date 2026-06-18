@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -57,14 +57,30 @@ export default function CommentModerationPage() {
   const [selectedComment, setSelectedComment] = useState<Comment | null>(null);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
   const [showAiOnly, setShowAiOnly] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Initialize mock data
-  useState(() => {
-    const mockComments: Comment[] = [
-      { id: "1", content: "Örnek yorum", authorName: "Kullanıcı", authorEmail: "user@example.com", postTitle: "Blog Yazısı", postSlug: "blog-yazisi", status: "PENDING", createdAt: "2024-01-15", ipAddress: "127.0.0.1", isAiModerated: false, replies: [] },
-    ];
-    setComments(mockComments);
-  });
+  useEffect(() => {
+    async function loadComments() {
+      try {
+        const res = await fetch('/api/admin/blog/comments');
+        if (!res.ok) throw new Error('failed');
+        const data = await res.json();
+        setComments((data.comments ?? []).map((c: any) => ({
+          ...c,
+          postTitle: c.postTitle ?? '—',
+          postSlug: c.postSlug ?? '',
+          ipAddress: c.ipAddress ?? '—',
+          isAiModerated: c.isAiModerated ?? false,
+          replies: c.replies ?? [],
+        })));
+      } catch {
+        setComments([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadComments();
+  }, []);
 
   const filteredComments = useMemo(() => {
     return comments.filter((comment) => {

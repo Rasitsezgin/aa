@@ -1,14 +1,12 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import { requirePlatformAdmin } from '@/lib/admin-auth';
 import { getAllSeoPages } from '@/lib/seo/seo-admin-service';
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user || session.user.type !== 'SUPERADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authResult = await requirePlatformAdmin();
+  if (authResult.error) return authResult.error;
 
   const pages = await getAllSeoPages();
   return NextResponse.json({ pages });

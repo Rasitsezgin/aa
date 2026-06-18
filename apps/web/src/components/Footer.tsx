@@ -272,6 +272,9 @@ const FooterColumn = ({ title, icon: Icon, links }: { title: string, icon: any, 
 
 const NewsletterCard = () => {
     const cardRef = useRef<HTMLDivElement>(null);
+    const [email, setEmail] = useState('');
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [message, setMessage] = useState('');
     const x = useMotionValue(0);
     const y = useMotionValue(0);
 
@@ -297,6 +300,33 @@ const NewsletterCard = () => {
     const handleMouseLeave = () => {
         x.set(0);
         y.set(0);
+    };
+
+    const handleSubscribe = async () => {
+        if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+            setStatus('error');
+            setMessage('Geçerli bir e-posta adresi girin.');
+            return;
+        }
+        setStatus('loading');
+        setMessage('');
+        try {
+            const res = await fetch('/api/public/newsletter/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email.trim() }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data.error || 'Abonelik başarısız');
+            }
+            setStatus('success');
+            setMessage(data.message || 'Bültene başarıyla abone oldunuz!');
+            setEmail('');
+        } catch (err) {
+            setStatus('error');
+            setMessage(err instanceof Error ? err.message : 'Bir hata oluştu.');
+        }
     };
 
     return (
@@ -331,12 +361,31 @@ const NewsletterCard = () => {
                             type="email"
                             placeholder="E-posta adresiniz"
                             aria-label="Bülten aboneliği için e-posta adresiniz"
-                            className="flex-1 bg-transparent px-5 py-4 outline-none text-slate-900 dark:text-white placeholder:text-slate-400 text-sm font-medium"
+                            value={email}
+                            onChange={(e) => {
+                                setEmail(e.target.value);
+                                if (status !== 'idle') setStatus('idle');
+                            }}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
+                            disabled={status === 'loading'}
+                            className="flex-1 bg-transparent px-5 py-4 outline-none text-slate-900 dark:text-white placeholder:text-slate-400 text-sm font-medium disabled:opacity-60"
                         />
-                        <button aria-label="Bültene abone ol" className="px-7 py-4 bg-orange-600 hover:bg-orange-500 text-white rounded-[20px] font-bold transition-all shadow-lg hover:shadow-orange-500/30 group-hover:px-8 group/btn">
+                        <button
+                            type="button"
+                            onClick={handleSubscribe}
+                            disabled={status === 'loading'}
+                            aria-label="Bültene abone ol"
+                            className="px-7 py-4 bg-orange-600 hover:bg-orange-500 disabled:opacity-60 text-white rounded-[20px] font-bold transition-all shadow-lg hover:shadow-orange-500/30 group-hover:px-8 group/btn"
+                        >
                             <ArrowRight size={20} className="group-hover/btn:translate-x-1 transition-transform" />
                         </button>
                     </div>
+
+                    {message && (
+                        <p className={`mt-3 text-xs font-medium px-2 ${status === 'success' ? 'text-emerald-600' : 'text-red-500'}`}>
+                            {message}
+                        </p>
+                    )}
 
                     <p className="mt-5 flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-500 font-bold tracking-tight px-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />

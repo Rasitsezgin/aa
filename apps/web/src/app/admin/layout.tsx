@@ -30,6 +30,7 @@ import {
     Calendar,
     BookOpen
 } from 'lucide-react';
+import { AdminRouteGuard } from '@/components/admin/AdminRouteGuard';
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from '@/providers/theme-provider';
 import "@/app/globals.css";
@@ -143,7 +144,7 @@ export default function AdminLayout({
 
                                 {/* Page Content */}
                                 <main className={`${isLoginPage ? 'min-h-screen' : 'flex-1'} ${isLoginPage ? '' : 'p-6'}`}>
-                                    {children}
+                                    {isLoginPage ? children : <AdminRouteGuard>{children}</AdminRouteGuard>}
                                 </main>
                             </div>
                         </div>

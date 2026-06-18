@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { adminApi } from "@/lib/admin-api";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutGrid,
@@ -63,21 +64,26 @@ interface ForumBoard {
 export default function ForumAdminPage() {
   const [categories, setCategories] = useState<ForumCategory[]>([]);
   const [boards, setBoards] = useState<ForumBoard[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "categories" | "boards" | "moderators" | "settings">("overview");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
 
-  // Initialize mock data
-  useState(() => {
-    const mockCategories: ForumCategory[] = [
-      { id: "1", name: "Genel", slug: "genel", color: "blue", displayOrder: 1, isActive: true, isPrivate: false, boardCount: 5, topicCount: 100 },
-    ];
-    const mockBoards: ForumBoard[] = [
-      { id: "1", name: "Duyurular", slug: "duyurular", type: "FORUM", color: "red", displayOrder: 1, isActive: true, topicCount: 50, postCount: 200, moderators: [] },
-    ];
-    setCategories(mockCategories);
-    setBoards(mockBoards);
-  });
+  useEffect(() => {
+    async function loadForum() {
+      try {
+        const data = await adminApi.getForumOverview();
+        setCategories(data.categories ?? []);
+        setBoards(data.boards ?? []);
+      } catch {
+        setCategories([]);
+        setBoards([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadForum();
+  }, []);
 
   const stats = {
     totalCategories: categories.length,
