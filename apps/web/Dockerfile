@@ -38,9 +38,9 @@ ENV DATABASE_URL=$DATABASE_URL
 # Generate Prisma client + build database package (dist/generated/client)
 RUN npm run db:generate --prefix . && npm run build --workspace=@pazaryonetimi/database
 
-# Build the project
+# Build web (database + prisma already prepared above)
 ENV NODE_OPTIONS="--max-old-space-size=3072"
-RUN npx turbo run build --filter=@pazaryonetimi/web
+RUN npm run build --workspace=@pazaryonetimi/web
 
 # Prune dev dependencies
 RUN npm prune --production --legacy-peer-deps
