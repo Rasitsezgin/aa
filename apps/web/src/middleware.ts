@@ -180,7 +180,7 @@ export default async function middleware(req: NextRequest) {
     // For production: tenant.pazaryonetimi.com -> subdomain is 'tenant'
     // For local: tenant.localhost:3000 -> subdomain is 'tenant'
     const currentHost =
-        process.env.NODE_ENV === "production" && process.env.VERCEL === "1"
+        process.env.NODE_ENV === "production"
             ? hostname?.replace(`.pazaryonetimi.com`, "")
             : hostname?.replace(/\.(localhost|192\.168):[0-9]+$/, "")?.replace(`.localhost`, "").replace(`.3000`, "").replace(`.3001`, "");
 

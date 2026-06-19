@@ -1,7 +1,15 @@
 import { createRequire } from 'node:module'
 import type { PrismaClient } from './generated/client'
 
-const nodeRequire = createRequire(__filename)
+let requirePath = __filename;
+if (requirePath.startsWith('/ROOT/')) {
+  // In Next.js standalone, process.cwd() is /app/apps/web
+  // We need to point back to the monorepo root
+  const rootDir = process.cwd().includes('apps') ? process.cwd() + '/../../' : process.cwd() + '/';
+  requirePath = requirePath.replace('/ROOT/', rootDir);
+}
+
+const nodeRequire = createRequire(requirePath)
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
