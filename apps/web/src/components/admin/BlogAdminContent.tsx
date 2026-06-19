@@ -14,6 +14,10 @@ type DraftResponse = {
   content: string;
   slug: string;
   source: 'ai' | 'fallback';
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string;
+  tags?: string;
 };
 
 function toLocalDate(value: string): string {
@@ -211,6 +215,10 @@ export default function BlogAdminContent() {
         title: data.title || prev.title,
         slug: data.slug || prev.slug,
         content: data.content || prev.content,
+        metaTitle: data.metaTitle || prev.metaTitle,
+        metaDescription: data.metaDescription || prev.metaDescription,
+        metaKeywords: data.metaKeywords || prev.metaKeywords,
+        tags: data.tags || prev.tags,
       }));
 
       if (data.source === 'fallback') {

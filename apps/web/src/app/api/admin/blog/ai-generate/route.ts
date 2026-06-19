@@ -9,6 +9,10 @@ type AiDraft = {
   excerpt: string;
   content: string;
   slug: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  metaKeywords?: string;
+  tags?: string;
   source: 'ai' | 'fallback';
 };
 
@@ -50,7 +54,26 @@ function fallbackDraft(topic: string, audience: string, tone: string, keywords: 
 
 async function requestAiDraft(topic: string, audience: string, tone: string, keywords: string[]): Promise<AiDraft | null> {
   const base = getApiBaseUrl();
-  const prompt = `\n${topic} konusunda bir Turkce blog yazisi uret.\nHedef kitle: ${audience}\nTon: ${tone}\nAnahtar kelimeler: ${keywords.join(', ') || 'e-ticaret, pazaryeri yonetimi'}\n\nSadece asagidaki JSON formatinda don:\n{\n  "title": "...",\n  "excerpt": "120-170 karakter",\n  "content": "Markdown formatinda en az 700 kelime blog icerigi"\n}`;
+  const prompt = `\n${topic} konusunda son derece detayli, insansi, akici ve uzman bir Turkce blog yazisi uret.
+Hedef kitle: ${audience}
+Ton: ${tone}
+Anahtar kelimeler: ${keywords.join(', ') || 'e-ticaret, pazaryeri yonetimi'}
+
+Gereksinimler:
+1. Icerik gercekten kapsamli ve doyurucu olmali. Cok kisa yazma, konunun derinliklerine in (en az 800-1000 kelime).
+2. Markdown formatini (basliklar, alt basliklar, listeler, kalin yazi, alintilar vb.) cok estetik, zengin ve okunabilir sekilde kullan. Okuyucuyu sikmayacak paragraflar olustur.
+3. SEO icin baslik, aciklama, keywordler ve etiketleri (tags) eksiksiz hazirla.
+
+Lutfen SADECE asagidaki JSON formatinda donus yap, JSON disinda hicbir metin veya isaret ekleme:
+{
+  "title": "Cekici ve SEO uyumlu blog basligi",
+  "excerpt": "Blogun listeleme sayfalarinda gorunecek 120-160 karakterlik kisa ozeti",
+  "content": "Markdown formatinda yazilmis, detayli, insansi ve gorsel olarak zenginlestirilmis blog icerigi...",
+  "metaTitle": "Arama motorlari (Google) icin SEO odakli baslik (maks 60 karakter)",
+  "metaDescription": "Arama motorlari icin SEO odakli meta aciklamasi (maks 160 karakter)",
+  "metaKeywords": "virgulle ayrilmis, virgulle ayrilmis 5-8 anahtar kelime",
+  "tags": "virgulle ayrilmis kategori/etiket isimleri (ornegin: Trendyol,Satis,KOBI)"
+}`;
 
   const candidates = [
     `${base}/ai/copilot/chat`,
@@ -81,6 +104,10 @@ async function requestAiDraft(topic: string, audience: string, tone: string, key
       const title = typeof parsed.title === 'string' ? parsed.title.trim() : '';
       const excerpt = typeof parsed.excerpt === 'string' ? parsed.excerpt.trim() : '';
       const content = typeof parsed.content === 'string' ? parsed.content.trim() : '';
+      const metaTitle = typeof parsed.metaTitle === 'string' ? parsed.metaTitle.trim() : '';
+      const metaDescription = typeof parsed.metaDescription === 'string' ? parsed.metaDescription.trim() : '';
+      const metaKeywords = typeof parsed.metaKeywords === 'string' ? parsed.metaKeywords.trim() : '';
+      const tags = typeof parsed.tags === 'string' ? parsed.tags.trim() : '';
 
       if (!title || !content) return null;
 
@@ -89,6 +116,10 @@ async function requestAiDraft(topic: string, audience: string, tone: string, key
         excerpt: excerpt || buildExcerpt(content, 170),
         content,
         slug: slugifyTitle(title),
+        metaTitle,
+        metaDescription,
+        metaKeywords,
+        tags,
         source: 'ai',
       };
     } catch {
