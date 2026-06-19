@@ -40,6 +40,8 @@ export default function BlogAdminContent() {
   const [audience, setAudience] = React.useState('KOBI e-ticaret saticilari');
   const [tone, setTone] = React.useState('Profesyonel ve aksiyon odakli');
   const [keywords, setKeywords] = React.useState('trendyol, satis arttirma, pazaryeri, e-ticaret');
+  const [length, setLength] = React.useState('medium');
+  const [customInstructions, setCustomInstructions] = React.useState('');
 
   const [uploadingCover, setUploadingCover] = React.useState(false);
   const coverInputRef = React.useRef<HTMLInputElement>(null);
@@ -204,7 +206,7 @@ export default function BlogAdminContent() {
       const response = await fetch('/api/admin/blog/ai-generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, audience, tone, keywords }),
+        body: JSON.stringify({ topic, audience, tone, keywords, length, customInstructions }),
       });
 
       const data = (await response.json()) as DraftResponse & { message?: string };
@@ -306,27 +308,47 @@ export default function BlogAdminContent() {
               <input
                 value={topic}
                 onChange={(event) => setTopic(event.target.value)}
-                placeholder="Konu"
+                placeholder="Konu (ör. Trendyol Satış Artırma)"
                 className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
               />
               <input
                 value={audience}
                 onChange={(event) => setAudience(event.target.value)}
-                placeholder="Hedef kitle"
+                placeholder="Hedef kitle (ör. E-ticaret satıcıları)"
                 className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
               />
               <input
                 value={tone}
                 onChange={(event) => setTone(event.target.value)}
-                placeholder="Yazi tonu"
+                placeholder="Yazi tonu (ör. Profesyonel, samimi, akıcı)"
                 className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
               />
-              <input
-                value={keywords}
-                onChange={(event) => setKeywords(event.target.value)}
-                placeholder="Anahtar kelimeler (virgulle)"
+              <select
+                value={length}
+                onChange={(event) => setLength(event.target.value)}
                 className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
-              />
+              >
+                <option value="short">Kısa Metin (~500 kelime)</option>
+                <option value="medium">Standart İçerik (~1000 kelime)</option>
+                <option value="long">Detaylı Rehber (~1500 kelime)</option>
+                <option value="extra-long">Kapsamlı E-Kitap/Rehber (~2000+ kelime)</option>
+              </select>
+              <div className="md:col-span-2">
+                <input
+                  value={keywords}
+                  onChange={(event) => setKeywords(event.target.value)}
+                  placeholder="Anahtar kelimeler (virgülle, ör. trendyol, satış, e-ticaret)"
+                  className="w-full h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 px-4 text-sm font-medium"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <textarea
+                  value={customInstructions}
+                  onChange={(event) => setCustomInstructions(event.target.value)}
+                  placeholder="Özel Yapay Zeka Talimatları (ör. 'İçerikte bol bol örnek vaka kullan, soru-cevap bölümü ekle, samimi bir dil kullan')"
+                  className="w-full h-24 p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-sm font-medium resize-none focus:outline-none focus:border-violet-500"
+                />
+              </div>
             </div>
             <button
               type="button"

@@ -52,17 +52,36 @@ function fallbackDraft(topic: string, audience: string, tone: string, keywords: 
   };
 }
 
-async function requestAiDraft(topic: string, audience: string, tone: string, keywords: string[]): Promise<AiDraft | null> {
+async function requestAiDraft(
+  topic: string,
+  audience: string,
+  tone: string,
+  keywords: string[],
+  length: string,
+  customInstructions: string
+): Promise<AiDraft | null> {
   const base = getApiBaseUrl();
-  const prompt = `\n${topic} konusunda son derece detayli, insansi, akici ve uzman bir Turkce blog yazisi uret.
+
+  let lengthDesc = 'en az 800-1000 kelime blog icerigi';
+  if (length === 'short') lengthDesc = 'yaklasik 500 kelime blog icerigi';
+  if (length === 'long') lengthDesc = 'en az 1500 kelime detayli rehber icerigi';
+  if (length === 'extra-long') lengthDesc = 'en az 2000-2500 kelime kapsamli e-kitap ve rehber icerigi';
+
+  let instructionsPrompt = '';
+  if (customInstructions) {
+    instructionsPrompt = `\nOzel yapay zeka talimatlari (bu kurallara kesinlikle uy):\n${customInstructions}`;
+  }
+
+  const prompt = `\n${topic} konusunda son derece detayli, insansi, akici, tamamen ozgun ve uzman bir Turkce blog yazisi uret.
 Hedef kitle: ${audience}
 Ton: ${tone}
 Anahtar kelimeler: ${keywords.join(', ') || 'e-ticaret, pazaryeri yonetimi'}
 
 Gereksinimler:
-1. Icerik gercekten kapsamli ve doyurucu olmali. Cok kisa yazma, konunun derinliklerine in (en az 800-1000 kelime).
-2. Markdown formatini (basliklar, alt basliklar, listeler, kalin yazi, alintilar vb.) cok estetik, zengin ve okunabilir sekilde kullan. Okuyucuyu sikmayacak paragraflar olustur.
-3. SEO icin baslik, aciklama, keywordler ve etiketleri (tags) eksiksiz hazirla.
+1. Icerik gercekten kapsamli ve doyurucu olmali. ${lengthDesc}. Cok kisa kesme, her alt basligi aciklayici paragraflarla doldur.
+2. Markdown formatini (basliklar, alt basliklar, listeler, kalin yazi, alintilar, kod bloklari veya tablolar vb.) cok estetik, zengin ve okunabilir sekilde kullan. Paragraflari cok uzun tutma, alt basliklar altinda net bolumler olustur.
+3. Insansi bir yazi dili kullan. Gereksiz tekrarlardan ve yapay zeka kliselerinden uzak dur. Gercek hayattan pratik ornekler ve tavsiyeler ekle.
+4. SEO icin baslik, aciklama, keywordler ve etiketleri (tags) eksiksiz hazirla.${instructionsPrompt}
 
 Lutfen SADECE asagidaki JSON formatinda donus yap, JSON disinda hicbir metin veya isaret ekleme:
 {
@@ -71,7 +90,7 @@ Lutfen SADECE asagidaki JSON formatinda donus yap, JSON disinda hicbir metin vey
   "content": "Markdown formatinda yazilmis, detayli, insansi ve gorsel olarak zenginlestirilmis blog icerigi...",
   "metaTitle": "Arama motorlari (Google) icin SEO odakli baslik (maks 60 karakter)",
   "metaDescription": "Arama motorlari icin SEO odakli meta aciklamasi (maks 160 karakter)",
-  "metaKeywords": "virgulle ayrilmis, virgulle ayrilmis 5-8 anahtar kelime",
+  "metaKeywords": "virgulle ayrilmis 5-8 anahtar kelime",
   "tags": "virgulle ayrilmis kategori/etiket isimleri (ornegin: Trendyol,Satis,KOBI)"
 }`;
 
@@ -139,6 +158,8 @@ export async function POST(request: Request) {
     audience?: string;
     tone?: string;
     keywords?: string;
+    length?: string;
+    customInstructions?: string;
   };
 
   const topic = body.topic?.trim() || '';
@@ -148,13 +169,16 @@ export async function POST(request: Request) {
 
   const audience = (body.audience || 'Turkiye e-ticaret saticilari').trim();
   const tone = (body.tone || 'Profesyonel').trim();
+  const length = body.length || 'medium';
+  const customInstructions = body.customInstructions?.trim() || '';
+
   const keywords = (body.keywords || '')
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean)
     .slice(0, 8);
 
-  const aiDraft = await requestAiDraft(topic, audience, tone, keywords);
+  const aiDraft = await requestAiDraft(topic, audience, tone, keywords, length, customInstructions);
   if (aiDraft) return NextResponse.json(aiDraft);
 
   return NextResponse.json(fallbackDraft(topic, audience, tone, keywords));
