@@ -40,7 +40,7 @@ async function proxyToNest(req: NextRequest, context: RouteContext) {
       }
       lastStatus = res.status;
       lastBody = data ?? { error: `HTTP ${res.status}` };
-      if (res.status >= 400 && res.status < 500) break;
+      if (res.status >= 400 && res.status < 500 && res.status !== 404) break;
     } catch {
       // Sonraki adayı dene
     }

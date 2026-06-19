@@ -40,6 +40,13 @@ export async function POST(request: Request) {
       slug: body.slug,
       content: body.content,
       isActive: body.isActive,
+      coverImage: body.coverImage,
+      tags: body.tags,
+      isFeatured: body.isFeatured,
+      category: body.category,
+      metaTitle: body.metaTitle,
+      metaDescription: body.metaDescription,
+      metaKeywords: body.metaKeywords,
     });
 
     return NextResponse.json({ post }, { status: 201 });

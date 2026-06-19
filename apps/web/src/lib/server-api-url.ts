@@ -33,10 +33,10 @@ export function buildApiUrlCandidates(path: string): string[] {
 
   return [
     ...new Set([
-      `${base}/api${normalizedPath}`,
+      `${root}/api/v1${normalizedPath}`,
       `${base}/api/v1${normalizedPath}`,
       `${root}/api${normalizedPath}`,
-      `${root}/api/v1${normalizedPath}`,
+      `${base}/api${normalizedPath}`,
       `${root}${normalizedPath}`,
     ]),
   ];
@@ -57,7 +57,7 @@ export async function fetchFromApi<T = unknown>(
       }
 
       lastStatus = res.status;
-      if (res.status >= 400 && res.status < 500) {
+      if (res.status >= 400 && res.status < 500 && res.status !== 404) {
         return { ok: false, status: res.status, data, url };
       }
     } catch {

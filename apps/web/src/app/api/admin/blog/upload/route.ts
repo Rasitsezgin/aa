@@ -44,7 +44,12 @@ export async function POST(request: Request) {
 
     const ext = EXT_BY_TYPE[file.type] || 'jpg';
     const filename = `${slug}-${Date.now()}.${ext}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'blog');
+    
+    // In Docker standalone, process.cwd() is /app, so public is at /app/apps/web/public
+    const isProd = process.env.NODE_ENV === 'production';
+    const basePublicDir = isProd ? path.join(process.cwd(), 'apps', 'web', 'public') : path.join(process.cwd(), 'public');
+    const uploadDir = path.join(basePublicDir, 'uploads', 'blog');
+    
     const filePath = path.join(uploadDir, filename);
 
     await fs.mkdir(uploadDir, { recursive: true });
