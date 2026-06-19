@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requirePlatformAdmin } from '@/lib/admin-auth';
 import { buildExcerpt, slugifyTitle } from '@/lib/blog-service';
+import { fetchFromApi } from '@/lib/server-api-url';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,15 +40,19 @@ function extractJson(raw: string): Record<string, unknown> | null {
 }
 
 function fallbackDraft(topic: string, audience: string, tone: string, keywords: string[]): AiDraft {
-  const title = `${topic}: ${audience} icin pratik rehber`;
+  const title = `${topic}: ${audience} İçin Pratik Rehber`;
   const keywordLine = keywords.length > 0 ? keywords.join(', ') : `${topic}, e-ticaret, pazaryeri`;
-  const content = `## Giris\n${audience} icin hazirlanan bu rehberde ${topic.toLowerCase()} konusuna odaklaniyoruz.\n\n## Neden onemli?\n${topic} dogru uygulandiginda operasyon maliyetlerini dusurur ve donusumu artirir.\n\n## Uygulama adimlari\n1. Mevcut veriyi toplayin ve baz metrikleri olusturun.\n2. Kucuk bir pilot urun grubu secin.\n3. Haftalik performans takibiyle sureci optimize edin.\n\n## Kontrol listesi\n- KPI takibi\n- Stok ve fiyat senkronu\n- Icerik optimizasyonu\n\n## Sonuc\nBu adimlar ${tone.toLowerCase()} bir yaklasimla uygulanirsa 30 gun icinde olculebilir sonuc alabilirsiniz.\n\nAnahtar kelimeler: ${keywordLine}`;
+  const content = `## Giriş\n${audience} için hazırlanan bu rehberde ${topic.toLowerCase()} konusuna odaklanıyoruz.\n\n## Neden Önemli?\n${topic} doğru uygulandığında operasyon maliyetlerini düşürür ve dönüşümü artirir.\n\n## Uygulama Adımları\n1. Mevcut veriyi toplayın ve baz metrikleri oluşturun.\n2. Küçük bir pilot ürün grubu seçin.\n3. Haftalık performans takibiyle süreci optimize edin.\n\n## Kontrol Listesi\n- KPI takibi\n- Stok ve fiyat senkronu\n- İçerik optimizasyonu\n\n## Sonuç\nBu adımlar ${tone.toLowerCase()} bir yaklaşımla uygulanırsa 30 gün içinde ölçülebilir sonuç alabilirsiniz.\n\nAnahtar kelimeler: ${keywordLine}`;
 
   return {
     title,
     slug: slugifyTitle(title),
     excerpt: buildExcerpt(content, 170),
     content,
+    metaTitle: `${title} | Pazar Yönetimi`,
+    metaDescription: `${audience} için hazırlanan bu rehberde ${topic.toLowerCase()} konusuna odaklanıyoruz.`,
+    metaKeywords: keywordLine,
+    tags: 'E-Ticaret,Rehber,Strateji',
     source: 'fallback',
   };
 }
@@ -60,8 +65,6 @@ async function requestAiDraft(
   length: string,
   customInstructions: string
 ): Promise<AiDraft | null> {
-  const base = getApiBaseUrl();
-
   let lengthDesc = 'en az 800-1000 kelime blog icerigi';
   if (length === 'short') lengthDesc = 'yaklasik 500 kelime blog icerigi';
   if (length === 'long') lengthDesc = 'en az 1500 kelime detayli rehber icerigi';
@@ -94,59 +97,52 @@ Lutfen SADECE asagidaki JSON formatinda donus yap, JSON disinda hicbir metin vey
   "tags": "virgulle ayrilmis kategori/etiket isimleri (ornegin: Trendyol,Satis,KOBI)"
 }`;
 
-  const candidates = [
-    `${base}/ai/copilot/chat`,
-    `${base}/api/ai/copilot/chat`,
-    `${base}/api/v1/ai/copilot/chat`,
-  ];
+  try {
+    const res = await fetchFromApi<{ message?: string }>('/ai/copilot/chat', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-tenant-id': 'default',
+      },
+      body: JSON.stringify({ message: prompt, context: 'Admin blog yazari' }),
+    });
 
-  for (const url of candidates) {
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-tenant-id': 'default',
-        },
-        body: JSON.stringify({ message: prompt, context: 'Admin blog yazari' }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) continue;
-        return null;
-      }
-
-      const payload = (await response.json()) as { message?: string };
-      const parsed = extractJson(payload.message || '');
-      if (!parsed) return null;
-
-      const title = typeof parsed.title === 'string' ? parsed.title.trim() : '';
-      const excerpt = typeof parsed.excerpt === 'string' ? parsed.excerpt.trim() : '';
-      const content = typeof parsed.content === 'string' ? parsed.content.trim() : '';
-      const metaTitle = typeof parsed.metaTitle === 'string' ? parsed.metaTitle.trim() : '';
-      const metaDescription = typeof parsed.metaDescription === 'string' ? parsed.metaDescription.trim() : '';
-      const metaKeywords = typeof parsed.metaKeywords === 'string' ? parsed.metaKeywords.trim() : '';
-      const tags = typeof parsed.tags === 'string' ? parsed.tags.trim() : '';
-
-      if (!title || !content) return null;
-
-      return {
-        title,
-        excerpt: excerpt || buildExcerpt(content, 170),
-        content,
-        slug: slugifyTitle(title),
-        metaTitle,
-        metaDescription,
-        metaKeywords,
-        tags,
-        source: 'ai',
-      };
-    } catch {
-      continue;
+    if (!res.ok || !res.data) {
+      console.warn('[blog-ai] api response is not ok or has no data', res.status);
+      return null;
     }
-  }
 
-  return null;
+    const parsed = extractJson(res.data.message || '');
+    if (!parsed) {
+      console.warn('[blog-ai] could not extract json from message:', res.data.message);
+      return null;
+    }
+
+    const title = typeof parsed.title === 'string' ? parsed.title.trim() : '';
+    const excerpt = typeof parsed.excerpt === 'string' ? parsed.excerpt.trim() : '';
+    const content = typeof parsed.content === 'string' ? parsed.content.trim() : '';
+    const metaTitle = typeof parsed.metaTitle === 'string' ? parsed.metaTitle.trim() : '';
+    const metaDescription = typeof parsed.metaDescription === 'string' ? parsed.metaDescription.trim() : '';
+    const metaKeywords = typeof parsed.metaKeywords === 'string' ? parsed.metaKeywords.trim() : '';
+    const tags = typeof parsed.tags === 'string' ? parsed.tags.trim() : '';
+
+    if (!title || !content) return null;
+
+    return {
+      title,
+      excerpt: excerpt || buildExcerpt(content, 170),
+      content,
+      slug: slugifyTitle(title),
+      metaTitle,
+      metaDescription,
+      metaKeywords,
+      tags,
+      source: 'ai',
+    };
+  } catch (error) {
+    console.error('Request AI draft failed:', error);
+    return null;
+  }
 }
 
 export async function POST(request: Request) {
