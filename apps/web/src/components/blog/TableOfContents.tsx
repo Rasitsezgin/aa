@@ -57,13 +57,17 @@ export default function TableOfContents() {
         <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="sticky top-32 p-6 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 hidden lg:block"
+            className="sticky top-32 p-6 bg-white/60 dark:bg-slate-900/40 backdrop-blur-md rounded-3xl border border-slate-200/60 dark:border-white/10 hidden lg:block shadow-sm"
         >
-            <div className="flex items-center gap-2 mb-4 font-bold text-slate-900 dark:text-white">
-                <List size={20} className="text-orange-600" />
-                İçindekiler
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200/50 dark:border-white/10">
+                <div className="p-2 bg-orange-100 dark:bg-orange-500/20 rounded-xl text-orange-600 dark:text-orange-400">
+                    <List size={18} />
+                </div>
+                <span className="font-bold text-sm tracking-wide uppercase text-slate-900 dark:text-white">İçindekiler</span>
             </div>
-            <nav className="flex flex-col gap-2">
+            <nav className="flex flex-col gap-1.5 relative">
+                <div className="absolute left-[1px] top-0 bottom-0 w-[2px] bg-slate-100 dark:bg-slate-800 rounded-full" />
+                
                 {headings.map((heading) => (
                     <a
                         key={heading.id}
@@ -75,11 +79,18 @@ export default function TableOfContents() {
                             });
                             setActiveId(heading.id);
                         }}
-                        className={`text-sm transition-all hover:text-orange-600 dark:hover:text-orange-400 block py-1 border-l-2 pl-4 ${activeId === heading.id
-                            ? 'text-orange-600 dark:text-orange-400 border-orange-600 font-medium'
-                            : 'text-slate-500 dark:text-slate-400 border-transparent hover:border-slate-300 dark:hover:border-white/20'
-                            } ${heading.level === 3 ? 'ml-4' : ''}`}
+                        className={`relative z-10 text-[13px] leading-relaxed transition-all duration-300 block py-1.5 pl-4 rounded-r-xl ${activeId === heading.id
+                            ? 'text-orange-600 dark:text-orange-400 font-semibold bg-orange-50/50 dark:bg-orange-500/10'
+                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5'
+                            } ${heading.level === 3 ? 'ml-3' : ''}`}
                     >
+                        {/* Active Line Indicator */}
+                        {activeId === heading.id && (
+                            <motion.div 
+                                layoutId="activeTOC"
+                                className="absolute left-0 top-0 bottom-0 w-[2px] bg-orange-500 rounded-full"
+                            />
+                        )}
                         {heading.text}
                     </a>
                 ))}
