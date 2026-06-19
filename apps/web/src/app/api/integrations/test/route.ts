@@ -15,11 +15,11 @@ function escapeXml(str: string): string {
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
-    const tenantId = (session?.user as { tenantId?: string })?.tenantId;
-    const accessToken = (session?.user as { accessToken?: string })?.accessToken;
-
-    if (!tenantId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    
+    // As long as the user is logged in, they can test external APIs. 
+    // tenantId is only strictly needed when saving to the database.
+    if (!session?.user) {
+      return NextResponse.json({ error: "Oturum süresi dolmuş, lütfen tekrar giriş yapın." }, { status: 401 });
     }
 
     const body = await req.json();
