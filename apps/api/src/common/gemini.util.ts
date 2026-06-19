@@ -21,10 +21,20 @@ export function resolveGeminiApiKey(
 }
 
 export function resolveGeminiModel(config: ConfigService): string {
-  const model =
+  let model =
     config.get<string>('GEMINI_MODEL') ||
     config.get<string>('GOOGLE_MODEL') ||
-    'gemini-1.5-flash';
+    'gemini-2.5-flash';
 
-  return model.trim() || 'gemini-1.5-flash';
+  model = model.trim();
+
+  // Auto-upgrade deprecated 1.5 models to 2.5 to avoid 404 errors
+  if (model.includes('gemini-1.5-flash')) {
+    return 'gemini-2.5-flash';
+  }
+  if (model.includes('gemini-1.5-pro')) {
+    return 'gemini-2.5-pro';
+  }
+
+  return model || 'gemini-2.5-flash';
 }
