@@ -27,8 +27,10 @@ const createPrismaClient = (): PrismaClient => {
   const { PrismaClient: PrismaClientConstructor } = nodeRequire('./generated/client') as {
     PrismaClient: new (args?: object) => PrismaClient
   }
-  const { Pool } = nodeRequire('pg') as typeof import('pg')
-  const { PrismaPg } = nodeRequire('@prisma/adapter-pg') as typeof import('@prisma/adapter-pg')
+  
+  // Use standard require for pg and adapter-pg so Next.js standalone traces all sub-dependencies correctly
+  const { Pool } = require('pg') as typeof import('pg')
+  const { PrismaPg } = require('@prisma/adapter-pg') as typeof import('@prisma/adapter-pg')
 
   const pool = new Pool({ connectionString: process.env.DATABASE_URL })
   const adapter = new PrismaPg(pool as any)
