@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { requirePlatformAdmin } from '@/lib/admin-auth';
 import { buildExcerpt, slugifyTitle } from '@/lib/blog-service';
 import { fetchFromApi } from '@/lib/server-api-url';
+import { generateGeminiJsonResponse } from '@/lib/gemini-chat';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,26 +100,8 @@ Lutfen SADECE asagidaki JSON formatinda donus yap, JSON disinda hicbir metin vey
 }`;
 
   try {
-    const res = await fetchFromApi<{ message?: string }>('/ai/copilot/chat', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-tenant-id': 'default',
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      },
-      body: JSON.stringify({ message: prompt, context: 'Admin blog yazari' }),
-    });
-
-    if (!res.ok || !res.data) {
-      console.warn('[blog-ai] api response is not ok or has no data', res.status);
-      return null;
-    }
-
-    const parsed = extractJson(res.data.message || '');
-    if (!parsed) {
-      console.warn('[blog-ai] could not extract json from message:', res.data.message);
-      return null;
-    }
+    const parsed = await generateGeminiJsonResponse<AiDraft>(prompt);
+    if (!parsed) return null;
 
     const title = typeof parsed.title === 'string' ? parsed.title.trim() : '';
     const excerpt = typeof parsed.excerpt === 'string' ? parsed.excerpt.trim() : '';
