@@ -220,7 +220,7 @@ export class AiService {
     try {
       const chat = this.model.startChat({
         history: mappedHistory,
-        systemInstruction: systemPrompt,
+        systemInstruction: { parts: [{ text: systemPrompt }], role: 'system' },
       });
 
       const result = await chat.sendMessage(userMessage);
