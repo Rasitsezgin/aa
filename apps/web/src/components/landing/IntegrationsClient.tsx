@@ -415,38 +415,50 @@ function LogoMarquee({ items }: { items: Integration[] }) {
 }
 
 // ─── Hero hub visual ──────────────────────────────────
-function HeroHub({ items }: { items: Integration[] }) {
-    const orbit = items.slice(0, 8);
+function HeroHub() {
+    const orbitLogos = [
+        '/images/pazaryeri/Trendyol.png',
+        '/images/pazaryeri/Hepsiburada.png',
+        '/images/pazaryeri/Amazon.png',
+        '/images/pazaryeri/N11.png',
+        '/images/pazaryeri/Shopify.png',
+        '/images/pazaryeri/Etsy.png',
+        '/images/pazaryeri/ikas.png',
+        '/images/pazaryeri/ideasoft-logo.webp'
+    ];
 
     return (
         <div className="relative w-full max-w-[min(100%,260px)] xs:max-w-[280px] sm:max-w-sm lg:max-w-md mx-auto aspect-square overflow-hidden isolate">
             <div className="absolute inset-2 min-[380px]:inset-4 sm:inset-6 [--orbit:4.25rem] min-[380px]:[--orbit:4.75rem] sm:[--orbit:6.75rem] md:[--orbit:7.75rem] lg:[--orbit:8.5rem]">
-                <div className="absolute inset-[6%] rounded-full border border-dashed border-orange-300/40 dark:border-orange-500/20 animate-[spin_80s_linear_infinite]" />
+                <div className="absolute inset-[6%] rounded-full border border-dashed border-orange-300/40 dark:border-orange-500/20 animate-[spin_40s_linear_infinite]" />
                 <div className="absolute inset-[22%] rounded-full border border-orange-200/30 dark:border-orange-500/10" />
                 <div className="absolute inset-[30%] rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/10 blur-2xl" />
 
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="relative z-10 w-[4.5rem] h-[4.5rem] min-[380px]:w-20 min-[380px]:h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl sm:rounded-[1.75rem] bg-gradient-to-br from-orange-600 to-amber-500 shadow-2xl shadow-orange-500/30 flex flex-col items-center justify-center text-white ring-2 sm:ring-4 ring-white/20 dark:ring-white/10">
-                        <Plug className="w-7 h-7 min-[380px]:w-8 min-[380px]:h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 mb-0.5 sm:mb-1" />
-                        <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider opacity-90">Merkez</span>
+                    <div className="relative z-10 w-[4.5rem] h-[4.5rem] min-[380px]:w-20 min-[380px]:h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl sm:rounded-[1.75rem] bg-white shadow-2xl shadow-orange-500/30 flex flex-col items-center justify-center ring-4 ring-white/50 dark:ring-white/10">
+                        <img src="/icons/icon-192x192.svg" alt="Pazaryonetimi Merkez Logo" className="w-8 h-8 min-[380px]:w-10 min-[380px]:h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 object-contain drop-shadow-md" />
                     </div>
                 </div>
 
-                {orbit.map((item, i) => {
-                    const angle = (i / orbit.length) * 360 - 90;
+                {orbitLogos.map((logo, i) => {
+                    const angle = (i / orbitLogos.length) * 360 - 90;
                     return (
                         <motion.div
-                            key={item.id}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.3 + i * 0.06 }}
+                            key={logo}
                             className="absolute left-1/2 top-1/2 z-20"
-                            style={{
-                                transform: `translate(-50%, -50%) rotate(${angle}deg) translateY(calc(-1 * var(--orbit))) rotate(-${angle}deg)`,
-                            }}
+                            animate={{ rotate: [angle, angle + 360] }}
+                            transition={{ duration: 40, ease: "linear", repeat: Infinity }}
                         >
-                            <div className="p-1 rounded-2xl bg-white dark:bg-slate-800 shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-white/10">
-                                <IntegrationLogo item={item} size="sm" />
+                            <div className="absolute" style={{ transform: `translateY(calc(-1 * var(--orbit)))` }}>
+                                <motion.div
+                                    animate={{ rotate: [-angle, -(angle + 360)] }}
+                                    transition={{ duration: 40, ease: "linear", repeat: Infinity }}
+                                    className="absolute -translate-x-1/2 -translate-y-1/2"
+                                >
+                                    <div className="w-10 h-10 p-1.5 rounded-2xl bg-white shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 flex items-center justify-center">
+                                        <img src={logo} alt="Pazaryeri Logo" className="w-full h-full object-contain drop-shadow-sm" />
+                                    </div>
+                                </motion.div>
                             </div>
                         </motion.div>
                     );
