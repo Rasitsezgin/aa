@@ -63,7 +63,8 @@ async function requestAiDraft(
   tone: string,
   keywords: string[],
   length: string,
-  customInstructions: string
+  customInstructions: string,
+  accessToken?: string
 ): Promise<AiDraft | null> {
   let lengthDesc = 'en az 800-1000 kelime blog icerigi';
   if (length === 'short') lengthDesc = 'yaklasik 500 kelime blog icerigi';
@@ -103,6 +104,7 @@ Lutfen SADECE asagidaki JSON formatinda donus yap, JSON disinda hicbir metin vey
       headers: {
         'content-type': 'application/json',
         'x-tenant-id': 'default',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
       body: JSON.stringify({ message: prompt, context: 'Admin blog yazari' }),
     });
@@ -174,7 +176,7 @@ export async function POST(request: Request) {
     .filter(Boolean)
     .slice(0, 8);
 
-  const aiDraft = await requestAiDraft(topic, audience, tone, keywords, length, customInstructions);
+  const aiDraft = await requestAiDraft(topic, audience, tone, keywords, length, customInstructions, authResult.accessToken);
   if (aiDraft) return NextResponse.json(aiDraft);
 
   return NextResponse.json(fallbackDraft(topic, audience, tone, keywords));

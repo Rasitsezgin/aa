@@ -12,8 +12,8 @@ export type PlatformAdminSession = {
 };
 
 export async function requirePlatformAdmin(): Promise<
-  | { error: NextResponse; user: null }
-  | { error: null; user: PlatformAdminSession }
+  | { error: NextResponse; user: null; accessToken: null }
+  | { error: null; user: PlatformAdminSession; accessToken: string | undefined }
 > {
   const session = await auth();
 
@@ -21,17 +21,20 @@ export async function requirePlatformAdmin(): Promise<
     return {
       error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
       user: null,
+      accessToken: null,
     };
   }
 
   const user = session.user as PlatformAdminSession;
+  const accessToken = (session as { accessToken?: string } | null)?.accessToken;
 
   if (!isPlatformAdmin(user)) {
     return {
       error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
       user: null,
+      accessToken: null,
     };
   }
 
-  return { error: null, user };
+  return { error: null, user, accessToken };
 }
