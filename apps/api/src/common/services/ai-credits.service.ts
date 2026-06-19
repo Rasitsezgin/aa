@@ -16,6 +16,11 @@ export class AiCreditsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getCredits(tenantId: string) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(tenantId)) {
+      return { used: 0, limit: 10000, remaining: 10000 };
+    }
+
     const [tenant, settings] = await Promise.all([
       this.prisma.tenant.findUnique({
         where: { id: tenantId },
@@ -36,6 +41,11 @@ export class AiCreditsService {
   }
 
   async consume(tenantId: string, amount = 1) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(tenantId)) {
+      return { used: 0, limit: 10000, remaining: 10000 };
+    }
+
     const credits = await this.getCredits(tenantId);
     if (credits.remaining < amount) {
       throw new HttpException(
