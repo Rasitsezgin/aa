@@ -366,11 +366,18 @@ export default function ForumTopicPage() {
                 <span className="flex items-center gap-1"><ThumbsUp className="w-4 h-4" /> {topic.reactionCount} beğeni</span>
               </div>
               <div className="flex flex-wrap gap-2 mt-3">
-                {topic.tags?.map((tag: {name: string; slug: string; color?: string}) => (
-                  <Link key={tag.slug} href={`/forum/tag/${tag.slug}`} className="px-3 py-1 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full text-sm hover:bg-orange-100">
-                    #{tag.name}
-                  </Link>
-                ))}
+                {topic.tags?.map((tag: any, idx: number) => {
+                  const tagName = typeof tag === 'string' ? tag : tag?.name || '';
+                  const tagSlug = typeof tag === 'string' ? tag : tag?.slug || tag?.name || `tag-${idx}`;
+                  return (
+                    <span
+                      key={tagSlug}
+                      className="px-3 py-1 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full text-xs font-semibold"
+                    >
+                      #{tagName}
+                    </span>
+                  );
+                })}
               </div>
             </div>
             <div className="flex items-center gap-2">
