@@ -46,8 +46,6 @@ RUN npm run db:generate && npm run build --workspace=@pazaryonetimi/database
 # Build API directly (database already built; turbo would re-run prisma generate)
 ENV NODE_OPTIONS="--max-old-space-size=3072"
 RUN npm run build --workspace=@pazaryonetimi/api
-# Keep the exact production dependency tree used for the build (incl. apps/api/node_modules)
-RUN npm prune --omit=dev --legacy-peer-deps
 
 FROM base AS runner
 # Base already contains runtime libraries

@@ -42,9 +42,6 @@ RUN npm run db:generate --prefix . && npm run build --workspace=@pazaryonetimi/d
 ENV NODE_OPTIONS="--max-old-space-size=3072"
 RUN npm run build --workspace=@pazaryonetimi/web
 
-# Prune dev dependencies
-RUN npm prune --production --legacy-peer-deps
-
 FROM base AS runner
 # Base already contains runtime libraries
 
