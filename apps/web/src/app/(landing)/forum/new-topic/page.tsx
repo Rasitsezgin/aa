@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   ArrowLeft, Plus, X, Bold, Italic, Link as LinkIcon, List, ListOrdered,
@@ -20,18 +20,46 @@ interface BoardOption {
   categoryName: string;
 }
 
+const DEFAULT_BOARD_OPTIONS: BoardOption[] = [
+  { id: "b5", name: "Trendyol Satıcı Paneli & Buybox", slug: "trendyol-panel", categoryName: "Türkiye Pazaryerleri" },
+  { id: "b6", name: "Trendyol Komisyon & Fiyatlandırma", slug: "trendyol-fiyat", categoryName: "Türkiye Pazaryerleri" },
+  { id: "b7", name: "Hepsiburada & HepsiPartner", slug: "hepsiburada-pazar", categoryName: "Türkiye Pazaryerleri" },
+  { id: "b8", name: "N11, Çiçeksepeti & PttAVM", slug: "n11-ciceksepeti", categoryName: "Türkiye Pazaryerleri" },
+  { id: "b9", name: "Amazon Türkiye & SP-API", slug: "amazon-fba-tr", categoryName: "Global Pazaryerleri & E-İhracat" },
+  { id: "b10", name: "Amazon Global (US, EU, UK)", slug: "amazon-global", categoryName: "Global Pazaryerleri & E-İhracat" },
+  { id: "b11", name: "Etsy & Vintage / Handmade", slug: "etsy-magaza", categoryName: "Global Pazaryerleri & E-İhracat" },
+  { id: "b12", name: "Mikro İhracat & ETGB Gümrük", slug: "mikro-ihracat", categoryName: "Global Pazaryerleri & E-İhracat" },
+  { id: "b13", name: "Dinamik Fiyatlandırma & Repricer", slug: "fiyat-strateji", categoryName: "Operasyon, Fiyat & Stok" },
+  { id: "b14", name: "Envanter & Çoklu Depo Yönetimi", slug: "stok-yonetim", categoryName: "Operasyon, Fiyat & Stok" },
+  { id: "b15", name: "Kargo, Lojistik & İade Yönetimi", slug: "kargo-lojistik", categoryName: "Operasyon, Fiyat & Stok" },
+  { id: "b16", name: "Tedarik Zinciri & XML Dropshipping", slug: "tedarik-zincir", categoryName: "Operasyon, Fiyat & Stok" },
+  { id: "b17", name: "Google Ads & Merchant Center", slug: "google-ads", categoryName: "Dijital Pazarlama & SEO" },
+  { id: "b18", name: "Meta Reklamları", slug: "meta-ads", categoryName: "Dijital Pazarlama & SEO" },
+  { id: "b19", name: "TikTok Shop & Influencer", slug: "tiktok-shop", categoryName: "Dijital Pazarlama & SEO" },
+  { id: "b20", name: "E-Ticaret SEO & Ürün Açıklamaları", slug: "seo-icerik", categoryName: "Dijital Pazarlama & SEO" },
+  { id: "b21", name: "Pazaryonetimi REST API & Webhook", slug: "api-entegrasyon", categoryName: "Teknik, Yazılım & ERP" },
+  { id: "b22", name: "ERP & Muhasebe Entegrasyonu", slug: "erp-muhasebe", categoryName: "Teknik, Yazılım & ERP" },
+  { id: "b23", name: "E-Ticaret Altyapıları & AI Araçları", slug: "eticaret-yazilim", categoryName: "Teknik, Yazılım & ERP" },
+  { id: "b24", name: "E-Ticaret Vergi, E-Fatura & KDV", slug: "vergi-muhasebe", categoryName: "Mali & Hukuki Mevzuat" },
+  { id: "b25", name: "KVKK, Marka Tescili & Haklar", slug: "kvkk-hukuk", categoryName: "Mali & Hukuki Mevzuat" },
+];
+
 export default function NewTopicPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const preselectedBoardParam = searchParams.get("board");
   const { data: session, status } = useSession();
 
-  const [boards, setBoards] = useState<BoardOption[]>([]);
-  const [isLoadingBoards, setIsLoadingBoards] = useState(true);
+  const [boards, setBoards] = useState<BoardOption[]>(DEFAULT_BOARD_OPTIONS);
+  const [isLoadingBoards, setIsLoadingBoards] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [selectedBoard, setSelectedBoard] = useState<BoardOption | null>(null);
+  const [selectedBoard, setSelectedBoard] = useState<BoardOption | null>(
+    DEFAULT_BOARD_OPTIONS.find(b => b.id === preselectedBoardParam || b.slug === preselectedBoardParam) || DEFAULT_BOARD_OPTIONS[0]
+  );
   const [showBoardDropdown, setShowBoardDropdown] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
@@ -41,22 +69,27 @@ export default function NewTopicPage() {
   useEffect(() => {
     fetchForumBoards()
       .then((categories) => {
-        const flat = categories.flatMap((category) =>
-          category.boards.map((board) => ({
-            id: board.id,
-            name: board.name,
-            slug: board.slug,
-            description: board.description,
-            categoryName: category.name,
-          })),
-        );
-        setBoards(flat);
+        if (categories && categories.length > 0) {
+          const flat = categories.flatMap((category) =>
+            category.boards.map((board) => ({
+              id: board.id,
+              name: board.name,
+              slug: board.slug,
+              description: board.description,
+              categoryName: category.name,
+            })),
+          );
+          setBoards(flat);
+          if (preselectedBoardParam) {
+            const found = flat.find(b => b.id === preselectedBoardParam || b.slug === preselectedBoardParam);
+            if (found) setSelectedBoard(found);
+          }
+        }
       })
       .catch((error) => {
         console.error("[forum/new-topic] Board yükleme hatası:", error);
-      })
-      .finally(() => setIsLoadingBoards(false));
-  }, []);
+      });
+  }, [preselectedBoardParam]);
 
   const addTag = () => {
     const value = tagInput.trim();
