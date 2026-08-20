@@ -84,11 +84,7 @@ export async function GET(
               }
             }
           },
-          tags: {
-            include: {
-              tag: true
-            }
-          },
+          tags: true,
           _count: {
             select: {
               posts: true,
@@ -102,7 +98,9 @@ export async function GET(
 
     const formattedTopics = topics.map(topic => {
       const lastPost = topic.posts[0];
-      const authorName = topic.author?.user?.firstName + ' ' + topic.author?.user?.lastName || 'Bilinmiyor';
+      const authorName = topic.author?.user?.firstName && topic.author?.user?.lastName
+        ? `${topic.author.user.firstName} ${topic.author.user.lastName}`
+        : topic.author?.displayName || 'Bilinmiyor';
       
       return {
         id: topic.id,
@@ -111,23 +109,25 @@ export async function GET(
         author: {
           id: topic.author?.id,
           name: authorName,
-          avatar: topic.author?.user?.image || authorName.slice(0, 2).toUpperCase(),
-          level: topic.author?.level?.toString() || 'Üye',
+          avatar: topic.author?.avatarUrl || topic.author?.user?.image || authorName.slice(0, 2).toUpperCase(),
+          level: topic.author?.userLevel?.title || topic.author?.customTitle || 'Üye',
           isStaff: topic.author?.isStaff || false
         },
-        replies: topic._count.posts - 1,
+        replies: topic.replyCount || (topic._count.posts > 0 ? topic._count.posts - 1 : 0),
         views: topic.viewCount,
         lastPost: {
-          author: lastPost?.author?.user?.firstName + ' ' + lastPost?.author?.user?.lastName || authorName,
+          author: lastPost?.author?.user?.firstName && lastPost?.author?.user?.lastName
+            ? `${lastPost.author.user.firstName} ${lastPost.author.user.lastName}`
+            : lastPost?.author?.displayName || authorName,
           date: topic.lastPostAt || topic.createdAt
         },
         createdAt: topic.createdAt,
-        isPinned: topic.type === 'STICKY' || topic.isPinned,
-        isLocked: topic.status === 'CLOSED' || topic.isLocked,
+        isPinned: topic.type === 'STICKY' || topic.type === 'ANNOUNCEMENT',
+        isLocked: topic.status === 'CLOSED',
         isSolved: topic.status === 'SOLVED',
         isHot: topic.viewCount > 1000 || topic._count.posts > 20,
-        hasPoll: topic.pollId !== null,
-        tags: topic.tags.map(t => t.tag.name)
+        hasPoll: topic.hasPoll,
+        tags: topic.tags.map(t => t.name)
       };
     });
 

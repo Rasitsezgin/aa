@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     ClipboardList, PlusCircle, CheckCircle2, Clock, AlertTriangle,
@@ -8,6 +8,9 @@ import {
     Circle, ArrowUpRight, BarChart3,
     LucideIcon
 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { getTasks, createTask } from '@/app/actions/tasks';
+import { toast } from 'sonner';
 
 type Priority = 'high' | 'medium' | 'low';
 type Status = 'todo' | 'in-progress' | 'review' | 'done';
@@ -37,17 +40,66 @@ interface Task {
     progress: number;
 }
 
-import { useTasks } from '@/lib/hooks';
-
 export default function TaskManagerPage() {
-    const { data: tasksData, loading: isLoading } = useTasks();
+    const { data: session } = useSession();
+    const tenantId = (session?.user as any)?.tenantId || "";
+
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [view, setView] = useState<'board' | 'list'>('board');
     const [searchTerm, setSearchTerm] = useState('');
     const [showCreate, setShowCreate] = useState(false);
 
-    const tasks = Array.isArray(tasksData) ? (tasksData as Task[]) : [];
-    const columns: Status[] = ['todo', 'in-progress', 'review', 'done'];
+    // Form states
+    const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'Orta', dueDate: '' });
+    const [isCreating, setIsCreating] = useState(false);
 
+    useEffect(() => {
+        if (!tenantId) return;
+        
+        const loadTasks = async () => {
+            setIsLoading(true);
+            try {
+                const data = await getTasks(tenantId);
+                setTasks(data as Task[]);
+            } catch (error) {
+                console.error("Görevler yüklenemedi", error);
+                toast.error("Görevler yüklenirken bir hata oluştu.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadTasks();
+    }, [tenantId]);
+
+    const handleCreateTask = async () => {
+        if (!newTask.title.trim()) {
+            toast.error("Görev başlığı zorunludur.");
+            return;
+        }
+
+        setIsCreating(true);
+        try {
+            const res = await createTask(tenantId, newTask);
+            if (res.success) {
+                toast.success("Görev oluşturuldu!");
+                setShowCreate(false);
+                setNewTask({ title: '', description: '', priority: 'Orta', dueDate: '' });
+                // Refresh tasks
+                const data = await getTasks(tenantId);
+                setTasks(data as Task[]);
+            } else {
+                toast.error(res.error || "Görev oluşturulamadı.");
+            }
+        } catch (error) {
+            toast.error("Beklenmeyen bir hata oluştu.");
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
+    const columns: Status[] = ['todo', 'in-progress', 'review', 'done'];
     const filteredTasks = tasks.filter(t => t.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const totalTasks = tasks.length;
@@ -56,17 +108,17 @@ export default function TaskManagerPage() {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 pb-20">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
                         <ClipboardList className="w-7 h-7 text-indigo-400" /> Görev & Proje Yönetimi
                     </h1>
                     <p className="text-sm text-slate-500 mt-1">Ekip görevlerini takip edin ve yönetin</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                     <div className="flex gap-1 bg-surface rounded-xl p-1 border border-border">
-                        <button onClick={() => setView('board')} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${view === 'board' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}>Board</button>
-                        <button onClick={() => setView('list')} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${view === 'list' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}>Liste</button>
+                        <button onClick={() => setView('board')} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${view === 'board' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-foreground'}`}>Board</button>
+                        <button onClick={() => setView('list')} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${view === 'list' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-foreground'}`}>Liste</button>
                     </div>
                     <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm transition-colors">
                         <PlusCircle className="w-4 h-4" /> Yeni Görev
@@ -75,16 +127,16 @@ export default function TaskManagerPage() {
             </div>
 
             {/* Progress & Search */}
-            <div className="flex gap-4 items-center">
+            <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Görev ara..."
                         className="w-full pl-10 pr-4 py-2.5 bg-surface rounded-xl text-sm text-foreground border border-border focus:border-indigo-500 focus:outline-none" />
                 </div>
-                <div className="flex items-center gap-3 bg-surface rounded-xl border border-border px-4 py-2.5">
+                <div className="flex items-center gap-3 bg-surface rounded-xl border border-border px-4 py-2.5 shrink-0">
                     <BarChart3 className="w-4 h-4 text-indigo-400" />
-                    <div className="w-32 h-2 bg-background rounded-full">
-                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${progressPct}%` }} />
+                    <div className="w-32 h-2 bg-background rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }} />
                     </div>
                     <span className="text-xs text-foreground font-medium">{progressPct}%</span>
                     <span className="text-xs text-slate-500">{doneTasks}/{totalTasks}</span>
@@ -106,7 +158,12 @@ export default function TaskManagerPage() {
                                         <span className="text-xs text-slate-600 bg-background px-2 py-0.5 rounded-full">{colTasks.length}</span>
                                     </div>
                                 </div>
-                                {colTasks.map((task, i) => {
+                                
+                                {isLoading ? (
+                                    <div className="text-center py-8 bg-background/20 rounded-xl border border-dashed border-border/50">
+                                        <p className="text-[10px] text-slate-500 animate-pulse">Yükleniyor...</p>
+                                    </div>
+                                ) : colTasks.map((task, i) => {
                                     const prCfg = priorityConfig[task.priority as Priority];
                                     return (
                                         <motion.div key={task.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
@@ -116,7 +173,7 @@ export default function TaskManagerPage() {
                                                 <button className="text-slate-600 hover:text-foreground"><MoreHorizontal className="w-4 h-4" /></button>
                                             </div>
                                             <h4 className="text-sm font-medium text-foreground mb-1">{task.title}</h4>
-                                            <p className="text-[10px] text-slate-500 mb-3">{task.description}</p>
+                                            {task.description && <p className="text-[10px] text-slate-500 mb-3">{task.description}</p>}
                                             {task.progress > 0 && task.progress < 100 && (
                                                 <div className="mb-3">
                                                     <div className="h-1 bg-background rounded-full">
@@ -125,14 +182,16 @@ export default function TaskManagerPage() {
                                                     <div className="text-[10px] text-slate-500 mt-1">{task.progress}%</div>
                                                 </div>
                                             )}
-                                            <div className="flex flex-wrap gap-1 mb-3">
-                                                {task.tags.map((tag: string) => (
-                                                    <span key={tag} className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 text-[10px]">{tag}</span>
-                                                ))}
-                                            </div>
+                                            {task.tags && task.tags.length > 0 && (
+                                                <div className="flex flex-wrap gap-1 mb-3">
+                                                    {task.tags.map((tag: string) => (
+                                                        <span key={tag} className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 text-[10px]">{tag}</span>
+                                                    ))}
+                                                </div>
+                                            )}
                                             <div className="flex items-center justify-between text-[10px] text-slate-500">
                                                 <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {task.assignee}</span>
-                                                <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {task.dueDate}</span>
+                                                {task.dueDate && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {task.dueDate}</span>}
                                             </div>
                                         </motion.div>
                                     );
@@ -154,7 +213,7 @@ export default function TaskManagerPage() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="text-slate-500 text-xs border-b border-border">
+                                <tr className="text-slate-500 text-xs border-b border-border bg-muted/20">
                                     <th className="text-left px-4 py-3 font-medium">Görev</th>
                                     <th className="text-left px-4 py-3 font-medium">Durum</th>
                                     <th className="text-left px-4 py-3 font-medium">Öncelik</th>
@@ -164,7 +223,19 @@ export default function TaskManagerPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredTasks.map((task, i) => {
+                                {isLoading ? (
+                                    <tr>
+                                        <td colSpan={6} className="px-4 py-8 text-center text-slate-500 text-xs animate-pulse">
+                                            Görevler yükleniyor...
+                                        </td>
+                                    </tr>
+                                ) : filteredTasks.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="px-4 py-8 text-center text-slate-500 text-xs">
+                                            Görev bulunamadı.
+                                        </td>
+                                    </tr>
+                                ) : filteredTasks.map((task, i) => {
                                     const sCfg = statusConfig[task.status as Status];
                                     const pCfg = priorityConfig[task.priority as Priority];
                                     return (
@@ -172,14 +243,20 @@ export default function TaskManagerPage() {
                                             className="border-b border-border/50 hover:bg-background/50">
                                             <td className="px-4 py-3">
                                                 <div className="text-xs text-foreground font-medium">{task.title}</div>
-                                                <div className="flex gap-1 mt-1">{task.tags.map((t: string) => <span key={t} className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 text-[10px]">{t}</span>)}</div>
+                                                {task.tags && task.tags.length > 0 && (
+                                                    <div className="flex gap-1 mt-1">
+                                                        {task.tags.map((t: string) => <span key={t} className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 text-[10px]">{t}</span>)}
+                                                    </div>
+                                                )}
                                             </td>
                                             <td className="px-4 py-3"><span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${sCfg.bg} ${sCfg.color}`}><sCfg.icon className="w-3 h-3" /> {sCfg.label}</span></td>
                                             <td className="px-4 py-3"><span className={`text-xs ${pCfg.color}`}>{pCfg.label}</span></td>
                                             <td className="px-4 py-3 text-xs text-slate-400">{task.assignee}</td>
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-16 h-1.5 bg-background rounded-full"><div className="h-full bg-indigo-500 rounded-full" style={{ width: `${task.progress}%` }} /></div>
+                                                    <div className="w-16 h-1.5 bg-background rounded-full overflow-hidden">
+                                                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${task.progress}%` }} />
+                                                    </div>
                                                     <span className="text-xs text-slate-400">{task.progress}%</span>
                                                 </div>
                                             </td>
@@ -195,40 +272,56 @@ export default function TaskManagerPage() {
 
             {/* Create Modal */}
             {showCreate && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowCreate(false)}>
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => !isCreating && setShowCreate(false)}>
                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
                         className="bg-surface rounded-2xl border border-border p-6 w-full max-w-lg" onClick={e => e.stopPropagation()}>
                         <h3 className="text-lg font-semibold text-foreground mb-4">Yeni Görev Oluştur</h3>
                         <div className="space-y-3">
                             <div>
-                                <label className="text-xs text-slate-400 block mb-1">Başlık</label>
-                                <input placeholder="Görev başlığı" className="w-full px-3 py-2 bg-background rounded-lg text-sm text-foreground border border-border focus:border-indigo-500 focus:outline-none" />
+                                <label className="text-xs text-slate-400 block mb-1">Başlık *</label>
+                                <input 
+                                    value={newTask.title}
+                                    onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                                    placeholder="Görev başlığı" 
+                                    className="w-full px-3 py-2 bg-background rounded-lg text-sm text-foreground border border-border focus:border-indigo-500 focus:outline-none" 
+                                />
                             </div>
                             <div>
                                 <label className="text-xs text-slate-400 block mb-1">Açıklama</label>
-                                <textarea placeholder="Detaylı açıklama..." rows={2}
-                                    className="w-full px-3 py-2 bg-background rounded-lg text-sm text-foreground border border-border focus:border-indigo-500 focus:outline-none resize-none" />
+                                <textarea 
+                                    value={newTask.description}
+                                    onChange={(e) => setNewTask({...newTask, description: e.target.value})}
+                                    placeholder="Detaylı açıklama..." rows={2}
+                                    className="w-full px-3 py-2 bg-background rounded-lg text-sm text-foreground border border-border focus:border-indigo-500 focus:outline-none resize-none" 
+                                />
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-xs text-slate-400 block mb-1">Öncelik</label>
-                                    <select className="w-full px-3 py-2 bg-background rounded-lg text-sm text-foreground border border-border">
+                                    <select 
+                                        value={newTask.priority}
+                                        onChange={(e) => setNewTask({...newTask, priority: e.target.value})}
+                                        className="w-full px-3 py-2 bg-background rounded-lg text-sm text-foreground border border-border"
+                                    >
                                         <option>Yüksek</option><option>Orta</option><option>Düşük</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-xs text-slate-400 block mb-1">Atanan</label>
-                                    <input placeholder="Kişi" className="w-full px-3 py-2 bg-background rounded-lg text-sm text-foreground border border-border" />
-                                </div>
-                                <div>
                                     <label className="text-xs text-slate-400 block mb-1">Bitiş Tarihi</label>
-                                    <input type="date" className="w-full px-3 py-2 bg-background rounded-lg text-sm text-foreground border border-border" />
+                                    <input 
+                                        type="date" 
+                                        value={newTask.dueDate}
+                                        onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
+                                        className="w-full px-3 py-2 bg-background rounded-lg text-sm text-foreground border border-border" 
+                                    />
                                 </div>
                             </div>
                         </div>
                         <div className="flex justify-end gap-2 mt-6">
-                            <button onClick={() => setShowCreate(false)} className="px-4 py-2 text-sm text-slate-400 hover:text-foreground">İptal</button>
-                            <button className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium">Oluştur</button>
+                            <button disabled={isCreating} onClick={() => setShowCreate(false)} className="px-4 py-2 text-sm text-slate-400 hover:text-foreground">İptal</button>
+                            <button disabled={isCreating} onClick={handleCreateTask} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors">
+                                {isCreating ? "Oluşturuluyor..." : "Oluştur"}
+                            </button>
                         </div>
                     </motion.div>
                 </div>

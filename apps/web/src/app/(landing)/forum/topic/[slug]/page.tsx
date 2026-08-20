@@ -11,9 +11,11 @@ import {
   ThumbsUp, Heart, CheckCircle, Clock, MoreHorizontal, Reply,
   Share2, Flag, Bookmark, ChevronLeft, ChevronRight, User,
   Shield, Award, Star, Image as ImageIcon, Smile, Bold, Italic,
-  Link as LinkIcon, List, Code, Send, Loader2
+  Link as LinkIcon, List, Code, Send, Loader2, Sparkles, ShieldCheck, Zap
 } from "lucide-react";
 import { communityService } from "@/lib/services/community-service";
+import ForumAiAssistantWidget from "@/components/forum/ForumAiAssistantWidget";
+import ForumKvkkBlurModal from "@/components/forum/ForumKvkkBlurModal";
 
 interface ForumTopic {
   id: string;
@@ -91,6 +93,7 @@ export default function ForumTopicPage() {
   const [reportReason, setReportReason] = useState('spam');
   const [reportDescription, setReportDescription] = useState('');
   const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [isKvkkModalOpen, setIsKvkkModalOpen] = useState(false);
   const { data: session, status } = useSession();
 
   const openReport = (target: { postId?: string; topicId?: string }) => {
@@ -295,6 +298,19 @@ export default function ForumTopicPage() {
           </div>
         </div>
 
+        {/* Pazaryonetimi AI Bot Solution Widget */}
+        <div className="mb-6">
+          <ForumAiAssistantWidget
+            topicTitle={topic.title}
+            topicBoard={topic.board?.name}
+            recommendedTool={{
+              name: 'Dinamik Fiyat & Repricer Motoru',
+              description: 'Kâr marjınızı ve taban fiyatınızı koruyarak otomatik fiyat güncelleyin.',
+              url: '/features/repricer'
+            }}
+          />
+        </div>
+
         {/* Posts */}
         <div className="space-y-4">
           {posts.map((post, index) => (
@@ -486,8 +502,14 @@ export default function ForumTopicPage() {
                   <Code className="w-4 h-4 text-slate-600" />
                 </button>
                 <div className="w-px h-6 bg-slate-300 mx-1"></div>
-                <button className="p-1.5 hover:bg-slate-200 rounded" title="Resim">
-                  <ImageIcon className="w-4 h-4 text-slate-600" />
+                <button
+                  type="button"
+                  onClick={() => setIsKvkkModalOpen(true)}
+                  className="px-2 py-1 bg-orange-50 hover:bg-orange-100 text-orange-700 text-xs font-bold rounded flex items-center gap-1 border border-orange-200 transition-colors"
+                  title="Ekran Görüntüsü Yükle ve KVKK Gizle"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-orange-600" />
+                  <span>KVKK Ekran Maskele</span>
                 </button>
                 <button className="p-1.5 hover:bg-slate-200 rounded" title="Emoji">
                   <Smile className="w-4 h-4 text-slate-600" />
@@ -594,6 +616,15 @@ export default function ForumTopicPage() {
           </div>
         </div>
       )}
+
+      {/* KVKK Privacy Blur Modal */}
+      <ForumKvkkBlurModal
+        isOpen={isKvkkModalOpen}
+        onClose={() => setIsKvkkModalOpen(false)}
+        onImageMasked={(dataUrl) => {
+          setReplyContent((prev) => prev + `\n\n![Maskelenmiş Ekran Görüntüsü](${dataUrl})\n`);
+        }}
+      />
     </div>
   );
 }

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { generateProductContent } from '@/app/actions/ai-wizard';
 
 const steps = [
     { id: 1, title: 'Görsel Yükle', icon: ImageIcon, description: 'Ham ürün fotoğrafı' },
@@ -38,12 +39,7 @@ export default function AiWizardPage() {
     const [generatedTitle, setGeneratedTitle] = useState('');
     const [generatedDesc, setGeneratedDesc] = useState('');
     const [generatedTags, setTags] = useState<string[]>([]);
-    
-    // Sample final mock data
-    const mockProcessedImage = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80'; // Clean shoe image
-    const finalTitle = 'Premium Erkek Koşu Ayakkabısı - CloudWalker X1';
-    const finalDesc = 'Ultra hafif tasarımı ve nefes alabilen özel dokuma üst yüzeyi ile gün boyu konfor sağlar. Gelişmiş taban teknolojisi sayesinde her adımda maksimum yastıklama sunarken, kaymaz kauçuk dış tabanı ile her zeminde güvenli tutuş garanti eder. Spor ve günlük kullanım için idealdir.';
-    const finalTags = ['Spor Ayakkabı', 'Koşu', 'Erkek', 'Konfor', 'Premium'];
+    const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -57,7 +53,7 @@ export default function AiWizardPage() {
         }
     };
 
-    const processImage = () => {
+    const processImage = async () => {
         setIsProcessingImage(true);
         setCurrentStep(2);
         
@@ -73,40 +69,60 @@ export default function AiWizardPage() {
 
             if (progress >= 100) {
                 clearInterval(interval);
-                setIsProcessingImage(false);
             }
         }, 300);
+
+        try {
+            const result = await generateProductContent(selectedImage || '');
+            clearInterval(interval);
+            setImageProgress(100);
+            setImageStatus('Tamamlandı');
+            if (result.success && result.data) {
+                setProcessedImageUrl(result.data.processedImageUrl);
+                setGeneratedTitle(result.data.title);
+                setGeneratedDesc(result.data.description);
+                setTags(result.data.tags);
+            }
+        } catch (error) {
+            console.error('Error processing image:', error);
+            clearInterval(interval);
+            setImageStatus('Hata oluştu');
+        } finally {
+            setIsProcessingImage(false);
+        }
     };
 
     const generateContent = () => {
         setIsGeneratingContent(true);
         setCurrentStep(3);
-        setGeneratedTitle('');
-        setGeneratedDesc('');
-        setTags([]);
 
-        // Simulate typing effect for AI generation
+        // We already fetched the data from processImage, so just simulate a typing effect for UI
         setTimeout(() => {
             let titleIdx = 0;
+            const finalTitleStr = generatedTitle || 'Yeni Ürün Başlığı';
+            const finalDescStr = generatedDesc || 'Ürün açıklaması';
+            
+            setGeneratedTitle('');
+            
             const titleInterval = setInterval(() => {
-                setGeneratedTitle(finalTitle.substring(0, titleIdx + 1));
+                setGeneratedTitle(finalTitleStr.substring(0, titleIdx + 1));
                 titleIdx++;
-                if (titleIdx === finalTitle.length) {
+                if (titleIdx === finalTitleStr.length) {
                     clearInterval(titleInterval);
                     
                     let descIdx = 0;
+                    setGeneratedDesc('');
                     const descInterval = setInterval(() => {
-                        setGeneratedDesc(finalDesc.substring(0, descIdx + 1));
+                        setGeneratedDesc(finalDescStr.substring(0, descIdx + 1));
                         descIdx++;
-                        if (descIdx === finalDesc.length) {
+                        if (descIdx === finalDescStr.length) {
                             clearInterval(descInterval);
-                            setTags(finalTags);
                             setIsGeneratingContent(false);
                         }
-                    }, 50); // Speed of description typing
+                    }, 20);
                 }
-            }, 50); // Speed of title typing
-        }, 1500);
+            }, 50);
+        }, 1000);
     };
 
     return (
@@ -237,7 +253,7 @@ export default function AiWizardPage() {
                                     ) : null}
                                     
                                     <img 
-                                        src={!isProcessingImage ? mockProcessedImage : selectedImage!} 
+                                        src={!processedImageUrl ? selectedImage! : processedImageUrl} 
                                         alt="Processing" 
                                         className="w-full h-full object-cover" 
                                     />
@@ -297,7 +313,7 @@ export default function AiWizardPage() {
                         >
                             <div className="w-full lg:w-1/3">
                                 <div className="aspect-square rounded-3xl overflow-hidden border border-border sticky top-8">
-                                    <img src={mockProcessedImage} alt="Final" className="w-full h-full object-cover" />
+                                    <img src={processedImageUrl || ''} alt="Final" className="w-full h-full object-cover" />
                                 </div>
                             </div>
                             
@@ -317,7 +333,7 @@ export default function AiWizardPage() {
                                             </label>
                                             <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl text-lg font-bold min-h-[60px] flex items-center">
                                                 {generatedTitle}
-                                                <span className="w-2 h-5 bg-primary ml-1 animate-pulse" style={{ opacity: generatedTitle.length === finalTitle.length ? 0 : 1 }} />
+                                                <span className="w-2 h-5 bg-primary ml-1 animate-pulse" style={{ opacity: isGeneratingContent ? 1 : 0 }} />
                                             </div>
                                         </div>
 
@@ -326,9 +342,16 @@ export default function AiWizardPage() {
                                             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                                 <Sparkles className="w-3 h-3 text-primary" /> Üretilen Açıklama
                                             </label>
+                                            <div className="flex gap-2 mb-6">
+                                                {generatedTags.map(tag => (
+                                                    <span key={tag} className="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-xs text-slate-600 dark:text-slate-300">
+                                                        #{tag}
+                                                    </span>
+                                                ))}
+                                            </div>
                                             <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-300 min-h-[140px] leading-relaxed">
                                                 {generatedDesc}
-                                                <span className="inline-block w-2 h-4 bg-primary ml-1 animate-pulse align-middle" style={{ opacity: generatedDesc.length === finalDesc.length ? 0 : 1 }} />
+                                                <span className="inline-block w-2 h-4 bg-primary ml-1 animate-pulse align-middle" style={{ opacity: isGeneratingContent ? 1 : 0 }} />
                                             </div>
                                         </div>
 
@@ -350,7 +373,7 @@ export default function AiWizardPage() {
                                             </div>
                                         </div>
 
-                                        {generatedDesc.length === finalDesc.length && (
+                                        {!isGeneratingContent && generatedDesc.length > 0 && (
                                             <div className="pt-6 flex gap-4 border-t border-border mt-8">
                                                 <button className="flex-1 py-4 border border-border rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                                     Yeniden Yaz
@@ -385,9 +408,9 @@ export default function AiWizardPage() {
                             
                             <div className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-6 text-left my-8">
                                 <div className="flex items-center gap-4 border-b border-slate-200 dark:border-white/10 pb-4 mb-4">
-                                    <img src={mockProcessedImage} className="w-16 h-16 rounded-lg object-cover" alt="Thumb" />
+                                    <img src={processedImageUrl || ''} className="w-16 h-16 rounded-lg object-cover" alt="Thumb" />
                                     <div>
-                                        <h4 className="font-bold">{finalTitle}</h4>
+                                        <h4 className="font-bold">{generatedTitle}</h4>
                                         <p className="text-sm text-emerald-500 font-medium">Satışa Hazır - %98 SEO Skoru</p>
                                     </div>
                                 </div>

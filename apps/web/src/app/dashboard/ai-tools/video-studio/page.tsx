@@ -8,6 +8,7 @@ import {
     CheckCircle2, Wand2, Loader2, ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
+import { generateVideo as generateVideoAction } from '@/app/actions/video-studio';
 
 const templates = [
     { id: 'tiktok-trend', name: 'TikTok Trend', desc: 'Hızlı kesimler ve trend müziklerle viral ürün videosu.', icon: Zap },
@@ -17,15 +18,14 @@ const templates = [
 
 export default function VideoStudioPage() {
     const [step, setStep] = useState(1);
-    const [selectedImages, setSelectedImages] = useState<string[]>([
-        'https://images.unsplash.com/photo-15df202027209-66c888d229f3?w=500&auto=format&fit=crop&q=60', // Mock product 1
-        'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=500&auto=format&fit=crop&q=60'  // Mock product 2
-    ]);
+    const [selectedImages, setSelectedImages] = useState<string[]>([]);
     const [selectedTemplate, setSelectedTemplate] = useState('tiktok-trend');
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationProgress, setGenerationProgress] = useState(0);
 
-    const generateVideo = () => {
+    const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
+
+    const generateVideo = async () => {
         setIsGenerating(true);
         setStep(3);
 
@@ -38,9 +38,22 @@ export default function VideoStudioPage() {
 
             if (progress === 100) {
                 clearInterval(interval);
-                setTimeout(() => setIsGenerating(false), 500);
             }
         }, 500);
+
+        try {
+            const result = await generateVideoAction(selectedImages, selectedTemplate);
+            clearInterval(interval);
+            setGenerationProgress(100);
+            if (result.success && result.data) {
+                setGeneratedVideoUrl(result.data.videoUrl);
+            }
+        } catch (error) {
+            console.error('Video generation failed:', error);
+            clearInterval(interval);
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     return (
@@ -183,15 +196,17 @@ export default function VideoStudioPage() {
                                 </div>
                             ) : (
                                 <div className="w-full grid lg:grid-cols-2 gap-8">
-                                    {/* Video Player Mock */}
                                     <div className="aspect-[9/16] bg-black rounded-3xl overflow-hidden relative shadow-2xl mx-auto w-full max-w-sm">
-                                        {/* Fake Video Content */}
-                                        <img src={selectedImages[0]} alt="Video Thumbnail" className="absolute inset-0 w-full h-full object-cover opacity-80" />
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <button className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30 transition-all hover:scale-110">
-                                                <Play className="w-8 h-8 ml-1" />
-                                            </button>
-                                        </div>
+                                        {generatedVideoUrl ? (
+                                            <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
+                                                <source src={generatedVideoUrl} type="video/mp4" />
+                                            </video>
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center w-full h-full gap-4 text-slate-400 bg-slate-900">
+                                                <Video className="w-12 h-12 opacity-50" />
+                                                <span>Önizleme Yok</span>
+                                            </div>
+                                        )}
                                         <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
                                             <div className="flex gap-2 mb-3">
                                                 <span className="px-2 py-1 bg-primary text-white text-[10px] font-bold rounded">Trend Müzik</span>

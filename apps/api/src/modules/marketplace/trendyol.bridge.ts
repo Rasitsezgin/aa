@@ -634,12 +634,60 @@ export class TrendyolBridge implements MarketplaceBridge {
       };
     }
 
+    const resData = (await response.json()) as Record<string, unknown>;
+    const batchRequestId = String(resData.batchRequestId || resData.id || '');
+
     return {
       success: true,
+      batchRequestId,
       ...responseMeta,
       source: 'api',
       status: response.status,
     };
+  }
+
+  /**
+   * Trendyol Toplu Güncelleme (Batch Request) Durumu Sorgulama
+   * GET /suppliers/{supplierId}/products/batch-requests/{batchRequestId}
+   */
+  async checkBatchRequestStatus(batchRequestId: string): Promise<Record<string, unknown>> {
+    const endpoint = `/suppliers/${encodeURIComponent(this.supplierId)}/products/batch-requests/${encodeURIComponent(batchRequestId)}`;
+    const result = await this.requestTrendyol(endpoint);
+    return result || { success: false, message: 'Batch request bilgisi alınamadı' };
+  }
+
+  /**
+   * Trendyol E-Fatura Bağlantısı Yükleme (Sıkı API kuralı)
+   * SEND invoice link for claim/order
+   */
+  async uploadInvoiceLink(invoiceNumber: string, invoiceUrl: string, shipmentPackageId: number): Promise<Record<string, unknown>> {
+    const url = `${this.baseUrl}/suppliers/${encodeURIComponent(this.supplierId)}/supplier-invoice-links`;
+    const auth = Buffer.from(`${this.apiKey}:${this.apiSecret}`).toString('base64');
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${auth}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'User-Agent': `${this.supplierId} - SelfIntegration`,
+        },
+        body: JSON.stringify({
+          invoiceNumber,
+          invoiceLink: invoiceUrl,
+          shipmentPackageId,
+        }),
+      });
+
+      return {
+        success: response.ok,
+        status: response.status,
+        message: response.ok ? 'Fatura bağlantısı Trendyol\'a başarıyla iletildi' : 'Fatura iletme başarısız',
+      };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
   }
 
   private async parseApiErrorBody(response: Response): Promise<string | null> {

@@ -45,11 +45,7 @@ export async function GET(
             userLevel: true
           }
         },
-        tags: {
-          include: {
-            tag: true
-          }
-        },
+        tags: true,
         poll: {
           include: {
             options: {
@@ -121,7 +117,7 @@ export async function GET(
               }
             }
           },
-          edits: {
+          editHistory: {
             orderBy: { createdAt: 'desc' },
             take: 1
           },
@@ -132,7 +128,9 @@ export async function GET(
     ]);
 
     const formattedPosts = posts.map(post => {
-      const authorName = post.author?.user?.firstName + ' ' + post.author?.user?.lastName || 'Bilinmiyor';
+      const authorName = post.author?.user?.firstName && post.author?.user?.lastName
+        ? `${post.author.user.firstName} ${post.author.user.lastName}`
+        : post.author?.displayName || 'Bilinmiyor';
       
       // Reaksiyonları grupla
       const reactions = post.reactions.reduce((acc, r) => {
@@ -146,27 +144,27 @@ export async function GET(
         author: {
           id: post.author?.id,
           name: authorName,
-          avatar: post.author?.user?.image || authorName.slice(0, 2).toUpperCase(),
+          avatar: post.author?.avatarUrl || post.author?.user?.image || authorName.slice(0, 2).toUpperCase(),
           title: post.author?.customTitle || post.author?.primaryGroup?.name || 'Üye',
           isStaff: post.author?.isStaff || false,
           isOnline: post.author?.isOnline || false,
           reputation: post.author?.reputation || 0,
           postCount: post.author?.postCount || 0,
-          joinedAt: post.author?.user?.createdAt,
-          level: post.author?.userLevel?.name || 'Seviye 1',
-          badges: post.author?.badges.map(b => b.badge.name) || []
+          joinedAt: post.author?.user?.createdAt || post.author?.joinedAt,
+          level: post.author?.userLevel?.title || 'Seviye 1',
+          badges: post.author?.badges?.map(b => b.badge?.name).filter(Boolean) || []
         },
         content: post.content,
         contentHtml: post.contentHtml || post.content,
         createdAt: post.createdAt,
-        editedAt: post.editedAt,
+        editedAt: post.lastEditAt,
         editCount: post.editCount,
-        editReason: post.edits[0]?.reason,
+        editReason: post.editHistory?.[0]?.reason,
         reactions: Object.entries(reactions).map(([type, count]) => ({
           type,
           count
         })),
-        isBestAnswer: post.isBestAnswer,
+        isBestAnswer: topic.bestAnswerId === post.id,
         attachments: post.attachments.map(a => ({
           id: a.id,
           filename: a.filename,
@@ -176,7 +174,9 @@ export async function GET(
       };
     });
 
-    const topicAuthorName = topic.author?.user?.firstName + ' ' + topic.author?.user?.lastName || 'Bilinmiyor';
+    const topicAuthorName = topic.author?.user?.firstName && topic.author?.user?.lastName
+      ? `${topic.author.user.firstName} ${topic.author.user.lastName}`
+      : topic.author?.displayName || 'Bilinmiyor';
 
     return NextResponse.json({
       topic: {
@@ -188,23 +188,23 @@ export async function GET(
         author: {
           id: topic.author?.id,
           name: topicAuthorName,
-          avatar: topic.author?.user?.image || topicAuthorName.slice(0, 2).toUpperCase(),
+          avatar: topic.author?.avatarUrl || topic.author?.user?.image || topicAuthorName.slice(0, 2).toUpperCase(),
           isStaff: topic.author?.isStaff || false,
           reputation: topic.author?.reputation || 0,
           postCount: topic.author?.postCount || 0
         },
         board: topic.board,
         viewCount: topic.viewCount + 1, // Artırılmış değer
-        replyCount: totalPosts - 1,
+        replyCount: topic.replyCount || (totalPosts > 0 ? totalPosts - 1 : 0),
         reactionCount: topic._count.reactions,
         watcherCount: topic._count.watchers,
         isWatching: false, // Kullanıcı kontrolü gerekir
         createdAt: topic.createdAt,
         lastPostAt: topic.lastPostAt,
         tags: topic.tags.map(t => ({
-          name: t.tag.name,
-          slug: t.tag.slug,
-          color: t.tag.color
+          name: t.name,
+          slug: t.slug,
+          color: t.color
         })),
         poll: topic.poll ? {
           id: topic.poll.id,

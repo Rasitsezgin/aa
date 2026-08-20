@@ -214,6 +214,7 @@ model Tenant {
   marketplaceAttributes MarketplaceAttribute[]
   marketplaceCategories MarketplaceCategory[]
   marketplaceBrands     MarketplaceBrand[]
+  categoryMappings      CategoryMapping[]
 
   // Depo Yönetimi
   warehouses         Warehouse[]
@@ -437,6 +438,26 @@ model Integration {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  syncLogs  IntegrationSyncLog[]
+}
+
+model IntegrationSyncLog {
+  id            String      @id @default(uuid())
+  integrationId String
+  integration   Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  
+  syncType      String      // "ORDER", "PRODUCT", "STOCK", "PRICE"
+  status        String      // "SUCCESS", "FAILED", "IN_PROGRESS"
+  recordsSynced Int         @default(0) // Senkronize edilen kayıt sayısı
+  errorMessage  String?     @db.Text
+  
+  startedAt     DateTime    @default(now())
+  completedAt   DateTime?
+  
+  @@index([integrationId])
+  @@index([status])
+  @@index([syncType])
 }
 
 model MarketplaceProduct {
@@ -7753,6 +7774,24 @@ model MarketplaceCategory {
   @@index([parentId])
   @@index([isLeaf])
   @@index([isActive])
+}
+
+model CategoryMapping {
+  id                    String   @id @default(uuid())
+  tenantId              String
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  platform              String   // TRENDYOL, AMAZON, etc.
+  internalCategory      String   // Our internal category name/id
+  marketplaceCategoryId String   // The remote platform's category id
+  marketplaceCategoryName String? // For display purposes
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([tenantId, platform, internalCategory])
+  @@index([tenantId])
+  @@index([platform])
 }
 
 model MarketplaceBrand {

@@ -69,6 +69,7 @@ import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
 import { CleanupService } from './common/services/cleanup.service';
 import { CacheService } from './common/cache.service';
 import { resolveRedisConnectionConfig } from './common/redis.config';
+import { AiBlogGeneratorModule } from './modules/ai-blog-generator/ai-blog-generator.module';
 
 const schedulerEnabled = process.env.ENABLE_SCHEDULER === 'true';
 
@@ -160,6 +161,7 @@ function getBullConnection() {
     SearchModule,
     CommerceOpsModule,
     GrowthAiModule,
+    AiBlogGeneratorModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,0 +1,106 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service'; // Adjust path if needed
+import { Integration, OrderStatus, PaymentStatus } from '@prisma/client';
+
+@Injectable()
+export class TrendyolService {
+  private readonly logger = new Logger(TrendyolService.name);
+
+  constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Trendyol'dan son siparişleri çeker ve veritabanına kaydeder.
+   */
+  async fetchAndSyncOrders(integration: Integration) {
+    const { tenantId, apiKey, apiSecret, apiExtra } = integration;
+    
+    // apiExtra üzerinden merchantId/supplierId alındığını varsayıyoruz.
+    const extra = apiExtra as Record<string, any>;
+    const supplierId = extra?.supplierId || extra?.merchantId;
+
+    if (!supplierId || !apiKey || !apiSecret) {
+      throw new Error('Eksik Trendyol API bilgileri.');
+    }
+
+    const trendyolAuth = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64');
+    
+    // İki hafta öncesinden bugüne kadar olan yeni siparişler
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 14);
+    const startDateTimestamp = startDate.getTime();
+
+    const url = `https://api.trendyol.com/sapigw/suppliers/${supplierId}/orders?status=Created,Picking,Invoiced&startDate=${startDateTimestamp}`;
+
+    this.logger.debug(`Fetching Trendyol orders for Tenant: ${tenantId}`);
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${trendyolAuth}`,
+          'User-Agent': `${supplierId} - Pazaryonetimi`, // Trendyol IP Whitelist veya Integrator kurallarına dikkat edilmelidir.
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Trendyol API Hatası: HTTP ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const orders = data.content || [];
+
+      let syncedCount = 0;
+
+      for (const tOrder of orders) {
+        // Mevcut siparişi veritabanında ara
+        const existingOrder = await this.prisma.order.findFirst({
+          where: {
+            tenantId,
+            platform: 'TRENDYOL',
+            marketplaceOrderId: tOrder.orderNumber.toString(),
+          },
+        });
+
+        if (!existingOrder) {
+          // Yeni Sipariş Ekle
+          await this.prisma.order.create({
+            data: {
+              tenantId,
+              platform: 'TRENDYOL',
+              marketplaceOrderId: tOrder.orderNumber.toString(),
+              status: OrderStatus.CONFIRMED,
+              paymentStatus: PaymentStatus.PAID, // Pazaryeri siparişleri genelde ödenmiştir
+              customerName: `${tOrder.shipmentAddress?.firstName} ${tOrder.shipmentAddress?.lastName}`,
+              shippingAddress: tOrder.shipmentAddress?.fullAddress,
+              billingAddress: tOrder.invoiceAddress?.fullAddress,
+              totalAmount: tOrder.totalPrice,
+              taxAmount: 0, // Gerekirse hesaplanabilir
+              currency: 'TRY',
+              orderDate: new Date(tOrder.orderDate),
+              items: {
+                create: tOrder.lines.map((line: any) => ({
+                  sku: line.merchantSku,
+                  title: line.productName,
+                  quantity: line.quantity,
+                  unitPrice: line.price,
+                  taxRate: line.vatBaseAmount || 20, // Default VAT
+                })),
+              },
+            },
+          });
+          syncedCount++;
+        } else {
+          // Sipariş durumu güncellenebilir (İptal edildi vs.)
+          // Bu kısımda status mapping işlemleri yapılacaktır.
+        }
+      }
+
+      this.logger.log(`Tenant ${tenantId} için ${syncedCount} yeni Trendyol siparişi başarıyla eklendi.`);
+      return syncedCount;
+
+    } catch (error: any) {
+      this.logger.error(`Trendyol sipariş çekme hatası: ${error.message}`, error.stack);
+      throw error;
+    }
+  }
+}

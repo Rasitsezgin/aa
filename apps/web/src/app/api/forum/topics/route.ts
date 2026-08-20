@@ -101,7 +101,12 @@ export async function GET(request: Request) {
 
     const formattedTopics = topics.map((topic) => {
       const lastPost = topic.posts[0];
-      const authorName = formatUserName(topic.author?.user);
+      const authorUserName = formatUserName(topic.author?.user);
+      const authorName = authorUserName !== 'Bilinmiyor' ? authorUserName : (topic.author?.displayName || 'Satıcı');
+      const lastPostUserName = lastPost ? formatUserName(lastPost.author?.user) : null;
+      const lastPostAuthorName = (lastPostUserName && lastPostUserName !== 'Bilinmiyor')
+        ? lastPostUserName
+        : (lastPost?.author?.displayName || authorName);
 
       return {
         id: topic.id,
@@ -111,18 +116,18 @@ export async function GET(request: Request) {
           id: topic.author?.id,
           name: authorName,
           avatar: topic.author?.avatarUrl || topic.author?.user?.image || authorName.slice(0, 2).toUpperCase(),
-          level: topic.author?.userLevel?.title || topic.author?.primaryGroup?.title || 'Üye',
-          isStaff: topic.author?.primaryGroup?.isStaff || false,
+          level: topic.author?.userLevel?.title || topic.author?.customTitle || topic.author?.primaryGroup?.title || 'Üye',
+          isStaff: topic.author?.primaryGroup?.isStaff || topic.author?.isStaff || false,
         },
         board: {
           id: topic.board.id,
           name: topic.board.name,
           slug: topic.board.slug,
         },
-        replies: topic.replyCount,
-        views: topic.viewCount,
+        replies: topic.replyCount || 0,
+        views: topic.viewCount || 0,
         lastPost: {
-          author: lastPost ? formatUserName(lastPost.author?.user) : authorName,
+          author: lastPostAuthorName,
           date: topic.lastPostAt || topic.createdAt,
         },
         createdAt: topic.createdAt,

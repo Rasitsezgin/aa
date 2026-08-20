@@ -25,10 +25,12 @@ import {
     Settings,
     Sparkles
 } from 'lucide-react';
+import { useSession } from "next-auth/react";
 import { usePricingAnalysis, PricingItem } from '@/lib/hooks';
+import { getPricingRules, togglePricingRule } from '@/app/actions/pricing-rules';
 
 interface PricingRule {
-    id: number;
+    id: string;
     name: string;
     description: string;
     active: boolean;
@@ -55,19 +57,39 @@ interface PricingProduct extends Omit<Partial<PricingItem>, 'id'> {
 }
 
 export default function PricingPage() {
+    const { data: session } = useSession();
+    const tenantId = (session?.user as any)?.tenantId || "";
+    
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedPlatform, setSelectedPlatform] = useState('all');
     const [editingProduct, setEditingProduct] = useState<number | null>(null);
     const [showRules, setShowRules] = useState(false);
+    const [activePricingRules, setActivePricingRules] = useState<PricingRule[]>([]);
     const { analysis: apiPricing, loading } = usePricingAnalysis();
 
     const activeProducts = (Array.isArray(apiPricing) && apiPricing.length > 0) ? apiPricing : [];
-    const activePricingRules: PricingRule[] = [
-        { id: 1, name: 'Buy Box Takibi', description: 'Rakip fiyatının %2 altına otomatik indir', active: true, products: 0 },
-        { id: 2, name: 'Minimum Kar Marjı', description: 'Kar marjı %40\'un altına düşmesin', active: true, products: 0 },
-        { id: 3, name: 'Dinamik Fiyatlama', description: 'Talebe göre fiyatı optimize et', active: false, products: 0 },
-        { id: 4, name: 'Stok Bazlı Fiyat', description: 'Stok azaldıkça fiyatı artır', active: true, products: 0 }
-    ];
+
+    React.useEffect(() => {
+        if (tenantId) {
+            getPricingRules(tenantId).then(data => {
+                setActivePricingRules(data);
+            });
+        }
+    }, [tenantId]);
+
+    const handleRuleToggle = async (ruleId: string, currentState: boolean) => {
+        const newState = !currentState;
+        // Optimistic UI update
+        setActivePricingRules(prev => prev.map(r => r.id === ruleId ? { ...r, active: newState } : r));
+        
+        if (tenantId) {
+            const result = await togglePricingRule(tenantId, ruleId, newState);
+            if (!result.success) {
+                // Revert if failed
+                setActivePricingRules(prev => prev.map(r => r.id === ruleId ? { ...r, active: currentState } : r));
+            }
+        }
+    };
 
     const filteredProducts = (activeProducts as PricingProduct[]).filter((p) =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -236,9 +258,12 @@ export default function PricingPage() {
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <span className="text-xs text-slate-500">{rule.products} ürün</span>
-                                    <button className={`relative w-10 h-5 rounded-full transition-colors ${rule.active ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-700'}`}>
-                                        <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${rule.active ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                                    </button>
+                                                <div 
+                                                    className={`w-10 h-6 rounded-full transition-colors p-1 cursor-pointer ${rule.active ? 'bg-primary' : 'bg-muted'}`}
+                                                    onClick={() => handleRuleToggle(rule.id, rule.active)}
+                                                >
+                                                    <div className={`w-4 h-4 rounded-full bg-white transition-transform ${rule.active ? 'translate-x-4' : 'translate-x-0'}`} />
+                                                </div>
                                 </div>
                             </div>
                         ))}

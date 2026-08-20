@@ -193,16 +193,20 @@ export class ConfigurableProviderAdapter
       if (syncType === IntegrationSyncType.ORDERS) {
         const raw = await bridge.syncOrders();
         const orders = (raw?.orders ?? []) as Record<string, unknown>[];
+        // FIX: Burada siparişler normalize edilmeden dönülüyordu
+        const { normalizeGenericOrder } = require('../normalizers/order.normalizer');
+        const items = orders.map(o => normalizeGenericOrder(o, String(this.platform)));
+        
         return {
           success: true,
           tenantId: ctx.tenantId,
           providerId: this.providerId,
           syncType,
-          total: orders.length,
-          created: orders.length,
+          total: items.length,
+          created: items.length,
           updated: 0,
           failed: 0,
-          items: orders as unknown as NormalizedOrderDto[],
+          items,
           durationMs: Date.now() - started,
         };
       }

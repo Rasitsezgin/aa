@@ -4,35 +4,48 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
     MapPin, Package, Warehouse, TrendingUp, TrendingDown,
-    AlertTriangle, Eye, Filter, BarChart3
+    AlertTriangle, Eye, Filter, BarChart3, Clock, ArrowRight
 } from 'lucide-react';
 
-const warehouses = [
-    { id: 1, name: 'İstanbul Depo', city: 'İstanbul', products: 1245, capacity: 2000, value: 245000, status: 'active' as const, lat: 41.0, lng: 29.0 },
-    { id: 2, name: 'Ankara Depo', city: 'Ankara', products: 863, capacity: 1500, value: 178000, status: 'active' as const, lat: 39.9, lng: 32.9 },
-    { id: 3, name: 'İzmir Depo', city: 'İzmir', products: 567, capacity: 1000, value: 120000, status: 'active' as const, lat: 38.4, lng: 27.1 },
-    { id: 4, name: 'Antalya Depo', city: 'Antalya', products: 234, capacity: 500, value: 56000, status: 'warning' as const, lat: 36.9, lng: 30.7 },
-    { id: 5, name: 'Bursa Depo', city: 'Bursa', products: 489, capacity: 800, value: 98000, status: 'active' as const, lat: 40.2, lng: 29.0 },
-];
+import { useSession } from "next-auth/react";
+import { getWarehouses, getInventoryDetails } from '@/app/actions/inventory-map';
 
-const stockMovements = [
-    { from: 'İstanbul Depo', to: 'Ankara Depo', product: 'Samsung Galaxy S24', qty: 50, date: '2 saat önce', type: 'transfer' },
-    { from: 'Trendyol', to: 'İstanbul Depo', product: 'iPhone 15 Pro Max', qty: 100, date: '4 saat önce', type: 'incoming' },
-    { from: 'Ankara Depo', to: 'Müşteri', product: 'MacBook Air M3', qty: 12, date: '5 saat önce', type: 'outgoing' },
-    { from: 'İzmir Depo', to: 'Bursa Depo', product: 'AirPods Pro 2', qty: 80, date: '6 saat önce', type: 'transfer' },
-    { from: 'Tedarikçi', to: 'İzmir Depo', product: 'Sony WH-1000XM5', qty: 200, date: '1 gün önce', type: 'incoming' },
-];
-
-const lowStockItems = [
-    { name: 'iPhone 15 Pro Max', warehouse: 'Antalya Depo', current: 3, min: 20 },
-    { name: 'Samsung Galaxy S24', warehouse: 'İzmir Depo', current: 5, min: 15 },
-    { name: 'MacBook Air M3', warehouse: 'Ankara Depo', current: 2, min: 10 },
-    { name: 'AirPods Pro 2', warehouse: 'Antalya Depo', current: 8, min: 25 },
-];
+export interface Warehouse {
+    id: string;
+    name: string;
+    city: string;
+    products: number;
+    capacity: number;
+    value: number;
+    status: string;
+    lat: number;
+    lng: number;
+}
 
 export default function InventoryMapPage() {
-    const [selectedWarehouse, setSelectedWarehouse] = useState<number | null>(null);
+    const { data: session } = useSession();
+    const tenantId = (session?.user as any)?.tenantId || "";
+
+    const [selectedWarehouse, setSelectedWarehouse] = useState<string | null>(null);
     const [view, setView] = useState<'map' | 'list'>('map');
+    const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+    const [lowStockItems, setLowStockItems] = useState<any[]>([]);
+    const [stockMovements, setStockMovements] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    React.useEffect(() => {
+        if (tenantId) {
+            Promise.all([
+                getWarehouses(tenantId),
+                getInventoryDetails(tenantId)
+            ]).then(([wData, dData]) => {
+                setWarehouses(wData);
+                setLowStockItems(dData.lowStockItems);
+                setStockMovements(dData.stockMovements);
+                setIsLoading(false);
+            });
+        }
+    }, [tenantId]);
 
     const totalProducts = warehouses.reduce((a, w) => a + w.products, 0);
     const totalCapacity = warehouses.reduce((a, w) => a + w.capacity, 0);
@@ -58,13 +71,13 @@ export default function InventoryMapPage() {
                 {[
                     { label: 'Toplam Ürün', value: totalProducts.toLocaleString(), icon: Package, color: 'text-blue-400' },
                     { label: 'Depo Sayısı', value: warehouses.length.toString(), icon: Warehouse, color: 'text-indigo-400' },
-                    { label: 'Kapasite', value: `${Math.round((totalProducts / totalCapacity) * 100)}%`, icon: BarChart3, color: 'text-emerald-400' },
+                    { label: 'Kapasite', value: totalCapacity > 0 ? `${Math.round((totalProducts / totalCapacity) * 100)}%` : '0%', icon: BarChart3, color: 'text-emerald-400' },
                     { label: 'Toplam Değer', value: `₺${(totalValue / 1000).toFixed(0)}K`, icon: TrendingUp, color: 'text-amber-400' },
                 ].map((stat, i) => (
                     <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                         className="bg-surface rounded-xl border border-border p-5">
                         <stat.icon className={`w-5 h-5 ${stat.color} mb-2`} />
-                        <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                        <div className="text-2xl font-bold text-foreground">{isLoading ? '...' : stat.value}</div>
                         <div className="text-xs text-slate-500">{stat.label}</div>
                     </motion.div>
                 ))}
@@ -102,7 +115,9 @@ export default function InventoryMapPage() {
                         </div>
                     ) : (
                         <div className="space-y-2">
-                            {warehouses.map(w => {
+                            {isLoading ? (
+                                <div className="text-sm text-slate-500 text-center py-4">Yükleniyor...</div>
+                            ) : warehouses.length > 0 ? warehouses.map(w => {
                                 const pct = Math.round((w.products / w.capacity) * 100);
                                 return (
                                     <div key={w.id} onClick={() => setSelectedWarehouse(w.id)}
@@ -123,7 +138,9 @@ export default function InventoryMapPage() {
                                         </div>
                                     </div>
                                 );
-                            })}
+                            }) : (
+                                <div className="text-sm text-slate-500 text-center py-4">Depo bulunamadı.</div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -162,7 +179,9 @@ export default function InventoryMapPage() {
                             <AlertTriangle className="w-4 h-4 text-amber-400" /> Düşük Stok
                         </h3>
                         <div className="space-y-2">
-                            {lowStockItems.map((item, i) => (
+                            {isLoading ? (
+                                <div className="text-xs text-slate-500">Yükleniyor...</div>
+                            ) : lowStockItems.map((item, i) => (
                                 <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-red-500/5">
                                     <div>
                                         <div className="text-xs text-foreground">{item.name}</div>
@@ -180,7 +199,9 @@ export default function InventoryMapPage() {
             <div className="bg-surface rounded-xl border border-border p-6">
                 <h3 className="text-sm font-semibold text-foreground mb-4">Son Stok Hareketleri</h3>
                 <div className="space-y-2">
-                    {stockMovements.map((m, i) => (
+                    {isLoading ? (
+                        <div className="text-sm text-slate-500 text-center py-4">Yükleniyor...</div>
+                    ) : stockMovements.length > 0 ? stockMovements.map((m, i) => (
                         <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
                             className="flex items-center justify-between p-3 rounded-lg bg-background">
                             <div className="flex items-center gap-3">
@@ -199,7 +220,9 @@ export default function InventoryMapPage() {
                                 <div className="text-[10px] text-slate-500">{m.date}</div>
                             </div>
                         </motion.div>
-                    ))}
+                    )) : (
+                        <div className="text-sm text-slate-500 text-center py-4">Son hareket bulunamadı.</div>
+                    )}
                 </div>
             </div>
         </div>

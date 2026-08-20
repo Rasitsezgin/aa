@@ -1,0 +1,85 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { PrismaService } from '../../prisma/prisma.service'; // Adjust path
+import { TrendyolService } from './services/trendyol.service';
+
+@Injectable()
+export class SyncScheduler {
+  private readonly logger = new Logger(SyncScheduler.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly trendyolService: TrendyolService,
+  ) {}
+
+  /**
+   * Her 15 dakikada bir çalışarak aktif olan tüm entegrasyonları tarar
+   * ve yeni siparişleri sisteme çeker.
+   */
+  @Cron(CronExpression.EVERY_15_MINUTES)
+  async handleOrderSync() {
+    this.logger.log('Sipariş Senkronizasyonu başlatılıyor...');
+
+    const activeIntegrations = await this.prisma.integration.findMany({
+      where: { isActive: true },
+    });
+
+    for (const integration of activeIntegrations) {
+      try {
+        // Yeni bir log kaydı başlat
+        const syncLog = await this.prisma.integrationSyncLog.create({
+          data: {
+            integrationId: integration.id,
+            syncType: 'ORDER',
+            status: 'IN_PROGRESS',
+          },
+        });
+
+        let syncedCount = 0;
+
+        if (integration.platform === 'TRENDYOL') {
+          syncedCount = await this.trendyolService.fetchAndSyncOrders(integration);
+        } else if (integration.platform === 'HEPSIBURADA') {
+          // Hepsiburada servisi buraya eklenecek
+          this.logger.warn(`Hepsiburada entegrasyonu henüz aktif değil: Tenant ${integration.tenantId}`);
+        }
+
+        // Başarılı ise logu güncelle
+        await this.prisma.integrationSyncLog.update({
+          where: { id: syncLog.id },
+          data: {
+            status: 'SUCCESS',
+            recordsSynced: syncedCount,
+            completedAt: new Date(),
+          },
+        });
+
+      } catch (error: any) {
+        this.logger.error(`Tenant ${integration.tenantId} için senkronizasyon hatası:`, error.message);
+        
+        // Hata alan logu güncelle
+        // await this.prisma.integrationSyncLog.update(... { status: 'FAILED' })
+        // Prisma bağlantısı olduğu için, logID üzerinden hatayı kaydedeceğiz:
+        
+        // Find the latest IN_PROGRESS log for this integration and mark it FAILED
+        const pendingLog = await this.prisma.integrationSyncLog.findFirst({
+            where: { integrationId: integration.id, status: 'IN_PROGRESS' },
+            orderBy: { startedAt: 'desc' }
+        });
+        
+        if (pendingLog) {
+             await this.prisma.integrationSyncLog.update({
+                 where: { id: pendingLog.id },
+                 data: {
+                     status: 'FAILED',
+                     errorMessage: error.message,
+                     completedAt: new Date(),
+                 }
+             });
+        }
+      }
+    }
+
+    this.logger.log('Sipariş Senkronizasyonu tamamlandı.');
+  }
+}

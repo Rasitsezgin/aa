@@ -12,6 +12,11 @@ import { TrendyolAdapter } from './adapters/marketplace/trendyol.adapter';
 import { HepsiburadaAdapter } from './adapters/marketplace/hepsiburada.adapter';
 import { N11Adapter } from './adapters/marketplace/n11.adapter';
 import { AmazonTrAdapter } from './adapters/marketplace/amazon-tr.adapter';
+import { CiceksepetiAdapter } from './adapters/marketplace/ciceksepeti.adapter';
+import { PttAvmAdapter } from './adapters/marketplace/pttavm.adapter';
+import { EtsyAdapter } from './adapters/marketplace/etsy.adapter';
+import { AliexpressAdapter } from './adapters/marketplace/aliexpress.adapter';
+import { EbayAdapter } from './adapters/marketplace/ebay.adapter';
 import { ShopifyAdapter } from './adapters/ecommerce/shopify.adapter';
 import { IkasAdapter } from './adapters/ecommerce/ikas.adapter';
 import { YurticiKargoAdapter } from './adapters/shipping/yurtici-kargo.adapter';
@@ -52,6 +57,11 @@ const schedulerEnabled = process.env.ENABLE_SCHEDULER === 'true';
     HepsiburadaAdapter,
     N11Adapter,
     AmazonTrAdapter,
+    CiceksepetiAdapter,
+    PttAvmAdapter,
+    EtsyAdapter,
+    AliexpressAdapter,
+    EbayAdapter,
     ShopifyAdapter,
     IkasAdapter,
     YurticiKargoAdapter,

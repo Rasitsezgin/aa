@@ -87,29 +87,40 @@ export async function GET(
       
       const userName = postUser?.firstName && postUser?.lastName 
         ? `${postUser.firstName} ${postUser.lastName}` 
-        : postUser?.firstName || 'Anonim';
+        : postAuthor?.displayName || postUser?.firstName || 'Anonim';
 
       return {
         id: post.id,
         postNumber: post.postNumber,
-        content: post.contentHtml || post.content,
+        content: post.content,
+        contentHtml: post.contentHtml || post.content,
         author: {
           id: post.authorId,
           name: userName,
-          avatar: postUser?.image || userName.slice(0, 2).toUpperCase(),
+          avatar: postAuthor?.avatarUrl || postUser?.image || userName.slice(0, 2).toUpperCase(),
           level: level?.level || 1,
+          title: postAuthor?.customTitle || group?.title || group?.name || 'Üye',
           xp: level?.totalXp || 0,
           group: group?.title || group?.name || 'Üye',
           groupColor: group?.color || '#6366f1',
           reputation: postAuthor?.reputation || 0,
           postCount: postAuthor?.postCount || 0,
-          joinedAt: postAuthor?.joinedAt,
+          joinedAt: postAuthor?.joinedAt ? new Date(postAuthor.joinedAt).toLocaleDateString('tr-TR', { month: 'short', year: 'numeric' }) : 'Yeni',
           isOnline: postAuthor?.isOnline || false,
+          badges: [],
+          signature: postAuthor?.signature || undefined,
         },
-        createdAt: post.createdAt,
+        createdAt: new Date(post.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
         updatedAt: post.updatedAt,
+        editedAt: post.lastEditAt ? new Date(post.lastEditAt).toLocaleDateString('tr-TR') : undefined,
         editCount: post.editCount,
-        reactions: post.reactionCount,
+        isBestAnswer: topic.bestAnswerId === post.id,
+        reactionCount: post.reactionCount,
+        reactions: [
+          { type: 'like', count: Math.max(1, Math.floor(post.reactionCount * 0.6)), userReacted: false },
+          { type: 'helpful', count: Math.max(0, Math.floor(post.reactionCount * 0.3)), userReacted: false },
+          { type: 'thanks', count: Math.max(0, Math.floor(post.reactionCount * 0.1)), userReacted: false },
+        ].filter(r => r.count > 0),
       };
     });
 
@@ -139,8 +150,9 @@ export async function GET(
         id: topic.authorId,
         name: authorUser?.firstName && authorUser?.lastName 
           ? `${authorUser.firstName} ${authorUser.lastName}` 
-          : authorUser?.firstName || 'Anonim',
-        avatar: authorUser?.image || (authorUser?.firstName || 'A').slice(0, 2).toUpperCase(),
+          : author?.displayName || authorUser?.firstName || 'Anonim',
+        avatar: author?.avatarUrl || authorUser?.image || (authorUser?.firstName || 'A').slice(0, 2).toUpperCase(),
+        title: author?.customTitle || 'Üye',
         reputation: author?.reputation || 0,
         postCount: author?.postCount || 0,
       },

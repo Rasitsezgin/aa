@@ -92,14 +92,14 @@ export const adminApi = {
     const qs = new URLSearchParams();
     if (params?.status) qs.set('status', params.status);
     if (params?.assigneeId) qs.set('assigneeId', params.assigneeId);
-    return fetchAPI<any>(`admin/tasks?${qs}`);
+    return fetchLocalAPI<any>(`/api/admin/tasks?${qs}`);
   },
   createTask: (data: any) =>
-    fetchAPI<any>('admin/tasks', { method: 'POST', body: JSON.stringify(data) }),
+    fetchLocalAPI<any>('/api/admin/tasks', { method: 'POST', body: JSON.stringify(data) }),
   updateTask: (id: string, data: any) =>
-    fetchAPI<any>(`admin/tasks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    fetchLocalAPI<any>(`/api/admin/tasks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteTask: (id: string) =>
-    fetchAPI<any>(`admin/tasks/${id}`, { method: 'DELETE' }),
+    fetchLocalAPI<any>(`/api/admin/tasks/${id}`, { method: 'DELETE' }),
 
   // ═══════════════════════════════════════════════════════════════════
   // VARIANTS (Phase 3)

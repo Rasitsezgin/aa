@@ -646,12 +646,48 @@ export class HepsiburadaBridge implements MarketplaceBridge {
       };
     }
 
+    const resData = (await response.json()) as Record<string, unknown>;
+    const ticketId = String(resData.id || resData.ticketId || '');
+
     return {
       success: true,
+      ticketId,
       ...responseMeta,
       source: 'api',
       status: response.status,
     };
+  }
+
+  /**
+   * Hepsiburada E-Fatura Bağlantısı Gönderme
+   * POST /OrderService/v1/orders/merchantid/{merchantId}/invoice-link
+   */
+  async uploadInvoiceLink(orderId: string, invoiceUrl: string, invoiceNumber: string): Promise<Record<string, unknown>> {
+    const url = `${this.baseUrl}/OrderService/v1/orders/merchantid/${encodeURIComponent(this.merchantId)}/invoice-link`;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${this.apiKey}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'User-Agent': `${this.merchantId} - SelfIntegration`,
+        },
+        body: JSON.stringify({
+          orderId,
+          invoiceUrl,
+          invoiceNumber,
+        }),
+      });
+
+      return {
+        success: response.ok,
+        status: response.status,
+        message: response.ok ? 'Fatura bağlantısı Hepsiburada\'ya aktarıldı' : 'Aktarım başarısız',
+      };
+    } catch (error) {
+      return { success: false, error: (error as Error).message };
+    }
   }
 
   private async parseApiErrorBody(response: Response): Promise<string | null> {

@@ -2,30 +2,57 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import {
   MessageSquare, Search, Plus, Home, Users, Crown, Calendar,
-  LogIn, UserPlus, LogOut, User, Mail, Settings,
+  Sparkles, Layers, CheckCircle2, TrendingUp, Mail, Settings, ArrowRight,
+  Calculator, Send, Handshake
 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import MarketingPageShell from '@/components/landing/MarketingPageShell';
+import ForumCalculatorsModal from '@/components/forum/ForumCalculatorsModal';
+import ForumTelegramBotModal from '@/components/forum/ForumTelegramBotModal';
 
 interface ForumShellProps {
   children: ReactNode;
   searchQuery?: string;
   onSearchChange?: (value: string) => void;
   onlineCount?: number;
+  activeTab?: 'all' | 'categories' | 'popular' | 'solved';
+  onTabChange?: (tab: 'all' | 'categories' | 'popular' | 'solved') => void;
 }
+
+const POPULAR_TAGS = [
+  { label: 'Trendyol Komisyon', tag: 'trendyol' },
+  { label: 'Buybox Taktikleri', tag: 'buybox' },
+  { label: 'Amazon FBA', tag: 'amazonfba' },
+  { label: 'Genç Girişimci', tag: 'gencgirisimci' },
+  { label: 'Dinamik Repricer', tag: 'repricer' },
+  { label: 'Mikro İhracat (ETGB)', tag: 'mikro-ihracat' },
+  { label: 'Kargo Desi Tasarrufu', tag: 'kargo' },
+];
 
 export default function ForumShell({
   children,
   searchQuery = '',
   onSearchChange,
   onlineCount = 0,
+  activeTab = 'all',
+  onTabChange,
 }: ForumShellProps) {
   const { data: session, status } = useSession();
   const isAuthenticated = status === 'authenticated' && !!session?.user;
   const [dmUnread, setDmUnread] = useState(0);
+
+  // Modals state
+  const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
+  const [calcModalTab, setCalcModalTab] = useState<'profit' | 'shipping' | 'etgb'>('profit');
+  const [isBotModalOpen, setIsBotModalOpen] = useState(false);
+
+  const openCalculator = (tab: 'profit' | 'shipping' | 'etgb' = 'profit') => {
+    setCalcModalTab(tab);
+    setIsCalcModalOpen(true);
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -39,129 +66,190 @@ export default function ForumShell({
   }, [isAuthenticated]);
 
   return (
-    <MarketingPageShell padded={false} className="pb-12">
-      <div className="border-b border-slate-200/60 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-10 text-sm">
-            <span className="text-slate-500 dark:text-slate-400">
-              <span className="text-orange-600 dark:text-orange-400 font-bold">{onlineCount}</span> çevrimiçi üye
-            </span>
-            <div className="flex items-center gap-4">
-              {isAuthenticated ? (
-                <>
-                  <span className="text-slate-600 dark:text-slate-300 hidden sm:inline-flex items-center gap-1.5">
-                    <User size={14} />
-                    {session.user?.name || session.user?.email}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => signOut({ callbackUrl: '/forum' })}
-                    className="text-slate-500 hover:text-orange-600 dark:hover:text-orange-400 inline-flex items-center gap-1 font-medium"
-                  >
-                    <LogOut size={14} /> Çıkış
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login?callbackUrl=/forum" className="text-slate-500 hover:text-orange-600 dark:hover:text-orange-400 inline-flex items-center gap-1 font-medium">
-                    <LogIn size={14} /> Giriş
-                  </Link>
-                  <Link href="/signup" className="text-slate-500 hover:text-orange-600 dark:hover:text-orange-400 inline-flex items-center gap-1 font-medium">
-                    <UserPlus size={14} /> Kayıt
-                  </Link>
-                </>
-              )}
+    <MarketingPageShell padded={false} className="pb-16 bg-slate-50/50 dark:bg-slate-950">
+      {/* Hero Community Header */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white border-b border-slate-800">
+        {/* Subtle Ambient Background Gradients */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-600/20 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 -left-40 w-80 h-80 bg-amber-500/15 rounded-full blur-3xl" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f293710_1px,transparent_1px),linear-gradient(to_bottom,#1f293710_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-10 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            {/* Title & Badge */}
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-semibold mb-3">
+                <Sparkles size={13} className="text-orange-400" />
+                <span>Pazaryeri & E-İhracat Satıcı Topluluğu</span>
+                {onlineCount > 0 && (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-slate-300 font-normal">{onlineCount} çevrimiçi</span>
+                  </>
+                )}
+              </div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white">
+                Satıcı Bilgi & Strateji Forumu
+              </h1>
+              <p className="mt-2 text-sm sm:text-base text-slate-300 max-w-2xl">
+                Trendyol, Hepsiburada, Amazon TR/Global, Etsy ve e-ihracat operasyonlarında binlerce satıcıyla canlı yardımlaşın ve cironuzu artırın.
+              </p>
+            </div>
+
+            {/* Quick CTA Actions */}
+            <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+              <button
+                type="button"
+                onClick={() => openCalculator('profit')}
+                className="px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 font-bold rounded-xl text-xs sm:text-sm transition-all inline-flex items-center gap-2 shadow-sm"
+              >
+                <Calculator size={16} className="text-orange-400" />
+                <span>Hesaplayıcılar</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsBotModalOpen(true)}
+                className="px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 font-bold rounded-xl text-xs sm:text-sm transition-all inline-flex items-center gap-2 shadow-sm"
+              >
+                <Send size={15} className="text-sky-400" />
+                <span>Bot Bildirimi</span>
+              </button>
+
+              <Link
+                href={isAuthenticated ? '/forum/new-topic' : '/login?callbackUrl=/forum/new-topic'}
+                className="px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold rounded-xl text-xs sm:text-sm transition-all inline-flex items-center gap-2 shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <Plus size={18} /> Yeni Konu Başlat
+              </Link>
             </div>
           </div>
-        </div>
-      </div>
 
-      <header className="bg-gradient-to-r from-orange-600 to-amber-500 border-b border-orange-500/30 shadow-lg shadow-orange-500/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20 gap-4">
-            <Link href="/forum" className="flex items-center gap-3 shrink-0">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center ring-2 ring-white/20">
-                <MessageSquare className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <span className="font-black text-2xl text-white tracking-tight">PAZARYÖNETİMİ</span>
-                <span className="block text-xs text-orange-100">Topluluk Forumu</span>
-              </div>
-            </Link>
-
-            <div className="flex items-center gap-3 flex-1 justify-end">
+          {/* Search & Hot Tags Bar */}
+          <div className="mt-6 pt-6 border-t border-slate-800/80">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
               {onSearchChange && (
-                <div className="relative hidden md:block max-w-sm w-full">
-                  <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-100" />
+                <div className="relative flex-1 max-w-2xl">
+                  <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    placeholder="Forumda ara..."
-                    className="w-full pl-10 pr-4 py-2.5 bg-white/15 backdrop-blur border border-white/25 rounded-xl text-sm text-white placeholder-orange-100 focus:outline-none focus:ring-2 focus:ring-white/40"
+                    placeholder="Konu, pazar yeri, algoritma veya hata kodu ara... (Örn: Buybox, 150 TL kargo, ETGB)"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-800/90 border border-slate-700/80 hover:border-slate-600 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all shadow-inner"
                   />
+                  {searchQuery && (
+                    <button
+                      onClick={() => onSearchChange('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white bg-slate-700 px-1.5 py-0.5 rounded"
+                    >
+                      Temizle
+                    </button>
+                  )}
                 </div>
               )}
-              {isAuthenticated ? (
-                <Link
-                  href="/forum/new-topic"
-                  className="px-5 py-2.5 bg-white text-orange-700 font-bold rounded-xl text-sm hover:bg-orange-50 transition-all inline-flex items-center gap-2 shadow-lg shrink-0"
-                >
-                  <Plus size={18} /> Yeni Konu
-                </Link>
-              ) : (
-                <Link
-                  href="/login?callbackUrl=/forum/new-topic"
-                  className="px-5 py-2.5 bg-white text-orange-700 font-bold rounded-xl text-sm hover:bg-orange-50 transition-all inline-flex items-center gap-2 shadow-lg shrink-0"
-                >
-                  <LogIn size={18} /> Giriş & Konu Aç
-                </Link>
-              )}
+
+              {/* Popular Tags */}
+              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-1">
+                <span className="text-xs font-semibold text-slate-400 shrink-0 hidden sm:inline">Popüler:</span>
+                {POPULAR_TAGS.map((t) => (
+                  <button
+                    key={t.tag}
+                    type="button"
+                    onClick={() => onSearchChange && onSearchChange(t.label)}
+                    className="px-2.5 py-1 bg-slate-800/80 hover:bg-orange-500/20 hover:text-orange-300 hover:border-orange-500/40 border border-slate-700/60 rounded-lg text-xs text-slate-300 transition-colors shrink-0"
+                  >
+                    #{t.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </header>
+      </section>
 
-      <nav className="border-b border-slate-200/60 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl sticky top-[calc(4rem+env(safe-area-inset-top,0px))] z-30">
+      {/* Modern Sub Navigation Bar */}
+      <nav className="border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md sticky top-[calc(4rem+env(safe-area-inset-top,0px))] z-30 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-1 h-12 overflow-x-auto scrollbar-none">
-            <Link href="/" className="px-4 py-2 text-slate-500 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400 text-sm font-semibold inline-flex items-center gap-2 shrink-0">
-              <Home size={16} /> Ana Sayfa
-            </Link>
-            <Link href="/forum" className="px-4 py-2 text-orange-600 dark:text-orange-400 border-b-2 border-orange-500 text-sm font-bold inline-flex items-center gap-2 shrink-0">
-              <MessageSquare size={16} /> Forum
-            </Link>
-            <Link href="/community" className="px-4 py-2 text-slate-500 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400 text-sm font-semibold inline-flex items-center gap-2 shrink-0">
-              <Users size={16} /> Topluluk
-            </Link>
-            <Link href="/community/leaderboard" className="px-4 py-2 text-slate-500 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400 text-sm font-semibold inline-flex items-center gap-2 shrink-0">
-              <Crown size={16} /> Liderlik
-            </Link>
+          <div className="flex items-center justify-between h-12 gap-2 overflow-x-auto scrollbar-none">
+            <div className="flex items-center gap-1 shrink-0">
+              <Link
+                href="/forum"
+                className="px-3.5 py-1.5 rounded-lg text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/40 text-sm font-bold inline-flex items-center gap-1.5 transition-colors"
+              >
+                <MessageSquare size={16} /> Forum Ana Sayfa
+              </Link>
+              <Link
+                href="/community"
+                className="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium inline-flex items-center gap-1.5 transition-colors"
+              >
+                <Users size={16} /> Topluluk
+              </Link>
+              <Link
+                href="/community/leaderboard"
+                className="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium inline-flex items-center gap-1.5 transition-colors"
+              >
+                <Crown size={16} /> Liderlik & Rozetler
+              </Link>
+              <button
+                type="button"
+                onClick={() => openCalculator('profit')}
+                className="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium inline-flex items-center gap-1.5 transition-colors"
+              >
+                <Calculator size={15} /> Komisyon Hesaplayıcı
+              </button>
+              <Link
+                href="/webinars"
+                className="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium inline-flex items-center gap-1.5 transition-colors"
+              >
+                <Calendar size={16} /> Canlı Eğitimler
+              </Link>
+            </div>
+
             {isAuthenticated && (
-              <>
-                <Link href="/forum/messages" className="px-4 py-2 text-slate-500 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400 text-sm font-semibold inline-flex items-center gap-2 relative shrink-0">
+              <div className="flex items-center gap-1 shrink-0">
+                <Link
+                  href="/forum/messages"
+                  className="px-3 py-1.5 rounded-lg text-slate-600 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400 text-sm font-medium inline-flex items-center gap-1.5 relative transition-colors"
+                >
                   <Mail size={16} /> Mesajlar
                   {dmUnread > 0 && (
-                    <span className="bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                    <span className="bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full min-w-[16px] text-center">
                       {dmUnread > 99 ? '99+' : dmUnread}
                     </span>
                   )}
                 </Link>
-                <Link href="/forum/settings" className="px-4 py-2 text-slate-500 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400 text-sm font-semibold inline-flex items-center gap-2 shrink-0">
-                  <Settings size={16} /> Ayarlar
+                <Link
+                  href="/forum/settings"
+                  className="px-3 py-1.5 rounded-lg text-slate-600 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400 text-sm font-medium inline-flex items-center gap-1.5 transition-colors"
+                >
+                  <Settings size={16} /> Profil Ayarları
                 </Link>
-              </>
+              </div>
             )}
-            <Link href="/webinars" className="px-4 py-2 text-slate-500 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400 text-sm font-semibold inline-flex items-center gap-2 shrink-0">
-              <Calendar size={16} /> Etkinlikler
-            </Link>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Main Forum Content Container */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {children}
-      </div>
+      </main>
+
+      {/* Interactive Modals */}
+      <ForumCalculatorsModal
+        isOpen={isCalcModalOpen}
+        onClose={() => setIsCalcModalOpen(false)}
+        defaultTab={calcModalTab}
+      />
+      <ForumTelegramBotModal
+        isOpen={isBotModalOpen}
+        onClose={() => setIsBotModalOpen(false)}
+      />
     </MarketingPageShell>
   );
 }
+
+

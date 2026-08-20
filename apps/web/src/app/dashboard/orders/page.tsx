@@ -39,17 +39,23 @@ interface OrderPagination {
     pages: number;
 }
 
-// Platform labels
-const platformColors: Record<string, string> = {
-    "TRENDYOL": "bg-orange-500",
-    "AMAZON": "bg-amber-500",
-    "HEPSIBURADA": "bg-orange-600",
-    "N11": "bg-purple-500",
-    "GITTIGIDIYOR": "bg-yellow-500"
+// Platform badge colors and styles
+const platformStyles: Record<string, { bg: string; border: string; text: string; badgeBg: string }> = {
+    "TRENDYOL": { bg: "bg-orange-500/10", border: "border-orange-500/30", text: "text-orange-500", badgeBg: "bg-orange-500 text-white" },
+    "HEPSIBURADA": { bg: "bg-orange-600/10", border: "border-orange-600/30", text: "text-orange-600", badgeBg: "bg-orange-600 text-white" },
+    "N11": { bg: "bg-purple-600/10", border: "border-purple-600/30", text: "text-purple-600", badgeBg: "bg-purple-600 text-white" },
+    "AMAZON": { bg: "bg-amber-500/10", border: "border-amber-500/30", text: "text-amber-500", badgeBg: "bg-amber-500 text-slate-950" },
+    "PAZARAMA": { bg: "bg-blue-600/10", border: "border-blue-600/30", text: "text-blue-600", badgeBg: "bg-blue-600 text-white" },
+    "CICEKSEPETI": { bg: "bg-rose-500/10", border: "border-rose-500/30", text: "text-rose-500", badgeBg: "bg-rose-500 text-white" },
+    "PTTAVM": { bg: "bg-yellow-500/10", border: "border-yellow-500/30", text: "text-yellow-600", badgeBg: "bg-yellow-500 text-slate-900" },
+    "IDEFIX": { bg: "bg-indigo-600/10", border: "border-indigo-600/30", text: "text-indigo-600", badgeBg: "bg-indigo-600 text-white" },
+    "SHOPIFY": { bg: "bg-emerald-600/10", border: "border-emerald-600/30", text: "text-emerald-600", badgeBg: "bg-emerald-600 text-white" },
+    "WOOCOMMERCE": { bg: "bg-purple-500/10", border: "border-purple-500/30", text: "text-purple-500", badgeBg: "bg-purple-500 text-white" },
+    "OPENCART": { bg: "bg-cyan-600/10", border: "border-cyan-600/30", text: "text-cyan-600", badgeBg: "bg-cyan-600 text-white" }
 };
 
 const statusFilters = ["Tümü", "PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED", "RETURNED"];
-const platformFilters = ["Tümü", "TRENDYOL", "AMAZON", "HEPSIBURADA", "N11"];
+const platformFilters = ["Tümü", "TRENDYOL", "HEPSIBURADA", "N11", "AMAZON", "PAZARAMA", "CICEKSEPETI", "PTTAVM", "IDEFIX", "SHOPIFY", "WOOCOMMERCE", "OPENCART"];
 
 export default function OrdersPage() {
     const { getOrders, updateStatus, loading } = useOrders();
@@ -152,6 +158,40 @@ export default function OrdersPage() {
                 </div>
             </div>
 
+            {/* OzyConnect & PazarConnect Style Marketplace Ribbon Badges */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-11 gap-2.5">
+                {[
+                    { name: 'TRENDYOL', label: 'Trendyol', text: 'text-orange-500' },
+                    { name: 'HEPSIBURADA', label: 'Hepsiburada', text: 'text-orange-600' },
+                    { name: 'N11', label: 'n11', text: 'text-purple-600' },
+                    { name: 'AMAZON', label: 'Amazon', text: 'text-amber-500' },
+                    { name: 'SHOPIFY', label: 'Shopify', text: 'text-emerald-600' },
+                    { name: 'WOOCOMMERCE', label: 'WooCommerce', text: 'text-purple-500' },
+                    { name: 'OPENCART', label: 'OpenCart', text: 'text-cyan-600' },
+                    { name: 'PAZARAMA', label: 'Pazarama', text: 'text-blue-600' },
+                    { name: 'CICEKSEPETI', label: 'ÇiçekSepeti', text: 'text-rose-500' },
+                    { name: 'PTTAVM', label: 'PttAVM', text: 'text-yellow-600' },
+                    { name: 'IDEFIX', label: 'Idefix', text: 'text-indigo-600' }
+                ].map((m) => {
+                    const count = orders.filter(o => o.platform?.toUpperCase() === m.name).length;
+                    const isActive = selectedPlatform === m.name;
+                    return (
+                        <button
+                            key={m.name}
+                            onClick={() => setSelectedPlatform(isActive ? 'Tümü' : m.name)}
+                            className={`p-3 rounded-2xl border transition-all text-left flex flex-col justify-between ${isActive ? 'bg-surface border-primary ring-2 ring-primary/20 shadow-md' : 'bg-surface/60 border-border hover:border-border/80'}`}
+                        >
+                            <div className="flex items-center justify-between">
+                                <span className={`text-xs font-black tracking-tight ${m.text}`}>{m.label}</span>
+                                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${count > 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                                    {count} sipariş
+                                </span>
+                            </div>
+                        </button>
+                    );
+                })}
+            </div>
+
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-surface p-5 rounded-2xl border border-border">
@@ -190,6 +230,36 @@ export default function OrdersPage() {
                     <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Toplam Ciro</div>
                 </motion.div>
             </div>
+
+            {/* Bulk Action Bar (shows when orders are selected) */}
+            {selectedOrders.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-primary/10 border border-primary/20 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4"
+                >
+                    <div className="flex items-center gap-2">
+                        <span className="w-7 h-7 rounded-full bg-primary text-white font-black text-xs flex items-center justify-center">
+                            {selectedOrders.length}
+                        </span>
+                        <span className="text-sm font-bold text-foreground">sipariş seçildi</span>
+                    </div>
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center gap-2 transition-all">
+                            <Printer size={14} /> Toplu GİB E-Fatura Kes
+                        </button>
+                        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black flex items-center gap-2 transition-all">
+                            <Package size={14} /> Toplu Kargo Etiketi Al
+                        </button>
+                        <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-black flex items-center gap-2 transition-all">
+                            <Truck size={14} /> Kargoya Ver
+                        </button>
+                        <button onClick={() => setSelectedOrders([])} className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-foreground">
+                            Temizle
+                        </button>
+                    </div>
+                </motion.div>
+            )}
 
             {/* Filters */}
             <div className="bg-surface p-4 rounded-2xl border border-border flex flex-wrap items-center gap-4">
@@ -272,6 +342,21 @@ export default function OrdersPage() {
                                 <div className="w-32 text-right">
                                     <div className="text-sm font-black text-foreground">₺{Number(order.totalAmount).toLocaleString('tr-TR')}</div>
                                     <div className="text-[10px] text-slate-500 font-bold uppercase">{order.paymentStatus === 'PAID' ? 'ÖDENDİ' : 'BEKLİYOR'}</div>
+                                </div>
+
+                                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                        title="Fatura Kes (GİB E-Arşiv)"
+                                        className="px-2.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border border-amber-500/30 rounded-xl text-xs font-black flex items-center gap-1 transition-all"
+                                    >
+                                        <Printer size={12} /> Fatura Kes
+                                    </button>
+                                    <button
+                                        title="Kargo Etiketi Al"
+                                        className="px-2.5 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 border border-blue-500/30 rounded-xl text-xs font-black flex items-center gap-1 transition-all"
+                                    >
+                                        <Truck size={12} /> Etiket
+                                    </button>
                                 </div>
 
                                 <ChevronDown size={20} className={`text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
