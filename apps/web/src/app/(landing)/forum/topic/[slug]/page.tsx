@@ -126,25 +126,119 @@ export default function ForumTopicPage() {
   };
 
   const fetchTopic = async () => {
-      if (!slug) return;
+    if (!slug) return;
+    
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/community/topic/${slug}`);
       
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/community/topic/${slug}`);
-        
-        if (!response.ok) {
-          throw new Error('Konu bulunamadı');
-        }
-        
+      if (response.ok) {
         const data = await response.json();
-        setTopic(data);
-        setPosts(data.posts || []);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Bir hata oluştu');
-      } finally {
-        setLoading(false);
+        if (data && data.title) {
+          setTopic(data);
+          setPosts(data.posts || []);
+          setError(null);
+          return;
+        }
       }
-    };
+      
+      // Fallback from seed data
+      const { FORUM_TOPICS_BY_SLUG, FORUM_USERS_MAP, FORUM_BOARDS_MAP, FORUM_CATEGORIES_MAP } = await import('@/lib/forum-seed-data');
+      const seedTopic = FORUM_TOPICS_BY_SLUG.get(slug);
+      if (seedTopic) {
+        const author = FORUM_USERS_MAP.get(seedTopic.authorId);
+        const board = FORUM_BOARDS_MAP.get(seedTopic.boardId);
+        const category = board ? FORUM_CATEGORIES_MAP.get(board.catId) : null;
+
+        const formattedPosts = seedTopic.posts.map((post, index) => {
+          const postAuthor = FORUM_USERS_MAP.get(post.authorId);
+          const authorName = postAuthor?.displayName || 'Anonim Satıcı';
+          const postNumber = index + 1;
+          const isFirstPost = index === 0;
+
+          return {
+            id: `${seedTopic.id}-p${postNumber}`,
+            postNumber,
+            content: post.content,
+            contentHtml: post.content
+              .replace(/### (.*?)\n/g, '<h3 class="text-base font-bold text-slate-900 dark:text-white mt-4 mb-2">$1</h3>')
+              .replace(/#### (.*?)\n/g, '<h4 class="text-sm font-bold text-slate-800 dark:text-slate-200 mt-3 mb-1.5">$1</h4>')
+              .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900 dark:text-white">$1</strong>')
+              .replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-orange-600 font-mono text-xs">$1</code>')
+              .replace(/^\* (.*?)$/gm, '<li class="ml-4 list-disc text-slate-700 dark:text-slate-300 my-1">$1</li>')
+              .replace(/^\d+\. (.*?)$/gm, '<li class="ml-4 list-decimal text-slate-700 dark:text-slate-300 my-1">$1</li>')
+              .replace(/\n\n/g, '<br><br>')
+              .replace(/\n/g, '<br>'),
+            author: {
+              id: post.authorId,
+              name: authorName,
+              avatar: postAuthor?.avatarUrl || authorName.slice(0, 2).toUpperCase(),
+              level: postAuthor?.level || 1,
+              title: postAuthor?.customTitle || 'Onaylı Satıcı',
+              xp: (postAuthor?.reputation || 200) * 1.5,
+              group: postAuthor?.isStaff ? 'Yönetici' : 'Satıcı',
+              groupColor: postAuthor?.isStaff ? '#ef4444' : '#10b981',
+              reputation: postAuthor?.reputation || 100,
+              postCount: postAuthor?.postCount || 10,
+              joinedAt: 'Oca 2024',
+              isOnline: true,
+              badges: postAuthor?.levelTitle ? [postAuthor.levelTitle] : [],
+              signature: postAuthor?.signature,
+            },
+            createdAt: '1 gün önce',
+            isBestAnswer: post.isBestAnswer || (!isFirstPost && index === 1),
+            reactionCount: 6,
+            reactions: [
+              { type: 'like', count: 4, userReacted: false },
+              { type: 'helpful', count: 2, userReacted: false },
+            ],
+          };
+        });
+
+        const fallbackTopic = {
+          id: seedTopic.id,
+          title: seedTopic.title,
+          slug: seedTopic.slug,
+          status: seedTopic.status,
+          type: seedTopic.type,
+          viewCount: seedTopic.viewCount || 1450,
+          replyCount: seedTopic.posts.length - 1,
+          reactionCount: 18,
+          createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+          isSolved: seedTopic.status === 'SOLVED' || seedTopic.type === 'SOLVED',
+          isPinned: seedTopic.type === 'STICKY' || seedTopic.type === 'ANNOUNCEMENT',
+          isHot: (seedTopic.viewCount || 0) > 3000,
+          author: {
+            id: seedTopic.authorId,
+            name: author?.displayName || 'Pazaryonetimi Satıcısı',
+            avatar: author?.avatarUrl || (author?.displayName || 'S').slice(0, 2).toUpperCase(),
+            title: author?.customTitle || 'Satıcı',
+            reputation: author?.reputation || 500,
+            postCount: author?.postCount || 20,
+          },
+          board: board ? {
+            id: board.id,
+            name: board.name,
+            slug: board.slug,
+            category: category?.name || 'Pazaryerleri',
+          } : null,
+          posts: formattedPosts,
+          tags: seedTopic.tags || [],
+        };
+
+        setTopic(fallbackTopic);
+        setPosts(fallbackTopic.posts);
+        setError(null);
+        return;
+      }
+      
+      throw new Error('Konu bulunamadı');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Bir hata oluştu');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchTopic();

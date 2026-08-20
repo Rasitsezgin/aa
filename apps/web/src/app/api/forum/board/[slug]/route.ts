@@ -2,18 +2,89 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import {
+  FORUM_BOARDS_BY_SLUG,
+  FORUM_CATEGORIES_MAP,
+  FORUM_DETAILED_TOPICS,
+  FORUM_USERS_MAP,
+} from '@/lib/forum-seed-data';
+
+function getFallbackBoardResponse(slug: string) {
+  const seedBoard = FORUM_BOARDS_BY_SLUG.get(slug);
+  if (!seedBoard) return null;
+
+  const category = FORUM_CATEGORIES_MAP.get(seedBoard.catId);
+  const matchingTopics = FORUM_DETAILED_TOPICS.filter((t) => t.boardId === seedBoard.id);
+
+  const formattedTopics = matchingTopics.map((topic) => {
+    const author = FORUM_USERS_MAP.get(topic.authorId);
+    const authorName = author?.displayName || 'Anonim Satıcı';
+
+    return {
+      id: topic.id,
+      title: topic.title,
+      slug: topic.slug,
+      author: {
+        id: topic.authorId,
+        name: authorName,
+        avatar: author?.avatarUrl || authorName.slice(0, 2).toUpperCase(),
+        level: author?.levelTitle || 'Seviye 1',
+        isStaff: author?.isStaff || false,
+      },
+      replies: topic.posts.length > 0 ? topic.posts.length - 1 : 0,
+      views: topic.viewCount || 850,
+      lastPost: {
+        author: authorName,
+        date: new Date(Date.now() - 3600000 * 2).toISOString(),
+      },
+      createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+      isPinned: topic.type === 'STICKY' || topic.type === 'ANNOUNCEMENT',
+      isLocked: topic.status === 'CLOSED',
+      isSolved: topic.status === 'SOLVED',
+      isHot: (topic.viewCount || 0) > 3000,
+      hasPoll: false,
+      tags: topic.tags.map((t) => t.name),
+    };
+  });
+
+  return {
+    board: {
+      id: seedBoard.id,
+      name: seedBoard.name,
+      slug: seedBoard.slug,
+      description: seedBoard.description,
+      type: 'GENERAL',
+      category: category ? {
+        id: category.id,
+        name: category.name,
+        slug: category.slug,
+      } : null,
+      moderators: [],
+      topicCount: formattedTopics.length,
+      postCount: matchingTopics.reduce((acc, t) => acc + t.posts.length, 0),
+    },
+    topics: formattedTopics,
+    pagination: {
+      page: 1,
+      limit: 25,
+      totalCount: formattedTopics.length,
+      totalPages: 1,
+      hasMore: false,
+    },
+  };
+}
 
 // Board detayı ve konuları
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  try {
-    const { slug } = await params;
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '25');
-    const page = parseInt(searchParams.get('page') || '1');
+  const { slug } = await params;
+  const { searchParams } = new URL(request.url);
+  const limit = parseInt(searchParams.get('limit') || '25');
+  const page = parseInt(searchParams.get('page') || '1');
 
+  try {
     const board = await prisma.forumBoard.findUnique({
       where: { slug },
       include: {
@@ -36,9 +107,11 @@ export async function GET(
           select: { topics: true }
         }
       }
-    });
+    }).catch(() => null);
 
     if (!board) {
+      const fallback = getFallbackBoardResponse(slug);
+      if (fallback) return NextResponse.json(fallback);
       return NextResponse.json(
         { error: 'Forum bölümü bulunamadı' },
         { status: 404 }
@@ -92,9 +165,14 @@ export async function GET(
             }
           }
         }
-      }),
-      prisma.forumTopic.count({ where: { boardId: board.id } })
+      }).catch(() => []),
+      prisma.forumTopic.count({ where: { boardId: board.id } }).catch(() => 0)
     ]);
+
+    if (topics.length === 0) {
+      const fallback = getFallbackBoardResponse(slug);
+      if (fallback) return NextResponse.json(fallback);
+    }
 
     const formattedTopics = topics.map(topic => {
       const lastPost = topic.posts[0];
@@ -164,6 +242,8 @@ export async function GET(
     });
   } catch (error) {
     console.error('Board fetch error:', error);
+    const fallback = getFallbackBoardResponse(slug);
+    if (fallback) return NextResponse.json(fallback);
     return NextResponse.json(
       { error: 'Forum bölümü yüklenirken hata oluştu' },
       { status: 500 }
