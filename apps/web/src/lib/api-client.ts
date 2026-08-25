@@ -18,8 +18,9 @@ function normalizeApiBaseUrl(raw?: string): string {
   return `https://${value}`.replace(/\/$/, '');
 }
 
-const API_BASE_URL = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_URL) ||
-  (typeof window !== 'undefined' ? '' : 'http://localhost:3001');
+const API_BASE_URL = typeof window !== 'undefined'
+  ? ''
+  : (normalizeApiBaseUrl(process.env.API_INTERNAL_URL || process.env.API_URL || process.env.NEXT_PUBLIC_API_URL) || 'http://localhost:3001');
 
 // ─── Retry Configuration ──────────────────────────
 interface RetryConfig {
@@ -103,6 +104,18 @@ class ApiClient {
 
   private buildUrlCandidates(endpoint: string): string[] {
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+    // In browser, same-origin relative endpoints prevent CORS preflight and network blockage
+    if (typeof window !== 'undefined') {
+      const candidates: string[] = [];
+      if (!normalizedEndpoint.startsWith('/api')) {
+        candidates.push(`/api${normalizedEndpoint}`, `/api/v1${normalizedEndpoint}`, normalizedEndpoint);
+      } else {
+        candidates.push(normalizedEndpoint);
+      }
+      return [...new Set(candidates)];
+    }
+
     const base = (this.baseUrl || '').replace(/\/$/, '');
     const root = base.replace(/\/api(?:\/v1)?$/, '');
     const hasApiPrefix = /\/api(?:\/v1)?$/.test(base);

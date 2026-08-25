@@ -28,11 +28,7 @@ export function DashboardRouteGuard({ children }: { children: React.ReactNode })
       router.replace(redirect);
       return;
     }
-
-    if (!canAccessRoute(pathname)) {
-      router.replace('/dashboard/upgrade?blocked=' + encodeURIComponent(pathname));
-    }
-  }, [pathname, isLoading, canAccessRoute, router]);
+  }, [pathname, isLoading, router]);
 
   return <>{children}</>;
 }

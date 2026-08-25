@@ -290,7 +290,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             </aside>
 
             {/* Main Content Area */}
-            <div className="flex-1 lg:ml-[17.5rem] flex flex-col min-h-[100dvh]">
+            <div className="flex-1 min-w-0 max-w-full lg:ml-[17.5rem] flex flex-col min-h-[100dvh] overflow-x-hidden">
                 <DashboardHeaderBar
                     currentPageTitle={currentPageTitle}
                     isCompactHeader={isCompactHeader}
@@ -312,11 +312,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                 />
 
                 {/* Content with Sidebar */}
-                <div className="flex flex-1 flex-col lg:flex-row min-h-0">
-                    <main id="main-content" role="main" aria-label="Ana içerik" className="dashboard-mobile-content flex-1 p-3.5 sm:p-4 lg:p-8 overflow-x-hidden pb-24 lg:pb-8">
+                <div className="flex flex-1 flex-col lg:flex-row min-h-0 min-w-0 max-w-full overflow-x-hidden">
+                    <main id="main-content" role="main" aria-label="Ana içerik" className="dashboard-mobile-content flex-1 min-w-0 max-w-full p-3.5 sm:p-4 lg:p-8 overflow-x-hidden pb-24 lg:pb-8">
                         <AnimatePresence mode="wait" initial={false}>
                             <motion.div
                                 key={pathname}
+                                className="w-full max-w-full min-w-0 overflow-x-hidden"
                                 initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12, scale: 0.995 }}
                                 animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
                                 exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -8, scale: 0.995 }}

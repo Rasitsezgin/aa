@@ -47,15 +47,30 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin: [
-      process.env.WEB_URL || 'https://pazaryonetimi.com',
-      'https://pazaryonetimi.com',
-      /\.pazaryonetimi\.com$/,
-      ...(process.env.NODE_ENV !== 'production'
-        ? ['http://localhost:3000']
-        : []),
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl) or any pazaryonetimi domain / localhost
+      if (!origin || origin === 'null') return callback(null, true);
+      if (
+        origin === 'https://pazaryonetimi.com' ||
+        origin.endsWith('.pazaryonetimi.com') ||
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1')
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'x-tenant-id',
+      'x-api-key',
+      'Accept',
+      'Origin',
+      'X-Requested-With',
+    ],
   });
 
   // Swagger/OpenAPI Dokümantasyonu

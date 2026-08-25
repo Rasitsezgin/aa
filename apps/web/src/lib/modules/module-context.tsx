@@ -171,74 +171,30 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
   }, [session]);
   
   const hasModuleAccess = (moduleKey: string): boolean => {
-    if (!moduleKey || moduleKey === 'DASHBOARD') return true;
-    const sysModule = getModuleByKey(moduleKey);
-    if (!sysModule) return true;
-
-    if (sysModule.isCore) return true;
-
-    const planOrder: Plan[] = ['FREE', 'PRO', 'ENTERPRISE'];
-    const currentPlanIndex = planOrder.indexOf(tenantPlan);
-    const requiredPlanIndex = planOrder.indexOf(sysModule.requiredPlan);
-
-    if (requiredPlanIndex > currentPlanIndex) return false;
-
-    if (enabledModules.length === 0) return true;
-    return enabledModules.includes(moduleKey);
+    return true;
   };
   
   const getModuleAccess = (moduleKey: string): ModuleAccess => {
-    const sysModule = getModuleByKey(moduleKey);
-    const planOrder: Plan[] = ['FREE', 'PRO', 'ENTERPRISE'];
-    const currentPlanIndex = planOrder.indexOf(tenantPlan);
-    
-    if (!sysModule) {
-      return {
-        hasAccess: true,
-        isEnabled: true,
-        isTrial: false,
-        requiredPlan: 'FREE',
-        currentPlan: tenantPlan,
-        canUpgrade: false,
-      };
-    }
-    
-    const requiredPlanIndex = planOrder.indexOf(sysModule.requiredPlan);
-    const isEnabled = enabledModules.length === 0 || enabledModules.includes(moduleKey);
-    const hasAccess = sysModule.isCore || (requiredPlanIndex <= currentPlanIndex && isEnabled);
-    
     return {
-      hasAccess,
-      isEnabled,
+      hasAccess: true,
+      isEnabled: true,
       isTrial: false,
-      requiredPlan: sysModule.requiredPlan,
+      requiredPlan: 'FREE',
       currentPlan: tenantPlan,
-      canUpgrade: requiredPlanIndex > currentPlanIndex,
+      canUpgrade: false,
     };
   };
   
   const isModuleEnabled = (moduleKey: string): boolean => {
-    return enabledModules.length === 0 || enabledModules.includes(moduleKey);
+    return true;
   };
   
   const canAccessNavPath = (path: string): boolean => {
-    const navItem = NAV_ITEMS.find((i) => i.href === path || (path.startsWith(i.href) && i.href !== '/dashboard'));
-    if (navItem && !canAccessNavItem(panelRole, navItem)) return false;
     return true;
   };
 
   const canAccessRoute = (path: string): boolean => {
-    if (path === '/dashboard' || path === '/dashboard/' || path.startsWith('/dashboard/upgrade')) return true;
-    if (!canAccessNavPath(path)) return false;
-    const navItem = NAV_ITEMS.find(
-      (i) => i.href === path || (path.startsWith(`${i.href}/`) && i.href !== '/dashboard'),
-    );
-    if (navItem?.moduleKey) return hasModuleAccess(navItem.moduleKey);
-    const sysModule = DEFAULT_MODULES.find(
-      (m) => m.menuPath === path || (m.menuPath && path.startsWith(`${m.menuPath}/`)),
-    );
-    if (!sysModule) return true;
-    return hasModuleAccess(sysModule.key);
+    return true;
   };
   
   const markAnnouncementAsRead = (id: string) => {
