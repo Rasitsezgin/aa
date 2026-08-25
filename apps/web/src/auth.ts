@@ -192,6 +192,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async () => {
                     token.isOnboarded = (user as any).isOnboarded;
                     token.accessToken = (user as any).accessToken;
                 }
+                if (!token.tenantId && token.sub) {
+                    try {
+                        const dbUser = await prisma.user.findUnique({
+                            where: { id: token.sub },
+                            select: { tenantId: true, type: true }
+                        });
+                        if (dbUser?.tenantId) {
+                            token.tenantId = dbUser.tenantId;
+                            token.type = dbUser.type;
+                        }
+                    } catch {}
+                }
                 return token;
             },
             async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {

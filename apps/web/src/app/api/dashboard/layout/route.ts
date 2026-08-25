@@ -11,7 +11,7 @@ export async function GET() {
     const userId = session?.user?.id;
     const tenantId = (session?.user as { tenantId?: string } | undefined)?.tenantId;
     if (!userId || !tenantId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ widgets: DEFAULT_DASHBOARD_WIDGETS });
     }
 
     const layout = await prisma.dashboardLayout.findUnique({

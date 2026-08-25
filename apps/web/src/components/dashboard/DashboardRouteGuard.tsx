@@ -13,6 +13,16 @@ export function DashboardRouteGuard({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!pathname || isLoading) return;
 
+    // Never block core dashboard or upgrade routes
+    if (
+      pathname === '/dashboard' ||
+      pathname === '/dashboard/' ||
+      pathname.startsWith('/dashboard/upgrade') ||
+      pathname.startsWith('/upgrade')
+    ) {
+      return;
+    }
+
     const redirect = resolveNavRedirect(pathname);
     if (redirect) {
       router.replace(redirect);

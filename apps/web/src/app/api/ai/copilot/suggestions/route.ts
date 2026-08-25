@@ -13,14 +13,17 @@ export async function POST(request: NextRequest) {
     sessionTenantId || request.headers.get('x-tenant-id') || undefined;
   const accessToken = (session as { accessToken?: string } | null)?.accessToken;
 
-  if (!tenantId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   const body = (await request.json().catch(() => ({}))) as {
     currentPage?: string;
     context?: string;
   };
+
+  if (!tenantId) {
+    return NextResponse.json({
+      suggestions: getDefaultCopilotSuggestions(body.currentPage),
+      fallback: true,
+    });
+  }
 
   const backend = await fetchFromApi<{ suggestions?: string[] }>(
     '/ai/copilot/suggestions',

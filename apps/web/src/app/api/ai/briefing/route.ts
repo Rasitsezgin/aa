@@ -6,12 +6,8 @@ import { buildApiUrlCandidates } from '@/lib/server-api-url';
 
 export async function GET() {
   const session = await auth();
-  const tenantId = (session?.user as { tenantId?: string } | undefined)?.tenantId;
+  const tenantId = (session?.user as { tenantId?: string } | undefined)?.tenantId || 'demo-tenant';
   const accessToken = (session as { accessToken?: string } | null)?.accessToken;
-
-  if (!tenantId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
 
   const candidates = buildApiUrlCandidates('/ai/briefing');
 

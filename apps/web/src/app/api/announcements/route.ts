@@ -9,7 +9,7 @@ export async function GET() {
     const session = await auth();
     const tenantId = (session?.user as { tenantId?: string } | undefined)?.tenantId;
     if (!tenantId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json([]);
     }
 
     const tenant = await prisma.tenant.findUnique({

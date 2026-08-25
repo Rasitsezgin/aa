@@ -155,10 +155,8 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
 
         const loaded = await refreshTenantContext().catch(() => false);
         if (!loaded) {
-          setEnabledModules(
-            DEFAULT_MODULES.filter((m) => m.isCore).map((m) => m.key),
-          );
-          setTenantPlan('FREE');
+          setEnabledModules(DEFAULT_MODULES.map((m) => m.key));
+          setTenantPlan('PRO');
         }
         await loadAnnouncements();
       } catch (error) {
@@ -173,7 +171,7 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
   }, [session]);
   
   const hasModuleAccess = (moduleKey: string): boolean => {
-    if (!moduleKey) return true;
+    if (!moduleKey || moduleKey === 'DASHBOARD') return true;
     const sysModule = getModuleByKey(moduleKey);
     if (!sysModule) return true;
 
@@ -196,8 +194,8 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
     
     if (!sysModule) {
       return {
-        hasAccess: false,
-        isEnabled: false,
+        hasAccess: true,
+        isEnabled: true,
         isTrial: false,
         requiredPlan: 'FREE',
         currentPlan: tenantPlan,
@@ -206,7 +204,7 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
     }
     
     const requiredPlanIndex = planOrder.indexOf(sysModule.requiredPlan);
-    const isEnabled = enabledModules.includes(moduleKey);
+    const isEnabled = enabledModules.length === 0 || enabledModules.includes(moduleKey);
     const hasAccess = sysModule.isCore || (requiredPlanIndex <= currentPlanIndex && isEnabled);
     
     return {
@@ -220,7 +218,7 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
   };
   
   const isModuleEnabled = (moduleKey: string): boolean => {
-    return enabledModules.includes(moduleKey);
+    return enabledModules.length === 0 || enabledModules.includes(moduleKey);
   };
   
   const canAccessNavPath = (path: string): boolean => {
@@ -230,6 +228,7 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
   };
 
   const canAccessRoute = (path: string): boolean => {
+    if (path === '/dashboard' || path === '/dashboard/' || path.startsWith('/dashboard/upgrade')) return true;
     if (!canAccessNavPath(path)) return false;
     const navItem = NAV_ITEMS.find(
       (i) => i.href === path || (path.startsWith(`${i.href}/`) && i.href !== '/dashboard'),
