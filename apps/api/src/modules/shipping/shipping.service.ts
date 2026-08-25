@@ -351,4 +351,149 @@ export class ShippingService {
       })),
     };
   }
+
+  /**
+   * Termal Kargo Etiketi Oluşturucu (ZPL & HTML Formatı - 100x150mm)
+   */
+  async generateThermalLabel(
+    tenantId: string,
+    orderIdOrShipmentId: string,
+    format: 'zpl' | 'html' = 'html',
+  ) {
+    // Sipariş veya kargo kaydını bul
+    const order = await this.prisma.order.findFirst({
+      where: {
+        OR: [{ id: orderIdOrShipmentId }, { marketplaceOrderId: orderIdOrShipmentId }],
+        tenantId,
+      },
+      include: { items: true, tenant: { select: { name: true } } },
+    });
+
+    const shipment = await this.prisma.shipment.findFirst({
+      where: {
+        OR: [
+          { id: orderIdOrShipmentId },
+          { orderId: order?.id || orderIdOrShipmentId },
+        ],
+        tenantId,
+      },
+    });
+
+    const trackingNumber =
+      shipment?.trackingNumber ||
+      `TRK${Date.now().toString().slice(-9)}`;
+    const carrierName = shipment?.carrier || 'Yurtiçi Kargo';
+    const receiverName = order?.customerName || (shipment?.receiverAddress as any)?.name || 'Alıcı';
+    const receiverAddress =
+      typeof order?.shippingAddress === 'string'
+        ? order.shippingAddress
+        : (order?.shippingAddress as any)?.address || (shipment?.receiverAddress as any)?.address || 'Adres bilgisi';
+    const receiverCity =
+      (order?.shippingAddress as any)?.city || (shipment?.receiverAddress as any)?.city || 'Şehir';
+    const senderName = order?.tenant?.name || 'PazarYönetimi Mağazası';
+    const marketplaceOrderId = order?.marketplaceOrderId || order?.id || 'SIP-001';
+    const itemsSummary = order?.items
+      ? order.items.map((it) => `${it.title} (x${it.quantity})`).join(', ')
+      : 'Sipariş Paketi';
+
+    if (format === 'zpl') {
+      // Standart Zebra Programming Language (ZPL II) Şablonu
+      const zpl = `
+^XA
+^PW812
+^LL1218
+^PON
+^FO50,50^GB712,1118,4^FS
+^FO80,80^A0N,40,40^FD${senderName}^FS
+^FO80,130^A0N,25,25^FDPazaryeri: ${order?.platform || 'PAZARYERİ'}^FS
+^FO80,165^A0N,25,25^FDSipariş No: ${marketplaceOrderId}^FS
+^FO50,210^GB712,2,2^FS
+^FO80,230^A0N,30,30^FDKARGO: ${carrierName.toUpperCase()}^FS
+^FO80,280^BY3,3,100^BCN,100,Y,N,N^FD${trackingNumber}^FS
+^FO50,440^GB712,2,2^FS
+^FO80,460^A0N,25,25^FDALICI BİLGİLERİ:^FS
+^FO80,500^A0N,35,35^FD${receiverName}^FS
+^FO80,550^A0N,25,25^FD${receiverAddress.slice(0, 45)}^FS
+^FO80,585^A0N,25,25^FD${receiverAddress.slice(45, 90)}^FS
+^FO80,625^A0N,30,30^FD${receiverCity.toUpperCase()}^FS
+^FO50,680^GB712,2,2^FS
+^FO80,700^A0N,25,25^FDİÇERİK ÖZETİ:^FS
+^FO80,735^A0N,20,20^FD${itemsSummary.slice(0, 60)}^FS
+^FO500,900^BQN,2,6^FDQA,${trackingNumber}^FS
+^FO80,1100^A0N,20,20^FDPazarYonetimi.com Termal Kargo Sistemi^FS
+^XZ
+      `.trim();
+
+      return { format: 'zpl', data: zpl, trackingNumber };
+    }
+
+    // HTML / CSS Print Ready Template (100x150mm Termal Çıktı)
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Kargo Etiketi - ${trackingNumber}</title>
+  <style>
+    @page { size: 100mm 150mm; margin: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 12px; box-sizing: border-box; width: 100mm; height: 150mm; background: #fff; color: #000; }
+    .label-box { border: 2px solid #000; padding: 12px; height: 95%; display: flex; flex-direction: column; justify-content: space-between; border-radius: 4px; }
+    .header { border-bottom: 2px solid #000; padding-bottom: 8px; }
+    .sender { font-size: 14px; font-weight: bold; }
+    .meta { font-size: 11px; color: #333; margin-top: 4px; }
+    .barcode-section { text-align: center; padding: 12px 0; border-bottom: 2px solid #000; }
+    .carrier-badge { display: inline-block; background: #000; color: #fff; padding: 3px 8px; font-weight: bold; font-size: 13px; border-radius: 3px; margin-bottom: 6px; }
+    .barcode-text { font-family: monospace; font-size: 16px; font-weight: bold; letter-spacing: 2px; margin-top: 4px; }
+    .receiver { padding: 10px 0; border-bottom: 2px solid #000; }
+    .receiver-title { font-size: 10px; text-transform: uppercase; color: #666; font-weight: bold; }
+    .receiver-name { font-size: 15px; font-weight: bold; margin: 3px 0; }
+    .receiver-address { font-size: 12px; line-height: 1.3; }
+    .receiver-city { font-size: 14px; font-weight: bold; margin-top: 4px; }
+    .items { font-size: 10px; color: #444; padding-top: 6px; }
+    .footer { font-size: 9px; text-align: center; color: #888; }
+  </style>
+</head>
+<body onload="window.print()">
+  <div class="label-box">
+    <div class="header">
+      <div class="sender">${senderName}</div>
+      <div class="meta">${order?.platform || 'PAZARYERİ'} | Sipariş No: <strong>${marketplaceOrderId}</strong></div>
+    </div>
+    <div class="barcode-section">
+      <div class="carrier-badge">${carrierName.toUpperCase()}</div>
+      <div style="font-size: 32px; font-family: 'Libre Barcode 128', monospace; letter-spacing: 5px;">*${trackingNumber}*</div>
+      <div class="barcode-text">${trackingNumber}</div>
+    </div>
+    <div class="receiver">
+      <div class="receiver-title">Alıcı Bilgileri</div>
+      <div class="receiver-name">${receiverName}</div>
+      <div class="receiver-address">${receiverAddress}</div>
+      <div class="receiver-city">${receiverCity.toUpperCase()}</div>
+    </div>
+    <div class="items">
+      <strong>Paket İçeriği:</strong> ${itemsSummary}
+    </div>
+    <div class="footer">
+      PazarYönetimi Sıfır-Tık Kargo Otomasyonu
+    </div>
+  </div>
+</body>
+</html>
+    `.trim();
+
+    return { format: 'html', data: html, trackingNumber };
+  }
+
+  /**
+   * Toplu Kargo Etiketi Üretimi (Çoklu Sipariş)
+   */
+  async generateBulkThermalLabels(tenantId: string, orderIds: string[]) {
+    const labels = await Promise.all(
+      orderIds.map((id) => this.generateThermalLabel(tenantId, id, 'html')),
+    );
+    return {
+      count: labels.length,
+      labels,
+    };
+  }
 }

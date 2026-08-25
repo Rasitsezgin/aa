@@ -9,8 +9,7 @@ export type PlatformAdminUser = {
 
 export function isPlatformAdmin(user: PlatformAdminUser | null | undefined): boolean {
   if (!user?.type) return false;
-  if (user.type === 'SUPERADMIN') return true;
-  if (user.type === 'ADMIN' && !user.tenantId) return true;
+  if (user.type === 'SUPERADMIN' || user.type === 'ADMIN') return true;
   return false;
 }
 

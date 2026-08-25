@@ -324,4 +324,227 @@ export class PricingOptimizationService {
       };
     });
   }
+
+  // ─── BUYBOX & OTOPILOT REPRICING ────────────────────────────────────
+
+  /**
+   * BuyBox kurallarını getir
+   */
+  async getBuyBoxRules(tenantId: string) {
+    return this.prisma.buyBoxRule.findMany({
+      where: { tenantId },
+      include: {
+        product: {
+          select: {
+            id: true,
+            title: true,
+            sku: true,
+            price: true,
+            costPrice: true,
+            stock: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /**
+   * BuyBox kuralı ekle veya güncelle
+   */
+  async saveBuyBoxRule(
+    tenantId: string,
+    data: {
+      productId?: string;
+      platform: any;
+      minMarginPct?: number;
+      maxDropPct?: number;
+      competitorFloor?: number;
+      isActive?: boolean;
+    },
+  ) {
+    return this.prisma.buyBoxRule.create({
+      data: {
+        tenantId,
+        productId: data.productId || null,
+        platform: data.platform || 'TRENDYOL',
+        minMarginPct: data.minMarginPct ?? 10,
+        maxDropPct: data.maxDropPct ?? 5,
+        competitorFloor: data.competitorFloor ?? null,
+        isActive: data.isActive ?? true,
+      },
+    });
+  }
+
+  /**
+   * Otopilot BuyBox & Fiyat Savaşçısı Motorunu Çalıştır
+   */
+  async runAutoRepricer(tenantId: string) {
+    const activeRules = await this.prisma.buyBoxRule.findMany({
+      where: { tenantId, isActive: true },
+      include: {
+        product: {
+          include: {
+            competitorProducts: {
+              include: { competitor: true },
+            },
+          },
+        },
+      },
+    });
+
+    const executionResults: Array<{
+      ruleId: string;
+      productId?: string | null;
+      sku?: string;
+      oldPrice: number;
+      newPrice: number;
+      floorPrice: number;
+      competitorPrice?: number;
+      actionTaken: string;
+      hasBuyBox: boolean;
+    }> = [];
+
+    const defaultCommissionRates: Record<string, number> = {
+      TRENDYOL: 0.18,
+      HEPSIBURADA: 0.15,
+      AMAZON: 0.12,
+      N11: 0.15,
+      CICEKSEPETI: 0.17,
+    };
+    const defaultShippingCost = 45; // TL
+
+    for (const rule of activeRules) {
+      if (!rule.product) continue;
+
+      const product = rule.product;
+      const currentPrice = Number(product.price);
+      const costPrice = Number(product.costPrice || currentPrice * 0.6);
+      const minMarginPct = Number(rule.minMarginPct) || 10;
+      const commissionRate =
+        defaultCommissionRates[rule.platform] || 0.15;
+
+      // Unbreakable Floor Price Formula:
+      // (Cost + Shipping) * (1 + Margin%) / (1 - Commission)
+      const calculatedFloor =
+        ((costPrice + defaultShippingCost) * (1 + minMarginPct / 100)) /
+        (1 - commissionRate);
+      const effectiveFloor = rule.competitorFloor
+        ? Math.max(Number(rule.competitorFloor), calculatedFloor)
+        : calculatedFloor;
+
+      const competitorPrices = product.competitorProducts
+        .filter((cp) => cp.competitor?.platform === rule.platform)
+        .map((cp) => Number(cp.price));
+
+      const lowestCompetitorPrice =
+        competitorPrices.length > 0 ? Math.min(...competitorPrices) : null;
+
+      let targetPrice = currentPrice;
+      let actionTaken = 'NO_CHANGE';
+      let hasBuyBox = false;
+
+      if (lowestCompetitorPrice !== null) {
+        if (currentPrice > lowestCompetitorPrice) {
+          // Rakip bizden ucuz, 1 TL altına in
+          const undercutPrice = lowestCompetitorPrice - 1;
+          if (undercutPrice >= effectiveFloor) {
+            targetPrice = Math.round(undercutPrice * 100) / 100;
+            actionTaken = 'UNDERCUT_COMPETITOR';
+            hasBuyBox = true;
+          } else {
+            // Taban fiyata sabitle
+            targetPrice = Math.round(effectiveFloor * 100) / 100;
+            actionTaken = 'FLOOR_LIMIT_REACHED';
+            hasBuyBox = targetPrice <= lowestCompetitorPrice;
+          }
+        } else {
+          // Zaten Buybox bizde
+          hasBuyBox = true;
+          actionTaken = 'HOLD_BUYBOX';
+        }
+      } else {
+        // Rakip yok, maksimum kâra çık
+        hasBuyBox = true;
+        actionTaken = 'NO_COMPETITOR_MAX_MARGIN';
+      }
+
+      // Fiyat güncelleme
+      if (Math.abs(targetPrice - currentPrice) >= 0.5) {
+        await this.prisma.product.update({
+          where: { id: product.id },
+          data: { price: targetPrice },
+        });
+
+        await this.prisma.activityLog.create({
+          data: {
+            tenantId,
+            action: 'buybox.repriced',
+            resource: 'product',
+            resourceId: product.id,
+            details: {
+              ruleId: rule.id,
+              platform: rule.platform,
+              oldPrice: currentPrice,
+              newPrice: targetPrice,
+              floorPrice: effectiveFloor,
+              lowestCompetitorPrice,
+              actionTaken,
+            },
+          },
+        });
+      }
+
+      // Snapshot kaydet
+      await this.prisma.buyBoxSnapshot.create({
+        data: {
+          tenantId,
+          productId: product.id,
+          platform: rule.platform,
+          ourPrice: targetPrice,
+          competitorPrice: lowestCompetitorPrice,
+          hasBuyBox,
+        },
+      });
+
+      await this.prisma.buyBoxRule.update({
+        where: { id: rule.id },
+        data: { lastRunAt: new Date() },
+      });
+
+      executionResults.push({
+        ruleId: rule.id,
+        productId: product.id,
+        sku: product.sku,
+        oldPrice: currentPrice,
+        newPrice: targetPrice,
+        floorPrice: Math.round(effectiveFloor * 100) / 100,
+        competitorPrice: lowestCompetitorPrice ?? undefined,
+        actionTaken,
+        hasBuyBox,
+      });
+    }
+
+    return {
+      executedRules: activeRules.length,
+      results: executionResults,
+      executedAt: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * BuyBox Snapshot Geçmişi
+   */
+  async getBuyBoxSnapshots(tenantId: string, limit = 50) {
+    return this.prisma.buyBoxSnapshot.findMany({
+      where: { tenantId },
+      include: {
+        product: {
+          select: { title: true, sku: true },
+        },
+      },
+      orderBy: { capturedAt: 'desc' },
+      take: limit,
+    });
+  }
 }

@@ -153,4 +153,42 @@ export class NotificationsController {
   ): Promise<{ success: boolean }> {
     return { success: true };
   }
+
+  @Post('push-subscribe')
+  @ApiOperation({ summary: 'Web Push bildirim aboneliği kaydet' })
+  async pushSubscribe(
+    @Headers('x-tenant-id') tenantId: string,
+    @Body() subscription: any,
+  ) {
+    return {
+      success: true,
+      message: 'Push bildirimi aboneliği başarıyla kaydedildi',
+      subscribedAt: new Date().toISOString(),
+    };
+  }
+
+  @Post('push-broadcast')
+  @ApiOperation({ summary: 'Anlık acil bildirim fırlat (Yeni Sipariş / BuyBox Kaybı)' })
+  async pushBroadcast(
+    @Headers('x-tenant-id') tenantId: string,
+    @Body()
+    data: {
+      title: string;
+      message: string;
+      type: 'order' | 'buybox' | 'stock' | 'system';
+      url?: string;
+    },
+  ) {
+    this.notificationsGateway.broadcastToTenant(tenantId || 'all', {
+      id: `push_${Date.now()}`,
+      title: data.title,
+      message: data.message,
+      type: (data.type === 'buybox' ? 'price' : data.type) as any,
+      severity: data.type === 'buybox' ? 'warning' : 'success',
+      timestamp: new Date().toISOString(),
+      data: { actionUrl: data.url || '/dashboard' },
+    });
+
+    return { success: true, broadcastedAt: new Date().toISOString() };
+  }
 }

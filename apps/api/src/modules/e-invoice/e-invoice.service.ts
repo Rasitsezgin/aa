@@ -359,4 +359,69 @@ export class EInvoiceService {
 
     return `${prefix}${sequence.toString().padStart(9, '0')}`;
   }
+
+  /**
+   * Sıfır-Tık Otomatik Fatura Oluşturucu (Sipariş bazlı)
+   */
+  async autoGenerateInvoiceForOrder(tenantId: string, orderId: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, tenantId },
+      include: { items: true },
+    });
+
+    if (!order) {
+      throw new BadRequestException('Sipariş bulunamadı');
+    }
+
+    // Zaten kesilmiş fatura var mı?
+    const existing = await this.prisma.invoice.findFirst({
+      where: { orderId, tenantId, status: { not: 'CANCELLED' } },
+    });
+    if (existing) {
+      return existing;
+    }
+
+    const items =
+      order.items.length > 0
+        ? order.items.map((it) => ({
+            name: it.title || 'Ürün',
+            quantity: it.quantity,
+            unitPrice: Number(it.unitPrice),
+            unit: 'C62',
+            taxRate: 20,
+            discount: 0,
+          }))
+        : [
+            {
+              name: 'Sipariş Kalemi',
+              quantity: 1,
+              unitPrice: Number(order.totalAmount),
+              unit: 'C62',
+              taxRate: 20,
+              discount: 0,
+            },
+          ];
+
+    const customerTaxNumber = (order.shippingAddress as any)?.taxNumber || '11111111111';
+    const isCompany = customerTaxNumber.length === 10;
+
+    return this.createInvoice(tenantId, {
+      orderId: order.id,
+      type: isCompany ? 'COMMERCIAL' : 'INDIVIDUAL',
+      scenario: isCompany ? 'TICARIFATURA' : 'EARSIVFATURA',
+      buyer: {
+        title: order.customerName || 'Müşteri',
+        taxNumber: customerTaxNumber,
+        taxOffice: (order.shippingAddress as any)?.taxOffice,
+        address:
+          typeof order.shippingAddress === 'string'
+            ? order.shippingAddress
+            : (order.shippingAddress as any)?.address || 'Türkiye',
+        city: (order.shippingAddress as any)?.city || 'İstanbul',
+        email: order.customerEmail || 'noreply@pazaryonetimi.com',
+      },
+      items,
+      notes: `${order.platform} Siparişi - ${order.marketplaceOrderId || order.id}`,
+    });
+  }
 }

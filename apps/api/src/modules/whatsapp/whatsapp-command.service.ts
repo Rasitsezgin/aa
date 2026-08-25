@@ -139,14 +139,38 @@ export class WhatsappCommandService {
             },
           });
           if (product) {
-            return `📦 *Stok Durumu*:\n\nÜrün: ${product.title}\nSKU: ${product.sku}\nMevcut Stok: ${product.stock} adet.\nStatu: ${product.stock > 0 ? '✅ Satışta' : '🛑 Tükendi'}`;
+            return `📦 *Stok Durumu*:\n\nÜrün: ${product.title}\nSKU: ${product.sku}\nMevcut Stok: ${product.stock} adet.\nStatü: ${product.stock > 0 ? '✅ Satışta' : '🛑 Tükendi'}`;
           }
           return '❌ Ürün bulunamadı.';
 
+        case 'ORDER_TRACKING':
+          const orderSearch = params.orderId || params.customerName || params.phone || '';
+          const foundOrder = await this.prisma.order.findFirst({
+            where: {
+              tenantId,
+              OR: [
+                { marketplaceOrderId: { contains: orderSearch } },
+                { id: { contains: orderSearch } },
+                { customerName: { contains: orderSearch } },
+              ],
+            },
+            include: { items: true },
+            orderBy: { createdAt: 'desc' },
+          });
+
+          if (foundOrder) {
+            const trackingNum = (foundOrder as any).trackingNumber || 'Hazırlanıyor';
+            return `🚚 *Sipariş & Kargo Bilgisi*:\n\nSipariş No: *${foundOrder.marketplaceOrderId || foundOrder.id}*\nAlıcı: ${foundOrder.customerName}\nDurum: *${foundOrder.status.toUpperCase()}*\nPlatform: ${foundOrder.platform}\nKargo Takip: *${trackingNum}*\nToplam Tutar: ₺${foundOrder.totalAmount}\n\nPaketiniz özenle hazırlanıp en hızlı şekilde ulaştırılacaktır! 🙏`;
+          }
+          return '📦 Belirttiğiniz bilgilere ait bir sipariş bulunamadı. Lütfen sipariş numaranızı kontrol edip tekrar yazınız.';
+
+        case 'RETURN_DEFLECTION':
+          return `🤝 *Müşteri Memnuniyeti & Destek*:\n\nYaşadığınız olumsuzluk için çok üzgünüz. Ürünü iade etmek yerine değişim veya anında teknik destek almak isterseniz size yardımcı olmaktan mutluluk duyarız.\n\nİade sürecini başlatmak için pazaryeri siparişlerim sayfasından kolay iade kodu oluşturabilirsiniz.`;
+
         default:
-          return '🤖 Mesajınızı tam anlayamadım ama her zaman buradayım! Satış raporu isteyebilir veya fiyat güncelleyebilirsiniz.';
+          return '🤖 Mesajınızı aldım! Sipariş & kargo takibi ("Kargom nerede?"), stok sorgulama ("Stok durumu?") veya ciro raporu ("Günlük ciro?") yazarak anında bilgi alabilirsiniz.';
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Execution error: ${error.message}`);
       return '⚠️ Komut işlenirken bir hata oluştu. Lütfen tekrar deneyin.';
     }

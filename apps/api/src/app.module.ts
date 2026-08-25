@@ -70,6 +70,7 @@ import { CleanupService } from './common/services/cleanup.service';
 import { CacheService } from './common/cache.service';
 import { resolveRedisConnectionConfig } from './common/redis.config';
 import { AiBlogGeneratorModule } from './modules/ai-blog-generator/ai-blog-generator.module';
+import { XmlFeedsModule } from './modules/xml-feeds/xml-feeds.module';
 
 const schedulerEnabled = process.env.ENABLE_SCHEDULER === 'true';
 
@@ -162,6 +163,7 @@ function getBullConnection() {
     CommerceOpsModule,
     GrowthAiModule,
     AiBlogGeneratorModule,
+    XmlFeedsModule,
   ],
   controllers: [AppController],
   providers: [

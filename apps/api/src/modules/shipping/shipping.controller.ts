@@ -115,4 +115,30 @@ export class ShippingController {
   cancelShipment(@Req() req: any, @Param('id') id: string) {
     return this.shippingService.cancelShipment(req.user?.tenantId, id);
   }
+
+  /** Termal Kargo Etiketi Oluştur */
+  @Get('labels/:orderId')
+  generateLabel(
+    @Req() req: any,
+    @Param('orderId') orderId: string,
+    @Query('format') format?: 'zpl' | 'html',
+  ) {
+    return this.shippingService.generateThermalLabel(
+      req.user?.tenantId,
+      orderId,
+      format || 'html',
+    );
+  }
+
+  /** Toplu Termal Kargo Etiketi Üret */
+  @Post('labels/bulk')
+  generateBulkLabels(
+    @Req() req: any,
+    @Body() body: { orderIds: string[] },
+  ) {
+    return this.shippingService.generateBulkThermalLabels(
+      req.user?.tenantId,
+      body.orderIds || [],
+    );
+  }
 }

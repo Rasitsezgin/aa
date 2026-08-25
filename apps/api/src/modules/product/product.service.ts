@@ -6,9 +6,44 @@ export class ProductService {
   constructor(private prisma: PrismaService) {}
 
   async create(tenantId: string, data: any) {
+    const {
+      name,
+      title,
+      description,
+      sku,
+      barcode,
+      price,
+      costPrice,
+      stock,
+      category,
+      brand,
+      status,
+      tags,
+      weight,
+    } = data;
+
+    const resolvedTitle = title || name || 'İsimsiz Ürün';
+    const resolvedSku =
+      sku || `SKU-${Date.now().toString(36).toUpperCase()}`;
+    const resolvedPrice =
+      typeof price === 'number' ? price : parseFloat(price) || 0;
+    const resolvedStock =
+      typeof stock === 'number' ? stock : parseInt(stock, 10) || 0;
+
     return this.prisma.product.create({
       data: {
-        ...data,
+        title: resolvedTitle,
+        sku: resolvedSku,
+        barcode: barcode || null,
+        description: description || null,
+        price: resolvedPrice,
+        costPrice: costPrice ? Number(costPrice) : null,
+        stock: resolvedStock,
+        category: category || null,
+        brand: brand || null,
+        status: status || 'active',
+        tags: tags || undefined,
+        weight: weight ? Number(weight) : null,
         tenantId,
       },
     });

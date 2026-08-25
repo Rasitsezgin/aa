@@ -31,4 +31,9 @@ export class FinanceController {
   async getPendingPayments(@Query('tenantId') tenantId: string) {
     return this.financeService.getPendingPayments(tenantId);
   }
+
+  @Get('audit')
+  async auditHiddenFeesAndPenalties(@Query('tenantId') tenantId: string) {
+    return this.financeService.auditHiddenFeesAndPenalties(tenantId);
+  }
 }

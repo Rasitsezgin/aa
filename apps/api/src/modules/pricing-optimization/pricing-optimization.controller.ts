@@ -52,4 +52,45 @@ export class PricingOptimizationController {
   ) {
     return this.pricingService.applyBulkPriceChanges(dto.changes, dto.tenantId);
   }
+
+  @Get('buybox-rules')
+  @ApiOperation({ summary: 'BuyBox kurallarını listele' })
+  async getBuyBoxRules(@Query('tenantId') tenantId: string) {
+    return this.pricingService.getBuyBoxRules(tenantId);
+  }
+
+  @Post('buybox-rules')
+  @ApiOperation({ summary: 'BuyBox kuralı ekle / güncelle' })
+  async saveBuyBoxRule(
+    @Body()
+    dto: {
+      tenantId: string;
+      productId?: string;
+      platform: any;
+      minMarginPct?: number;
+      maxDropPct?: number;
+      competitorFloor?: number;
+      isActive?: boolean;
+    },
+  ) {
+    return this.pricingService.saveBuyBoxRule(dto.tenantId, dto);
+  }
+
+  @Post('buybox/run')
+  @ApiOperation({ summary: 'Otopilot BuyBox & Fiyatlama Motorunu Çalıştır' })
+  async runAutoRepricer(@Body() dto: { tenantId: string }) {
+    return this.pricingService.runAutoRepricer(dto.tenantId);
+  }
+
+  @Get('buybox-snapshots')
+  @ApiOperation({ summary: 'BuyBox snapshot geçmişi' })
+  async getBuyBoxSnapshots(
+    @Query('tenantId') tenantId: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.pricingService.getBuyBoxSnapshots(
+      tenantId,
+      limit ? parseInt(limit, 10) : 50,
+    );
+  }
 }

@@ -53,8 +53,9 @@ export default function AddProductModal({ isOpen, onClose }: AddProductModalProp
                 method: 'POST',
                 body: JSON.stringify({
                     ...formData,
-                    price: parseFloat(formData.price),
-                    stock: parseInt(formData.stock, 10),
+                    title: formData.name,
+                    price: parseFloat(formData.price) || 0,
+                    stock: parseInt(formData.stock, 10) || 0,
                     status: 'active'
                 })
             });

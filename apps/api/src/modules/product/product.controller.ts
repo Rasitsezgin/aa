@@ -154,7 +154,12 @@ export class ProductController {
 
   @Post()
   @RequirePermission(Permission.PRODUCT_CREATE)
-  async create(@Headers('x-tenant-id') tenantId: string, @Body() data: any) {
+  async create(
+    @Headers('x-tenant-id') headerTenantId: string,
+    @Req() req: any,
+    @Body() data: any,
+  ) {
+    const tenantId = headerTenantId || req.user?.tenantId;
     return this.productService.create(tenantId, data);
   }
 
@@ -163,10 +168,12 @@ export class ProductController {
   @CacheTTL(60000)
   @RequirePermission(Permission.PRODUCT_VIEW)
   async findAll(
-    @Headers('x-tenant-id') tenantId: string,
+    @Headers('x-tenant-id') headerTenantId: string,
+    @Req() req: any,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
+    const tenantId = headerTenantId || req.user?.tenantId;
     return this.productService.findAll(tenantId, {
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 20,
@@ -175,28 +182,34 @@ export class ProductController {
 
   @Get(':id')
   async findOne(
-    @Headers('x-tenant-id') tenantId: string,
+    @Headers('x-tenant-id') headerTenantId: string,
+    @Req() req: any,
     @Param('id') id: string,
   ) {
+    const tenantId = headerTenantId || req.user?.tenantId;
     return this.productService.findOne(tenantId, id);
   }
 
   @Put(':id')
   @RequirePermission(Permission.PRODUCT_EDIT)
   async update(
-    @Headers('x-tenant-id') tenantId: string,
+    @Headers('x-tenant-id') headerTenantId: string,
+    @Req() req: any,
     @Param('id') id: string,
     @Body() data: any,
   ) {
+    const tenantId = headerTenantId || req.user?.tenantId;
     return this.productService.update(tenantId, id, data);
   }
 
   @Delete(':id')
   @RequirePermission(Permission.PRODUCT_DELETE)
   async remove(
-    @Headers('x-tenant-id') tenantId: string,
+    @Headers('x-tenant-id') headerTenantId: string,
+    @Req() req: any,
     @Param('id') id: string,
   ) {
+    const tenantId = headerTenantId || req.user?.tenantId;
     return this.productService.remove(tenantId, id);
   }
 }

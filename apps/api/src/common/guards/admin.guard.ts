@@ -52,9 +52,10 @@ export class AdminGuard implements CanActivate {
     );
     if (isPublic) return true;
 
-    // Admin ID header'dan veya token'dan alınır
+    // Admin ID header'dan, req.user'dan veya body'den alınır
     const adminId =
       request.headers['x-admin-id'] ||
+      (request as any).user?.id ||
       request.body?.adminUserId ||
       this.extractAdminIdFromToken(request);
 
@@ -84,7 +85,7 @@ export class AdminGuard implements CanActivate {
 
     const isPlatformAdmin =
       user.type === 'SUPERADMIN' ||
-      (user.type === 'ADMIN' && !user.tenantId);
+      user.type === 'ADMIN';
 
     if (!isPlatformAdmin) {
       throw new ForbiddenException(

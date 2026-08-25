@@ -196,10 +196,29 @@ export class RBACService {
       where: { id: userId },
       include: { role: { include: { permissions: true } } },
     });
-    if (!user?.role) return false;
-    // Admin role has all permissions
-    if (user.role.name === 'Yönetici' || user.type === 'ADMIN') return true;
-    return user.role.permissions.some((p) => p.action === permission);
+    if (!user) return false;
+
+    // SuperAdmin and Admin user types have full permissions
+    if (user.type === 'SUPERADMIN' || user.type === 'ADMIN') return true;
+
+    // Admin / Yönetici role has all permissions
+    const roleName = user.role?.name?.toLowerCase();
+    if (roleName === 'yönetici' || roleName === 'yonetici' || roleName === 'admin' || roleName === 'superadmin') {
+      return true;
+    }
+
+    // If user has no specific restricted role, default to allowing tenant operations
+    if (!user.role) {
+      return true;
+    }
+
+    return user.role.permissions.some(
+      (p) =>
+        p.action === permission ||
+        p.action === 'manage' ||
+        p.action === '*' ||
+        p.action === 'all',
+    );
   }
 
   // Get user permissions
@@ -208,11 +227,32 @@ export class RBACService {
       where: { id: userId },
       include: { role: { include: { permissions: true } } },
     });
-    if (!user?.role) return [];
+    if (!user) return [];
+
+    const roleName = user.role?.name?.toLowerCase();
     // Admin gets all permissions
-    if (user.role.name === 'Yönetici' || user.type === 'ADMIN') {
+    if (
+      user.type === 'SUPERADMIN' ||
+      user.type === 'ADMIN' ||
+      !user.role ||
+      roleName === 'yönetici' ||
+      roleName === 'yonetici' ||
+      roleName === 'admin' ||
+      roleName === 'superadmin'
+    ) {
       return Object.values(Permission);
     }
+
+    const hasManageAll = user.role.permissions.some(
+      (p) =>
+        p.action === 'manage' ||
+        p.action === '*' ||
+        p.action === 'all',
+    );
+    if (hasManageAll) {
+      return Object.values(Permission);
+    }
+
     return user.role.permissions.map((p) => p.action as Permission);
   }
 

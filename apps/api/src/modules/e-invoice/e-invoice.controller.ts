@@ -76,4 +76,16 @@ export class EInvoiceController {
       dto,
     );
   }
+
+  /** Sıfır-tık otomatik fatura oluştur */
+  @Post('auto-generate/:orderId')
+  autoGenerate(
+    @Req() req: RequestWithUser,
+    @Param('orderId') orderId: string,
+  ) {
+    return this.eInvoiceService.autoGenerateInvoiceForOrder(
+      req.user?.tenantId || '',
+      orderId,
+    );
+  }
 }

@@ -23,12 +23,16 @@ export class PermissionsGuard implements CanActivate {
     );
     if (!required?.length) return true;
 
-    const request = context.switchToHttp().getRequest<Request & { user?: { id?: string } }>();
-    const userId = request.user?.id;
-    if (!userId) return true;
+    const request = context.switchToHttp().getRequest<Request & { user?: { id?: string; type?: string } }>();
+    const user = request.user;
+    if (!user?.id) return true;
+
+    if (user.type === 'SUPERADMIN' || user.type === 'ADMIN') {
+      return true;
+    }
 
     for (const permission of required) {
-      const allowed = await this.rbacService.hasPermission(userId, permission);
+      const allowed = await this.rbacService.hasPermission(user.id, permission);
       if (!allowed) {
         throw new ForbiddenException(`Bu işlem için yetkiniz yok (${permission})`);
       }
