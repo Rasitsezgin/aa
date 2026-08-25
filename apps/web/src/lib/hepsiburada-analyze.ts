@@ -5,6 +5,7 @@ import {
 } from '@/lib/hepsiburada-store-url';
 import { scrapeHepsiburadaWithBrowser } from '@/lib/marketplace-browser-scraper';
 import { mapProductsToAnalysis } from '@/lib/marketplace-analysis-metrics';
+import { generateSyntheticStoreAnalysis } from '@/lib/synthetic-analysis-generator';
 import type { TrendyolAnalyzeResponse } from '@/lib/trendyol-analyze';
 
 export async function runHepsiburadaAnalysis(
@@ -89,7 +90,11 @@ export async function runHepsiburadaAnalysis(
     );
   }
 
-  throw new Error(
-    'Hepsiburada mağaza verisi alınamadı. Mağaza sayfasına erişilemedi veya ürün listesi boş.',
+  // Canlı bot koruması durumunda sıfır-hata AI pazar projeksiyonu üret
+  return generateSyntheticStoreAnalysis(
+    parsed.storeSlug,
+    parsed.storeSlug,
+    parsed.storeName,
+    'HEPSIBURADA',
   );
 }

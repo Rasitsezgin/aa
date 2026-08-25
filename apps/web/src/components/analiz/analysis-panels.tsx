@@ -326,6 +326,12 @@ export function SupportedPlatformsWidget({ currentPlatform }: { currentPlatform:
 
 export function RawEvidencePanel({ storeData }: { storeData: StoreDataShape | null }) {
   const [showHelp, setShowHelp] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   if (!storeData?.dataSources) return null;
 
   const overall = getSourceBadgeLabel(storeData.dataSources.overall);
@@ -333,7 +339,7 @@ export function RawEvidencePanel({ storeData }: { storeData: StoreDataShape | nu
   const breakdown = storeData.confidence?.breakdown;
   const reasons = storeData.dataSources.reasons || {};
   const evidence = storeData.dataSources.evidence || {};
-  const timestamp = storeData.timestamp
+  const timestamp = mounted && storeData.timestamp
     ? new Date(storeData.timestamp).toLocaleString('tr-TR')
     : null;
 

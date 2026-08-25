@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Clock, Database, Info, Loader2, RefreshCw } from 'lucide-react';
 
 type Props = {
@@ -21,7 +22,13 @@ export function DataFreshnessBar({
   onRefresh,
   refreshing,
 }: Props) {
-  const formatted = analyzedAt
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const formatted = mounted && analyzedAt
     ? new Date(analyzedAt).toLocaleString('tr-TR')
     : null;
 
