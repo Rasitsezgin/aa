@@ -199,31 +199,41 @@ export function KPICard({
   return (
     <motion.div
       whileHover={{ y: -2, scale: 1.01 }}
-      className="dash-card p-4 lg:p-5 relative overflow-hidden group"
+      className="dash-card p-3.5 sm:p-4 lg:p-5 relative overflow-hidden group min-w-0"
     >
       <div className={`absolute -top-8 -right-8 w-24 h-24 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity ${glow}`} />
       {loading ? (
         <div className="flex items-center gap-2 py-6">
           <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
-          <span className="text-sm text-slate-500">Yükleniyor...</span>
+          <span className="text-xs sm:text-sm text-slate-500">Yükleniyor...</span>
         </div>
       ) : (
         <>
-          <div className="flex items-start justify-between mb-3 relative z-10">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${accent} bg-current/10 border border-current/15`}>
-              <Icon className={`w-5 h-5 ${accent}`} />
+          <div className="flex items-start justify-between mb-2.5 relative z-10 gap-1.5">
+            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 ${accent} bg-current/10 border border-current/15`}>
+              <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             {trend !== undefined && trend !== null && <TrendBadge value={trend} />}
           </div>
-          <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500 mb-1">{title}</p>
-          <p className="text-2xl font-semibold text-foreground tracking-tight tabular-nums">
-            {typeof value === 'number' ? <AnimatedNumber value={value} prefix={format === 'currency' ? '₺' : ''} decimals={format === 'percentage' ? 1 : 0} /> : '—'}
-            {format === 'currency' && typeof value !== 'number' && '₺0'}
-            {format === 'percentage' && typeof value === 'number' && '%'}
-            {format === 'number' && typeof value !== 'number' && '0'}
+          <p className="text-[10px] sm:text-[11px] font-medium uppercase tracking-wide text-slate-500 mb-1 truncate">{title}</p>
+          <p className="text-lg sm:text-2xl font-semibold text-foreground tracking-tight tabular-nums truncate">
+            {typeof value === 'number' ? (
+              <AnimatedNumber
+                value={value}
+                prefix={format === 'currency' ? '₺' : ''}
+                suffix={format === 'percentage' ? '%' : ''}
+                decimals={format === 'percentage' ? 1 : 0}
+              />
+            ) : format === 'currency' ? (
+              '₺0'
+            ) : format === 'percentage' ? (
+              '0%'
+            ) : (
+              '0'
+            )}
           </p>
           {sparkData && sparkData.length > 1 && (
-            <div className="mt-3 opacity-80">
+            <div className="mt-2.5 opacity-80 overflow-hidden">
               <Sparkline data={sparkData} />
             </div>
           )}

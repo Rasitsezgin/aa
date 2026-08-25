@@ -25,10 +25,28 @@ export const MorningBriefing = ({ onClose }: { onClose: () => void }) => {
                 const res = await fetch('/api/ai/briefing', {
                     headers: tenantId ? { 'x-tenant-id': tenantId } : {},
                 });
+                if (!res.ok) {
+                    setData({
+                        message: 'Pazar Yönetimi kontrol merkeziniz aktif. Siparişleriniz ve envanteriniz takip ediliyor.',
+                        stats: { revenue: 0, orders: 0, stockAlerts: 0 }
+                    });
+                    return;
+                }
+                const contentType = res.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    setData({
+                        message: 'Pazar Yönetimi kontrol merkeziniz aktif.',
+                        stats: { revenue: 0, orders: 0, stockAlerts: 0 }
+                    });
+                    return;
+                }
                 const briefing = await res.json();
                 setData(briefing);
             } catch (err) {
-                console.error("Briefing failed", err);
+                setData({
+                    message: 'Pazar Yönetimi kontrol merkeziniz aktif.',
+                    stats: { revenue: 0, orders: 0, stockAlerts: 0 }
+                });
             } finally {
                 setLoading(false);
             }
