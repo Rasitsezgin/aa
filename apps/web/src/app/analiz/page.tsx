@@ -742,13 +742,13 @@ const AIAdvisorCard = ({
                     <div className="flex-1 space-y-4">
                         <div className="flex flex-wrap items-center gap-3">
                             <h3 className="text-xl font-black text-slate-900 dark:text-white">
-                                Pazaryonetimi AI Danışman
+                                Pazar Liderliği & Mağaza Performans Raporu
                             </h3>
                             <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${loading
                                 ? 'bg-yellow-100 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-500/20'
                                 : 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-500/20'
                                 }`}>
-                                {loading ? '🔄 Analiz Ediliyor' : '✓ Çevrimiçi'}
+                                {loading ? '🔄 Analiz Ediliyor' : '✓ Tamamlandı'}
                             </span>
                         </div>
 
@@ -763,15 +763,15 @@ const AIAdvisorCard = ({
                                     &ldquo;{message}&rdquo;
                                 </p>
 
-                                {/* AI Model Badge */}
+                                {/* Engine Badge */}
                                 <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                                    <span className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10">
-                                        <Cpu size={12} className="text-orange-500" />
-                                        {aiModel}
+                                    <span className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 font-semibold">
+                                        <Award size={12} className="text-orange-500" />
+                                        Pazar Röntgeni & Doğrulanmış Skor
                                     </span>
                                     <span className="flex items-center gap-1.5">
                                         <Sparkles size={12} className="text-purple-500" />
-                                        {suggestions.length} öneri hazır
+                                        {suggestions.length} Stratejik Aksiyon Planı
                                     </span>
                                 </div>
 
@@ -785,8 +785,8 @@ const AIAdvisorCard = ({
                                             className="space-y-2 pt-4 border-t border-slate-200 dark:border-white/10"
                                         >
                                             <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                                                <Wand2 size={14} className="text-purple-500" />
-                                                AI Önerileri
+                                                <Target size={14} className="text-purple-500" />
+                                                Öncelikli Büyüme & Satış Artırma Adımları
                                             </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                                 {suggestions.map((suggestion, i) => (

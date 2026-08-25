@@ -85,6 +85,9 @@ export const NAV_ICONS: Record<string, LucideIcon> = {
   Star,
   Search,
   Layers,
+  FileCode: FileCode2,
+  FileCode2,
+  Plug: Zap,
 };
 
 export function resolveNavIcon(name: string): LucideIcon {
