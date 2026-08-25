@@ -66,9 +66,8 @@ RUN mkdir -p /home/nestjs/.puppeteer_data && chown -R nestjs:nodejs /home/nestjs
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/package-lock.json ./package-lock.json
 
-# Reuse builder's pruned node_modules (Nest HTTP driver lives in apps/api/node_modules)
+# Reuse builder's pruned node_modules
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 
 # Copy built artifacts (includes packages/database/dist + generated/client)
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
@@ -78,7 +77,7 @@ COPY --from=builder /app/packages/database ./packages/database
 RUN chown -R nestjs:nodejs /app
 
 USER nestjs
-ENV NODE_PATH=/app/node_modules:/app/apps/api/node_modules
+ENV NODE_PATH=/app/node_modules
 EXPOSE 3001
 
 # Start the application with an automatic database sync and seeding
