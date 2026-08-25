@@ -95,7 +95,7 @@ export const DynamicDashboard: React.FC<DynamicDashboardProps> = ({ period = '30
   return (
     <div className="space-y-6">
       {show('kpis') && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 lg:gap-4">
           <KPICard title="Toplam Ciro" value={stats?.totalRevenue} trend={comparison?.revenueChange ?? 0} icon={DollarSign} format="currency" sparkData={buildSparkSeries(stats?.totalRevenue || 0, comparison?.revenueChange ?? 0)} loading={statsLoading} />
           <KPICard title="Sipariş" value={stats?.totalOrders} trend={comparison?.ordersChange ?? 0} icon={ShoppingCart} sparkData={buildSparkSeries(stats?.totalOrders || 0, comparison?.ordersChange ?? 0)} loading={statsLoading} glow="bg-blue-500" accent="text-blue-500" />
           <KPICard title="Aktif Ürün" value={stats?.activeProducts} trend={comparison?.productsChange ?? 0} icon={Package} loading={statsLoading} glow="bg-violet-500" accent="text-violet-500" />

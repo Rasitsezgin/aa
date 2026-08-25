@@ -313,7 +313,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
                 {/* Content with Sidebar */}
                 <div className="flex flex-1 flex-col lg:flex-row min-h-0">
-                    <main id="main-content" role="main" aria-label="Ana içerik" className="dashboard-mobile-content flex-1 p-4 lg:p-8 overflow-x-hidden pb-40 lg:pb-8">
+                    <main id="main-content" role="main" aria-label="Ana içerik" className="dashboard-mobile-content flex-1 p-3.5 sm:p-4 lg:p-8 overflow-x-hidden pb-24 lg:pb-8">
                         <AnimatePresence mode="wait" initial={false}>
                             <motion.div
                                 key={pathname}
