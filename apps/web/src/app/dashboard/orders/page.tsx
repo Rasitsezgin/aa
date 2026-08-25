@@ -5,9 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     ShoppingBag,
     Search,
-    Filter,
     Download,
-    Eye,
     Truck,
     CheckCircle,
     Clock,
@@ -16,21 +14,18 @@ import {
     Package,
     RefreshCw,
     ChevronDown,
-    ArrowUpDown,
-    Calendar,
     MapPin,
     Phone,
     User,
     CreditCard,
-    MoreVertical,
     Printer,
-    MessageSquare,
     ExternalLink
 } from 'lucide-react';
 
-import { useOrders, Order, OrderItem } from '@/lib/hooks';
+import { useOrders, Order } from '@/lib/hooks';
 import { OrderPipeline } from '@/components/dashboard/OrderPipeline';
 import { useModules } from '@/lib/modules';
+import { getPlatformLogoByKey } from '@/lib/marketplace-assets';
 
 interface OrderPagination {
     total: number;
@@ -39,29 +34,35 @@ interface OrderPagination {
     pages: number;
 }
 
-// Platform badge colors and styles
-const platformStyles: Record<string, { bg: string; border: string; text: string; badgeBg: string }> = {
-    "TRENDYOL": { bg: "bg-orange-500/10", border: "border-orange-500/30", text: "text-orange-500", badgeBg: "bg-orange-500 text-white" },
-    "HEPSIBURADA": { bg: "bg-orange-600/10", border: "border-orange-600/30", text: "text-orange-600", badgeBg: "bg-orange-600 text-white" },
-    "N11": { bg: "bg-purple-600/10", border: "border-purple-600/30", text: "text-purple-600", badgeBg: "bg-purple-600 text-white" },
-    "AMAZON": { bg: "bg-amber-500/10", border: "border-amber-500/30", text: "text-amber-500", badgeBg: "bg-amber-500 text-slate-950" },
-    "PAZARAMA": { bg: "bg-blue-600/10", border: "border-blue-600/30", text: "text-blue-600", badgeBg: "bg-blue-600 text-white" },
-    "CICEKSEPETI": { bg: "bg-rose-500/10", border: "border-rose-500/30", text: "text-rose-500", badgeBg: "bg-rose-500 text-white" },
-    "PTTAVM": { bg: "bg-yellow-500/10", border: "border-yellow-500/30", text: "text-yellow-600", badgeBg: "bg-yellow-500 text-slate-900" },
-    "IDEFIX": { bg: "bg-indigo-600/10", border: "border-indigo-600/30", text: "text-indigo-600", badgeBg: "bg-indigo-600 text-white" },
-    "SHOPIFY": { bg: "bg-emerald-600/10", border: "border-emerald-600/30", text: "text-emerald-600", badgeBg: "bg-emerald-600 text-white" },
-    "WOOCOMMERCE": { bg: "bg-purple-500/10", border: "border-purple-500/30", text: "text-purple-500", badgeBg: "bg-purple-500 text-white" },
-    "OPENCART": { bg: "bg-cyan-600/10", border: "border-cyan-600/30", text: "text-cyan-600", badgeBg: "bg-cyan-600 text-white" }
-};
+const MARKETPLACE_LIST = [
+    { name: 'TRENDYOL', label: 'Trendyol' },
+    { name: 'HEPSIBURADA', label: 'Hepsiburada' },
+    { name: 'N11', label: 'n11' },
+    { name: 'AMAZON', label: 'Amazon' },
+    { name: 'PAZARAMA', label: 'Pazarama' },
+    { name: 'CICEKSEPETI', label: 'ÇiçekSepeti' },
+    { name: 'PTTAVM', label: 'PttAVM' },
+    { name: 'IDEFIX', label: 'Idefix' },
+    { name: 'SHOPIFY', label: 'Shopify' },
+    { name: 'WOOCOMMERCE', label: 'WooCommerce' },
+    { name: 'OPENCART', label: 'OpenCart' }
+];
 
-const statusFilters = ["Tümü", "PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED", "RETURNED"];
-const platformFilters = ["Tümü", "TRENDYOL", "HEPSIBURADA", "N11", "AMAZON", "PAZARAMA", "CICEKSEPETI", "PTTAVM", "IDEFIX", "SHOPIFY", "WOOCOMMERCE", "OPENCART"];
+const statusFilterOptions = [
+    { key: 'Tümü', label: 'Tüm Durumlar' },
+    { key: 'PENDING', label: 'Bekleyen' },
+    { key: 'CONFIRMED', label: 'Hazırlanıyor' },
+    { key: 'SHIPPED', label: 'Kargoda' },
+    { key: 'DELIVERED', label: 'Teslim Edildi' },
+    { key: 'CANCELLED', label: 'İptal' },
+    { key: 'RETURNED', label: 'İade' },
+];
 
 export default function OrdersPage() {
     const { getOrders, updateStatus, loading } = useOrders();
     const { orderPipeline } = useModules();
     const [orders, setOrders] = useState<Order[]>([]);
-    const [pagination, setPagination] = useState<OrderPagination | null>(null);
+    const [, setPagination] = useState<OrderPagination | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('Tümü');
     const [selectedPlatform, setSelectedPlatform] = useState('Tümü');
@@ -86,16 +87,14 @@ export default function OrdersPage() {
         fetchOrders();
     }, [searchTerm, selectedStatus, selectedPlatform, dateRange]);
 
-    // fetchOrders definition moved above
-
     const getStatusConfig = (status: string) => {
         const configs: Record<string, { label: string; color: string; icon: React.ReactNode; bgColor: string }> = {
-            PENDING: { label: 'Beklemede', color: 'text-yellow-500', icon: <Clock size={14} />, bgColor: 'bg-yellow-500/10 border-yellow-500/20' },
-            CONFIRMED: { label: 'Hazırlanıyor', color: 'text-blue-500', icon: <Package size={14} />, bgColor: 'bg-blue-500/10 border-blue-500/20' },
-            SHIPPED: { label: 'Kargoda', color: 'text-purple-500', icon: <Truck size={14} />, bgColor: 'bg-purple-500/10 border-purple-500/20' },
-            DELIVERED: { label: 'Teslim Edildi', color: 'text-green-500', icon: <CheckCircle size={14} />, bgColor: 'bg-green-500/10 border-green-500/20' },
-            CANCELLED: { label: 'İptal', color: 'text-red-500', icon: <XCircle size={14} />, bgColor: 'bg-red-500/10 border-red-500/20' },
-            RETURNED: { label: 'İade', color: 'text-orange-500', icon: <AlertTriangle size={14} />, bgColor: 'bg-orange-500/10 border-orange-500/20' }
+            PENDING: { label: 'Beklemede', color: 'text-amber-600 dark:text-amber-400', icon: <Clock size={13} />, bgColor: 'bg-amber-500/10 border-amber-500/20' },
+            CONFIRMED: { label: 'Hazırlanıyor', color: 'text-blue-600 dark:text-blue-400', icon: <Package size={13} />, bgColor: 'bg-blue-500/10 border-blue-500/20' },
+            SHIPPED: { label: 'Kargoda', color: 'text-violet-600 dark:text-violet-400', icon: <Truck size={13} />, bgColor: 'bg-violet-500/10 border-violet-500/20' },
+            DELIVERED: { label: 'Teslim Edildi', color: 'text-emerald-600 dark:text-emerald-400', icon: <CheckCircle size={13} />, bgColor: 'bg-emerald-500/10 border-emerald-500/20' },
+            CANCELLED: { label: 'İptal', color: 'text-rose-600 dark:text-rose-400', icon: <XCircle size={13} />, bgColor: 'bg-rose-500/10 border-rose-500/20' },
+            RETURNED: { label: 'İade', color: 'text-orange-600 dark:text-orange-400', icon: <AlertTriangle size={13} />, bgColor: 'bg-orange-500/10 border-orange-500/20' }
         };
         return configs[status] || configs.PENDING;
     };
@@ -105,10 +104,11 @@ export default function OrdersPage() {
         pending: orders.filter(o => o.status === 'PENDING').length,
         preparing: orders.filter(o => o.status === 'CONFIRMED').length,
         shipped: orders.filter(o => o.status === 'SHIPPED').length,
-        totalRevenue: orders.filter(o => o.status !== 'CANCELLED' && o.status !== 'RETURNED').reduce((sum, o) => sum + Number(o.totalAmount), 0)
+        totalRevenue: orders.filter(o => o.status !== 'CANCELLED' && o.status !== 'RETURNED').reduce((sum, o) => sum + Number(o.totalAmount || 0), 0)
     };
 
     const formatDate = (dateStr: string) => {
+        if (!dateStr) return '';
         const date = new Date(dateStr);
         return date.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
     };
@@ -125,243 +125,306 @@ export default function OrdersPage() {
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-20 max-w-full overflow-x-hidden">
+            {/* Durum Bazlı Akış Pipeline */}
             <OrderPipeline
                 orders={orders}
                 counts={orderPipeline}
                 loading={loading}
                 onStatusChange={handlePipelineStatus}
             />
-            {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+
+            {/* Header & Hızlı Aksiyonlar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-foreground tracking-tight">Sipariş Yönetimi</h1>
-                    <p className="text-slate-500 font-medium">Tüm pazaryerlerinden gelen siparişlerinizi yönetin</p>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">Sipariş Yönetimi</h1>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">Tüm pazaryerlerinden gelen siparişlerinizi tek ekrandan yönetin</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     <select
                         value={dateRange}
                         onChange={(e) => setDateRange(e.target.value)}
-                        className="bg-surface border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-foreground focus:outline-none focus:border-primary/50"
+                        className="bg-surface border border-border rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-foreground focus:outline-none focus:border-primary/50"
                     >
                         <option value="today">Bugün</option>
                         <option value="week">Bu Hafta</option>
                         <option value="month">Bu Ay</option>
-                        <option value="custom">Özel Tarih</option>
+                        <option value="custom">Tüm Zamanlar</option>
                     </select>
-                    <button className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-xl text-sm font-bold text-foreground hover:bg-surface/80 transition-all">
-                        <Download size={16} /> Rapor İndir
+                    <button className="flex items-center gap-1.5 px-3 py-2 bg-surface border border-border rounded-xl text-xs sm:text-sm font-semibold text-foreground hover:bg-surface/80 transition-all shadow-2xs">
+                        <Download size={15} /> Rapor İndir
                     </button>
-                    <button onClick={fetchOrders} className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-xl text-sm font-bold text-foreground hover:bg-surface/80 transition-all">
-                        <RefreshCw size={16} className={loading ? "animate-spin" : ""} /> Senkronize Et
+                    <button onClick={fetchOrders} className="flex items-center gap-1.5 px-3 py-2 bg-primary text-white rounded-xl text-xs sm:text-sm font-bold hover:bg-primary/90 transition-all shadow-xs">
+                        <RefreshCw size={15} className={loading ? "animate-spin" : ""} /> Senkronize Et
                     </button>
                 </div>
             </div>
 
-            {/* OzyConnect & PazarConnect Style Marketplace Ribbon Badges */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-11 gap-2.5">
-                {[
-                    { name: 'TRENDYOL', label: 'Trendyol', text: 'text-orange-500' },
-                    { name: 'HEPSIBURADA', label: 'Hepsiburada', text: 'text-orange-600' },
-                    { name: 'N11', label: 'n11', text: 'text-purple-600' },
-                    { name: 'AMAZON', label: 'Amazon', text: 'text-amber-500' },
-                    { name: 'SHOPIFY', label: 'Shopify', text: 'text-emerald-600' },
-                    { name: 'WOOCOMMERCE', label: 'WooCommerce', text: 'text-purple-500' },
-                    { name: 'OPENCART', label: 'OpenCart', text: 'text-cyan-600' },
-                    { name: 'PAZARAMA', label: 'Pazarama', text: 'text-blue-600' },
-                    { name: 'CICEKSEPETI', label: 'ÇiçekSepeti', text: 'text-rose-500' },
-                    { name: 'PTTAVM', label: 'PttAVM', text: 'text-yellow-600' },
-                    { name: 'IDEFIX', label: 'Idefix', text: 'text-indigo-600' }
-                ].map((m) => {
-                    const count = orders.filter(o => o.platform?.toUpperCase() === m.name).length;
-                    const isActive = selectedPlatform === m.name;
-                    return (
+            {/* Pazaryeri Şerit Rozetleri (Gerçek Pazaryeri Logoları & Tam Oturan Kutular) */}
+            <div>
+                <div className="flex items-center justify-between mb-2.5">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Pazaryerine Göre Filtrele</span>
+                    {selectedPlatform !== 'Tümü' && (
                         <button
-                            key={m.name}
-                            onClick={() => setSelectedPlatform(isActive ? 'Tümü' : m.name)}
-                            className={`p-3 rounded-2xl border transition-all text-left flex flex-col justify-between ${isActive ? 'bg-surface border-primary ring-2 ring-primary/20 shadow-md' : 'bg-surface/60 border-border hover:border-border/80'}`}
+                            onClick={() => setSelectedPlatform('Tümü')}
+                            className="text-xs font-semibold text-primary hover:underline"
                         >
-                            <div className="flex items-center justify-between">
-                                <span className={`text-xs font-black tracking-tight ${m.text}`}>{m.label}</span>
-                                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${count > 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
-                                    {count} sipariş
-                                </span>
-                            </div>
+                            Filtreyi Temizle (Tümü)
                         </button>
-                    );
-                })}
+                    )}
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 2xl:grid-cols-11 gap-2 sm:gap-2.5">
+                    {MARKETPLACE_LIST.map((m) => {
+                        const count = orders.filter(o => o.platform?.toUpperCase() === m.name).length;
+                        const isActive = selectedPlatform === m.name;
+                        const logoUrl = getPlatformLogoByKey(m.name);
+
+                        return (
+                            <button
+                                key={m.name}
+                                type="button"
+                                onClick={() => setSelectedPlatform(isActive ? 'Tümü' : m.name)}
+                                className={`group p-2.5 sm:p-3 rounded-xl border transition-all text-left flex items-center justify-between gap-2 min-w-0 shadow-2xs ${
+                                    isActive
+                                        ? 'bg-primary/10 border-primary ring-1 ring-primary/30 shadow-sm'
+                                        : 'bg-surface border-border hover:bg-surface/90 hover:border-border/90 hover:shadow-xs'
+                                }`}
+                            >
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <div className="w-6 h-6 rounded-md bg-white dark:bg-slate-800 p-0.5 border border-slate-100 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-2xs">
+                                        <img
+                                            src={logoUrl}
+                                            alt={m.label}
+                                            className="w-full h-full object-contain"
+                                            onError={(e) => {
+                                                (e.target as HTMLElement).style.display = 'none';
+                                            }}
+                                        />
+                                    </div>
+                                    <span className="text-xs font-bold text-foreground truncate">{m.label}</span>
+                                </div>
+                                <span className={`text-[11px] font-black px-1.5 py-0.5 rounded-full shrink-0 tabular-nums ${
+                                    count > 0 ? 'bg-primary/15 text-primary' : 'bg-slate-100 dark:bg-white/5 text-slate-400'
+                                }`}>
+                                    {count}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-surface p-5 rounded-2xl border border-border">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="p-2 rounded-xl bg-blue-500/10"><ShoppingBag size={18} className="text-blue-500" /></div>
+            {/* KPI İstatistik Kartları */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="dash-card p-4 sm:p-5 rounded-2xl">
+                    <div className="flex items-center justify-between mb-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/15 flex items-center justify-center text-blue-500">
+                            <ShoppingBag size={18} />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tümü</span>
                     </div>
-                    <div className="text-xl font-black text-foreground">{stats.total}</div>
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Toplam Sipariş</div>
+                    <div className="text-xl sm:text-2xl font-black text-foreground tabular-nums">{stats.total}</div>
+                    <div className="text-xs text-slate-500 font-semibold mt-0.5">Toplam Sipariş</div>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-surface p-5 rounded-2xl border border-border">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="p-2 rounded-xl bg-yellow-500/10"><Clock size={18} className="text-yellow-500" /></div>
+
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="dash-card p-4 sm:p-5 rounded-2xl">
+                    <div className="flex items-center justify-between mb-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/15 flex items-center justify-center text-amber-500">
+                            <Clock size={18} />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">Onay Bekliyor</span>
                     </div>
-                    <div className="text-xl font-black text-foreground">{stats.pending}</div>
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Bekleyen</div>
+                    <div className="text-xl sm:text-2xl font-black text-foreground tabular-nums">{stats.pending}</div>
+                    <div className="text-xs text-slate-500 font-semibold mt-0.5">Bekleyen Sipariş</div>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-surface p-5 rounded-2xl border border-border">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="p-2 rounded-xl bg-blue-500/10"><Package size={18} className="text-blue-500" /></div>
+
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="dash-card p-4 sm:p-5 rounded-2xl">
+                    <div className="flex items-center justify-between mb-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/15 flex items-center justify-center text-blue-500">
+                            <Package size={18} />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-blue-500">Paketleniyor</span>
                     </div>
-                    <div className="text-xl font-black text-foreground">{stats.preparing}</div>
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Hazırlanıyor</div>
+                    <div className="text-xl sm:text-2xl font-black text-foreground tabular-nums">{stats.preparing}</div>
+                    <div className="text-xs text-slate-500 font-semibold mt-0.5">Hazırlanan Sipariş</div>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-surface p-5 rounded-2xl border border-border">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="p-2 rounded-xl bg-purple-500/10"><Truck size={18} className="text-purple-500" /></div>
+
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="dash-card p-4 sm:p-5 rounded-2xl">
+                    <div className="flex items-center justify-between mb-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-violet-500/10 border border-violet-500/15 flex items-center justify-center text-violet-500">
+                            <Truck size={18} />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-violet-500">Yolda</span>
                     </div>
-                    <div className="text-xl font-black text-foreground">{stats.shipped}</div>
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Kargoda</div>
+                    <div className="text-xl sm:text-2xl font-black text-foreground tabular-nums">{stats.shipped}</div>
+                    <div className="text-xs text-slate-500 font-semibold mt-0.5">Kargodaki Sipariş</div>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="bg-surface p-5 rounded-2xl border border-border">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="p-2 rounded-xl bg-emerald-500/10"><CreditCard size={18} className="text-emerald-500" /></div>
+
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="dash-card p-4 sm:p-5 rounded-2xl col-span-2 sm:col-span-1">
+                    <div className="flex items-center justify-between mb-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/15 flex items-center justify-center text-emerald-500">
+                            <CreditCard size={18} />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">Net Ciro</span>
                     </div>
-                    <div className="text-xl font-black text-foreground">₺{stats.totalRevenue.toLocaleString('tr-TR')}</div>
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Toplam Ciro</div>
+                    <div className="text-xl sm:text-2xl font-black text-foreground tabular-nums">₺{stats.totalRevenue.toLocaleString('tr-TR')}</div>
+                    <div className="text-xs text-slate-500 font-semibold mt-0.5">Toplam Ciro</div>
                 </motion.div>
             </div>
 
-            {/* Bulk Action Bar (shows when orders are selected) */}
+            {/* Toplu İşlem Çubuğu */}
             {selectedOrders.length > 0 && (
                 <motion.div
-                    initial={{ opacity: 0, y: -10 }}
+                    initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-primary/10 border border-primary/20 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4"
+                    className="bg-primary/10 border border-primary/20 p-3.5 sm:p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xs"
                 >
                     <div className="flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-full bg-primary text-white font-black text-xs flex items-center justify-center">
+                        <span className="w-6 h-6 rounded-full bg-primary text-white font-black text-xs flex items-center justify-center">
                             {selectedOrders.length}
                         </span>
-                        <span className="text-sm font-bold text-foreground">sipariş seçildi</span>
+                        <span className="text-xs sm:text-sm font-bold text-foreground">sipariş seçildi</span>
                     </div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center gap-2 transition-all">
-                            <Printer size={14} /> Toplu GİB E-Fatura Kes
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <button className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs">
+                            <Printer size={13} /> Toplu GİB E-Fatura
                         </button>
-                        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black flex items-center gap-2 transition-all">
-                            <Package size={14} /> Toplu Kargo Etiketi Al
+                        <button className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs">
+                            <Package size={13} /> Kargo Etiketi
                         </button>
-                        <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-black flex items-center gap-2 transition-all">
-                            <Truck size={14} /> Kargoya Ver
+                        <button className="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs">
+                            <Truck size={13} /> Kargoya Ver
                         </button>
-                        <button onClick={() => setSelectedOrders([])} className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-foreground">
-                            Temizle
+                        <button onClick={() => setSelectedOrders([])} className="px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:text-foreground">
+                            Vazgeç
                         </button>
                     </div>
                 </motion.div>
             )}
 
-            {/* Filters */}
-            <div className="bg-surface p-4 rounded-2xl border border-border flex flex-wrap items-center gap-4">
-                <div className="flex-1 min-w-[300px] relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                    <input
-                        type="text"
-                        placeholder="Sipariş no veya müşteri ara..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary/50"
-                    />
+            {/* Arama & Durum Filtreleme */}
+            <div className="bg-surface p-3.5 sm:p-4 rounded-2xl border border-border space-y-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <div className="flex-1 relative min-w-0">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Sipariş no (#TY-...), müşteri adı veya adres ara..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:border-primary/60 transition-all"
+                        />
+                    </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    {platformFilters.map(p => (
+
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-1 border-t border-border/50">
+                    <span className="text-xs font-semibold text-slate-400 shrink-0 mr-1">Durum:</span>
+                    {statusFilterOptions.map(s => (
                         <button
-                            key={p}
-                            onClick={() => setSelectedPlatform(p)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedPlatform === p ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-background text-slate-500 hover:bg-background/80'}`}
+                            key={s.key}
+                            onClick={() => setSelectedStatus(s.key)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
+                                selectedStatus === s.key
+                                    ? 'bg-foreground text-background shadow-xs'
+                                    : 'bg-background text-slate-600 dark:text-slate-400 hover:bg-surface border border-border/80'
+                            }`}
                         >
-                            {p}
-                        </button>
-                    ))}
-                </div>
-                <div className="h-8 w-px bg-border" />
-                <div className="flex items-center gap-2">
-                    {statusFilters.map(s => (
-                        <button
-                            key={s}
-                            onClick={() => setSelectedStatus(s)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedStatus === s ? 'bg-foreground text-surface' : 'bg-background text-slate-500 hover:bg-background/80'}`}
-                        >
-                            {s === 'PENDING' ? 'Bekleyen' : s === 'CONFIRMED' ? 'Hazırlanan' : s === 'SHIPPED' ? 'Kargoda' : s === 'DELIVERED' ? 'Teslim' : s === 'CANCELLED' ? 'İptal' : s === 'RETURNED' ? 'İade' : 'Tümü'}
+                            {s.label}
                         </button>
                     ))}
                 </div>
             </div>
 
-            {/* Orders List */}
-            <div className="space-y-4">
+            {/* Siparişler Listesi */}
+            <div className="space-y-3">
                 {orders.map((order) => {
                     const statusConfig = getStatusConfig(order.status);
                     const isExpanded = expandedOrder === order.id;
+                    const logoUrl = getPlatformLogoByKey(order.platform);
 
                     return (
                         <motion.div
                             key={order.id}
                             layout
-                            className={`bg-surface border rounded-2xl overflow-hidden transition-all ${isExpanded ? 'border-primary/30 ring-1 ring-primary/10' : 'border-border hover:border-border/80'}`}
+                            className={`bg-surface border rounded-2xl overflow-hidden transition-all shadow-xs ${
+                                isExpanded ? 'border-primary/40 ring-1 ring-primary/20 shadow-sm' : 'border-border hover:border-border/90'
+                            }`}
                         >
-                            <div className="p-4 flex items-center gap-4 cursor-pointer" onClick={() => setExpandedOrder(isExpanded ? null : order.id)}>
-                                <div className="flex items-center gap-3 min-w-[140px]">
+                            <div
+                                className="p-3.5 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 cursor-pointer"
+                                onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
+                            >
+                                {/* Sol: Checkbox + Platform Logosu + Sipariş No */}
+                                <div className="flex items-center gap-3 min-w-0">
                                     <input
                                         type="checkbox"
                                         checked={selectedOrders.includes(order.id)}
                                         onChange={() => toggleOrderSelect(order.id)}
                                         onClick={(e) => e.stopPropagation()}
-                                        className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                                        className="w-4 h-4 rounded border-border text-primary focus:ring-primary shrink-0"
                                     />
-                                    <span className="text-sm font-black text-foreground tabular-nums">#{order.marketplaceOrderId}</span>
-                                </div>
-
-                                <div className="flex items-center gap-2 w-32">
-                                    <div className={`w-2 h-2 rounded-full ${platformColors[order.platform] || 'bg-slate-400'}`} />
-                                    <span className="text-xs font-bold text-slate-600">{order.platform}</span>
-                                </div>
-
-                                <div className="flex-1">
-                                    <div className="text-sm font-bold text-foreground">{order.customerName}</div>
-                                    <div className="text-[10px] text-slate-500 font-medium">{formatDate(order.orderDate)}</div>
-                                </div>
-
-                                <div className="w-40">
-                                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-tight ${statusConfig.bgColor} ${statusConfig.color}`}>
-                                        {statusConfig.icon}
-                                        {statusConfig.label}
+                                    <div className="w-7 h-7 rounded-lg bg-white dark:bg-slate-800 p-0.5 border border-slate-100 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-2xs">
+                                        <img
+                                            src={logoUrl}
+                                            alt={order.platform}
+                                            className="w-full h-full object-contain"
+                                            onError={(e) => {
+                                                (e.target as HTMLElement).style.display = 'none';
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <span className="text-xs sm:text-sm font-extrabold text-foreground tracking-tight tabular-nums block truncate">
+                                            #{order.marketplaceOrderId || order.id}
+                                        </span>
+                                        <span className="text-[10px] font-semibold text-slate-500">{order.platform}</span>
                                     </div>
                                 </div>
 
-                                <div className="w-32 text-right">
-                                    <div className="text-sm font-black text-foreground">₺{Number(order.totalAmount).toLocaleString('tr-TR')}</div>
-                                    <div className="text-[10px] text-slate-500 font-bold uppercase">{order.paymentStatus === 'PAID' ? 'ÖDENDİ' : 'BEKLİYOR'}</div>
+                                {/* Orta: Müşteri & Tarih */}
+                                <div className="min-w-0 flex-1 md:px-4">
+                                    <div className="text-xs sm:text-sm font-bold text-foreground truncate">{order.customerName}</div>
+                                    <div className="text-[10px] text-slate-500 font-medium">{formatDate(order.orderDate || (order as any).createdAt)}</div>
                                 </div>
 
-                                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                                    <button
-                                        title="Fatura Kes (GİB E-Arşiv)"
-                                        className="px-2.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border border-amber-500/30 rounded-xl text-xs font-black flex items-center gap-1 transition-all"
-                                    >
-                                        <Printer size={12} /> Fatura Kes
-                                    </button>
-                                    <button
-                                        title="Kargo Etiketi Al"
-                                        className="px-2.5 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 border border-blue-500/30 rounded-xl text-xs font-black flex items-center gap-1 transition-all"
-                                    >
-                                        <Truck size={12} /> Etiket
-                                    </button>
-                                </div>
+                                {/* Sağ: Durum + Tutar + Butonlar */}
+                                <div className="flex items-center justify-between md:justify-end gap-3 shrink-0">
+                                    <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[11px] font-bold ${statusConfig.bgColor} ${statusConfig.color}`}>
+                                        {statusConfig.icon}
+                                        <span>{statusConfig.label}</span>
+                                    </div>
 
-                                <ChevronDown size={20} className={`text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                                    <div className="text-right min-w-[80px]">
+                                        <div className="text-xs sm:text-sm font-black text-foreground tabular-nums">
+                                            ₺{Number(order.totalAmount || 0).toLocaleString('tr-TR')}
+                                        </div>
+                                        <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                            {order.paymentStatus === 'PAID' ? 'ÖDENDİ' : 'BEKLİYOR'}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                        <button
+                                            type="button"
+                                            title="Fatura Kes"
+                                            className="p-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border border-amber-500/20 rounded-lg text-xs font-bold transition-all"
+                                        >
+                                            <Printer size={13} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            title="Kargo Etiketi"
+                                            className="p-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 border border-blue-500/20 rounded-lg text-xs font-bold transition-all"
+                                        >
+                                            <Truck size={13} />
+                                        </button>
+                                    </div>
+
+                                    <ChevronDown size={18} className={`text-slate-400 transition-transform duration-200 shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                                </div>
                             </div>
 
+                            {/* Açılır Sipariş Detayı */}
                             <AnimatePresence>
                                 {isExpanded && (
                                     <motion.div
@@ -370,63 +433,70 @@ export default function OrdersPage() {
                                         exit={{ height: 0, opacity: 0 }}
                                         className="border-t border-border bg-background/50"
                                     >
-                                        <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-                                            <div className="lg:col-span-8 space-y-6">
-                                                <div className="space-y-4">
-                                                    <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest">Sipariş İçeriği</h4>
-                                                    <div className="bg-surface rounded-xl border border-border overflow-hidden">
-                                                        <table className="w-full text-sm">
-                                                            <thead className="bg-background/80 border-b border-border">
-                                                                <tr>
-                                                                    <th className="px-4 py-2 text-left text-[10px] font-black text-slate-500 uppercase">Ürün</th>
-                                                                    <th className="px-4 py-2 text-center text-[10px] font-black text-slate-500 uppercase">Adet</th>
-                                                                    <th className="px-4 py-2 text-right text-[10px] font-black text-slate-500 uppercase">Birim Fiyat</th>
-                                                                    <th className="px-4 py-2 text-right text-[10px] font-black text-slate-500 uppercase">Toplam</th>
+                                        <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+                                            <div className="lg:col-span-8 space-y-4">
+                                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sipariş İçeriği & Kalemleri</h4>
+                                                <div className="bg-surface rounded-xl border border-border overflow-hidden shadow-2xs">
+                                                    <table className="w-full text-xs sm:text-sm">
+                                                        <thead className="bg-background/80 border-b border-border text-[11px] font-bold text-slate-500 uppercase">
+                                                            <tr>
+                                                                <th className="px-4 py-2.5 text-left">Ürün Adı</th>
+                                                                <th className="px-3 py-2.5 text-center">Adet</th>
+                                                                <th className="px-3 py-2.5 text-right">Birim Fiyat</th>
+                                                                <th className="px-4 py-2.5 text-right">Toplam</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-border">
+                                                            {(order.items || []).map((item, i: number) => (
+                                                                <tr key={i} className="hover:bg-surface/50">
+                                                                    <td className="px-4 py-2.5 font-semibold text-foreground">{item.title}</td>
+                                                                    <td className="px-3 py-2.5 text-center tabular-nums">{item.quantity}</td>
+                                                                    <td className="px-3 py-2.5 text-right tabular-nums">₺{Number(item.unitPrice).toLocaleString('tr-TR')}</td>
+                                                                    <td className="px-4 py-2.5 text-right font-bold tabular-nums">₺{(item.quantity * Number(item.unitPrice)).toLocaleString('tr-TR')}</td>
                                                                 </tr>
-                                                            </thead>
-                                                            <tbody className="divide-y divide-border">
-                                                                {order.items?.map((item, i: number) => (
-                                                                    <tr key={i}>
-                                                                        <td className="px-4 py-3 font-bold text-foreground">{item.title}</td>
-                                                                        <td className="px-4 py-3 text-center tabular-nums">{item.quantity}</td>
-                                                                        <td className="px-4 py-3 text-right tabular-nums">₺{Number(item.unitPrice).toLocaleString()}</td>
-                                                                        <td className="px-4 py-3 text-right font-black tabular-nums">₺{(item.quantity * Number(item.unitPrice)).toLocaleString()}</td>
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
+                                                            ))}
+                                                            {(!order.items || order.items.length === 0) && (
+                                                                <tr>
+                                                                    <td colSpan={4} className="px-4 py-3 text-center text-slate-400">Ürün detayı bulunamadı</td>
+                                                                </tr>
+                                                            )}
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             </div>
 
-                                            <div className="lg:col-span-4 space-y-6 text-sm">
-                                                <div className="bg-surface p-4 rounded-xl border border-border space-y-4">
-                                                    <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest">Müşteri & Teslimat</h4>
-                                                    <div className="space-y-3">
-                                                        <div className="flex items-start gap-3">
-                                                            <User size={16} className="text-slate-400 mt-0.5" />
-                                                            <div>
+                                            <div className="lg:col-span-4 space-y-4">
+                                                <div className="bg-surface p-4 rounded-xl border border-border space-y-3 shadow-2xs">
+                                                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Teslimat & Müşteri</h4>
+                                                    <div className="space-y-2.5 text-xs">
+                                                        <div className="flex items-start gap-2">
+                                                            <User size={14} className="text-slate-400 mt-0.5 shrink-0" />
+                                                            <div className="min-w-0">
                                                                 <div className="font-bold text-foreground">{order.customerName}</div>
-                                                                <div className="text-xs text-slate-500">{order.customerEmail}</div>
+                                                                <div className="text-slate-500 truncate">{order.customerEmail}</div>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-start gap-3">
-                                                            <Phone size={16} className="text-slate-400 mt-0.5" />
-                                                            <div className="font-medium text-slate-600">{order.customerPhone || 'Bilgi yok'}</div>
+                                                        <div className="flex items-start gap-2">
+                                                            <Phone size={14} className="text-slate-400 mt-0.5 shrink-0" />
+                                                            <div className="text-slate-600 dark:text-slate-300 font-medium">
+                                                                {(order as any).customerPhone || '+90 (Bilgi yok)'}
+                                                            </div>
                                                         </div>
-                                                        <div className="flex items-start gap-3">
-                                                            <MapPin size={16} className="text-slate-400 mt-0.5" />
-                                                            <div className="text-xs text-slate-600 font-medium leading-relaxed">{order.shippingAddress}</div>
+                                                        <div className="flex items-start gap-2">
+                                                            <MapPin size={14} className="text-slate-400 mt-0.5 shrink-0" />
+                                                            <div className="text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                                                                {(order as any).shippingAddress || 'Adres bilgisi mevcut değil'}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <div className="flex gap-2">
-                                                    <button className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-primary text-white rounded-xl text-xs font-black shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
-                                                        <Printer size={14} /> Fatura Yazdır
+                                                    <button className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-primary text-white rounded-xl text-xs font-bold shadow-xs hover:bg-primary/90 transition-all">
+                                                        <Printer size={13} /> Fatura Yazdır
                                                     </button>
-                                                    <button className="px-4 py-2.5 bg-surface border border-border rounded-xl text-slate-600 hover:text-foreground transition-all">
-                                                        <MoreVertical size={14} />
+                                                    <button className="flex items-center justify-center gap-1.5 px-3 py-2 bg-surface border border-border rounded-xl text-xs font-bold text-slate-600 hover:text-foreground transition-all">
+                                                        <ExternalLink size={13} />
                                                     </button>
                                                 </div>
                                             </div>
@@ -439,12 +509,14 @@ export default function OrdersPage() {
                 })}
 
                 {orders.length === 0 && !loading && (
-                    <div className="p-20 text-center bg-surface border border-border border-dashed rounded-3xl">
-                        <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <ShoppingBag className="text-slate-400" size={32} />
+                    <div className="p-12 sm:p-16 text-center bg-surface border border-border border-dashed rounded-3xl">
+                        <div className="w-14 h-14 bg-slate-100 dark:bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                            <ShoppingBag className="text-slate-400" size={28} />
                         </div>
-                        <h3 className="text-lg font-black text-foreground">Sipariş Bulunamadı</h3>
-                        <p className="text-slate-500 font-medium max-w-xs mx-auto mt-2">Seçili kriterlere uygun herhangi bir siparişiniz bulunmamaktadır.</p>
+                        <h3 className="text-base sm:text-lg font-bold text-foreground">Sipariş Bulunamadı</h3>
+                        <p className="text-xs sm:text-sm text-slate-500 font-medium max-w-xs mx-auto mt-1">
+                            Seçili filtre kriterlerine uygun herhangi bir sipariş bulunamadı.
+                        </p>
                     </div>
                 )}
             </div>
