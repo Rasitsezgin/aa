@@ -1,0 +1,108 @@
+[B][SIZE="5"][COLOR="Green"]🎁 [AÇIK KAYNAK / ÜCRETSİZ DAĞITIM] Çoklu Pazaryeri E-Ticaret SaaS Platformumuz (Trendyol + Hepsiburada + Amazon + N11 + Chrome Extension) Tamamen Ücretsiz! + pazaryonetimi.com Alan Adı Bir Girişimciye Hediye![/COLOR][/SIZE][/B]
+
+[HR][/HR]
+
+[B]Değerli R10 Ailesi, Sevgili Meslektaşlarım Merhaba,[/B]
+
+Aylardır ekibimizle üzerinde büyük bir emek ve titizlikle çalıştığımız, Türkiye'nin ve dünyanın önde gelen e-ticaret pazaryerlerini tek bir panelden yöneten, yapay zeka destekli devasa SaaS platformumuz [B]Pazaryonetimi.com[/B]'un tüm kaynak kodlarını topluluğumuza [B]tamamen ücretsiz ve açık kaynak[/B] olarak armağan ediyoruz.
+
+[B][SIZE="4"]Neden Ücretsiz Veriyoruz?[/SIZE][/B]
+Dürüst olmak gerekirse: Asıl işimiz olan kurumsal ERP, WMS ve B2B otomasyon projelerimizin yoğunluğu nedeniyle bu devasa e-ticaret altyapısına hak ettiği pazarlama, operasyon ve zaman yatırımını yapamaz hale geldik. Aylarca verilen emeğin, 50'den fazla backend modülünün, modern Next.js 15 arayüzünün ve özel Chrome eklentisinin disklerimizde öylece durmasına gönlümüz el vermedi.
+
+İstiyoruz ki R10'dan bir arkadaşımız, genç bir yazılımcı veya kendi SaaS girişimini kurmak isteyen bir meslektaşımız bu projeyi alsın; ister kendi e-ticaret operasyonlarında kullansın, ister pazaryeri entegrasyonu hizmeti vererek hemen para kazanmaya başlasın, isterse inceleyip portföyüne değer katsın.
+
+Üstelik sadece kodları vermekle kalmıyoruz; projenin jenerik ve çok kıymetli olan orijinal alan adı [B]pazaryonetimi.com[/B]'u da bu projeyi gerçekten ayağa kaldırıp büyütecek [B]bir meslektaşımıza hiçbir ücret talep etmeden tamamen hediye edeceğiz.[/B]
+
+[HR][/HR]
+
+[B][SIZE="4"][COLOR="Blue"]🛡️ R10 "Ücretsiz Scriptler" Kategori Kuralları & Yasallık Beyanı[/COLOR][/SIZE][/B]
+• [B]%100 Özgün ve Yasal:[/B] Bu proje warez, nulled, çalıntı veya yabancı bir script kopyası [B]kesinlikle değildir[/B]. Tüm mimari, veritabanı şemaları, Chrome uzantısı, backend ve web arayüzleri sıfırdan bizim tarafımızdan TypeScript ile kodlanmıştır.
+• [B]Mevzuata Tam Uyum:[/B] T.C. kanun ve mevzuatlarına, genel ahlaka ve R10.net forum kurallarına %100 uygundur. İçerisinde hiçbir zararlı kod, gizli reklam, crypto-miner, shell veya lisans kısıtlaması yer almaz.
+• [B]Temiz Paket:[/B] Kodlar gereksiz build çöplerinden, devasa loglardan ve node_modules kalıntılarından arındırılmış; yalnızca 7.21 MB temiz monorepo kaynak kod olarak paketlenmiştir.
+
+[HR][/HR]
+
+[B][SIZE="4"][COLOR="Red"]🔗 Dosya Kaynak Bağlantıları ve VirüsTotal Sonuçları (Zorunlu)[/COLOR][/SIZE][/B]
+
+Forum kuralları gereği dosya kaynak bağlantısı ve güvenlik tarama detayları aşağıdadır:
+
+🌐 [B]Resmi Tanıtım ve Doğrudan İndirme Sayfası:[/B]  
+👉 [URL="https://erdemeroglu.com.tr/yazilimlar/pazaryonetimi"][B]https://erdemeroglu.com.tr/yazilimlar/pazaryonetimi[/B][/URL]  
+[I](Sayfadaki Google ile tek tıkla oturum açıp doğrudan yüksek hızlı CDN'den indirebilirsiniz.)[/I]
+
+📦 [B]Doğrudan Dosya Kaynak Bağlantısı (Alternatif Direkt İndirme):[/B]  
+👉 [URL="https://cdn.erdemeroglu.com.tr/downloads/pazaryonetimi/pazaryonetimi-full-open-source.zip"][B]https://cdn.erdemeroglu.com.tr/downloads/pazaryonetimi/pazaryonetimi-full-open-source.zip[/B][/URL]
+
+🐙 [B]GitHub Açık Kaynak Deposu:[/B]  
+👉 [URL="https://github.com/erogluerdem/pazaryonetimi"][B]https://github.com/erogluerdem/pazaryonetimi[/B][/URL]
+
+🛡️ [B]VirusTotal Tarama Sonucu:[/B]  
+👉 [URL="https://www.virustotal.com/gui/file/db0c1040ce10396318dc63f7d29d13c32379586ade2905789729f93d58ba83e6"][B]VirusTotal Raporunu Görüntülemek İçin Tıklayın[/B][/URL]
+• [B]Dosya Adı:[/B] pazaryonetimi-full-open-source.zip
+• [B]Dosya Boyutu:[/B] 7.21 MB (7.558.426 bytes)
+• [B]SHA-256 Özeti:[/B] [FONT="Courier New"]db0c1040ce10396318dc63f7d29d13c32379586ade2905789729f93d58ba83e6[/FONT]
+• [B]Tespit Durumu:[/B] 0 / 64 (Temiz - Clean)
+
+[HR][/HR]
+
+[B][SIZE="4"]🚀 Projede Neler Var? (Sıradan Bir Script Değil, Tam Kapsamlı Monorepo SaaS)[/SIZE][/B]
+
+Sistemi incelerken her katmanında kurumsal seviyede bir mühendislik göreceksiniz:
+
+1. 🛍️ [B]Çoklu Pazaryeri Entegrasyonu:[/B] Trendyol, Hepsiburada, Amazon (SP-API), N11 ve ÇiçekSepeti API köprüleri. Ürün yükleme, fiyat ve stok senkronizasyonu, sipariş yönetimi.
+2. 🤖 [B]AI Destekli Dinamik Fiyatlandırma (Buybox Robotu):[/B] Rakiplerin anlık fiyat hareketlerini takip ederek belirlediğiniz kar marjları çerçevesinde ürün fiyatlarınızı otomatik optimize eder.
+3. 📦 [B]Çoklu Depo & Akıllı Stok Yönetimi:[/B] Farklı fiziksel depoları ve pazaryeri stoklarını anlık senkronize tutar; hatalı / fazla satış riskini sıfırlar.
+4. ⚡ [B]Otomatik Sipariş & Kargo Barkodu:[/B] Tüm pazaryerlerinden gelen siparişleri tek ekranda toplar. Yurtiçi, Aras, MNG ve Sürat Kargo API'leri üzerinden otomatik kargo barkodu ve takip numarası üretir.
+5. 🧾 [B]E-Fatura & Muhasebe Entegrasyonu:[/B] GİB e-Arşiv, Paraşüt ve BizimHesap API köprüleriyle sipariş onaylandığı anda otomatik e-fatura kesme altyapısı.
+6. 🧩 [B]Chrome Uzantısı (Manifest V3):[/B] E-ticaret pazaryerlerinde gezerken tek tıkla rakip analizi, ürün verisi çekme ve anlık fiyat karşılaştırması sağlayan yayına hazır tarayıcı eklentisi.
+7. 🕷️ [B]Otomatik Web Scraping & Bot Altyapısı:[/B] Puppeteer ve BullMQ (Redis) kuyruk sistemiyle rakiplerin mağaza ürünlerini ve fiyatlarını arka planda otomatik tarayan scraping servisi.
+8. 👥 [B]Müşteri Segmentasyonu & RFM Analizi:[/B] Müşterilerin alışveriş sıklığı, harcama tutarı ve sadakat skorlarına göre RFM segmentasyonu.
+9. 🤝 [B]Affiliate & Komisyon Sistemi:[/B] Kendi satış ortaklığı (referral) ağınızı kurup komisyon dağıtabileceğiniz hazır pazarlama modülü.
+10. 📊 [B]Gelişmiş Raporlama & WhatsApp API:[/B] Zamanlanmış PDF/Excel ciro raporları ve müşterilere otomatik sipariş bildirimi gönderen WhatsApp Business API köprüsü.
+
+[HR][/HR]
+
+[B][SIZE="4"]💻 Teknoloji Mimarisi (Tech Stack)[/SIZE][/B]
+
+• [B]Monorepo:[/B] Turborepo
+• [B]Backend (API):[/B] NestJS 11.x, TypeScript, Prisma ORM, PostgreSQL 16, BullMQ (Redis), Puppeteer, Swagger
+• [B]Frontend (Web):[/B] Next.js 15.x (App Router), React 19, Tailwind CSS 4, TanStack Query, Zustand, Recharts, Fabric.js
+• [B]Chrome Extension:[/B] Vite, React, Chrome Manifest V3
+• [B]DevOps & Altyapı:[/B] Docker & Docker-Compose (Tek komutla tüm monorepo servisleri ayağa kalkar)
+
+[HR][/HR]
+
+[B][SIZE="4"][COLOR="Green"]🎁 pazaryonetimi.com Alan Adı Hediyesi Nasıl Olacak?[/COLOR][/SIZE][/B]
+
+Bu proje için tescil ettiğimiz son derece kıymetli jenerik [B]pazaryonetimi.com[/B] alan adını satmıyoruz; [B]gerçekten yayına alacak veya büyütecek bir meslektaşımıza hediye ediyoruz.[/B]
+
+[B]Süreç:[/B]
+1. Projeyi yukarıdaki linkten indirip kodları inceleyin.
+2. Bu konunun altına projeyi nasıl değerlendirmeyi düşündüğünüzü, en çok hangi modülünü beğendiğinizi veya kısa bir iyi niyet mesajınızı yazın.
+3. Konu açılışından sonra yorumları ve projeyi sahiplenmek isteyen arkadaşları inceleyip, bu projeyi en güzel şekilde yaşatacağına inandığımız bir meslektaşımıza [B]pazaryonetimi.com[/B] alan adını firması üzerinden hiçbir ücret almadan doğrudan devredeceğiz.
+4. Alan adını hediye ettiğimiz arkadaşımıza kurulum veya yayına alma sürecinde takıldığı bir yer olursa bizzat teknik destek de sağlayacağım.
+
+[HR][/HR]
+
+[B][SIZE="4"]🛠️ Kurulum Kolaylığı (Docker İle 2 Dakika)[/SIZE][/B]
+
+Paket içerisindeki [B]KURULUM_VE_TESEKKURLER.md[/B] dosyasında tüm ayrıntılar yer alıyor:
+
+[CODE]
+# 1. Ortam değişkenlerini hazırlayın
+cp .env.example .env
+
+# 2. Tek komutla tüm sistemi ayağa kaldırın
+docker-compose up -d --build
+[/CODE]
+Sistem yaklaşık 2 dakika içinde Web (localhost:3000), API (localhost:3001) ve Swagger Dokümantasyonunu (localhost:3001/api-docs) otomatik bağlayıp çalışır hale getirecektir.
+
+[HR][/HR]
+
+[B][SIZE="4"]💬 Son Söz[/SIZE][/B]
+
+Bu proje için yüzlerce saat harcandı. Umarım aranızdan birinin kendi e-ticaret SaaS yolculuğunu başlatmasına, portföyüne kurumsal bir değer katmasına veya güzel paralar kazanmasına vesile olur.
+
+Sorularınız veya takıldığınız bir nokta olursa bu konu altından memnuniyetle yardımcı olurum.
+
+Güle güle kullanmanız dileğiyle, herkese bol kazançlar ve iyi forumlar! 🚀
