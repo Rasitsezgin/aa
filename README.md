@@ -190,4 +190,4 @@ Bu proje **MIT Lisansı** ile lisanslanmıştır. Daha fazla bilgi için `LICENS
 
 **Made with ❤️ in Istanbul**
 
-[Web Sitesi](https://pazaryonetimi.com) | [Detaylı Proje Tanıtımı](https://erdemeroglu.com.tr/yazilimlar/pazaryonetimi) | [Destek](mailto:support@pazaryonetimi.com)
+[Web Sitesi](https://pazaryonetimi.com) | [Detaylı Proje Tanıtımı](https://erdemeroglu.com.tr/yazilimlar/pazaryonetimi) | [Destek](mailto:dev@erdemeroglu.com.tr)
