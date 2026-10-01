@@ -34,12 +34,13 @@ ARG NEXT_PUBLIC_API_URL
 ARG NEXTAUTH_URL
 ARG NEXTAUTH_SECRET
 ENV DATABASE_URL=$DATABASE_URL
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Generate Prisma client + build database package (dist/generated/client)
 RUN npm run db:generate --prefix . && npm run build --workspace=@pazaryonetimi/database
 
 # Build web (database + prisma already prepared above)
-ENV NODE_OPTIONS="--max-old-space-size=3072"
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN npm run build --workspace=@pazaryonetimi/web
 
 FROM base AS runner
@@ -49,7 +50,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-ENV NODE_OPTIONS="--max-old-space-size=3072"
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 
 # Create unprivileged user
 RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 nextjs

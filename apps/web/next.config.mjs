@@ -20,9 +20,11 @@ const nextConfig = {
     'pg',
     'bcryptjs',
   ],
+  productionBrowserSourceMaps: false,
   experimental: {
     // Package import optimization for better tree-shaking
     optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion'],
+    cpus: 1,
   },
   images: {
     formats: ['image/webp'],
@@ -107,4 +109,5 @@ const sentryConfig = {
   automaticVercelMonitors: true,
 };
 
-export default withSentryConfig(nextConfig, sentryConfig);
+const hasSentry = Boolean(process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN);
+export default hasSentry ? withSentryConfig(nextConfig, sentryConfig) : nextConfig;

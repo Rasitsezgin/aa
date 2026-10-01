@@ -44,7 +44,7 @@ COPY --from=pruner /app/out/full/ .
 RUN npm run db:generate && npm run build --workspace=@pazaryonetimi/database
 
 # Build API directly (database already built; turbo would re-run prisma generate)
-ENV NODE_OPTIONS="--max-old-space-size=3072"
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN npm run build --workspace=@pazaryonetimi/api
 
 FROM base AS runner
@@ -54,7 +54,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV PRISMA_CLIENT_ENGINE_TYPE="library"
 ENV NODE_ENV=production
-ENV NODE_OPTIONS="--max-old-space-size=3072"
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 
 WORKDIR /app
 
