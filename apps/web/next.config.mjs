@@ -21,10 +21,10 @@ const nextConfig = {
     'bcryptjs',
   ],
   productionBrowserSourceMaps: false,
+  turbopack: {},
   experimental: {
     // Package import optimization for better tree-shaking
     optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion'],
-    cpus: 1,
   },
   images: {
     formats: ['image/webp'],
