@@ -1,380 +1,193 @@
-# Pazaryonetimi.com
+# 🚀 Pazaryonetimi.com
 
-**AI-Native Multi-Marketplace E-Commerce Management Platform**
+**Yapay Zeka Destekli, Çoklu Pazaryeri ve E-Ticaret Yönetim Platformu**
 
 [![CI](https://github.com/erogluerdem/pazaryonetimi/actions/workflows/ci.yml/badge.svg)](https://github.com/erogluerdem/pazaryonetimi/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A comprehensive, AI-powered e-commerce management platform for Turkish and global marketplaces. Built with NestJS, Next.js, and modern web technologies.
+Pazaryonetimi.com, Türkiye ve globaldeki pazaryerleri için geliştirilmiş, kapsamlı ve yapay zeka gücüyle çalışan modern bir e-ticaret yönetim platformudur. En güncel web teknolojileri (NestJS, Next.js, Prisma, PostgreSQL) ile inşa edilmiş olup, e-ticaret süreçlerinizi tek bir merkezden, tam otomatik ve akıllı bir şekilde yönetmenizi sağlar.
 
-## 🚀 Features
+---
 
-- **Multi-Marketplace Integration**: Trendyol, Hepsiburada, Amazon, N11, ÇiçekSepeti, and more
-- **AI-Powered Pricing**: Dynamic price optimization based on competitor analysis
-- **Inventory Management**: Multi-warehouse stock tracking and synchronization
-- **Order Management**: Automated order processing and status updates
-- **Customer Segmentation**: RFM analysis and lifetime value calculation
-- **Affiliate System**: Referral program with commission tracking
-- **AI Content Optimization**: Product description and SEO optimization
-- **Reporting**: Scheduled reports with PDF/Excel export
-- **Chrome Extension**: In-browser product analysis and competitor tracking
-- **Web Scraping**: Automated competitor store and product data extraction
+## ✨ Öne Çıkan Özellikler
 
-## 🏗 Architecture
+- **🌍 Çoklu Pazaryeri Entegrasyonu:** Trendyol, Hepsiburada, Amazon, N11, ÇiçekSepeti ve daha fazlası tek panelde.
+- **🤖 Yapay Zeka Destekli Fiyatlandırma:** Rakiplerinizi analiz ederek kârınızı maksimize eden dinamik fiyat optimizasyonu.
+- **📦 Gelişmiş Envanter Yönetimi:** Çoklu depo desteği, gerçek zamanlı stok takibi ve tüm pazaryerlerinde anlık senkronizasyon.
+- **🔄 Akıllı Sipariş Yönetimi:** Siparişlerin otomatik olarak sisteme düşmesi, durum güncellemeleri ve kargo süreçlerinin takibi.
+- **👥 Müşteri Segmentasyonu:** RFM analizi ile müşteri davranışlarını anlama, yaşam boyu değer (LTV) hesaplama.
+- **🤝 Affiliate (Satış Ortaklığı) Sistemi:** Komisyon takibi ve referans programı altyapısı.
+- **✍️ Yapay Zeka İçerik Optimizasyonu:** Ürün açıklamalarının ve SEO metinlerinin tek tıkla otomatik oluşturulması.
+- **📊 Kapsamlı Raporlama:** Planlanmış, otomatik raporlar (PDF/Excel dışa aktarma seçenekleri ile).
+- **🌐 Özel Chrome Eklentisi:** Tarayıcı üzerinden doğrudan ürün analizi ve rakip takibi.
+- **🕷️ Web Scraping:** Rakiplerin mağaza ve ürün verilerini otomatik olarak toplayan gelişmiş bot altyapısı.
 
-This is a **Turborepo** monorepo with the following structure:
+---
 
-```
+## 🏗️ Mimari Yapı
+
+Bu proje, bir **Turborepo** monorepo mimarisi ile tasarlanmıştır.
+
+```text
 pazaryonetimi.com/
 ├── apps/
 │   ├── api/           # NestJS Backend API (Port 3001)
 │   ├── web/           # Next.js Frontend (Port 3000)
-│   └── extension/     # Chrome Extension (Vite + React)
+│   └── extension/     # Chrome Eklentisi (Vite + React)
 ├── packages/
-│   └── database/      # Prisma ORM & Database Schema
+│   └── database/      # Prisma ORM & Veritabanı Şemaları
 ├── docker-compose.yaml
 └── turbo.json
 ```
 
-### Tech Stack
+---
+
+## 🛠️ Kullanılan Teknolojiler
 
 **Backend (API)**
-- NestJS 11.x with TypeScript
-- Prisma ORM with PostgreSQL
-- BullMQ for job queues (Redis)
-- Puppeteer for web scraping
-- OpenAI & Google Generative AI integration
-- JWT Authentication with 2FA support
-- Swagger/OpenAPI documentation
+- **Framework:** NestJS 11.x & TypeScript
+- **Veritabanı:** PostgreSQL (Prisma ORM ile)
+- **Kuyruk Yönetimi:** BullMQ & Redis
+- **Bot/Scraping:** Puppeteer
+- **Yapay Zeka:** OpenAI & Google Generative AI entegrasyonları
+- **Güvenlik:** JWT tabanlı kimlik doğrulama & 2FA (İki Aşamalı Doğrulama) desteği
+- **Dokümantasyon:** Swagger/OpenAPI
 
 **Frontend (Web)**
-- Next.js 15.x with App Router
-- React 19.x
-- Tailwind CSS 4.x
-- TanStack Query for data fetching
-- Zustand for state management
-- Recharts for data visualization
-- Fabric.js for image editing
+- **Framework:** Next.js 15.x (App Router mimarisi)
+- **Kütüphane:** React 19.x
+- **Stil:** Tailwind CSS 4.x
+- **Veri Yönetimi:** TanStack Query & Zustand (State Management)
+- **Görselleştirme:** Recharts, Fabric.js (Görsel Düzenleme)
 
-**Extension**
-- Vite build tool
-- Chrome Manifest V3
-- Content scripts for marketplace integration
-- Background service worker
+**Chrome Eklentisi**
+- Vite & React
+- Chrome Manifest V3 standartları
 
-**Infrastructure**
+**Altyapı & DevOps**
 - Docker & Docker Compose
-- GitHub Actions CI/CD
-- Coolify deployment ready
-- Prometheus metrics
+- GitHub Actions ile CI/CD süreçleri
+- Coolify ile tek tıkla dağıtım (Deployment)
+- Prometheus ile sistem metrikleri takibi
 
-## 🚀 Quick Start
+---
 
-### Prerequisites
-- Node.js 20+
+## 🚀 Kurulum ve Başlangıç
+
+### Gereksinimler
+- Node.js 20 veya üzeri
 - PostgreSQL 16
 - Redis 7
-- npm 10+
+- npm 10 veya üzeri
 
-### Environment Setup
+### Adım Adım Kurulum
 
-1. Clone the repository:
+1. **Projeyi klonlayın:**
+   ```bash
+   git clone https://github.com/erogluerdem/pazaryonetimi.git
+   cd pazaryonetimi
+   ```
+
+2. **Bağımlılıkları yükleyin:**
+   ```bash
+   npm install
+   ```
+
+3. **Çevre (Environment) değişkenlerini ayarlayın:**
+   `.env.example` dosyasının adını `.env` olarak değiştirin ve kendi veritabanı bilgilerinizi girin.
+   ```bash
+   cp .env.example .env
+   ```
+
+4. **Prisma Client oluşturun:**
+   ```bash
+   npm run generate
+   ```
+
+5. **Geliştirme sunucularını başlatın:**
+   ```bash
+   npm run dev
+   ```
+
+**Sunucular başarıyla başlatıldığında:**
+- Web Arayüzü: `http://localhost:3000`
+- API Sunucusu: `http://localhost:3001`
+- API Dokümantasyonu (Swagger): `http://localhost:3001/api-docs`
+
+---
+
+## 🐳 Docker ile Hızlı Kurulum
+
+Projeyi hiç kurulum yapmadan direkt Docker üzerinden ayağa kaldırabilirsiniz:
+
 ```bash
-git clone https://github.com/erogluerdem/pazaryonetimi.git
-cd pazaryonetimi
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-4. Generate Prisma client:
-```bash
-npm run generate
-```
-
-5. Start development servers:
-```bash
-npm run dev
-```
-
-This will start:
-- API: http://localhost:3001
-- Web: http://localhost:3000
-- Swagger Docs: http://localhost:3001/api-docs
-
-### Docker Development
-
-```bash
-# Start all services
+# Tüm servisleri arka planda başlatır
 docker-compose up -d
 
-# View logs
+# Logları izlemek için:
 docker-compose logs -f api
 docker-compose logs -f web
 ```
 
-## 📁 Project Structure
+---
 
-### API Modules (50+)
+## 📁 Detaylı Proje Yapısı
 
-| Module | Description |
-|--------|-------------|
-| `auth` | JWT authentication with 2FA |
-| `marketplace` | Multi-platform integration bridges |
-| `products` | Product catalog management |
-| `orders` | Order processing and tracking |
-| `inventory` | Stock management |
-| `warehouse` | Multi-warehouse operations |
-| `pricing-optimization` | AI-powered dynamic pricing |
-| `customer-segmentation` | RFM analysis |
-| `market-intelligence` | Competitor analysis |
-| `scraping` | Web scraping service |
-| `ai` | AI content generation |
-| `scheduler` | Job queue management |
-| `reports` | Report generation |
-| `shipping` | Logistics integration |
-| `payments` | Payment processing (iyzico) |
-| `e-invoice` | E-fatura integration |
-| `webhooks` | Webhook management |
-| `affiliate` | Referral program |
-| `whatsapp` | WhatsApp Business API |
+### API Modülleri (50+ Modül)
+API tarafı mikroservis mimarisine benzer modüler bir yapıda kurgulanmıştır. Bazı kritik modüller:
+- `auth`: JWT ve 2FA destekli güvenli giriş.
+- `marketplace`: Tüm pazaryerleriyle haberleşen ana köprü.
+- `pricing-optimization`: Yapay zeka destekli fiyat motoru.
+- `inventory` & `warehouse`: Gelişmiş, çoklu depo stok yönetimi.
+- `ai`: Otomatik ürün açıklaması ve SEO oluşturucu.
+- `payments`: İyzico vb. ödeme altyapısı.
+- `e-invoice`: Otomatik e-fatura kesim işlemleri.
 
-### Key Files
+---
 
-```
-apps/api/src/
-├── main.ts              # API entry point
-├── worker.ts            # Background job processor
-├── app.module.ts        # Root module
-├── modules/             # Feature modules
-└── common/              # Guards, interceptors, filters
+## 📦 Canlıya Alma (Deployment)
 
-apps/web/src/
-├── app/                 # Next.js App Router
-│   ├── (landing)/      # Marketing pages
-│   ├── dashboard/      # App dashboard
-│   └── api/            # API routes
-├── components/          # React components
-├── hooks/              # Custom hooks
-└── lib/                # Utilities
-```
+Proje, **Coolify** üzerinde hızlıca yayınlanmak üzere optimize edilmiştir. 
+Detaylı kurulum için:
+1. Sunucunuza [Coolify](https://coolify.io) kurun.
+2. Bu GitHub reposunu Coolify üzerinden ekleyin.
+3. Çevre değişkenlerini (`.env.coolify.example` referansı ile) tanımlayın.
+4. `main` dalına push yaptığınız an otomatik CI/CD çalışır.
 
-## 🧪 Testing
-
-### API Tests
+Manuel Docker Deployment için:
 ```bash
-# Unit tests
-cd apps/api
-npm test
-
-# E2E tests
-npm run test:e2e
-
-# Coverage
-npm run test:cov
-```
-
-### Web Tests
-```bash
-cd apps/web
-npm test
-```
-
-## 📦 Deployment
-
-### Coolify Deployment
-1. Connect your GitHub repository to Coolify
-2. Set required environment variables (see `COOLIFY_ENV_CHECKLIST.md`)
-3. Deploy automatically on push to main
-
-### Manual Docker Deployment
-```bash
-# Build images
 docker-compose -f docker-compose.prod.yaml build
-
-# Deploy
 docker-compose -f docker-compose.prod.yaml up -d
 ```
 
-### Environment Variables
+---
 
-**API Required:**
-- `DATABASE_URL` - PostgreSQL connection string
-- `JWT_SECRET` - Secret for JWT signing
-- `ENCRYPTION_KEY` - Key for credential encryption
+## 📚 API Dokümantasyonu
 
-**Web Required:**
-- `NEXTAUTH_URL` - Application URL
-- `NEXTAUTH_SECRET` - NextAuth secret
-- `NEXT_PUBLIC_API_URL` - API base URL
+Sistemdeki tüm endpoint'leri ve istek detaylarını incelemek için Swagger kullanabilirsiniz:
+- **Yerel Geliştirme:** `http://localhost:3001/api-docs`
 
-See `.env.example` for full list.
+API token'ınızı, dokümantasyon sayfasındaki yetkilendirme (Authorize) alanına `Bearer <token>` formatında ekleyerek test yapabilirsiniz.
 
-## 🔧 Development Guidelines
+---
 
-### Adding a New API Module
-1. Create module folder: `apps/api/src/modules/my-module/`
-2. Generate NestJS module: `nest g module my-module`
-3. Create service and controller
-4. Add to `AppModule` imports
-5. Write unit tests: `my-module.service.spec.ts`
-6. Update Swagger tags in `main.ts`
+## 🤝 Katkıda Bulunma (Contributing)
 
-### Database Schema Changes
-1. Edit `packages/database/prisma/schema.prisma`
-2. Generate migration: `npx prisma migrate dev --name description`
-3. Update Prisma client: `npm run generate`
-4. Apply to database: `npm run db:deploy`
+Geliştirmelere destek olmak isterseniz:
+1. Repoyu fork'layın.
+2. Yeni bir dal (branch) oluşturun: `git checkout -b ozellik/yeni-fikir`
+3. Değişikliklerinizi commit'leyin: `git commit -m 'feat: Yeni fikir eklendi'`
+4. Dalınıza push yapın: `git push origin ozellik/yeni-fikir`
+5. Bir Pull Request (PR) açın.
 
-## 📚 API Documentation
+---
 
-API documentation is automatically generated with Swagger:
+## 📄 Lisans
 
-- Local: http://localhost:3001/api-docs
-- Production: https://api.pazaryonetimi.com/api-docs
-
-### Authentication
-
-API uses Bearer token authentication:
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-### Rate Limiting
-
-- 100 requests per minute per IP
-- Tenant-specific limits for authenticated endpoints
-
-## � Deployment
-
-### Coolify Deployment
-
-This project is optimized for [Coolify](https://coolify.io) deployment.
-
-#### 1. Prerequisites
-
-- A server with Docker support (Ubuntu 20.04+ recommended)
-- 16GB+ RAM recommended
-- Coolify installed on your server
-- GitHub repository connected
-
-#### 2. Environment Variables
-
-Copy `.env.coolify.example` to `.env.coolify` and configure:
-
-```bash
-cp .env.coolify.example .env.coolify
-# Edit with your values
-```
-
-Required variables:
-- `DATABASE_URL` - PostgreSQL connection string
-- `POSTGRES_PASSWORD` - Database password
-- `REDIS_PASSWORD` - Redis password
-- `NEXTAUTH_SECRET` - NextAuth.js secret (random 32+ chars)
-- `JWT_SECRET` - JWT signing secret
-- `NEXT_PUBLIC_API_URL` - Your API URL
-
-#### 3. Coolify Setup
-
-1. **Add Resource** → **Docker Compose**
-2. **Repository**: `https://github.com/erogluerdem/pazaryonetimi`
-3. **Branch**: `main`
-4. **Docker Compose File**: `docker-compose.yaml`
-5. Load environment variables from `.env.coolify`
-
-#### 4. Services
-
-| Service | Port | Description |
-|---------|------|-------------|
-| Web | 3000 | Next.js Frontend |
-| API | 3001 | NestJS Backend |
-| Worker | - | Background job processor |
-| Postgres | 5432 | PostgreSQL database |
-| Redis | 6379 | Redis cache & queues |
-
-#### 5. Automatic Deployments
-
-GitHub Actions automatically builds and pushes Docker images on every push to `main`. Coolify webhook triggers deployment.
-
-Required GitHub Secrets:
-- `COOLIFY_WEBHOOK_URL` - From Coolify resource settings
-- `COOLIFY_API_TOKEN` - From Coolify settings
-
-#### 6. Server Maintenance
-
-The project includes automatic cleanup:
-- **Daily at 03:00** - Full system cleanup
-- **Every 6 hours** - Light cache cleanup
-- **Weekly (Sunday)** - Docker image cleanup
-
-Manual cleanup via Admin API:
-```bash
-POST /api/admin/cleanup
-Body: { "mode": "light" | "full" | "docker" }
-```
-
-## �🛠 Troubleshooting
-
-### Common Issues
-
-**Prisma Client Generation Fails**
-```bash
-cd packages/database
-npx prisma generate
-```
-
-**Worker Not Processing Jobs**
-- Check Redis connection
-- Verify `ENABLE_SCHEDULER=true` is set
-- Check worker logs: `docker-compose logs worker`
-
-**Puppeteer Scraping Issues**
-- Ensure Chromium is installed
-- Check `PUPPETEER_EXECUTABLE_PATH` env var
-- For Docker: Chromium included in API image
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
-
-### Commit Convention
-- `feat:` New feature
-- `fix:` Bug fix
-- `docs:` Documentation changes
-- `test:` Adding tests
-- `refactor:` Code refactoring
-- `chore:` Maintenance tasks
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Team
-
-- **Erdem Eroğlu** - Founder & Lead Developer
-
-## 🙏 Acknowledgments
-
-- NestJS Team for the amazing framework
-- Next.js Team for the React framework
-- Prisma Team for the ORM
-- Turkish e-commerce community for feedback
+Bu proje **MIT Lisansı** ile lisanslanmıştır. Daha fazla bilgi için `LICENSE` dosyasına göz atabilirsiniz.
 
 ---
 
 **Made with ❤️ in Istanbul**
 
-[Website](https://pazaryonetimi.com) | [API Docs](https://api.pazaryonetimi.com/api-docs) | [Support](mailto:support@pazaryonetimi.com)
+[Web Sitesi](https://pazaryonetimi.com) | [Destek](mailto:support@pazaryonetimi.com)
