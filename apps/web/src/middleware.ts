@@ -160,53 +160,49 @@ export default async function middleware(req: NextRequest) {
         }
     }
 
-    // Define allowed domains (localhost for dev, your production domain)
-    // You might want to move these to env variables
-    const allowedDomains = [
-        "localhost:3000",
-        "localhost:3001",
-        "localhost:3002",
-        "localhost:3100",
-        "127.0.0.1:3000",
-        "127.0.0.1:3001",
-        "127.0.0.1:3002",
-        "127.0.0.1:3100",
-        "pazaryonetimi.com",
-    ];
-
     const isLocalHost = hostname?.startsWith('localhost') || hostname?.startsWith('127.0.0.1');
+    const isIpAddress = /^(\d{1,3}\.){3}\d{1,3}(:\d+)?$/.test(hostname || '');
+    const isDevDomain = hostname?.includes('sslip.io') || hostname?.includes('nip.io') || hostname?.includes('traefik') || hostname?.includes('local');
 
-    // Determine the current subdomain
-    // For production: tenant.pazaryonetimi.com -> subdomain is 'tenant'
-    // For local: tenant.localhost:3000 -> subdomain is 'tenant'
-    const currentHost =
-        process.env.NODE_ENV === "production"
-            ? hostname?.replace(`.pazaryonetimi.com`, "")
-            : hostname?.replace(/\.(localhost|192\.168):[0-9]+$/, "")?.replace(`.localhost`, "").replace(`.3000`, "").replace(`.3001`, "");
+    // Extract base domain from NEXTAUTH_URL if present
+    let configuredHost = '';
+    if (process.env.NEXTAUTH_URL) {
+        try {
+            configuredHost = new URL(process.env.NEXTAUTH_URL).hostname.toLowerCase();
+        } catch {
+            // keep empty
+        }
+    }
 
-    // If it's the main domain or localhost (no subdomain), rewrite to landing page or standard app
-    // But wait, our architecture plan says:
-    // - Root (pazaryonetimi.com) -> Landing Page
-    // - Subdomain (tenant.pazaryonetimi.com) -> Tenant Dashboard
-    // - App (app.pazaryonetimi.com) -> Maybe the unified login?
+    const rawHost = hostname?.split(':')[0]?.toLowerCase() || '';
 
-    // Let's assume:
-    // 1. pazaryonetimi.com (or localhost:3000) -> Landing Page
-    // 2. app.pazaryonetimi.com -> Unified Login / Admin
-    // 3. *.pazaryonetimi.com -> Tenant Site
+    // If accessing via IP, localhost, dev domain (sslip.io), or the configured host itself
+    const isMainHost =
+        isLocalHost ||
+        isIpAddress ||
+        isDevDomain ||
+        !rawHost ||
+        rawHost === 'pazaryonetimi.com' ||
+        rawHost === 'www.pazaryonetimi.com' ||
+        rawHost === 'app.pazaryonetimi.com' ||
+        rawHost === configuredHost ||
+        rawHost === ('www.' + configuredHost) ||
+        rawHost === ('app.' + configuredHost);
 
-    // Simplified for now:
-    // If subdomain exists and is NOT 'www' and NOT 'app', it's a tenant.
-    if (!isLocalHost && currentHost && !allowedDomains.includes(currentHost) && currentHost !== 'www' && currentHost !== 'app' && currentHost !== 'api') {
-        const searchParams = req.nextUrl.searchParams.toString();
-        // Rewrite to /_sites/[site]
-        const path = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""
-            }`;
+    // Only rewrite to /_sites if it is explicitly a tenant subdomain of pazaryonetimi.com or configuredHost
+    const baseDomain = configuredHost && configuredHost !== 'localhost' ? configuredHost : 'pazaryonetimi.com';
+    const isSubdomainOfBase = rawHost.endsWith('.' + baseDomain) && rawHost !== baseDomain && rawHost !== ('www.' + baseDomain) && rawHost !== ('app.' + baseDomain) && rawHost !== ('api.' + baseDomain);
 
-        const response = NextResponse.rewrite(
-            new URL(`/_sites/${currentHost}${path}`, req.url)
-        );
-        return addSecurityHeaders(response);
+    if (!isMainHost && isSubdomainOfBase) {
+        const tenant = rawHost.replace('.' + baseDomain, '');
+        if (tenant && tenant !== 'www' && tenant !== 'app' && tenant !== 'api' && tenant !== 'admin') {
+            const searchParams = req.nextUrl.searchParams.toString();
+            const path = url.pathname + (searchParams.length > 0 ? '?' + searchParams : '');
+            const response = NextResponse.rewrite(
+                new URL(`/_sites/${tenant}${path}`, req.url)
+            );
+            return addSecurityHeaders(response);
+        }
     }
 
     // If it's the main domain/app, just let Next.js handle it
