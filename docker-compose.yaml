@@ -23,8 +23,6 @@ services:
       dockerfile: apps/api/Dockerfile
       args:
         - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
-      args:
-        - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
       - REDIS_HOST=${REDIS_HOST:-redis}
@@ -56,11 +54,6 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-      args:
-        - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://api:3001}
-        - NEXTAUTH_URL=${NEXTAUTH_URL:-https://pazaryonetimi.com}
-        - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       args:
         - DATABASE_URL=${DATABASE_URL:-postgresql://pazaryonetimi:pazaryonetimi_secret@postgres:5432/pazaryonetimi}
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://api:3001}
@@ -101,7 +94,6 @@ services:
   worker:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
       dockerfile: apps/api/Dockerfile
     command: ["sh", "-c", "cd apps/api && node dist/apps/api/src/worker.js"]
     environment:
