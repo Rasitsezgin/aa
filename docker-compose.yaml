@@ -1,7 +1,6 @@
 services:
   postgres:
     image: postgres:16-alpine
-    platform: linux/arm64,linux/amd64
     environment:
       POSTGRES_USER: pazaryonetimi
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pazaryonetimi_secret}
@@ -81,7 +80,6 @@ services:
 
   redis:
     image: redis:alpine
-    platform: linux/arm64,linux/amd64
     ports:
       - "6379:6379"
     restart: always
