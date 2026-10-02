@@ -80,7 +80,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/bcryptjs ./node_modu
 
 RUN mkdir -p node_modules/@pazaryonetimi && \
     ln -sfn ../../packages/database node_modules/@pazaryonetimi/database && \
-    chown -h nextjs:nodejs node_modules/@pazaryonetimi/database
+    chown -h nextjs:nodejs node_modules/@pazaryonetimi/database && \
+    mkdir -p apps/web/.next/server/chunks && \
+    ln -sfn /app/packages/database/generated apps/web/.next/server/chunks/generated && \
+    ln -sfn /app/packages/database/generated apps/web/.next/server/generated && \
+    chown -h nextjs:nodejs apps/web/.next/server/chunks/generated apps/web/.next/server/generated
 
 USER nextjs
 EXPOSE 3000

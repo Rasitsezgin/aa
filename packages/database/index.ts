@@ -24,7 +24,27 @@ const createPrismaClient = (): PrismaClient => {
   }
 
   // Load Prisma runtime via Node require so Turbopack does not bundle generated/client.
-  const { PrismaClient: PrismaClientConstructor } = nodeRequire('./generated/client') as {
+  let prismaModulePath = './generated/client';
+  try {
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const candidates = [
+      path.resolve(process.cwd(), 'packages/database/generated/client'),
+      path.resolve(process.cwd(), '../../packages/database/generated/client'),
+      '/app/packages/database/generated/client',
+      path.resolve(__dirname, 'generated/client'),
+      path.resolve(__dirname, '../generated/client'),
+      path.resolve(__dirname, '../../packages/database/generated/client'),
+    ];
+    for (const c of candidates) {
+      if (fs.existsSync(c)) {
+        prismaModulePath = c;
+        break;
+      }
+    }
+  } catch {}
+
+  const { PrismaClient: PrismaClientConstructor } = nodeRequire(prismaModulePath) as {
     PrismaClient: new (args?: object) => PrismaClient
   }
   
