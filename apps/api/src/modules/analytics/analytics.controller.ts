@@ -105,6 +105,15 @@ export class AnalyticsController {
     return this.analyticsService.getAiSummary(id);
   }
 
+  @Get('predictions')
+  async getPredictions(
+    @Headers('x-tenant-id') tenantId: string,
+    @Query('tenantId') queryTenantId?: string,
+  ) {
+    const id = this.resolveTenantId(tenantId, queryTenantId);
+    return this.analyticsService.getPredictions(id);
+  }
+
   @Get('marketplace-health')
   async getMarketplaceHealth(
     @Headers('x-tenant-id') tenantId: string,

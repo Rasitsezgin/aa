@@ -50,7 +50,7 @@ export default function ApiUsagePage() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch('/api/admin/api-usage');
+      const res = await fetch('/api/admin/proxy/admin/api-usage');
       if (!res.ok) throw new Error('API kullanım verileri alınamadı');
       const usageData = await res.json();
       setData(usageData);
