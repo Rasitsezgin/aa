@@ -258,6 +258,22 @@ export class AdminController {
     });
   }
 
+  @Post('users')
+  async createUser(
+    @Body()
+    body: {
+      email: string;
+      password?: string;
+      firstName?: string;
+      lastName?: string;
+      type?: string;
+      tenantId?: string;
+      status?: string;
+    },
+  ) {
+    return this.adminService.createUser(body);
+  }
+
   @Get('users/:id')
   async getUserDetail(@Param('id') id: string) {
     return this.adminService.getUserDetail(id);
@@ -266,9 +282,35 @@ export class AdminController {
   @Put('users/:id')
   async updateUser(
     @Param('id') id: string,
-    @Body() body: { type?: string; firstName?: string; lastName?: string },
+    @Body()
+    body: {
+      type?: string;
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      password?: string;
+      tenantId?: string;
+      status?: string;
+    },
   ) {
     return this.adminService.updateUser(id, body);
+  }
+
+  @Patch('users/:id/role')
+  async updateUserRole(
+    @Param('id') id: string,
+    @Body('role') role?: string,
+    @Body('type') type?: string,
+  ) {
+    return this.adminService.updateUserRole(
+      id,
+      (role || type || 'USER') as string,
+    );
+  }
+
+  @Delete('users/:id')
+  async deleteUser(@Param('id') id: string) {
+    return this.adminService.deleteUser(id);
   }
 
   @Post('users/:id/lock')

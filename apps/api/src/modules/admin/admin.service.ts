@@ -4,8 +4,11 @@ import {
   Logger,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AdminService {
@@ -1010,14 +1013,115 @@ export class AdminService {
     return user;
   }
 
+  async createUser(data: {
+    email: string;
+    password?: string;
+    firstName?: string;
+    lastName?: string;
+    type?: string;
+    tenantId?: string;
+    status?: string;
+  }) {
+    if (!data.email) {
+      throw new BadRequestException('E-posta adresi gereklidir');
+    }
+    const cleanEmail = data.email.toLowerCase().trim();
+    const existing = await this.prisma.user.findUnique({
+      where: { email: cleanEmail },
+    });
+    if (existing) {
+      throw new ConflictException('Bu e-posta adresi zaten kullanımda');
+    }
+
+    const rawPassword =
+      data.password && data.password.trim().length >= 6
+        ? data.password.trim()
+        : 'Pazar123!';
+    const hashedPassword = await bcrypt.hash(rawPassword, 12);
+
+    let tenantId = data.tenantId;
+    if (!tenantId) {
+      const defaultTenant = await this.prisma.tenant.findFirst({
+        orderBy: { createdAt: 'asc' },
+      });
+      tenantId = defaultTenant?.id;
+    }
+
+    const validTypes = ['SUPERADMIN', 'ADMIN', 'USER'];
+    const userType = validTypes.includes(data.type?.toUpperCase() || '')
+      ? (data.type!.toUpperCase() as any)
+      : 'USER';
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: cleanEmail,
+        password: hashedPassword,
+        firstName: data.firstName?.trim() || null,
+        lastName: data.lastName?.trim() || null,
+        type: userType,
+        tenantId: tenantId || null,
+        status: data.status || 'active',
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        type: true,
+        tenantId: true,
+        tenant: { select: { name: true } },
+        status: true,
+        twoFactorEnabled: true,
+        createdAt: true,
+      },
+    });
+
+    await this.prisma.activityLog.create({
+      data: {
+        tenantId: tenantId || undefined,
+        action: 'admin.user.create',
+        resource: 'user',
+        resourceId: user.id,
+        details: { email: user.email, type: user.type },
+      },
+    });
+
+    return {
+      ...user,
+      name: [user.firstName, user.lastName].filter(Boolean).join(' ') || null,
+    };
+  }
+
   async updateUser(
     id: string,
-    data: { type?: string; firstName?: string; lastName?: string },
+    data: {
+      type?: string;
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      password?: string;
+      tenantId?: string;
+      status?: string;
+    },
   ) {
+    const userExists = await this.prisma.user.findUnique({ where: { id } });
+    if (!userExists) throw new NotFoundException('Kullanıcı bulunamadı');
+
     const updateData: any = {};
-    if (data.type) updateData.type = data.type;
-    if (data.firstName) updateData.firstName = data.firstName;
-    if (data.lastName) updateData.lastName = data.lastName;
+    if (data.type) {
+      const validTypes = ['SUPERADMIN', 'ADMIN', 'USER'];
+      if (validTypes.includes(data.type.toUpperCase())) {
+        updateData.type = data.type.toUpperCase() as any;
+      }
+    }
+    if (data.firstName !== undefined) updateData.firstName = data.firstName;
+    if (data.lastName !== undefined) updateData.lastName = data.lastName;
+    if (data.email) updateData.email = data.email.toLowerCase().trim();
+    if (data.tenantId !== undefined) updateData.tenantId = data.tenantId || null;
+    if (data.status) updateData.status = data.status;
+    if (data.password && data.password.trim().length >= 6) {
+      updateData.password = await bcrypt.hash(data.password.trim(), 12);
+    }
 
     const user = await this.prisma.user.update({
       where: { id },
@@ -1028,6 +1132,11 @@ export class AdminService {
         type: true,
         firstName: true,
         lastName: true,
+        tenantId: true,
+        tenant: { select: { name: true } },
+        status: true,
+        twoFactorEnabled: true,
+        createdAt: true,
       },
     });
 
@@ -1036,11 +1145,41 @@ export class AdminService {
         action: 'admin.user.update',
         resource: 'user',
         resourceId: id,
-        details: { changes: data },
+        details: {
+          changes: {
+            ...data,
+            password: data.password ? '***' : undefined,
+          },
+        },
       },
     });
 
-    return user;
+    return {
+      ...user,
+      name: [user.firstName, user.lastName].filter(Boolean).join(' ') || null,
+    };
+  }
+
+  async updateUserRole(id: string, roleOrType: string) {
+    return this.updateUser(id, { type: roleOrType });
+  }
+
+  async deleteUser(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('Kullanıcı bulunamadı');
+
+    await this.prisma.user.delete({ where: { id } });
+
+    await this.prisma.activityLog.create({
+      data: {
+        action: 'admin.user.delete',
+        resource: 'user',
+        resourceId: id,
+        details: { email: user.email },
+      },
+    });
+
+    return { success: true, message: 'Kullanıcı silindi' };
   }
 
   async lockUser(id: string) {

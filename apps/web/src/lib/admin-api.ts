@@ -52,8 +52,25 @@ export const adminApi = {
     return fetchAPI<any>(`admin/users?${qs}`);
   },
   getUserDetail: (id: string) => fetchAPI<any>(`admin/users/${id}`),
+  createUser: (data: {
+    email: string;
+    password?: string;
+    firstName?: string;
+    lastName?: string;
+    type?: string;
+    tenantId?: string;
+    status?: string;
+  }) =>
+    fetchAPI<any>('admin/users', { method: 'POST', body: JSON.stringify(data) }),
   updateUser: (id: string, data: any) =>
     fetchAPI<any>(`admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  updateUserRole: (id: string, type: string) =>
+    fetchAPI<any>(`admin/users/${id}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ type, role: type }),
+    }),
+  deleteUser: (id: string) =>
+    fetchAPI<any>(`admin/users/${id}`, { method: 'DELETE' }),
   lockUser: (id: string) =>
     fetchAPI<any>(`admin/users/${id}/lock`, { method: 'POST' }),
   unlockUser: (id: string) =>
