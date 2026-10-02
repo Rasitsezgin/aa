@@ -213,7 +213,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth(async () => {
             },
         },
         session: { strategy: "jwt" },
-        secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+        secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "pazaryonetimi_secret_session_key_32_characters_long_2026",
         trustHost: true,
     } as any
 })
